@@ -121,6 +121,16 @@ export const NAVIGATION: NavItem[] = [
     href: '/dashboard/insights',
     roles: ['FOUNDER', 'MARKETING'],
   },
+  {
+    name: 'Activity',
+    href: '/dashboard/activity',
+    roles: ['FOUNDER'],
+  },
+  {
+    name: 'Help & Support',
+    href: '/dashboard/help',
+    roles: ['FOUNDER', 'MARKETING', 'TEACHER'],
+  },
 ]
 
 // Check if user has permission

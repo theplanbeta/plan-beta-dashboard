@@ -149,11 +149,11 @@ export async function POST(
     // Audit log: Error
     await logError(
       AuditAction.API_ERROR,
-      `Failed to generate invoice for lead ${id}`,
+      `Failed to generate invoice for lead`,
       error as Error,
       {
         entityType: 'Lead',
-        entityId: id,
+        entityId: 'unknown',
         request: req,
       }
     )

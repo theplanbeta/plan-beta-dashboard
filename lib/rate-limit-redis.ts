@@ -31,10 +31,10 @@ async function getRedisClient() {
 
   try {
     // Dynamically import ioredis only if needed
-    const Redis = (await import('ioredis')).default
+    const Redis = (await import('ioredis' as any)).default
     redisClient = new Redis(process.env.REDIS_URL, {
       maxRetriesPerRequest: 3,
-      retryStrategy(times) {
+      retryStrategy(times: number) {
         if (times > 3) {
           console.warn('[Rate Limiter] Redis connection failed, falling back to memory store')
           useRedis = false

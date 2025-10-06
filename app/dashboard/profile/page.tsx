@@ -3,11 +3,6 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
 
 interface TeacherProfile {
   id: string
@@ -126,10 +121,10 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Card className="p-6">
+        <div className="bg-white rounded-lg shadow p-6">
           <p className="text-red-600">Failed to load profile</p>
           {error && <p className="text-sm text-gray-600 mt-2">{error}</p>}
-        </Card>
+        </div>
       </div>
     )
   }
@@ -153,79 +148,79 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <Card className="p-6">
+      <div className="bg-white rounded-lg shadow p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="name">Full Name *</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="name"
                   name="name"
                   type="text"
                   defaultValue={profile.name}
                   required
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="email">Email (read-only)</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email (read-only)</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1 bg-gray-50"
                   id="email"
                   type="email"
                   defaultValue={profile.email}
                   disabled
-                  className="mt-1 bg-gray-50"
                 />
               </div>
 
               <div>
-                <Label htmlFor="phone">Phone</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone">Phone</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="phone"
                   name="phone"
                   type="tel"
                   defaultValue={profile.phone || ''}
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="whatsapp">WhatsApp</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="whatsapp">WhatsApp</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="whatsapp"
                   name="whatsapp"
                   type="tel"
                   defaultValue={profile.whatsapp || ''}
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="preferredContact">Preferred Contact Method</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="preferredContact">Preferred Contact Method</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="preferredContact"
                   name="preferredContact"
                   type="text"
                   defaultValue={profile.preferredContact || ''}
                   placeholder="e.g., Email, Phone, WhatsApp"
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="hourlyRate">Hourly Rate (₹/€)</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="hourlyRate">Hourly Rate (₹/€)</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="hourlyRate"
                   name="hourlyRate"
                   type="number"
                   step="0.01"
                   min="0"
                   defaultValue={profile.hourlyRate || ''}
-                  className="mt-1"
                 />
               </div>
             </div>
@@ -236,74 +231,74 @@ export default function ProfilePage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Professional Information</h2>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="bio">Bio</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="bio"
                   name="bio"
                   rows={3}
                   defaultValue={profile.bio || ''}
                   placeholder="Brief introduction about yourself..."
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="qualifications">Qualifications</Label>
-                <Textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="qualifications">Qualifications</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="qualifications"
                   name="qualifications"
                   rows={3}
                   defaultValue={profile.qualifications || ''}
                   placeholder="Your degrees, certifications, etc."
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="experience">Experience</Label>
-                <Textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="experience">Experience</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="experience"
                   name="experience"
                   rows={3}
                   defaultValue={profile.experience || ''}
                   placeholder="Your teaching experience..."
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="specializations">Specializations</Label>
-                <Textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="specializations">Specializations</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="specializations"
                   name="specializations"
                   rows={2}
                   defaultValue={profile.specializations || ''}
                   placeholder="Grammar, Conversation, Business German, etc."
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="languages">Languages Spoken</Label>
-                <Input
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="languages">Languages Spoken</label>
+                <input
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="languages"
                   name="languages"
                   type="text"
                   defaultValue={profile.languages || ''}
                   placeholder="English, Hindi, German, etc."
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="availability">Availability</Label>
-                <Textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="availability">Availability</label>
+                <textarea
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
                   id="availability"
                   name="availability"
                   rows={3}
                   defaultValue={profile.availability || ''}
                   placeholder="Your available days/times..."
-                  className="mt-1"
                 />
               </div>
             </div>
@@ -311,19 +306,19 @@ export default function ProfilePage() {
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button
+            <button
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
               type="button"
-              variant="outline"
               onClick={() => router.push('/dashboard')}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={saving}>
+            </button>
+            <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90" type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+            </button>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }

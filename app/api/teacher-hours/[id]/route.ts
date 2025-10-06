@@ -123,7 +123,7 @@ export async function PATCH(
       const validation = approveHoursSchema.safeParse(body)
       if (!validation.success) {
         return NextResponse.json(
-          { error: 'Validation failed', details: validation.error.errors },
+          { error: 'Validation failed', details: validation.error.issues },
           { status: 400 }
         )
       }
@@ -204,7 +204,7 @@ export async function PATCH(
       const validation = markPaidSchema.safeParse(body)
       if (!validation.success) {
         return NextResponse.json(
-          { error: 'Validation failed', details: validation.error.errors },
+          { error: 'Validation failed', details: validation.error.issues },
           { status: 400 }
         )
       }
@@ -279,7 +279,7 @@ export async function PATCH(
       const validation = updateHoursSchema.safeParse(body)
       if (!validation.success) {
         return NextResponse.json(
-          { error: 'Validation failed', details: validation.error.errors },
+          { error: 'Validation failed', details: validation.error.issues },
           { status: 400 }
         )
       }
@@ -290,7 +290,7 @@ export async function PATCH(
       let totalAmount = existingEntry.totalAmount
       if (hoursWorked !== undefined || hourlyRate !== undefined) {
         const newHours = new Decimal(hoursWorked ?? existingEntry.hoursWorked.toString())
-        const newRate = new Decimal(hourlyRate ?? existingEntry.hourlyRate.toString())
+        const newRate = new Decimal(hourlyRate ?? existingEntry.hourlyRate?.toString() ?? '0')
         totalAmount = newHours.times(newRate)
       }
 

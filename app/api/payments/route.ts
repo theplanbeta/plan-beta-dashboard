@@ -13,9 +13,7 @@ const Decimal = Prisma.Decimal
 const createPaymentSchema = z.object({
   studentId: z.string().min(1, 'Student ID required'),
   amount: z.number().positive('Amount must be positive').max(100000, 'Amount exceeds maximum'),
-  method: z.enum(['CASH', 'BANK_TRANSFER', 'UPI', 'CARD', 'CHEQUE'], {
-    errorMap: () => ({ message: 'Invalid payment method' }),
-  }),
+  method: z.enum(['CASH', 'BANK_TRANSFER', 'UPI', 'CARD', 'OTHER']),
   paymentDate: z.string().datetime().optional(),
   status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED']).optional(),
   transactionId: z.string().optional(),
@@ -108,7 +106,7 @@ export async function POST(request: NextRequest) {
     const validation = createPaymentSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       )
     }

@@ -34,6 +34,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let conversionAttempt: any = null
   try {
     // Apply rate limiting
     const rateLimitResult = await limiter(req)
@@ -51,7 +52,7 @@ export async function POST(
     const validation = payAndConvertSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.errors },
+        { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
       )
     }
@@ -105,7 +106,6 @@ export async function POST(
     }
 
     // Create conversion attempt record (acts as distributed lock)
-    let conversionAttempt
     try {
       conversionAttempt = await prisma.conversionAttempt.create({
         data: {
@@ -207,7 +207,7 @@ export async function POST(
           email: invoice.lead!.email || null,
           enrollmentDate: new Date(),
           currentLevel: invoice.lead!.interestedLevel || 'NEW',
-          enrollmentType: enrollmentType || invoice.lead!.interestedType || 'A1_ONLY',
+          enrollmentType: (enrollmentType || invoice.lead!.interestedType || 'A1_ONLY') as any,
           batchId: batchId || invoice.lead!.batchId || null,
           originalPrice: finalPrice,
           discountApplied: 0,
@@ -366,15 +366,13 @@ export async function POST(
     // Critical error log - this is a high-value transaction failure
     await logCritical(
       AuditAction.API_ERROR,
-      `CRITICAL: Failed to convert lead to student for invoice ${id}`,
+      `CRITICAL: Failed to convert lead to student`,
       error as Error,
       {
         entityType: 'Invoice',
-        entityId: id,
+        entityId: 'unknown',
         metadata: {
-          attemptedPaidAmount: paidAmount,
-          batchId,
-          enrollmentType,
+          error: error instanceof Error ? error.message : String(error),
         },
         request: req,
       }

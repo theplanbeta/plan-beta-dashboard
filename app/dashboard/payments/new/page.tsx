@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 
+export const dynamic = 'force-dynamic'
 
 type Student = {
   id: string
@@ -17,7 +18,7 @@ type Student = {
   paymentStatus: string
 }
 
-export default function NewPaymentPage() {
+function NewPaymentForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const studentIdParam = searchParams.get("studentId")
@@ -328,5 +329,22 @@ export default function NewPaymentPage() {
         </div>
       </form>
     </div>
+  )
+}
+
+export default function NewPaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <NewPaymentForm />
+    </Suspense>
   )
 }

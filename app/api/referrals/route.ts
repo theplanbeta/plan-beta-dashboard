@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { z } from "zod"
+import { Prisma } from "@prisma/client"
+
+const Decimal = Prisma.Decimal
+
+// Validation schema for creating a referral
+const createReferralSchema = z.object({
+  referrerId: z.string().min(1, "Referrer ID required"),
+  refereeId: z.string().min(1, "Referee ID required"),
+  referralDate: z.string().optional(),
+  enrollmentDate: z.string().optional(),
+  payoutAmount: z.number().positive("Payout amount must be positive").max(100000, "Amount exceeds maximum").optional(),
+  notes: z.string().max(1000, "Notes too long").optional(),
+})
 
 // GET /api/referrals - List all referrals
 export async function GET(request: NextRequest) {
@@ -82,12 +96,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // Validate request body
+    const validation = createReferralSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const data = validation.data
+
     // Check if referral already exists
     const existingReferral = await prisma.referral.findUnique({
       where: {
         referrerId_refereeId: {
-          referrerId: body.referrerId,
-          refereeId: body.refereeId,
+          referrerId: data.referrerId,
+          refereeId: data.refereeId,
         },
       },
     })
@@ -99,15 +124,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create referral
+    // Create referral with Decimal for payout amount
+    const payoutAmount = new Decimal((data.payoutAmount || 2000).toString())
+
     const referral = await prisma.referral.create({
       data: {
-        referrerId: body.referrerId,
-        refereeId: body.refereeId,
-        referralDate: body.referralDate ? new Date(body.referralDate) : new Date(),
-        enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : null,
-        payoutAmount: body.payoutAmount || 2000,
-        notes: body.notes || null,
+        referrerId: data.referrerId,
+        refereeId: data.refereeId,
+        referralDate: data.referralDate ? new Date(data.referralDate) : new Date(),
+        enrollmentDate: data.enrollmentDate ? new Date(data.enrollmentDate) : null,
+        payoutAmount,
+        notes: data.notes || null,
       },
       include: {
         referrer: {

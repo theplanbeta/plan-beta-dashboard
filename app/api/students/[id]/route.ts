@@ -61,6 +61,34 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Check permissions - FOUNDER and MARKETING can update students
+    // TEACHER can only update students in their batches
+    if (session.user.role === "TEACHER") {
+      const { id } = await params
+
+      const student = await prisma.student.findUnique({
+        where: { id },
+        include: {
+          batch: {
+            select: {
+              teacherId: true,
+            },
+          },
+        },
+      })
+
+      if (!student) {
+        return NextResponse.json({ error: "Student not found" }, { status: 404 })
+      }
+
+      if (student.batch?.teacherId !== session.user.id) {
+        return NextResponse.json(
+          { error: "You can only update students in your batches" },
+          { status: 403 }
+        )
+      }
+    }
+
     const { id } = await params
 
     const body = await request.json()

@@ -11,6 +11,9 @@ const MONTHS = [
 export default function NewLeadPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [parsing, setParsing] = useState(false)
+  const [showSmartPaste, setShowSmartPaste] = useState(false)
+  const [pastedText, setPastedText] = useState("")
   const [formData, setFormData] = useState({
     name: "",
     whatsapp: "",
@@ -61,11 +64,116 @@ export default function NewLeadPage() {
     })
   }
 
+  const handleSmartParse = async () => {
+    if (!pastedText.trim()) {
+      alert("Please paste some text to parse")
+      return
+    }
+
+    setParsing(true)
+
+    try {
+      const res = await fetch("/api/leads/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: pastedText }),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        const parsed = result.data
+
+        // Update form with parsed data
+        setFormData({
+          ...formData,
+          name: parsed.name || formData.name,
+          whatsapp: parsed.whatsapp || formData.whatsapp,
+          email: parsed.email || formData.email,
+          source: parsed.source || formData.source,
+          interestedLevel: parsed.interestedLevel || formData.interestedLevel,
+          notes: parsed.notes ?
+            (formData.notes ? `${formData.notes}\n\n${parsed.notes}` : parsed.notes)
+            : formData.notes,
+        })
+
+        // Close the smart paste panel
+        setShowSmartPaste(false)
+        setPastedText("")
+
+        alert("✅ Lead data parsed successfully! Review and edit as needed before saving.")
+      } else {
+        const error = await res.json()
+        alert(error.error || "Failed to parse lead data")
+      }
+    } catch (error) {
+      console.error("Error parsing lead data:", error)
+      alert("Failed to parse lead data. Please try again.")
+    } finally {
+      setParsing(false)
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Add New Lead</h1>
         <p className="text-gray-500">Capture a new lead for conversion tracking</p>
+      </div>
+
+      {/* Smart Paste Feature */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-300 rounded-lg p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+              ✨ Smart Paste (AI-Powered)
+            </h3>
+            <p className="text-sm text-blue-700 mt-1">
+              Paste data from Instagram, WhatsApp, or any source - AI will auto-fill the form
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSmartPaste(!showSmartPaste)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+          >
+            {showSmartPaste ? "Hide" : "Try Smart Paste"}
+          </button>
+        </div>
+
+        {showSmartPaste && (
+          <div className="mt-4 space-y-3">
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste anything here... Examples:&#10;&#10;• Copy-paste from Instagram DM&#10;• WhatsApp message&#10;• Notes from phone call&#10;• Any unstructured text with lead info&#10;&#10;AI will extract: name, phone, email, source, interested level, and notes"
+              rows={8}
+              className="w-full px-4 py-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleSmartParse}
+                disabled={parsing || !pastedText.trim()}
+                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 font-medium"
+              >
+                {parsing ? "🤖 Parsing with AI..." : "🚀 Parse with AI"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPastedText("")
+                  setShowSmartPaste(false)
+                }}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+            <p className="text-xs text-blue-600">
+              💡 Tip: The more info you paste, the better AI can extract. It&apos;s smart enough to handle messy data!
+            </p>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">

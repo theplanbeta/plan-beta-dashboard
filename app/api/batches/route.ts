@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
+import { z } from "zod"
+import { Prisma } from "@prisma/client"
+
+const Decimal = Prisma.Decimal
+
+// Validation schema for creating a batch
+const createBatchSchema = z.object({
+  batchCode: z.string().min(3, "Batch code too short").max(50, "Batch code too long"),
+  level: z.enum(["A1", "A2", "B1", "B2"]),
+  teacherId: z.string().optional(),
+  totalSeats: z.number().int().positive("Total seats must be positive").max(100, "Too many seats"),
+  revenueTarget: z.number().min(0, "Revenue target cannot be negative").max(10000000, "Revenue target too high"),
+  teacherCost: z.number().min(0, "Teacher cost cannot be negative").max(1000000, "Teacher cost too high"),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  schedule: z.string().max(500, "Schedule too long").optional(),
+  status: z.enum(["PLANNING", "FILLING", "FULL", "RUNNING", "COMPLETED"]).optional(),
+  notes: z.string().max(1000, "Notes too long").optional(),
+})
 
 // GET /api/batches - List all batches
 export async function GET(request: NextRequest) {
@@ -78,23 +97,38 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // Validate request body
+    const validation = createBatchSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const data = validation.data
+
+    // Use Decimal for financial values
+    const revenueTarget = new Decimal(data.revenueTarget.toString())
+    const teacherCost = new Decimal(data.teacherCost.toString())
+
     const batch = await prisma.batch.create({
       data: {
-        batchCode: body.batchCode,
-        level: body.level,
-        teacherId: body.teacherId || null,
-        totalSeats: body.totalSeats,
+        batchCode: data.batchCode,
+        level: data.level,
+        teacherId: data.teacherId || null,
+        totalSeats: data.totalSeats,
         enrolledCount: 0,
         fillRate: 0,
-        revenueTarget: body.revenueTarget,
-        revenueActual: 0,
-        teacherCost: body.teacherCost,
-        profit: 0,
-        startDate: body.startDate ? new Date(body.startDate) : null,
-        endDate: body.endDate ? new Date(body.endDate) : null,
-        schedule: body.schedule || null,
-        status: body.status || "PLANNING",
-        notes: body.notes || null,
+        revenueTarget,
+        revenueActual: new Decimal(0),
+        teacherCost,
+        profit: new Decimal(0),
+        startDate: data.startDate ? new Date(data.startDate) : null,
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        schedule: data.schedule || null,
+        status: data.status || "PLANNING",
+        notes: data.notes || null,
       },
       include: {
         teacher: {

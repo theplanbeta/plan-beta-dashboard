@@ -1,0 +1,838 @@
+// This is your Prisma schema file for Plan Beta School Management System
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  FOUNDER
+  MARKETING
+  TEACHER
+}
+
+enum EnrollmentType {
+  A1_ONLY
+  FOUNDATION_A1_A2
+  CAREER_A1_A2_B1
+  COMPLETE_PATHWAY
+}
+
+enum Level {
+  NEW
+  A1
+  A2
+  B1
+  B2
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  PARTIAL
+  OVERDUE
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  UPI
+  CASH
+  CARD
+  OTHER
+}
+
+enum TransactionStatus {
+  COMPLETED
+  PENDING
+  FAILED
+  REFUNDED
+}
+
+enum ReferralSource {
+  META_ADS
+  INSTAGRAM
+  GOOGLE
+  ORGANIC
+  REFERRAL
+  OTHER
+}
+
+enum BatchStatus {
+  PLANNING
+  FILLING
+  FULL
+  RUNNING
+  COMPLETED
+  POSTPONED
+  CANCELLED
+}
+
+enum ChurnRisk {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
+enum CompletionStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  ON_HOLD
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  TRIAL_SCHEDULED
+  TRIAL_ATTENDED
+  CONVERTED
+  LOST
+}
+
+enum LeadQuality {
+  HOT
+  WARM
+  COLD
+}
+
+// ==========================================
+// USER MANAGEMENT
+// ==========================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // Hashed password
+  role      UserRole @default(TEACHER)
+  active    Boolean  @default(true)
+
+  // Profile
+  phone     String?
+  avatar    String?
+
+  // Teacher-specific fields
+  bio              String?  @db.Text
+  qualifications   String?  @db.Text  // Education, certifications
+  experience       String?  @db.Text  // Teaching experience
+  specializations  String?  @db.Text  // Areas of expertise (e.g., "A1, A2 German")
+  languages        String?            // Languages spoken (e.g., "English, German, Hindi")
+  availability     String?  @db.Text  // Available hours/days
+  hourlyRate       Decimal? @db.Decimal(10, 2)  // For payment tracking
+
+  // Contact preferences
+  preferredContact String?  // "EMAIL", "PHONE", "WHATSAPP"
+  whatsapp         String?
+
+  // Relationships
+  batches      Batch[]        @relation("TeacherBatches")
+  leads        Lead[]
+  teacherHours TeacherHours[] @relation("TeacherHours")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([active])
+}
+
+// ==========================================
+// STUDENT MANAGEMENT
+// ==========================================
+
+model Student {
+  id                String            @id @default(cuid())
+  studentId         String            @unique // Format: YYYY-MM-XXX
+
+  // Personal Information
+  name              String
+  whatsapp          String            @unique
+  email             String?           @unique
+
+  // Enrollment Details
+  enrollmentDate    DateTime          @default(now())
+  currentLevel      Level             @default(NEW)
+  enrollmentType    EnrollmentType
+
+  // Batch Assignment
+  batch             Batch?            @relation(fields: [batchId], references: [id])
+  batchId           String?
+
+  // Pricing
+  originalPrice     Decimal           @db.Decimal(10, 2)
+  discountApplied   Decimal           @default(0) @db.Decimal(10, 2)
+  finalPrice        Decimal           @db.Decimal(10, 2)
+  currency          String            @default("EUR") // EUR or INR
+
+  // Payment Status
+  paymentStatus     PaymentStatus     @default(PENDING)
+  totalPaid         Decimal           @default(0) @db.Decimal(10, 2)
+  balance           Decimal           @default(0) @db.Decimal(10, 2)
+
+  // Referral Information
+  referralSource    ReferralSource
+  referredBy        Student?          @relation("StudentReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referredById      String?
+  referrals         Student[]         @relation("StudentReferrals")
+
+  // Trial Information
+  trialAttended     Boolean           @default(false)
+  trialDate         DateTime?
+
+  // Academic Progress
+  classesAttended   Int               @default(0)
+  totalClasses      Int               @default(0)
+  attendanceRate    Decimal           @default(0) @db.Decimal(5, 2) // Percentage
+  lastClassDate     DateTime?
+  avgQuizScore      Decimal?          @db.Decimal(5, 2)
+
+  // Status
+  completionStatus  CompletionStatus  @default(ACTIVE)
+  churnRisk         ChurnRisk         @default(LOW)
+
+  // Notes
+  notes             String?           @db.Text
+
+  // Email Preferences
+  emailNotifications Boolean          @default(true)
+  emailWelcome       Boolean          @default(true)
+  emailPayment       Boolean          @default(true)
+  emailAttendance    Boolean          @default(true)
+  emailBatch         Boolean          @default(true)
+  emailReferral      Boolean          @default(true)
+
+  // Relationships
+  attendance        Attendance[]
+  payments          Payment[]
+  referralsGiven    Referral[]        @relation("ReferrerStudent")
+  referralsReceived Referral[]        @relation("RefereeStudent")
+  upsells           Upsell[]
+  convertedFromLead Lead?
+  invoices          Invoice[]
+
+  // Timestamps
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([studentId])
+  @@index([whatsapp])
+  @@index([email])
+  @@index([batchId])
+  @@index([enrollmentDate])
+  @@index([paymentStatus])
+  @@index([churnRisk])
+  @@index([currentLevel])
+}
+
+// ==========================================
+// BATCH MANAGEMENT
+// ==========================================
+
+model Batch {
+  id                String       @id @default(cuid())
+  batchCode         String       @unique // Format: A1-DEC-EVE-01
+
+  // Batch Details
+  level             Level
+  startDate         DateTime?
+  endDate           DateTime?
+  schedule          String?      // "Mon-Fri 7-8:30 PM IST"
+
+  // Teacher Assignment
+  teacher           User?        @relation("TeacherBatches", fields: [teacherId], references: [id])
+  teacherId         String?
+
+  // Capacity
+  totalSeats        Int          @default(10)
+  enrolledCount     Int          @default(0)
+  fillRate          Decimal      @default(0) @db.Decimal(5, 2) // Percentage
+
+  // Status
+  status            BatchStatus  @default(PLANNING)
+
+  // Financial
+  revenueTarget     Decimal      @default(0) @db.Decimal(10, 2)
+  revenueActual     Decimal      @default(0) @db.Decimal(10, 2)
+  teacherCost       Decimal      @default(0) @db.Decimal(10, 2)
+  profit            Decimal      @default(0) @db.Decimal(10, 2)
+
+  // Alerts
+  fillWarning       Boolean      @default(false) // true if <5 students && <10 days to start
+
+  // Notes
+  notes             String?      @db.Text
+
+  // Relationships
+  students          Student[]
+  leads             Lead[]
+  teacherHours      TeacherHours[] @relation("BatchHours")
+
+  // Timestamps
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([batchCode])
+  @@index([level])
+  @@index([status])
+  @@index([startDate])
+  @@index([teacherId])
+}
+
+// ==========================================
+// ATTENDANCE TRACKING
+// ==========================================
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  EXCUSED
+  LATE
+}
+
+model Attendance {
+  id          String           @id @default(cuid())
+
+  // Attendance Details
+  date        DateTime         @db.Date
+  status      AttendanceStatus @default(ABSENT)
+
+  // Relationships
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId   String
+
+  // Notes
+  notes       String?  @db.Text
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, date])
+  @@index([studentId])
+  @@index([date])
+  @@index([status])
+}
+
+// ==========================================
+// PAYMENT TRACKING
+// ==========================================
+
+model Payment {
+  id            String            @id @default(cuid())
+
+  // Payment Details
+  amount        Decimal           @db.Decimal(10, 2)
+  paymentDate   DateTime          @default(now())
+  method        PaymentMethod
+  status        TransactionStatus @default(PENDING)
+  currency      String            @default("EUR") // EUR or INR
+
+  // Transaction
+  transactionId String?
+  invoiceNumber String?           @unique
+  invoiceSent   Boolean           @default(false)
+  invoiceUrl    String?           // URL to generated invoice PDF/JPG
+
+  // Relationship
+  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId     String
+
+  // Notes
+  notes         String?           @db.Text
+
+  // Timestamps
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([studentId])
+  @@index([paymentDate])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@index([transactionId])
+}
+
+// ==========================================
+// REFERRAL TRACKING
+// ==========================================
+
+model Referral {
+  id              String        @id @default(cuid())
+
+  // Referral Details
+  referralDate    DateTime      @default(now())
+
+  // Relationships
+  referrer        Student       @relation("ReferrerStudent", fields: [referrerId], references: [id], onDelete: Cascade)
+  referrerId      String
+
+  referee         Student       @relation("RefereeStudent", fields: [refereeId], references: [id], onDelete: Cascade)
+  refereeId       String
+
+  // Tracking
+  enrollmentDate  DateTime?     // When referee actually enrolled
+  month1Complete  Boolean       @default(false) // Auto-set when attendance ≥50%
+
+  // Payout
+  payoutAmount    Decimal       @default(2000) @db.Decimal(10, 2)
+  payoutStatus    PayoutStatus  @default(PENDING)
+  payoutDate      DateTime?
+
+  // Notes
+  notes           String?       @db.Text
+
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([referrerId, refereeId])
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([payoutStatus])
+  @@index([month1Complete])
+}
+
+// ==========================================
+// UPSELL TRACKING
+// ==========================================
+
+model Upsell {
+  id                String   @id @default(cuid())
+
+  // Upsell Details
+  fromLevel         Level
+  toLevel           Level
+
+  // Relationship
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId         String
+
+  // Progress
+  currentProgress   Decimal  @default(0) @db.Decimal(5, 2) // 75%, 100%, etc.
+  emailsSent        Int      @default(0)
+  lastEmailDate     DateTime?
+
+  // Conversion
+  converted         Boolean  @default(false)
+  conversionDate    DateTime?
+  additionalRevenue Decimal? @db.Decimal(10, 2)
+
+  // Notes
+  notes             String?  @db.Text
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([converted])
+  @@index([currentProgress])
+}
+
+// ==========================================
+// EMAIL AUTOMATION
+// ==========================================
+
+model EmailQueue {
+  id            String   @id @default(cuid())
+
+  // Email Details
+  to            String
+  subject       String
+  templateType  String   // "WELCOME", "UPSELL", "PAYMENT_REMINDER", etc.
+  templateData  Json     // Dynamic data for email template
+
+  // Scheduling
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  status        String   @default("PENDING") // PENDING, SENT, FAILED
+
+  // Tracking
+  opened        Boolean  @default(false)
+  clicked       Boolean  @default(false)
+
+  // Error Handling
+  attempts      Int      @default(0)
+  lastError     String?  @db.Text
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([to])
+}
+
+// ==========================================
+// ANALYTICS & METRICS (Optional)
+// ==========================================
+
+model DailyMetrics {
+  id                  String   @id @default(cuid())
+  date                DateTime @unique @db.Date
+
+  // Revenue
+  dailyRevenue        Decimal  @default(0) @db.Decimal(10, 2)
+  monthlyRevenue      Decimal  @default(0) @db.Decimal(10, 2)
+
+  // Students
+  newEnrollments      Int      @default(0)
+  totalActiveStudents Int      @default(0)
+
+  // Batches
+  batchesFull         Int      @default(0)
+  batchesFilling      Int      @default(0)
+  batchesRunning      Int      @default(0)
+
+  // Churn
+  studentsAtRisk      Int      @default(0)
+  studentsDropped     Int      @default(0)
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([date])
+}
+
+// ==========================================
+// LEAD MANAGEMENT
+// ==========================================
+
+model Lead {
+  id              String       @id @default(cuid())
+
+  // Contact Information
+  name            String
+  whatsapp        String
+  email           String?
+  phone           String?
+
+  // Lead Details
+  source          ReferralSource
+  status          LeadStatus   @default(NEW)
+  quality         LeadQuality  @default(WARM)
+  interestedLevel Level?       // Which level they're interested in
+  interestedType  EnrollmentType? // Which package they're interested in
+
+  // Tracking
+  firstContactDate DateTime    @default(now())
+  lastContactDate  DateTime?
+  trialScheduledDate DateTime?
+  trialAttendedDate DateTime?
+
+  // Conversion
+  converted       Boolean      @default(false)
+  convertedDate   DateTime?
+  convertedToStudent Student?  @relation(fields: [studentId], references: [id])
+  studentId       String?      @unique
+
+  // Assignment (Database batch - optional, for legacy)
+  interestedBatch Batch?       @relation(fields: [batchId], references: [id])
+  batchId         String?
+
+  // Flexible batch info (for invoice generation)
+  interestedMonth String?      // January, February, etc.
+  interestedBatchTime String?  // Morning, Evening
+
+  // Follow-up
+  followUpDate    DateTime?
+  followUpNotes   String?      @db.Text
+  contactAttempts Int          @default(0)
+
+  // Notes
+  notes           String?      @db.Text
+
+  // Marketing Team
+  assignedTo      User?        @relation(fields: [assignedToId], references: [id])
+  assignedToId    String?
+
+  // Timestamps
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Invoices
+  invoices        Invoice[]
+
+  @@index([status])
+  @@index([quality])
+  @@index([source])
+  @@index([converted])
+  @@index([assignedToId])
+  @@index([batchId])
+}
+
+// ==========================================
+// AUDIT & MONITORING
+// ==========================================
+
+enum AuditAction {
+  // Authentication
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+
+  // Lead Management
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_DELETED
+  LEAD_CONVERTED
+
+  // Invoice Management
+  INVOICE_GENERATED
+  INVOICE_SENT
+  INVOICE_UPDATED
+  INVOICE_CANCELLED
+
+  // Payment & Conversion
+  PAYMENT_RECEIVED
+  STUDENT_CREATED
+  LEAD_TO_STUDENT_CONVERSION
+
+  // Student Management
+  STUDENT_UPDATED
+  STUDENT_DELETED
+
+  // Batch Management
+  BATCH_CREATED
+  BATCH_UPDATED
+  BATCH_DELETED
+
+  // Teacher Management
+  TEACHER_CREATED
+  TEACHER_UPDATED
+  TEACHER_ACTIVATED
+  TEACHER_DEACTIVATED
+  TEACHER_HOURS_LOGGED
+  TEACHER_HOURS_APPROVED
+  TEACHER_HOURS_REJECTED
+  TEACHER_HOURS_PAID
+
+  // User Management
+  USER_CREATED
+  USER_UPDATED
+  USER_DELETED
+
+  // System Events
+  SYSTEM_ERROR
+  DATABASE_ERROR
+  API_ERROR
+  EMAIL_SENT
+  EMAIL_FAILED
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+model AuditLog {
+  id          String         @id @default(cuid())
+
+  // Action Details
+  action      AuditAction
+  severity    AuditSeverity  @default(INFO)
+
+  // Actor (who performed the action)
+  userId      String?
+  userEmail   String?
+  userName    String?
+  ipAddress   String?
+  userAgent   String?        @db.Text
+
+  // Target (what was affected)
+  entityType  String?        // "Lead", "Invoice", "Student", "Payment", etc.
+  entityId    String?
+
+  // Change Details
+  description String         @db.Text
+  metadata    Json?          // Additional context (before/after values, error details, etc.)
+
+  // Request Context
+  requestPath String?
+  requestMethod String?
+  statusCode  Int?
+
+  // Error Tracking
+  errorMessage String?       @db.Text
+  errorStack   String?       @db.Text
+
+  // Timestamps
+  createdAt   DateTime       @default(now())
+
+  @@index([action])
+  @@index([severity])
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ==========================================
+// INVOICE MANAGEMENT
+// ==========================================
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+
+  // Invoice Details
+  date            DateTime      @default(now())
+  dueDate         DateTime
+  currency        String        @default("EUR") // EUR or INR
+  status          InvoiceStatus @default(DRAFT)
+
+  // Amounts
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  paidAmount      Decimal       @default(0) @db.Decimal(10, 2)
+  remainingAmount Decimal       @db.Decimal(10, 2)
+
+  // Invoice Items (stored as JSON)
+  items           Json          // Array of { level, description, month, batch, amount }
+
+  // Links
+  lead            Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  leadId          String?
+
+  student         Student?      @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  studentId       String?
+
+  // Files
+  pdfUrl          String?
+  jpgUrl          String?
+
+  // Email tracking
+  sentToEmail     String?
+  emailSentAt     DateTime?
+
+  // Notes
+  notes           String?       @db.Text
+
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([invoiceNumber])
+  @@index([leadId])
+  @@index([studentId])
+  @@index([status])
+  @@index([date])
+}
+
+// ==========================================
+// IDEMPOTENCY TRACKING
+// ==========================================
+
+model ConversionAttempt {
+  id              String   @id @default(cuid())
+
+  // Idempotency
+  idempotencyKey  String   @unique
+
+  // Conversion Details
+  invoiceId       String
+  leadId          String
+  studentId       String?  // Set after successful conversion
+
+  // Request Details
+  paidAmount      Decimal  @db.Decimal(10, 2)
+  currency        String
+  batchId         String?
+  enrollmentType  String?
+
+  // Status
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED
+  errorMessage    String?  @db.Text
+
+  // Actor
+  userId          String?
+  userEmail       String?
+
+  // Result (for idempotent retrieval)
+  result          Json?    // Cached response
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([leadId])
+  @@index([studentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ==========================================
+// TEACHER HOURS TRACKING
+// ==========================================
+
+model TeacherHours {
+  id          String   @id @default(cuid())
+
+  // Teacher
+  teacher     User     @relation("TeacherHours", fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId   String
+
+  // Batch (optional - for class-specific hours)
+  batch       Batch?   @relation("BatchHours", fields: [batchId], references: [id], onDelete: SetNull)
+  batchId     String?
+
+  // Hours Details
+  date        DateTime @db.Date
+  hoursWorked Decimal  @db.Decimal(5, 2) // e.g., 2.5 hours
+  description String   @db.Text // What was done: "A1 German Class", "Preparation", etc.
+  hourlyRate  Decimal? @db.Decimal(10, 2) // Rate at time of logging (if different from profile)
+
+  // Calculated
+  totalAmount Decimal  @db.Decimal(10, 2) // hoursWorked * hourlyRate
+
+  // Payment tracking
+  paid        Boolean  @default(false)
+  paidDate    DateTime?
+  paidAmount  Decimal? @db.Decimal(10, 2)
+  paymentNotes String? @db.Text
+
+  // Approval workflow
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  approvedBy  String?  // User ID who approved
+  approvedAt  DateTime?
+  rejectionReason String? @db.Text
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([teacherId])
+  @@index([batchId])
+  @@index([date])
+  @@index([status])
+  @@index([paid])
+}
+

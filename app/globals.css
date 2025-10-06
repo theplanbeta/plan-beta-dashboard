@@ -1,26 +1,102 @@
 @import "tailwindcss";
 
 :root {
+  /* Plan Beta Brand Colors */
+  --primary: #d2302c;
+  --primary-dark: #b82824;
+  --primary-light: #fee2e2;
+
+  /* Neutral Colors */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e293b;
+  --secondary: #1e293b;
+
+  /* Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+
+  /* Grays */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
 }
 
 @theme inline {
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-secondary: var(--secondary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-500: var(--gray-500);
+  --color-gray-700: var(--gray-700);
+  --color-gray-900: var(--gray-900);
+  --font-sans: system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Disable dark mode - force light theme for better visibility */
+body {
+  background: #ffffff;
+  color: #1e293b;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure all text has good contrast */
+* {
+  color-scheme: light;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Text color utilities for better visibility */
+.text-foreground {
+  color: #1e293b !important;
+}
+
+.text-gray-900 {
+  color: #111827 !important;
+}
+
+.text-gray-700 {
+  color: #374151 !important;
+}
+
+.text-gray-600 {
+  color: #4b5563 !important;
+}
+
+.text-gray-500 {
+  color: #6b7280 !important;
+}
+
+/* Ensure white backgrounds have dark text */
+.bg-white,
+.bg-gray-50 {
+  color: #1e293b;
+}
+
+/* Card and container text */
+.rounded-lg,
+.shadow {
+  color: #1e293b;
 }

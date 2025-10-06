@@ -124,6 +124,12 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
+    // Check if the user exists in the database before assigning
+    const userExists = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true }
+    })
+
     // Create lead
     const lead = await prisma.lead.create({
       data: {
@@ -141,7 +147,7 @@ export async function POST(request: NextRequest) {
         batchId: data.batchId || null,
         notes: data.notes || null,
         followUpDate: data.followUpDate ? new Date(data.followUpDate) : null,
-        assignedToId: user.id, // Auto-assign to current user
+        assignedToId: userExists ? user.id : null, // Only assign if user exists
       },
       include: {
         interestedBatch: {

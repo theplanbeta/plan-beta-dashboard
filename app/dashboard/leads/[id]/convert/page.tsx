@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
+import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
 
 type Lead = {
   id: string
@@ -44,6 +45,7 @@ export default function ConvertLeadPage({
     originalPrice: "",
     discountApplied: "0",
     trialAttended: true,
+    currency: "EUR" as "EUR" | "INR",
   })
 
   useEffect(() => {
@@ -72,6 +74,7 @@ export default function ConvertLeadPage({
           originalPrice: "",
           discountApplied: "0",
           trialAttended: leadData.trialAttendedDate !== null,
+          currency: "EUR" as "EUR" | "INR",
         })
       } else {
         router.push("/dashboard/leads")
@@ -128,6 +131,16 @@ export default function ConvertLeadPage({
     }
   }
 
+  const calculateEnrollmentPrice = (type: string, currency: "EUR" | "INR"): number => {
+    const prices = {
+      A1_ONLY: COURSE_PRICING.A1[currency],
+      FOUNDATION_A1_A2: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency],
+      CAREER_A1_A2_B1: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency],
+      COMPLETE_PATHWAY: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency] + COURSE_PRICING.B2[currency],
+    }
+    return prices[type as keyof typeof prices] || 0
+  }
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -135,9 +148,20 @@ export default function ConvertLeadPage({
       ? (e.target as HTMLInputElement).checked
       : e.target.value
 
+    const updates: any = { [e.target.name]: value }
+
+    // Auto-populate price when enrollment type or currency changes
+    if (e.target.name === "enrollmentType" && value) {
+      const price = calculateEnrollmentPrice(value as string, formData.currency)
+      updates.originalPrice = price.toString()
+    } else if (e.target.name === "currency" && formData.enrollmentType) {
+      const price = calculateEnrollmentPrice(formData.enrollmentType, value as "EUR" | "INR")
+      updates.originalPrice = price.toString()
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: value,
+      ...updates,
     })
   }
 
@@ -227,6 +251,22 @@ export default function ConvertLeadPage({
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Currency <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="currency"
+                required
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Enrollment Type <span className="text-red-500">*</span>
               </label>
               <select
@@ -237,10 +277,18 @@ export default function ConvertLeadPage({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select enrollment type</option>
-                <option value="A1_ONLY">A1 Only (€8,000)</option>
-                <option value="FOUNDATION_A1_A2">Foundation - A1 + A2 (€12,000)</option>
-                <option value="CAREER_A1_A2_B1">Career - A1 + A2 + B1 (€18,000)</option>
-                <option value="COMPLETE_PATHWAY">Complete Pathway (€28,000)</option>
+                <option value="A1_ONLY">
+                  A1 Only (€{COURSE_PRICING.A1.EUR} / ₹{COURSE_PRICING.A1.INR})
+                </option>
+                <option value="FOUNDATION_A1_A2">
+                  Foundation - A1 + A2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR})
+                </option>
+                <option value="CAREER_A1_A2_B1">
+                  Career - A1 + A2 + B1 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR})
+                </option>
+                <option value="COMPLETE_PATHWAY">
+                  Complete Pathway (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR + COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR + COURSE_PRICING.B2.INR})
+                </option>
               </select>
               {lead.interestedType && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -252,7 +300,7 @@ export default function ConvertLeadPage({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Original Price (€) <span className="text-red-500">*</span>
+                  Original Price ({formData.currency === "EUR" ? "€" : "₹"}) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -263,13 +311,13 @@ export default function ConvertLeadPage({
                   value={formData.originalPrice}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="8000.00"
+                  placeholder={formData.currency === "EUR" ? "134.00" : "14000.00"}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Discount Applied (€)
+                  Discount Applied ({formData.currency === "EUR" ? "€" : "₹"})
                 </label>
                 <input
                   type="number"
@@ -288,7 +336,7 @@ export default function ConvertLeadPage({
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-700">Final Price:</span>
                 <span className="text-xl font-bold text-primary">
-                  €{calculateFinalPrice().toFixed(2)}
+                  {formData.currency === "EUR" ? "€" : "₹"}{calculateFinalPrice().toFixed(2)}
                 </span>
               </div>
             </div>

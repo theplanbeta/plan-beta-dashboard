@@ -66,7 +66,7 @@ export default function HelpPage() {
 
             {success && (
               <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-6">
-                ✓ Thank you! Your feedback has been submitted successfully. We'll review it soon.
+                ✓ Thank you! Your feedback has been submitted successfully. We&apos;ll review it soon.
               </div>
             )}
 

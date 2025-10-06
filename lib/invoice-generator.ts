@@ -172,6 +172,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
       'A2': '#3b82f6',
       'B1': '#f59e0b',
       'B2': '#8b5cf6',
+      'Spoken German': '#ec4899',
     }
     const levelColor = levelColors[item.level] || '#6b7280'
 

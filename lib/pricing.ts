@@ -2,7 +2,7 @@
 // Single source of truth for all course fees and pricing logic
 
 export type Currency = 'EUR' | 'INR'
-export type CourseLevel = 'A1' | 'A1_HYBRID' | 'A2' | 'B1' | 'B2'
+export type CourseLevel = 'A1' | 'A1_HYBRID' | 'A2' | 'B1' | 'B2' | 'SPOKEN_GERMAN'
 
 export interface PricingInfo {
   EUR: number
@@ -38,6 +38,10 @@ export const COURSE_PRICING: Record<CourseLevel, PricingInfo> = {
     EUR: 220,
     INR: 22000,
   },
+  SPOKEN_GERMAN: {
+    EUR: 120,
+    INR: 12000,
+  },
 }
 
 // Course metadata
@@ -71,6 +75,12 @@ export const COURSE_INFO: Record<CourseLevel, Omit<CoursePricing, 'EUR' | 'INR'>
     label: 'B2 - Upper Intermediate',
     description: 'German Language Course - B2 Level',
     color: '#8b5cf6', // purple
+  },
+  SPOKEN_GERMAN: {
+    level: 'SPOKEN_GERMAN',
+    label: 'Spoken German',
+    description: 'Spoken German Course',
+    color: '#ec4899', // pink
   },
 }
 

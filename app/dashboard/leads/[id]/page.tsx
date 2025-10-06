@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
 import { getCurrencySymbol, COURSE_PRICING } from "@/lib/pricing"
+import { generateInvoicePDF, generateInvoiceImage } from "@/lib/invoice-generator"
 
 type Invoice = {
   id: string
@@ -600,8 +601,7 @@ function InvoiceGeneratorModal({
   const finalPrice = formData.originalPrice - formData.discountApplied
   const remainingAmount = finalPrice - formData.payableNow
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleGeneratePDF = async () => {
     setGenerating(true)
 
     try {
@@ -612,18 +612,70 @@ function InvoiceGeneratorModal({
       })
 
       if (res.ok) {
-        alert("✅ Invoice generated successfully!")
+        const result = await res.json()
+        const invoiceData = result.invoice
+
+        // Generate PDF
+        const pdf = await generateInvoicePDF(invoiceData)
+        pdf.save(`Invoice-${invoiceData.invoiceNumber}.pdf`)
+
+        alert("✅ PDF Invoice downloaded successfully!")
         onSuccess()
       } else {
         const error = await res.json()
         alert(error.error || "Failed to generate invoice")
       }
     } catch (error) {
-      console.error("Error generating invoice:", error)
-      alert("Failed to generate invoice")
+      console.error("Error generating PDF:", error)
+      alert("Failed to generate PDF invoice")
     } finally {
       setGenerating(false)
     }
+  }
+
+  const handleGenerateImage = async () => {
+    setGenerating(true)
+
+    try {
+      const res = await fetch(`/api/leads/${lead.id}/invoice`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        const invoiceData = result.invoice
+
+        // Generate Image
+        const imageBlob = await generateInvoiceImage(invoiceData)
+        const url = URL.createObjectURL(imageBlob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `Invoice-${invoiceData.invoiceNumber}.jpg`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+
+        alert("✅ JPG Invoice downloaded successfully!")
+        onSuccess()
+      } else {
+        const error = await res.json()
+        alert(error.error || "Failed to generate invoice")
+      }
+    } catch (error) {
+      console.error("Error generating image:", error)
+      alert("Failed to generate JPG invoice")
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    // Default to PDF generation
+    await handleGeneratePDF()
   }
 
   return (
@@ -776,21 +828,35 @@ function InvoiceGeneratorModal({
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={generating}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {generating ? "Generating..." : "Generate Invoice"}
-            </button>
+          <div className="space-y-3">
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleGeneratePDF}
+                disabled={generating}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 font-medium"
+              >
+                {generating ? "Generating..." : "📄 Download PDF"}
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateImage}
+                disabled={generating}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+              >
+                {generating ? "Generating..." : "🖼️ Download JPG"}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 text-center">
+              Click PDF for formal invoice or JPG for WhatsApp sharing
+            </p>
           </div>
         </form>
       </div>

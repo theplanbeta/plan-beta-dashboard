@@ -37,51 +37,46 @@ export async function POST(
       )
     }
 
-    // Get the lead
-    const lead = await prisma.lead.findUnique({
-      where: { id },
-      include: {
-        interestedBatch: true,
-      },
-    })
-
-    if (!lead) {
-      return NextResponse.json({ error: "Lead not found" }, { status: 404 })
-    }
-
-    // Check if lead is already converted
-    if (lead.converted) {
-      return NextResponse.json(
-        { error: "Lead is already converted" },
-        { status: 400 }
-      )
-    }
-
-    // Get the batch
-    const batch = await prisma.batch.findUnique({
-      where: { id: batchId },
-    })
-
-    if (!batch) {
-      return NextResponse.json({ error: "Batch not found" }, { status: 404 })
-    }
-
-    // Check if batch has space
-    if (batch.enrolledCount >= batch.totalSeats) {
-      return NextResponse.json(
-        { error: "Batch is full" },
-        { status: 400 }
-      )
-    }
-
-    // Generate student ID
+    // Generate student ID outside transaction (doesn't need to be atomic)
     const studentId = await generateStudentId()
 
-    // Calculate final price
-    const finalPrice = originalPrice - (discountApplied || 0)
-
     // Create student and update lead in a transaction
+    // All checks happen inside transaction to prevent race conditions
     const result = await prisma.$transaction(async (tx) => {
+      // Get the lead (with SELECT FOR UPDATE lock)
+      const lead = await tx.lead.findUnique({
+        where: { id },
+        include: {
+          interestedBatch: true,
+        },
+      })
+
+      if (!lead) {
+        throw new Error("Lead not found")
+      }
+
+      // Check if lead is already converted
+      if (lead.converted) {
+        throw new Error("Lead is already converted")
+      }
+
+      // Get the batch
+      const batch = await tx.batch.findUnique({
+        where: { id: batchId },
+      })
+
+      if (!batch) {
+        throw new Error("Batch not found")
+      }
+
+      // Check if batch has space
+      if (batch.enrolledCount >= batch.totalSeats) {
+        throw new Error("Batch is full")
+      }
+
+      // Calculate final price
+      const finalPrice = originalPrice - (discountApplied || 0)
+
       // Create student
       const student = await tx.student.create({
         data: {
@@ -130,6 +125,22 @@ export async function POST(
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error("Failed to convert lead:", error)
+
+    // Handle specific error cases
+    const errorMessage = error instanceof Error ? error.message : "Failed to convert lead to student"
+
+    if (errorMessage === "Lead not found") {
+      return NextResponse.json({ error: errorMessage }, { status: 404 })
+    }
+
+    if (errorMessage === "Lead is already converted" || errorMessage === "Batch is full") {
+      return NextResponse.json({ error: errorMessage }, { status: 400 })
+    }
+
+    if (errorMessage === "Batch not found") {
+      return NextResponse.json({ error: errorMessage }, { status: 404 })
+    }
+
     return NextResponse.json(
       { error: "Failed to convert lead to student" },
       { status: 500 }

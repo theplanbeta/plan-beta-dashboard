@@ -78,34 +78,8 @@ export async function POST(
       )
     }
 
-    // Check for existing conversion attempt with same idempotency key
-    const existingAttempt = await prisma.conversionAttempt.findUnique({
-      where: { idempotencyKey },
-    })
-
-    if (existingAttempt) {
-      if (existingAttempt.status === 'COMPLETED' && existingAttempt.result) {
-        // Return cached result for completed conversion
-        return NextResponse.json(existingAttempt.result)
-      } else if (existingAttempt.status === 'PENDING') {
-        // Another request is processing this conversion
-        return NextResponse.json(
-          {
-            error: 'Conversion in progress',
-            message: 'Another request is currently processing this conversion. Please wait.',
-          },
-          { status: 409 } // Conflict
-        )
-      } else if (existingAttempt.status === 'FAILED') {
-        // Previous attempt failed, allow retry
-        // Delete failed attempt to allow new one
-        await prisma.conversionAttempt.delete({
-          where: { id: existingAttempt.id },
-        })
-      }
-    }
-
     // Create conversion attempt record (acts as distributed lock)
+    // Using database unique constraint to handle race conditions atomically
     try {
       conversionAttempt = await prisma.conversionAttempt.create({
         data: {
@@ -122,17 +96,54 @@ export async function POST(
         },
       })
     } catch (error: any) {
-      // Unique constraint violation - concurrent request
+      // Unique constraint violation - check existing attempt
       if (error.code === 'P2002') {
-        return NextResponse.json(
-          {
-            error: 'Duplicate conversion attempt',
-            message: 'A conversion with this idempotency key is already in progress.',
-          },
-          { status: 409 }
-        )
+        const existingAttempt = await prisma.conversionAttempt.findUnique({
+          where: { idempotencyKey },
+        })
+
+        if (!existingAttempt) {
+          // Shouldn't happen, but handle gracefully
+          throw new Error('Idempotency key conflict but no existing attempt found')
+        }
+
+        if (existingAttempt.status === 'COMPLETED' && existingAttempt.result) {
+          // Return cached result for completed conversion
+          return NextResponse.json(existingAttempt.result)
+        } else if (existingAttempt.status === 'PENDING') {
+          // Another request is processing this conversion
+          return NextResponse.json(
+            {
+              error: 'Conversion in progress',
+              message: 'Another request is currently processing this conversion. Please wait.',
+            },
+            { status: 409 } // Conflict
+          )
+        } else if (existingAttempt.status === 'FAILED') {
+          // Previous attempt failed, allow retry by deleting and retrying
+          await prisma.conversionAttempt.delete({
+            where: { id: existingAttempt.id },
+          })
+
+          // Retry creating the attempt
+          conversionAttempt = await prisma.conversionAttempt.create({
+            data: {
+              idempotencyKey,
+              invoiceId: id,
+              leadId: invoice.lead!.id,
+              paidAmount,
+              currency: invoice.currency,
+              batchId,
+              enrollmentType,
+              status: 'PENDING',
+              userId: session.user.id,
+              userEmail: session.user.email || null,
+            },
+          })
+        }
+      } else {
+        throw error
       }
-      throw error
     }
 
     // Cross-field validation: paidAmount vs invoice total

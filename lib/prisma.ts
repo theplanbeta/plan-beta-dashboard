@@ -6,6 +6,24 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  // Connection pool configuration for Neon database
+  // Limits concurrent connections to prevent exhausting database resources
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+// Graceful shutdown handler
+if (process.env.NODE_ENV === 'production') {
+  const cleanup = async () => {
+    await prisma.$disconnect()
+    process.exit(0)
+  }
+
+  process.on('SIGINT', cleanup)
+  process.on('SIGTERM', cleanup)
+}

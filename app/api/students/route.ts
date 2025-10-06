@@ -3,6 +3,32 @@ import { prisma } from "@/lib/prisma"
 import { generateStudentId } from "@/lib/utils"
 import { sendEmail } from "@/lib/email"
 import { checkPermission } from "@/lib/api-permissions"
+import { z } from "zod"
+import { Prisma } from "@prisma/client"
+
+const Decimal = Prisma.Decimal
+
+// Validation schema for creating a student
+const createStudentSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  whatsapp: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid WhatsApp number format"),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  batchId: z.string().optional(),
+  enrollmentDate: z.string().optional(),
+  currentLevel: z.enum(["NEW", "A1", "A2", "B1", "B2"]).optional(),
+  enrollmentType: z.enum(["A1_ONLY", "FOUNDATION_A1_A2", "CAREER_A1_A2_B1", "COMPLETE_PATHWAY"]),
+  originalPrice: z.number().positive("Original price must be positive").max(1000000, "Price exceeds maximum"),
+  discountApplied: z.number().min(0, "Discount cannot be negative").optional(),
+  currency: z.enum(["INR", "EUR"]).optional(),
+  paymentStatus: z.enum(["PENDING", "PARTIAL", "PAID", "OVERDUE"]).optional(),
+  totalPaid: z.number().min(0, "Total paid cannot be negative").optional(),
+  referralSource: z.enum(["META_ADS", "INSTAGRAM", "GOOGLE", "ORGANIC", "REFERRAL", "OTHER"]).optional(),
+  referredById: z.string().optional(),
+  trialAttended: z.boolean().optional(),
+  trialDate: z.string().optional(),
+  notes: z.string().max(1000, "Notes too long").optional(),
+  leadId: z.string().optional(),
+})
 
 // GET /api/students - List all students
 export async function GET(request: NextRequest) {
@@ -80,38 +106,53 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // Validate request body
+    const validation = createStudentSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: validation.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const data = validation.data
+
     // Generate student ID
     const studentId = generateStudentId()
 
-    // Calculate final price
-    const finalPrice = body.originalPrice - (body.discountApplied || 0)
-    const balance = finalPrice - (body.totalPaid || 0)
+    // Calculate final price and balance using Decimal for precision
+    const originalPrice = new Decimal(data.originalPrice.toString())
+    const discountApplied = new Decimal((data.discountApplied || 0).toString())
+    const totalPaid = new Decimal((data.totalPaid || 0).toString())
+
+    const finalPrice = originalPrice.minus(discountApplied)
+    const balance = finalPrice.minus(totalPaid)
 
     // If converting from lead, update the lead record
-    const leadId = body.leadId
+    const leadId = data.leadId
 
     const student = await prisma.student.create({
       data: {
         studentId,
-        name: body.name,
-        whatsapp: body.whatsapp,
-        email: body.email || null,
-        batchId: body.batchId || null,
-        enrollmentDate: body.enrollmentDate ? new Date(body.enrollmentDate) : new Date(),
-        currentLevel: body.currentLevel || "NEW",
-        enrollmentType: body.enrollmentType,
-        originalPrice: body.originalPrice,
-        discountApplied: body.discountApplied || 0,
+        name: data.name,
+        whatsapp: data.whatsapp,
+        email: data.email || null,
+        batchId: data.batchId || null,
+        enrollmentDate: data.enrollmentDate ? new Date(data.enrollmentDate) : new Date(),
+        currentLevel: data.currentLevel || "NEW",
+        enrollmentType: data.enrollmentType,
+        originalPrice,
+        discountApplied,
         finalPrice,
-        currency: body.currency || "EUR",
-        paymentStatus: body.paymentStatus || "PENDING",
-        totalPaid: body.totalPaid || 0,
+        currency: data.currency || "EUR",
+        paymentStatus: data.paymentStatus || "PENDING",
+        totalPaid,
         balance,
-        referralSource: body.referralSource,
-        referredById: body.referredById || null,
-        trialAttended: body.trialAttended || false,
-        trialDate: body.trialDate ? new Date(body.trialDate) : null,
-        notes: body.notes || null,
+        referralSource: data.referralSource || "OTHER",
+        referredById: data.referredById || null,
+        trialAttended: data.trialAttended || false,
+        trialDate: data.trialDate ? new Date(data.trialDate) : null,
+        notes: data.notes || null,
       },
       include: {
         batch: {

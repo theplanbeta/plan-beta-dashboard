@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
+
+const Decimal = Prisma.Decimal
 
 // GET /api/students/[id] - Get single student
 export async function GET(
@@ -62,9 +65,13 @@ export async function PUT(
 
     const body = await request.json()
 
-    // Calculate final price and balance if pricing changed
-    const finalPrice = body.originalPrice - (body.discountApplied || 0)
-    const balance = finalPrice - (body.totalPaid || 0)
+    // Calculate final price and balance using Decimal for precision
+    const originalPrice = new Decimal(body.originalPrice.toString())
+    const discountApplied = new Decimal((body.discountApplied || 0).toString())
+    const totalPaid = new Decimal((body.totalPaid || 0).toString())
+
+    const finalPrice = originalPrice.minus(discountApplied)
+    const balance = finalPrice.minus(totalPaid)
 
     const student = await prisma.student.update({
       where: { id },
@@ -75,11 +82,11 @@ export async function PUT(
         currentLevel: body.currentLevel,
         enrollmentType: body.enrollmentType,
         batchId: body.batchId || null,
-        originalPrice: body.originalPrice,
-        discountApplied: body.discountApplied || 0,
+        originalPrice,
+        discountApplied,
         finalPrice,
         paymentStatus: body.paymentStatus,
-        totalPaid: body.totalPaid || 0,
+        totalPaid,
         balance,
         referralSource: body.referralSource,
         referredById: body.referredById || null,

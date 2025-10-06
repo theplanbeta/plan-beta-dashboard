@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { isMobileDevice } from "@/lib/device-detection"
 
 type MarketingData = {
   students: {
@@ -29,11 +31,19 @@ type MarketingData = {
 }
 
 export default function MarketingDashboard({ userName }: { userName: string }) {
+  const router = useRouter()
   const [data, setData] = useState<MarketingData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showMobileDialog, setShowMobileDialog] = useState(false)
 
   useEffect(() => {
     fetchData()
+
+    // Check if user is on mobile device and hasn't dismissed the dialog
+    const hasDismissedMobileDialog = localStorage.getItem('dismissedMobileDialog')
+    if (isMobileDevice() && !hasDismissedMobileDialog) {
+      setShowMobileDialog(true)
+    }
   }, [])
 
   const fetchData = async () => {
@@ -119,8 +129,49 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
     )
   }
 
+  const handleUseMobileVersion = () => {
+    setShowMobileDialog(false)
+    router.push('/dashboard/leads/mobile/new')
+  }
+
+  const handleDismissMobileDialog = () => {
+    setShowMobileDialog(false)
+    localStorage.setItem('dismissedMobileDialog', 'true')
+  }
+
   return (
     <div className="space-y-6">
+      {/* Mobile Device Dialog */}
+      {showMobileDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="text-4xl mb-4">📱</div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Mobile Device Detected
+              </h2>
+              <p className="text-gray-600 mb-6">
+                It looks like you're using a mobile device. Lead submission is optimized for mobile screens.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={handleUseMobileVersion}
+                  className="w-full py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Use Mobile-Optimized Version
+                </button>
+                <button
+                  onClick={handleDismissMobileDialog}
+                  className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                >
+                  Continue with Desktop Version
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Welcome back, {userName}!</h1>

@@ -42,10 +42,10 @@ export async function POST(req: NextRequest) {
 
     const { type, title, description, page, priority, contactEmail } = validation.data
 
-    // Store feedback in audit logs with a special action
+    // Store feedback in audit logs
     await logSuccess(
-      AuditAction.API_REQUEST,
-      `[${type}] ${title}`,
+      type === 'BUG' ? AuditAction.SYSTEM_ERROR : AuditAction.USER_CREATED,
+      `[FEEDBACK:${type}] ${title}`,
       {
         entityType: 'Feedback',
         entityId: 'system',
@@ -107,9 +107,8 @@ export async function GET(req: NextRequest) {
     // Get feedback from audit logs
     const feedbackLogs = await prisma.auditLog.findMany({
       where: {
-        action: AuditAction.API_REQUEST,
         description: {
-          startsWith: '[',
+          startsWith: '[FEEDBACK:',
         },
       },
       orderBy: {

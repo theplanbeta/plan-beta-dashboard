@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
 import { getCurrencySymbol, COURSE_PRICING } from "@/lib/pricing"
-import { generateInvoicePDF, generateInvoiceImage } from "@/lib/invoice-generator"
+import { generateInvoicePDF, generateInvoiceJPG } from "@/lib/invoice-generator"
 
 type Invoice = {
   id: string
@@ -647,16 +647,8 @@ function InvoiceGeneratorModal({
         const result = await res.json()
         const invoiceData = result.invoice
 
-        // Generate Image
-        const imageBlob = await generateInvoiceImage(invoiceData)
-        const url = URL.createObjectURL(imageBlob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `Invoice-${invoiceData.invoiceNumber}.jpg`
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        // Generate JPG (function handles download automatically)
+        await generateInvoiceJPG(invoiceData)
 
         alert("✅ JPG Invoice downloaded successfully!")
         onSuccess()

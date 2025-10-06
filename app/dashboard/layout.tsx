@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import { getAllowedNavigation } from "@/lib/permissions"
 import type { UserRole } from "@/lib/permissions"
 
@@ -13,10 +14,44 @@ export default function DashboardLayout({
 }) {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const [overdueCount, setOverdueCount] = useState(0)
 
   // Get role-based navigation
   const userRole = (session?.user?.role as UserRole) || 'TEACHER'
   const navigation = getAllowedNavigation(userRole)
+
+  // Fetch overdue leads count
+  useEffect(() => {
+    const fetchOverdueCount = async () => {
+      try {
+        const res = await fetch('/api/leads')
+        const leads = await res.json()
+
+        if (Array.isArray(leads)) {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+
+          const overdue = leads.filter(lead => {
+            if (lead.converted || !lead.followUpDate) return false
+
+            const followUp = new Date(lead.followUpDate)
+            followUp.setHours(0, 0, 0, 0)
+
+            return followUp < today
+          })
+
+          setOverdueCount(overdue.length)
+        }
+      } catch (error) {
+        console.error('Error fetching overdue count:', error)
+      }
+    }
+
+    fetchOverdueCount()
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchOverdueCount, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,17 +67,26 @@ export default function DashboardLayout({
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
               const isActive = pathname === item.href
+              const showBadge = item.name === "Leads" && overdueCount > 0
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`block px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`flex items-center justify-between px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? "bg-primary text-white"
                       : "text-gray-700 hover:bg-gray-100"
                   }`}
                 >
-                  {item.name}
+                  <span>{item.name}</span>
+                  {showBadge && (
+                    <span className={`inline-flex items-center justify-center w-5 h-5 text-xs font-bold rounded-full ${
+                      isActive ? "bg-white text-red-600" : "bg-red-600 text-white"
+                    }`}>
+                      {overdueCount}
+                    </span>
+                  )}
                 </Link>
               )
             })}

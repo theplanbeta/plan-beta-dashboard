@@ -48,10 +48,11 @@ export default function LeadsPage() {
   const [qualityFilter, setQualityFilter] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
   const [convertedFilter, setConvertedFilter] = useState("")
+  const [followUpFilter, setFollowUpFilter] = useState("")
 
   useEffect(() => {
     fetchLeads()
-  }, [search, statusFilter, qualityFilter, sourceFilter, convertedFilter])
+  }, [search, statusFilter, qualityFilter, sourceFilter, convertedFilter, followUpFilter])
 
   const fetchLeads = async () => {
     try {
@@ -102,6 +103,58 @@ export default function LeadsPage() {
     return colors[quality as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
 
+  const getFollowUpUrgency = (followUpDate: string | null) => {
+    if (!followUpDate) return "none"
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const followUp = new Date(followUpDate)
+    followUp.setHours(0, 0, 0, 0)
+
+    const diffTime = followUp.getTime() - today.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return "overdue" // Past date
+    if (diffDays === 0) return "today" // Today
+    if (diffDays <= 7) return "week" // This week
+    return "future" // Future
+  }
+
+  const getFollowUpIndicator = (followUpDate: string | null) => {
+    const urgency = getFollowUpUrgency(followUpDate)
+
+    const indicators = {
+      overdue: { emoji: "🔴", text: "Overdue", class: "text-red-600 font-semibold" },
+      today: { emoji: "🟡", text: "Today", class: "text-amber-600 font-semibold" },
+      week: { emoji: "🟢", text: "This Week", class: "text-green-600" },
+      future: { emoji: "⚪", text: "", class: "text-gray-500" },
+      none: { emoji: "", text: "Not set", class: "text-gray-400" },
+    }
+
+    return indicators[urgency as keyof typeof indicators] || indicators.none
+  }
+
+  // Filter and sort leads based on follow-up filter
+  const filteredAndSortedLeads = leads
+    .filter((lead) => {
+      if (!followUpFilter) return true
+      const urgency = getFollowUpUrgency(lead.followUpDate)
+      return urgency === followUpFilter
+    })
+    .sort((a, b) => {
+      // Sort by follow-up urgency
+      const urgencyOrder = { overdue: 0, today: 1, week: 2, future: 3, none: 4 }
+      const aUrgency = getFollowUpUrgency(a.followUpDate)
+      const bUrgency = getFollowUpUrgency(b.followUpDate)
+      return urgencyOrder[aUrgency as keyof typeof urgencyOrder] - urgencyOrder[bUrgency as keyof typeof urgencyOrder]
+    })
+
+  // Calculate follow-up stats
+  const overdueCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "overdue").length
+  const todayCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "today").length
+  const weekCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "week").length
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -124,6 +177,62 @@ export default function LeadsPage() {
         >
           + Add Lead
         </Link>
+      </div>
+
+      {/* Quick Follow-up Filters */}
+      <div className="bg-white rounded-lg shadow p-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => setFollowUpFilter("")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              followUpFilter === ""
+                ? "bg-primary text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            All Leads
+          </button>
+          <button
+            onClick={() => setFollowUpFilter("overdue")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              followUpFilter === "overdue"
+                ? "bg-red-600 text-white"
+                : "bg-red-50 text-red-700 hover:bg-red-100"
+            }`}
+          >
+            🔴 Overdue {overdueCount > 0 && `(${overdueCount})`}
+          </button>
+          <button
+            onClick={() => setFollowUpFilter("today")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              followUpFilter === "today"
+                ? "bg-amber-600 text-white"
+                : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+            }`}
+          >
+            🟡 Due Today {todayCount > 0 && `(${todayCount})`}
+          </button>
+          <button
+            onClick={() => setFollowUpFilter("week")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              followUpFilter === "week"
+                ? "bg-green-600 text-white"
+                : "bg-green-50 text-green-700 hover:bg-green-100"
+            }`}
+          >
+            🟢 This Week {weekCount > 0 && `(${weekCount})`}
+          </button>
+          <button
+            onClick={() => setFollowUpFilter("none")}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              followUpFilter === "none"
+                ? "bg-gray-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            ⚪ No Follow-up
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -257,7 +366,7 @@ export default function LeadsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {leads.map((lead) => (
+              {filteredAndSortedLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{lead.name}</div>
@@ -311,14 +420,24 @@ export default function LeadsPage() {
                   </td>
                   <td className="px-6 py-4">
                     {lead.followUpDate ? (
-                      <div className="text-sm text-gray-900">
-                        {formatDate(lead.followUpDate)}
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{getFollowUpIndicator(lead.followUpDate).emoji}</span>
+                        <div>
+                          <div className={`text-sm ${getFollowUpIndicator(lead.followUpDate).class}`}>
+                            {formatDate(lead.followUpDate)}
+                          </div>
+                          {getFollowUpIndicator(lead.followUpDate).text && (
+                            <div className={`text-xs ${getFollowUpIndicator(lead.followUpDate).class}`}>
+                              {getFollowUpIndicator(lead.followUpDate).text}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ) : (
                       <div className="text-sm text-gray-400">Not set</div>
                     )}
                     {lead.lastContactDate && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 mt-1">
                         Last: {formatDate(lead.lastContactDate)}
                       </div>
                     )}
@@ -370,7 +489,7 @@ export default function LeadsPage() {
           </table>
         </div>
 
-        {leads.length === 0 && (
+        {filteredAndSortedLeads.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500">No leads found</p>
             <Link

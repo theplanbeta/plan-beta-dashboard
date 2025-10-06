@@ -4,7 +4,7 @@ import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
-import { getCurrencySymbol } from "@/lib/pricing"
+import { getCurrencySymbol, COURSE_PRICING } from "@/lib/pricing"
 
 type Invoice = {
   id: string
@@ -553,6 +553,26 @@ export default function LeadDetailPage({
   )
 }
 
+// Calculate enrollment price based on interestedType
+const calculateEnrollmentPrice = (type: string | null, currency: "EUR" | "INR"): number => {
+  if (!type) return 0
+
+  const prices = {
+    // Individual courses
+    A1_ONLY: COURSE_PRICING.A1[currency],
+    A1_HYBRID: COURSE_PRICING.A1_HYBRID[currency],
+    A2_ONLY: COURSE_PRICING.A2[currency],
+    B1_ONLY: COURSE_PRICING.B1[currency],
+    B2_ONLY: COURSE_PRICING.B2[currency],
+    SPOKEN_GERMAN: COURSE_PRICING.SPOKEN_GERMAN[currency],
+    // Package courses
+    FOUNDATION_A1_A2: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency],
+    CAREER_A1_A2_B1: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency],
+    COMPLETE_PATHWAY: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency] + COURSE_PRICING.B2[currency],
+  }
+  return prices[type as keyof typeof prices] || 0
+}
+
 // Invoice Generator Modal Component
 function InvoiceGeneratorModal({
   lead,
@@ -565,11 +585,17 @@ function InvoiceGeneratorModal({
 }) {
   const [formData, setFormData] = useState({
     currency: "EUR" as "EUR" | "INR",
-    originalPrice: 0,
+    originalPrice: calculateEnrollmentPrice(lead.interestedType, "EUR"),
     discountApplied: 0,
     payableNow: 0,
   })
   const [generating, setGenerating] = useState(false)
+
+  // Auto-update price when currency changes
+  useEffect(() => {
+    const newPrice = calculateEnrollmentPrice(lead.interestedType, formData.currency)
+    setFormData(prev => ({ ...prev, originalPrice: newPrice }))
+  }, [formData.currency, lead.interestedType])
 
   const finalPrice = formData.originalPrice - formData.discountApplied
   const remainingAmount = finalPrice - formData.payableNow
@@ -642,6 +668,12 @@ function InvoiceGeneratorModal({
                   <span className="text-gray-900">{lead.interestedLevel}</span>
                 </div>
               )}
+              {lead.interestedType && (
+                <div>
+                  <span className="text-gray-500">Enrollment:</span>{" "}
+                  <span className="text-gray-900">{lead.interestedType.replace(/_/g, ' ')}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -672,9 +704,14 @@ function InvoiceGeneratorModal({
                 step="0.01"
                 value={formData.originalPrice || ""}
                 onChange={(e) => setFormData({ ...formData, originalPrice: Number(e.target.value) })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-blue-50"
                 required
               />
+              {lead.interestedType && (
+                <p className="text-xs text-success mt-1">
+                  ✓ Auto-populated based on {lead.interestedType.replace(/_/g, ' ')}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

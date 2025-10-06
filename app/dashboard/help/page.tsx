@@ -257,7 +257,7 @@ export default function HelpPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-3">⚡ Quick Help</h3>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="font-medium text-gray-900">Can't find a student?</p>
+                <p className="font-medium text-gray-900">Can&apos;t find a student?</p>
                 <p className="text-gray-600 text-xs mt-1">Use the search box at the top</p>
               </div>
               <div>

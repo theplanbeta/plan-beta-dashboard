@@ -113,10 +113,13 @@ export async function POST(request: NextRequest) {
 
     const validData = validation.data
 
+    // Use Decimal for amount to ensure precision
+    const amount = new Decimal(validData.amount.toString())
+
     const payment = await prisma.payment.create({
       data: {
         studentId: validData.studentId,
-        amount: validData.amount,
+        amount,
         method: validData.method,
         paymentDate: validData.paymentDate ? new Date(validData.paymentDate) : new Date(),
         status: validData.status || "COMPLETED",

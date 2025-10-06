@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
+import { z } from "zod"
+
+// Validation schema for creating a lead
+const createLeadSchema = z.object({
+  name: z.string().min(2, "Name too short").max(100, "Name too long"),
+  whatsapp: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid WhatsApp format"),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  phone: z.string().optional(),
+  source: z.enum(["META_ADS", "INSTAGRAM", "GOOGLE", "ORGANIC", "REFERRAL", "OTHER"]),
+  status: z.enum(["NEW", "CONTACTED", "TRIAL_SCHEDULED", "TRIAL_ATTENDED", "CONVERTED", "LOST"]).optional(),
+  quality: z.enum(["HOT", "WARM", "COLD"]).optional(),
+  interestedLevel: z.enum(["A1", "A2", "B1", "B2"]).optional(),
+  interestedType: z.enum(["A1_ONLY", "FOUNDATION_A1_A2", "CAREER_A1_A2_B1", "COMPLETE_PATHWAY"]).optional(),
+  batchId: z.string().optional(),
+  notes: z.string().max(2000, "Notes too long").optional(),
+  followUpDate: z.string().optional(),
+})
 
 // GET /api/leads - List all leads
 export async function GET(request: NextRequest) {
@@ -93,44 +110,33 @@ export async function POST(request: NextRequest) {
     const { user } = check.session
 
     const body = await request.json()
-    const {
-      name,
-      whatsapp,
-      email,
-      phone,
-      source,
-      status,
-      quality,
-      interestedLevel,
-      interestedType,
-      batchId,
-      notes,
-      followUpDate,
-    } = body
 
-    // Validate required fields
-    if (!name || !whatsapp || !source) {
+    // Validate request body
+    const validation = createLeadSchema.safeParse(body)
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Missing required fields: name, whatsapp, source" },
+        { error: "Validation failed", details: validation.error.issues },
         { status: 400 }
       )
     }
 
+    const data = validation.data
+
     // Create lead
     const lead = await prisma.lead.create({
       data: {
-        name,
-        whatsapp,
-        email,
-        phone,
-        source,
-        status: status || "NEW",
-        quality: quality || "WARM",
-        interestedLevel,
-        interestedType,
-        batchId,
-        notes,
-        followUpDate: followUpDate ? new Date(followUpDate) : null,
+        name: data.name,
+        whatsapp: data.whatsapp,
+        email: data.email || null,
+        phone: data.phone || null,
+        source: data.source,
+        status: data.status || "NEW",
+        quality: data.quality || "WARM",
+        interestedLevel: data.interestedLevel || null,
+        interestedType: data.interestedType || null,
+        batchId: data.batchId || null,
+        notes: data.notes || null,
+        followUpDate: data.followUpDate ? new Date(data.followUpDate) : null,
         assignedToId: user.id, // Auto-assign to current user
       },
       include: {

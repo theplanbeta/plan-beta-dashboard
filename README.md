@@ -126,6 +126,7 @@ plan-beta-dashboard/
 │   ├── auth.ts                    # NextAuth configuration
 │   ├── pricing.ts                 # Centralized pricing ⭐ NEW
 │   ├── audit.ts                   # Audit logging system ⭐ NEW
+│   ├── device-detection.ts        # Mobile device detection ⭐ NEW
 │   └── utils.ts                   # Helper functions
 ├── prisma/                        # Database schema & migrations
 │   ├── schema.prisma              # Complete database schema
@@ -166,6 +167,11 @@ plan-beta-dashboard/
 - ✅ Follow-up tracking
 - ✅ Lead-to-student conversion workflow
 - ✅ Marketing dashboard with metrics
+- ✅ **Mobile-optimized lead submission** (phones only) ⭐ NEW
+  - Device detection (phone vs tablet vs desktop)
+  - Touch-friendly UI with large buttons
+  - Mobile redirect dialog with preference storage
+  - Dedicated mobile form route
 
 #### **Invoice & Payment System** ⭐ NEW
 - ✅ Invoice generation for leads
@@ -625,6 +631,41 @@ RESEND_API_KEY="your-resend-key"
 
 ---
 
+---
+
+## 📱 Latest Updates (October 7, 2025)
+
+### Mobile-Optimized Lead Submission
+
+**What's New:**
+- ✅ Smart device detection that distinguishes phones from tablets/desktops
+- ✅ Mobile redirect dialog on Marketing Dashboard
+- ✅ Dedicated mobile-optimized lead form (`/dashboard/leads/mobile/new`)
+- ✅ Touch-friendly UI with 44x44px minimum button sizes
+- ✅ Fixed header and bottom submit button for better mobile UX
+- ✅ localStorage preference to avoid repeat prompts
+
+**How It Works:**
+1. Marketing user logs in from a smartphone
+2. System detects mobile device (phones only, not tablets)
+3. Dialog appears: "Mobile Device Detected"
+4. User chooses: "Use Mobile-Optimized Version" or "Continue with Desktop"
+5. Preference is saved to localStorage
+6. Mobile form provides streamlined lead entry with large touch targets
+
+**Files Added:**
+- `lib/device-detection.ts` - Device detection utilities
+- `app/dashboard/leads/mobile/new/page.tsx` - Mobile-optimized form
+- Updated `app/dashboard/components/MarketingDashboard.tsx` with redirect logic
+
+**Benefits:**
+- ⚡ Faster lead entry on mobile devices
+- 📱 Better UX for field marketing staff
+- 🎯 Reduced input errors with larger touch targets
+- 🔄 Seamless fallback to desktop version if preferred
+
+---
+
 **Built with ❤️ using Next.js, Prisma, and Claude Code**
 
-**Version:** 2.0 | **Status:** Production Ready | **Last Updated:** October 6, 2025
+**Version:** 2.0 | **Status:** Production Ready | **Last Updated:** October 7, 2025

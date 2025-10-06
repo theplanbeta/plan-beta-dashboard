@@ -22,6 +22,11 @@ enum UserRole {
 
 enum EnrollmentType {
   A1_ONLY
+  A1_HYBRID
+  A2_ONLY
+  B1_ONLY
+  B2_ONLY
+  SPOKEN_GERMAN
   FOUNDATION_A1_A2
   CAREER_A1_A2_B1
   COMPLETE_PATHWAY
@@ -33,6 +38,7 @@ enum Level {
   A2
   B1
   B2
+  SPOKEN_GERMAN
 }
 
 enum PaymentStatus {
@@ -270,6 +276,7 @@ model Batch {
   status            BatchStatus  @default(PLANNING)
 
   // Financial
+  currency          String       @default("EUR") // EUR or INR
   revenueTarget     Decimal      @default(0) @db.Decimal(10, 2)
   revenueActual     Decimal      @default(0) @db.Decimal(10, 2)
   teacherCost       Decimal      @default(0) @db.Decimal(10, 2)

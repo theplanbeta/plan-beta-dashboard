@@ -136,10 +136,36 @@ function NewStudentForm() {
     }
   }
 
+  // Validation: Check if enrollmentType matches startingLevel
+  const validateEnrollment = (level: string, enrollmentType: string): string | null => {
+    const validations: Record<string, string[]> = {
+      'NEW': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
+      'A1': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
+      'A2': ['A2_ONLY', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
+      'B1': ['B1_ONLY', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
+      'B2': ['B2_ONLY', 'COMPLETE_PATHWAY'],
+      'SPOKEN_GERMAN': ['SPOKEN_GERMAN']
+    }
+
+    const allowedTypes = validations[level] || []
+    if (!allowedTypes.includes(enrollmentType)) {
+      return `Enrollment plan "${enrollmentType}" doesn't match starting level "${level}". Please select a compatible plan.`
+    }
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
+
+    // Validate enrollment type matches starting level
+    const validationError = validateEnrollment(formData.currentLevel, formData.enrollmentType)
+    if (validationError) {
+      setError(validationError)
+      setLoading(false)
+      return
+    }
 
     try {
       const res = await fetch("/api/students", {
@@ -216,6 +242,9 @@ function NewStudentForm() {
     setParsing(true)
 
     try {
+      // Warmup call to reduce latency
+      fetch("/api/warmup").catch(() => {})
+
       const res = await fetch("/api/students/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -426,6 +455,29 @@ function NewStudentForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
+                Starting Level <span className="text-error">*</span>
+              </label>
+              <select
+                name="currentLevel"
+                value={formData.currentLevel}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="NEW">New (Starting from A1)</option>
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="SPOKEN_GERMAN">Spoken German</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Which level are they enrolling in right now?
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Enrollment Plan <span className="text-error">*</span>
               </label>
               <select
@@ -435,32 +487,23 @@ function NewStudentForm() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="A1_ONLY">Single Level (Current Batch Only)</option>
-                <option value="FOUNDATION_A1_A2">Foundation Track (A1 → A2)</option>
-                <option value="CAREER_A1_A2_B1">Career Track (A1 → A2 → B1)</option>
-                <option value="COMPLETE_PATHWAY">Complete Pathway (A1 → B2)</option>
+                <optgroup label="Individual Courses">
+                  <option value="A1_ONLY">A1 Only</option>
+                  <option value="A1_HYBRID">A1 Hybrid</option>
+                  <option value="A2_ONLY">A2 Only</option>
+                  <option value="B1_ONLY">B1 Only</option>
+                  <option value="B2_ONLY">B2 Only</option>
+                  <option value="SPOKEN_GERMAN">Spoken German</option>
+                </optgroup>
+                <optgroup label="Package Deals">
+                  <option value="FOUNDATION_A1_A2">Foundation Track (A1 + A2)</option>
+                  <option value="CAREER_A1_A2_B1">Career Track (A1 + A2 + B1)</option>
+                  <option value="COMPLETE_PATHWAY">Complete Pathway (A1 → B2)</option>
+                </optgroup>
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                Learning path they plan to complete (helps with retention tracking)
+                Total learning path they&apos;re committing to (affects pricing)
               </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Current Level
-              </label>
-              <select
-                name="currentLevel"
-                value={formData.currentLevel}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="NEW">New</option>
-                <option value="A1">A1</option>
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2">B2</option>
-              </select>
             </div>
 
             <div>

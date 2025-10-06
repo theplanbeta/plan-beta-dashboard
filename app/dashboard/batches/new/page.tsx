@@ -32,6 +32,7 @@ export default function NewBatchPage() {
     schedule: "",
     status: "PLANNING",
     notes: "",
+    currency: "EUR" as "EUR" | "INR",
   })
 
   useEffect(() => {
@@ -344,10 +345,26 @@ export default function NewBatchPage() {
         <div className="space-y-4 border-t pt-6">
           <h2 className="text-lg font-semibold text-foreground">Financial</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Revenue Target (€)
+                Currency <span className="text-error">*</span>
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Revenue Target ({formData.currency === "EUR" ? "€" : "₹"})
               </label>
               <input
                 type="number"
@@ -357,13 +374,14 @@ export default function NewBatchPage() {
                 min="0"
                 step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={formData.currency === "EUR" ? "134.00" : "14000.00"}
               />
               <p className="text-xs text-gray-500 mt-1">Expected total revenue from this batch</p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teacher Cost (€)
+                Teacher Cost ({formData.currency === "EUR" ? "€" : "₹"})
               </label>
               <input
                 type="number"
@@ -373,6 +391,7 @@ export default function NewBatchPage() {
                 min="0"
                 step="0.01"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder={formData.currency === "EUR" ? "50.00" : "5000.00"}
               />
               <p className="text-xs text-gray-500 mt-1">Total cost to pay the teacher</p>
             </div>
@@ -382,7 +401,7 @@ export default function NewBatchPage() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Expected Profit:</span>
               <span className="font-semibold text-success">
-                €{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
+                {formData.currency === "EUR" ? "€" : "₹"}{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
               </span>
             </div>
           </div>

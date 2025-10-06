@@ -73,6 +73,9 @@ export default function NewLeadPage() {
     setParsing(true)
 
     try {
+      // Warmup call to reduce latency
+      fetch("/api/warmup").catch(() => {})
+
       const res = await fetch("/api/leads/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

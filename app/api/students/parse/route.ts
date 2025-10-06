@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" })
 
     const prompt = `You are an expert data extractor for a German language school in India.
 Extract structured student information from the following unstructured text.

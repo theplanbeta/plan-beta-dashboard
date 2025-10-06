@@ -133,7 +133,14 @@ export default function ConvertLeadPage({
 
   const calculateEnrollmentPrice = (type: string, currency: "EUR" | "INR"): number => {
     const prices = {
+      // Individual courses
       A1_ONLY: COURSE_PRICING.A1[currency],
+      A1_HYBRID: COURSE_PRICING.A1_HYBRID[currency],
+      A2_ONLY: COURSE_PRICING.A2[currency],
+      B1_ONLY: COURSE_PRICING.B1[currency],
+      B2_ONLY: COURSE_PRICING.B2[currency],
+      SPOKEN_GERMAN: COURSE_PRICING.SPOKEN_GERMAN[currency],
+      // Package courses
       FOUNDATION_A1_A2: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency],
       CAREER_A1_A2_B1: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency],
       COMPLETE_PATHWAY: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency] + COURSE_PRICING.B2[currency],
@@ -277,18 +284,37 @@ export default function ConvertLeadPage({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select enrollment type</option>
-                <option value="A1_ONLY">
-                  A1 Only (€{COURSE_PRICING.A1.EUR} / ₹{COURSE_PRICING.A1.INR})
-                </option>
-                <option value="FOUNDATION_A1_A2">
-                  Foundation - A1 + A2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR})
-                </option>
-                <option value="CAREER_A1_A2_B1">
-                  Career - A1 + A2 + B1 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR})
-                </option>
-                <option value="COMPLETE_PATHWAY">
-                  Complete Pathway (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR + COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR + COURSE_PRICING.B2.INR})
-                </option>
+                <optgroup label="Individual Courses">
+                  <option value="A1_ONLY">
+                    A1 (€{COURSE_PRICING.A1.EUR} / ₹{COURSE_PRICING.A1.INR})
+                  </option>
+                  <option value="A1_HYBRID">
+                    A1 Hybrid (€{COURSE_PRICING.A1_HYBRID.EUR} / ₹{COURSE_PRICING.A1_HYBRID.INR})
+                  </option>
+                  <option value="A2_ONLY">
+                    A2 (€{COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A2.INR})
+                  </option>
+                  <option value="B1_ONLY">
+                    B1 (€{COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.B1.INR})
+                  </option>
+                  <option value="B2_ONLY">
+                    B2 (€{COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.B2.INR})
+                  </option>
+                  <option value="SPOKEN_GERMAN">
+                    Spoken German (€{COURSE_PRICING.SPOKEN_GERMAN.EUR} / ₹{COURSE_PRICING.SPOKEN_GERMAN.INR})
+                  </option>
+                </optgroup>
+                <optgroup label="Course Packages">
+                  <option value="FOUNDATION_A1_A2">
+                    Foundation - A1 + A2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR})
+                  </option>
+                  <option value="CAREER_A1_A2_B1">
+                    Career - A1 + A2 + B1 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR})
+                  </option>
+                  <option value="COMPLETE_PATHWAY">
+                    Complete Pathway - A1 + A2 + B1 + B2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR + COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR + COURSE_PRICING.B2.INR})
+                  </option>
+                </optgroup>
               </select>
               {lead.interestedType && (
                 <p className="text-xs text-gray-500 mt-1">

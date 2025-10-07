@@ -4,18 +4,26 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 
+type TimeSlot = {
+  startTime: string
+  endTime: string
+}
+
 type Teacher = {
   id: string
-  email: string
   name: string
-  phone: string | null
   active: boolean
+  teacherLevels: string[]
+  teacherTimings: string[]
+  teacherTimeSlots: TimeSlot[]
   hourlyRate: number | null
-  availableMorning: boolean | null
-  availableEvening: boolean | null
+  currency: string | null
+  whatsapp: string | null
+  remarks: string | null
   batches: Array<{
     id: string
     batchCode: string
+    level: string
     schedule: string | null
     startDate: string | null
     endDate: string | null
@@ -48,49 +56,8 @@ export default function TeachersPage() {
     }
   }
 
-  const getAvailabilityStatus = (
-    teacher: Teacher,
-    slot: "Morning" | "Evening"
-  ) => {
-    const slotAvailable = slot === "Morning"
-      ? teacher.availableMorning
-      : teacher.availableEvening
-
-    if (slotAvailable === false) {
-      return { status: "Not Available", color: "bg-gray-200 text-gray-600", nextAvailable: null }
-    }
-
-    // Check schedule field for "Morning" or "Evening" keywords
-    const currentBatches = teacher.batches.filter((b) => {
-      const schedule = b.schedule?.toLowerCase() || ""
-      const targetSlot = slot.toLowerCase()
-      return (schedule.includes(targetSlot)) && (b.status === "RUNNING" || b.status === "FILLING")
-    })
-
-    if (currentBatches.length === 0) {
-      return { status: "Available", color: "bg-success/10 text-success", nextAvailable: null }
-    }
-
-    // Find the latest endDate among current batches
-    const latestEndDate = currentBatches
-      .map((b) => b.endDate)
-      .filter((d) => d !== null)
-      .sort()
-      .pop()
-
-    if (!latestEndDate) {
-      return { status: "Busy", color: "bg-error/10 text-error", nextAvailable: null }
-    }
-
-    return {
-      status: "Busy",
-      color: "bg-error/10 text-error",
-      nextAvailable: new Date(latestEndDate).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }),
-    }
+  const formatTimeSlot = (slot: TimeSlot) => {
+    return `${slot.startTime} - ${slot.endTime}`
   }
 
   if (loading) {
@@ -107,7 +74,7 @@ export default function TeachersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Teachers</h1>
-          <p className="text-gray-500">Manage teachers and their availability</p>
+          <p className="text-gray-500">Manage teachers and their assignments</p>
         </div>
         <Link
           href="/dashboard/teachers/new"
@@ -129,116 +96,151 @@ export default function TeachersPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {teachers.map((teacher) => {
-            const morningStatus = getAvailabilityStatus(teacher, "Morning")
-            const eveningStatus = getAvailabilityStatus(teacher, "Evening")
-
-            return (
-              <div
-                key={teacher.id}
-                className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
-              >
-                {/* Teacher Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <h3 className="text-xl font-semibold text-foreground">
-                        {teacher.name}
-                      </h3>
-                      {!teacher.active && (
-                        <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">{teacher.email}</div>
-                    {teacher.phone && (
-                      <div className="text-sm text-gray-600">{teacher.phone}</div>
+        <div className="grid grid-cols-1 gap-6">
+          {teachers.map((teacher) => (
+            <div
+              key={teacher.id}
+              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+            >
+              {/* Teacher Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {teacher.name}
+                    </h3>
+                    {!teacher.active && (
+                      <span className="px-2 py-1 bg-gray-200 text-gray-600 text-xs rounded">
+                        Inactive
+                      </span>
                     )}
                   </div>
-                  {teacher.hourlyRate && (
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">Hourly Rate</div>
-                      <div className="text-lg font-bold text-foreground">
-                        {formatCurrency(Number(teacher.hourlyRate))}
+
+                  {/* Quick Info */}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {teacher.hourlyRate && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-600">Rate:</span>
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(Number(teacher.hourlyRate))} {teacher.currency || 'EUR'}/hr
+                        </span>
                       </div>
+                    )}
+                    {teacher.whatsapp && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-600">WhatsApp:</span>
+                        <span className="font-medium text-foreground">{teacher.whatsapp}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-600">Batches:</span>
+                      <span className="font-medium text-foreground">{teacher._count.batches}</span>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Teaching Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                {/* Levels */}
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">Levels</div>
+                  {teacher.teacherLevels.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {teacher.teacherLevels.map((level) => (
+                        <span
+                          key={level}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+                        >
+                          {level}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500">Not specified</span>
                   )}
                 </div>
 
-                {/* Availability Status */}
-                <div className="space-y-3 mb-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700">Morning Slot</span>
-                      <span className={`px-2 py-1 rounded text-xs ${morningStatus.color}`}>
-                        {morningStatus.status}
-                      </span>
+                {/* Timings */}
+                <div>
+                  <div className="text-sm font-medium text-gray-700 mb-2">Timings</div>
+                  {teacher.teacherTimings.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {teacher.teacherTimings.map((timing) => (
+                        <span
+                          key={timing}
+                          className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded"
+                        >
+                          {timing}
+                        </span>
+                      ))}
                     </div>
-                    {morningStatus.nextAvailable && (
-                      <div className="text-xs text-gray-500">
-                        Available from: {morningStatus.nextAvailable}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700">Evening Slot</span>
-                      <span className={`px-2 py-1 rounded text-xs ${eveningStatus.color}`}>
-                        {eveningStatus.status}
-                      </span>
-                    </div>
-                    {eveningStatus.nextAvailable && (
-                      <div className="text-xs text-gray-500">
-                        Available from: {eveningStatus.nextAvailable}
-                      </div>
-                    )}
-                  </div>
+                  ) : (
+                    <span className="text-xs text-gray-500">Not specified</span>
+                  )}
                 </div>
 
-                {/* Current Batches */}
-                {teacher.batches.length > 0 && (
-                  <div className="pt-4 border-t">
-                    <div className="text-sm font-medium text-gray-700 mb-2">
-                      Current Batches ({teacher.batches.length})
-                    </div>
-                    <div className="space-y-2">
-                      {teacher.batches.map((batch) => (
-                        <Link
-                          key={batch.id}
-                          href={`/dashboard/batches/${batch.id}`}
-                          className="flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                {/* Time Slots */}
+                <div className="md:col-span-2">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Time Slots</div>
+                  {teacher.teacherTimeSlots && teacher.teacherTimeSlots.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {teacher.teacherTimeSlots.map((slot, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded"
                         >
+                          {formatTimeSlot(slot)}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-500">Not specified</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Current Batches */}
+              {teacher.batches.length > 0 && (
+                <div className="pt-4 border-t">
+                  <div className="text-sm font-medium text-gray-700 mb-2">
+                    Current Batches ({teacher.batches.length})
+                  </div>
+                  <div className="space-y-2">
+                    {teacher.batches.map((batch) => (
+                      <Link
+                        key={batch.id}
+                        href={`/dashboard/batches/${batch.id}`}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
                           <div>
                             <div className="text-sm font-medium text-foreground">
                               {batch.batchCode}
                             </div>
                             <div className="text-xs text-gray-600">
-                              {batch.schedule || "No schedule"} • {batch.status}
+                              {batch.level} • {batch.status}
                             </div>
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {batch.endDate &&
-                              new Date(batch.endDate).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                              })}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {batch.schedule || "No schedule"}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                )}
-
-                {/* Total Batches */}
-                <div className="mt-4 pt-4 border-t text-sm text-gray-600">
-                  Total Batches: <span className="font-medium">{teacher._count.batches}</span>
                 </div>
-              </div>
-            )
-          })}
+              )}
+
+              {/* Remarks */}
+              {teacher.remarks && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="text-sm font-medium text-gray-700 mb-1">Remarks</div>
+                  <div className="text-sm text-gray-600">{teacher.remarks}</div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

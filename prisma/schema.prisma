@@ -134,20 +134,25 @@ model User {
   phone     String?
   avatar    String?
 
-  // Teacher-specific fields
+  // Teacher-specific fields (old - kept for backward compatibility)
   bio                 String?  @db.Text
-  qualifications      String?  @db.Text  // Education, certifications
-  experience          String?  @db.Text  // Teaching experience
-  specializations     String?  @db.Text  // Areas of expertise (e.g., "A1, A2 German")
-  languages           String?            // Languages spoken (e.g., "English, German, Hindi")
-  availability        String?  @db.Text  // Available hours/days
-  availableMorning    Boolean? @default(true)  // Available for morning batches
-  availableEvening    Boolean? @default(true)  // Available for evening batches
-  hourlyRate          Decimal? @db.Decimal(10, 2)  // For payment tracking
+  qualifications      String?  @db.Text
+  experience          String?  @db.Text
+  specializations     String?  @db.Text
+  languages           String?
+  availability        String?  @db.Text
+  availableMorning    Boolean? @default(true)
+  availableEvening    Boolean? @default(true)
+  preferredContact    String?
 
-  // Contact preferences
-  preferredContact String?  // "EMAIL", "PHONE", "WHATSAPP"
-  whatsapp         String?
+  // New teacher management fields
+  teacherLevels       String[]  // ["A1", "A2", "B1", "B2"]
+  teacherTimings      String[]  // ["Morning", "Evening"]
+  teacherTimeSlots    Json?     // [{"startTime": "09:00", "endTime": "12:00"}, ...]
+  hourlyRate          Decimal?  @db.Decimal(10, 2)
+  currency            String?   @default("EUR")  // "EUR" or "INR"
+  whatsapp            String?
+  remarks             String?   @db.Text
 
   // Relationships
   batches      Batch[]        @relation("TeacherBatches")

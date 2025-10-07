@@ -11,21 +11,17 @@ const limiter = rateLimit(RATE_LIMITS.STANDARD)
 
 // Validation schema for creating teacher
 const createTeacherSchema = z.object({
-  email: z.string().email('Invalid email'),
   name: z.string().min(1, 'Name is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  phone: z.string().optional(),
-  bio: z.string().optional(),
-  qualifications: z.string().optional(),
-  experience: z.string().optional(),
-  specializations: z.string().optional(),
-  languages: z.string().optional(),
-  availability: z.string().optional(),
-  availableMorning: z.boolean().optional(),
-  availableEvening: z.boolean().optional(),
+  teacherLevels: z.array(z.enum(['A1', 'A2', 'B1', 'B2'])).optional().default([]),
+  teacherTimings: z.array(z.enum(['Morning', 'Evening'])).optional().default([]),
+  teacherTimeSlots: z.array(z.object({
+    startTime: z.string(),
+    endTime: z.string(),
+  })).optional(),
   hourlyRate: z.number().optional(),
-  preferredContact: z.string().optional(),
+  currency: z.enum(['EUR', 'INR']).optional().default('EUR'),
   whatsapp: z.string().optional(),
+  remarks: z.string().optional(),
 })
 
 // GET /api/teachers - List all teachers
@@ -44,21 +40,15 @@ export async function GET(req: NextRequest) {
       },
       select: {
         id: true,
-        email: true,
         name: true,
-        phone: true,
         active: true,
-        bio: true,
-        qualifications: true,
-        experience: true,
-        specializations: true,
-        languages: true,
-        availability: true,
-        availableMorning: true,
-        availableEvening: true,
+        teacherLevels: true,
+        teacherTimings: true,
+        teacherTimeSlots: true,
         hourlyRate: true,
-        preferredContact: true,
+        currency: true,
         whatsapp: true,
+        remarks: true,
         createdAt: true,
         batches: {
           where: {
@@ -69,6 +59,7 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             batchCode: true,
+            level: true,
             schedule: true,
             startDate: true,
             endDate: true,
@@ -116,55 +107,35 @@ export async function POST(req: NextRequest) {
 
     const data = validation.data
 
-    // Check if email already exists
-    const existing = await prisma.user.findUnique({
-      where: { email: data.email },
-    })
-
-    if (existing) {
-      return NextResponse.json({ error: 'Email already exists' }, { status: 400 })
-    }
-
-    // Hash password
-    const hashedPassword = await hash(data.password, 10)
+    // Generate unique email for teacher (name-based)
+    const emailSuffix = `teacher${Date.now()}@planbeta.internal`
 
     // Create teacher
     const teacher = await prisma.user.create({
       data: {
-        email: data.email,
+        email: emailSuffix,
         name: data.name,
-        password: hashedPassword,
+        password: await hash('temporary123', 10), // Temp password
         role: 'TEACHER',
-        phone: data.phone,
-        bio: data.bio,
-        qualifications: data.qualifications,
-        experience: data.experience,
-        specializations: data.specializations,
-        languages: data.languages,
-        availability: data.availability,
-        availableMorning: data.availableMorning,
-        availableEvening: data.availableEvening,
+        teacherLevels: data.teacherLevels,
+        teacherTimings: data.teacherTimings,
+        teacherTimeSlots: data.teacherTimeSlots || [],
         hourlyRate: data.hourlyRate,
-        preferredContact: data.preferredContact,
+        currency: data.currency,
         whatsapp: data.whatsapp,
+        remarks: data.remarks,
       },
       select: {
         id: true,
-        email: true,
         name: true,
-        phone: true,
         active: true,
-        bio: true,
-        qualifications: true,
-        experience: true,
-        specializations: true,
-        languages: true,
-        availability: true,
-        availableMorning: true,
-        availableEvening: true,
+        teacherLevels: true,
+        teacherTimings: true,
+        teacherTimeSlots: true,
         hourlyRate: true,
-        preferredContact: true,
+        currency: true,
         whatsapp: true,
+        remarks: true,
         createdAt: true,
       },
     })
@@ -172,13 +143,12 @@ export async function POST(req: NextRequest) {
     // Audit log
     await logSuccess(
       AuditAction.TEACHER_CREATED,
-      `Teacher created: ${teacher.name} (${teacher.email})`,
+      `Teacher created: ${teacher.name}`,
       {
         entityType: 'User',
         entityId: teacher.id,
         metadata: {
           teacherName: teacher.name,
-          teacherEmail: teacher.email,
           role: 'TEACHER',
         },
         request: req,

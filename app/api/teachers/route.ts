@@ -21,6 +21,8 @@ const createTeacherSchema = z.object({
   specializations: z.string().optional(),
   languages: z.string().optional(),
   availability: z.string().optional(),
+  availableMorning: z.boolean().optional(),
+  availableEvening: z.boolean().optional(),
   hourlyRate: z.number().optional(),
   preferredContact: z.string().optional(),
   whatsapp: z.string().optional(),
@@ -52,10 +54,27 @@ export async function GET(req: NextRequest) {
         specializations: true,
         languages: true,
         availability: true,
+        availableMorning: true,
+        availableEvening: true,
         hourlyRate: true,
         preferredContact: true,
         whatsapp: true,
         createdAt: true,
+        batches: {
+          where: {
+            status: {
+              in: ['RUNNING', 'FILLING']
+            }
+          },
+          select: {
+            id: true,
+            batchCode: true,
+            timing: true,
+            startDate: true,
+            endDate: true,
+            status: true,
+          }
+        },
         _count: {
           select: {
             batches: true,
@@ -123,6 +142,8 @@ export async function POST(req: NextRequest) {
         specializations: data.specializations,
         languages: data.languages,
         availability: data.availability,
+        availableMorning: data.availableMorning,
+        availableEvening: data.availableEvening,
         hourlyRate: data.hourlyRate,
         preferredContact: data.preferredContact,
         whatsapp: data.whatsapp,
@@ -139,6 +160,8 @@ export async function POST(req: NextRequest) {
         specializations: true,
         languages: true,
         availability: true,
+        availableMorning: true,
+        availableEvening: true,
         hourlyRate: true,
         preferredContact: true,
         whatsapp: true,

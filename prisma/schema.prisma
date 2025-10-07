@@ -135,13 +135,15 @@ model User {
   avatar    String?
 
   // Teacher-specific fields
-  bio              String?  @db.Text
-  qualifications   String?  @db.Text  // Education, certifications
-  experience       String?  @db.Text  // Teaching experience
-  specializations  String?  @db.Text  // Areas of expertise (e.g., "A1, A2 German")
-  languages        String?            // Languages spoken (e.g., "English, German, Hindi")
-  availability     String?  @db.Text  // Available hours/days
-  hourlyRate       Decimal? @db.Decimal(10, 2)  // For payment tracking
+  bio                 String?  @db.Text
+  qualifications      String?  @db.Text  // Education, certifications
+  experience          String?  @db.Text  // Teaching experience
+  specializations     String?  @db.Text  // Areas of expertise (e.g., "A1, A2 German")
+  languages           String?            // Languages spoken (e.g., "English, German, Hindi")
+  availability        String?  @db.Text  // Available hours/days
+  availableMorning    Boolean? @default(true)  // Available for morning batches
+  availableEvening    Boolean? @default(true)  // Available for evening batches
+  hourlyRate          Decimal? @db.Decimal(10, 2)  // For payment tracking
 
   // Contact preferences
   preferredContact String?  // "EMAIL", "PHONE", "WHATSAPP"

@@ -79,6 +79,11 @@
         <h1>🧪 Lead Validation Test</h1>
         <p class="subtitle">Test lead creation with minimal data to identify validation issues</p>
 
+        <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <strong>⚠️ Important:</strong> You must be logged in first!<br>
+            <a href="/login" style="color: #3b82f6; text-decoration: underline;">Click here to login</a> if you haven't already.
+        </div>
+
         <form id="testForm">
             <div class="form-group">
                 <label>Name <span class="required">*</span></label>
@@ -171,12 +176,22 @@
                         <pre>${JSON.stringify(data, null, 2)}</pre>
                     `;
                 } else {
+                    let errorMessage = '';
+                    if (response.status === 401) {
+                        errorMessage = `
+                            <h3>🔒 Authentication Required (Status 401)</h3>
+                            <p><strong>You need to login first!</strong></p>
+                            <p><a href="/login" style="color: #3b82f6; text-decoration: underline;">Click here to login</a> and then try again.</p>
+                        `;
+                    } else {
+                        errorMessage = `
+                            <h3>❌ Failed (Status ${response.status})</h3>
+                            <p><strong>Error:</strong> ${data.error || 'Unknown error'}</p>
+                            ${data.details ? `<pre>${JSON.stringify(data.details, null, 2)}</pre>` : ''}
+                        `;
+                    }
                     resultDiv.className = 'result error';
-                    resultDiv.innerHTML = `
-                        <h3>❌ Failed (Status ${response.status})</h3>
-                        <p><strong>Error:</strong> ${data.error || 'Unknown error'}</p>
-                        ${data.details ? `<pre>${JSON.stringify(data.details, null, 2)}</pre>` : ''}
-                    `;
+                    resultDiv.innerHTML = errorMessage;
                 }
             } catch (error) {
                 resultDiv.className = 'result error';

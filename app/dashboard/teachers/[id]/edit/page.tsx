@@ -211,6 +211,32 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
     ))
   }
 
+  const handleDeactivate = async () => {
+    if (!confirm('Are you sure you want to deactivate this teacher? They will no longer appear in active teacher lists.')) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/teachers/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (res.ok) {
+        alert('Teacher deactivated successfully')
+        router.push('/dashboard/teachers')
+      } else {
+        const error = await res.json()
+        alert(error.error || 'Failed to deactivate teacher')
+      }
+    } catch (error) {
+      console.error('Error deactivating teacher:', error)
+      alert('Failed to deactivate teacher')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (fetching) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -467,21 +493,31 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end pt-4 border-t">
+        <div className="flex gap-3 justify-between pt-4 border-t">
           <button
             type="button"
-            onClick={() => router.back()}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
+            onClick={handleDeactivate}
             disabled={loading}
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+            className="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
           >
-            {loading ? "Updating..." : "Update Teacher"}
+            Deactivate Teacher
           </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+            >
+              {loading ? "Updating..." : "Update Teacher"}
+            </button>
+          </div>
         </div>
       </form>
     </div>

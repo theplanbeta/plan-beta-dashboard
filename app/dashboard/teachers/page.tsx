@@ -37,6 +37,7 @@ type Teacher = {
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
+  const [showInactive, setShowInactive] = useState(false)
 
   useEffect(() => {
     fetchTeachers()
@@ -55,6 +56,10 @@ export default function TeachersPage() {
       setLoading(false)
     }
   }
+
+  const filteredTeachers = showInactive
+    ? teachers
+    : teachers.filter(t => t.active)
 
   const formatTimeSlot = (slot: TimeSlot) => {
     return `${slot.startTime} - ${slot.endTime}`
@@ -76,12 +81,23 @@ export default function TeachersPage() {
           <h1 className="text-3xl font-bold text-foreground">Teachers</h1>
           <p className="text-gray-500">Manage teachers and their assignments</p>
         </div>
-        <Link
-          href="/dashboard/teachers/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
-        >
-          + Add Teacher
-        </Link>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+            />
+            <span className="text-gray-700">Show inactive</span>
+          </label>
+          <Link
+            href="/dashboard/teachers/new"
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+          >
+            + Add Teacher
+          </Link>
+        </div>
       </div>
 
       {/* Teachers List */}
@@ -97,7 +113,7 @@ export default function TeachersPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {teachers.map((teacher) => (
+          {filteredTeachers.map((teacher) => (
             <div
               key={teacher.id}
               className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"

@@ -149,7 +149,7 @@ model User {
   teacherLevels       String[]  // ["A1", "A2", "B1", "B2"]
   teacherTimings      String[]  // ["Morning", "Evening"]
   teacherTimeSlots    Json?     // [{"startTime": "09:00", "endTime": "12:00"}, ...]
-  hourlyRate          Decimal?  @db.Decimal(10, 2)
+  hourlyRate          Json?     // {"A1": 600, "A2": 650, "B1": 700, "B2": 750} - rates per level
   currency            String?   @default("EUR")  // "EUR" or "INR"
   whatsapp            String?
   remarks             String?   @db.Text

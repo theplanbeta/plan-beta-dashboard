@@ -16,7 +16,7 @@ const updateTeacherSchema = z.object({
     startTime: z.string(),
     endTime: z.string(),
   })).optional(),
-  hourlyRate: z.number().optional(),
+  hourlyRate: z.record(z.enum(['A1', 'A2', 'B1', 'B2']), z.number()).optional(), // {"A1": 600, "B2": 750}
   currency: z.enum(['EUR', 'INR']).optional(),
   whatsapp: z.string().optional(),
   remarks: z.string().optional(),

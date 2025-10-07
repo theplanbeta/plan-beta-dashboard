@@ -16,7 +16,7 @@ type Teacher = {
   teacherLevels: string[]
   teacherTimings: string[]
   teacherTimeSlots: TimeSlot[]
-  hourlyRate: number | null
+  hourlyRate: Record<string, number> | null // Changed to object: {"A1": 600, "B2": 750}
   currency: string | null
   whatsapp: string | null
   remarks: string | null
@@ -118,12 +118,16 @@ export default function TeachersPage() {
 
                   {/* Quick Info */}
                   <div className="flex flex-wrap gap-4 text-sm">
-                    {teacher.hourlyRate && (
+                    {teacher.hourlyRate && typeof teacher.hourlyRate === 'object' && Object.keys(teacher.hourlyRate).length > 0 && (
                       <div className="flex items-center gap-1">
-                        <span className="text-gray-600">Rate:</span>
-                        <span className="font-medium text-foreground">
-                          {formatCurrency(Number(teacher.hourlyRate))} {teacher.currency || 'EUR'}/hr
-                        </span>
+                        <span className="text-gray-600">Rates:</span>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(teacher.hourlyRate as Record<string, number>).map(([level, rate]) => (
+                            <span key={level} className="font-medium text-foreground">
+                              {level}: {formatCurrency(Number(rate))} {teacher.currency || 'EUR'}/hr
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                     {teacher.whatsapp && (

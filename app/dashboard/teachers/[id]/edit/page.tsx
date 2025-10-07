@@ -31,7 +31,7 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
     name: "",
     teacherLevels: [] as string[],
     teacherTimings: [] as string[],
-    hourlyRate: "",
+    hourlyRates: {} as Record<string, string>, // {"A1": "600", "B2": "750"}
     currency: "EUR" as typeof CURRENCIES[number],
     whatsapp: "",
     remarks: "",
@@ -51,11 +51,19 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
 
       const teacher = await res.json()
 
+      // Convert hourlyRate from JSON object to string record
+      const hourlyRatesObj: Record<string, string> = {}
+      if (teacher.hourlyRate && typeof teacher.hourlyRate === 'object') {
+        Object.entries(teacher.hourlyRate).forEach(([level, rate]) => {
+          hourlyRatesObj[level] = String(rate)
+        })
+      }
+
       setFormData({
         name: teacher.name || "",
         teacherLevels: teacher.teacherLevels || [],
         teacherTimings: teacher.teacherTimings || [],
-        hourlyRate: teacher.hourlyRate ? String(teacher.hourlyRate) : "",
+        hourlyRates: hourlyRatesObj,
         currency: teacher.currency || "EUR",
         whatsapp: teacher.whatsapp || "",
         remarks: teacher.remarks || "",
@@ -86,12 +94,20 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         slot => slot.startTime && slot.endTime
       ).map(({ startTime, endTime }) => ({ startTime, endTime }))
 
+      // Convert string rates to numbers for API
+      const hourlyRateNumbers: Record<string, number> = {}
+      Object.entries(formData.hourlyRates).forEach(([level, rate]) => {
+        if (rate) {
+          hourlyRateNumbers[level] = Number(rate)
+        }
+      })
+
       const payload = {
         name: formData.name,
         teacherLevels: formData.teacherLevels,
         teacherTimings: formData.teacherTimings,
         teacherTimeSlots: validTimeSlots,
-        hourlyRate: formData.hourlyRate ? Number(formData.hourlyRate) : undefined,
+        hourlyRate: Object.keys(hourlyRateNumbers).length > 0 ? hourlyRateNumbers : undefined,
         currency: formData.currency,
         whatsapp: formData.whatsapp || undefined,
         remarks: formData.remarks || undefined,
@@ -117,21 +133,22 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  const calculatePBTarifRate = (levels: string[]) => {
-    if (levels.length === 0) return null
-    // Get the highest rate from selected levels
-    const rates = levels.map(level => PB_TARIF_RATES[level as keyof typeof PB_TARIF_RATES])
-    return Math.max(...rates)
+  const calculatePBTarifRates = (levels: string[]): Record<string, string> => {
+    const rates: Record<string, string> = {}
+    levels.forEach(level => {
+      rates[level] = String(PB_TARIF_RATES[level as keyof typeof PB_TARIF_RATES])
+    })
+    return rates
   }
 
   const handlePBTarifToggle = (checked: boolean) => {
     setUsePBTarif(checked)
     if (checked) {
-      // Auto-fill rate based on selected levels and set currency to INR
-      const rate = calculatePBTarifRate(formData.teacherLevels)
+      // Auto-fill rates for all selected levels and set currency to INR
+      const rates = calculatePBTarifRates(formData.teacherLevels)
       setFormData(prev => ({
         ...prev,
-        hourlyRate: rate ? String(rate) : "",
+        hourlyRates: rates,
         currency: "INR"
       }))
     }
@@ -140,18 +157,36 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
   const handleCheckboxChange = (field: 'teacherLevels' | 'teacherTimings', value: string) => {
     setFormData(prev => {
       const currentValues = prev[field]
-      const newValues = currentValues.includes(value)
+      const isRemoving = currentValues.includes(value)
+      const newValues = isRemoving
         ? currentValues.filter(v => v !== value)
         : [...currentValues, value]
 
-      // If PB Tarif is enabled and we're changing levels, update hourly rate
+      // If PB Tarif is enabled and we're changing levels, update hourly rates
       if (field === 'teacherLevels' && usePBTarif) {
-        const highestRate = calculatePBTarifRate(newValues)
-        return { ...prev, [field]: newValues, hourlyRate: highestRate ? String(highestRate) : "", currency: "INR" }
+        const newRates = calculatePBTarifRates(newValues)
+        return { ...prev, [field]: newValues, hourlyRates: newRates, currency: "INR" }
+      }
+
+      // If PB Tarif is not enabled and we're removing a level, remove its rate
+      if (field === 'teacherLevels' && isRemoving) {
+        const newRates = { ...prev.hourlyRates }
+        delete newRates[value]
+        return { ...prev, [field]: newValues, hourlyRates: newRates }
       }
 
       return { ...prev, [field]: newValues }
     })
+  }
+
+  const handleRateChange = (level: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      hourlyRates: {
+        ...prev.hourlyRates,
+        [level]: value
+      }
+    }))
   }
 
   const addTimeSlot = () => {
@@ -330,28 +365,7 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
             </label>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hourly Pay
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.hourlyRate}
-                onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                disabled={usePBTarif}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
-                placeholder="25.00"
-              />
-              {usePBTarif && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Rate is auto-calculated from PB Tarif
-                </p>
-              )}
-            </div>
-
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Currency
@@ -374,6 +388,43 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
                 </p>
               )}
             </div>
+
+            {/* Hourly Rates per Level */}
+            {formData.teacherLevels.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hourly Pay per Level
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {formData.teacherLevels.map((level) => (
+                    <div key={level} className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-700 w-10">{level}:</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.hourlyRates[level] || ""}
+                        onChange={(e) => handleRateChange(level, e.target.value)}
+                        disabled={usePBTarif}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
+                        placeholder="600"
+                      />
+                      <span className="text-sm text-gray-500">{formData.currency}/hr</span>
+                    </div>
+                  ))}
+                </div>
+                {usePBTarif && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Rates are auto-calculated from PB Tarif
+                  </p>
+                )}
+                {!usePBTarif && formData.teacherLevels.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Select levels above to set hourly rates
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

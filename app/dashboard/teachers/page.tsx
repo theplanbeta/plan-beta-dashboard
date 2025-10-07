@@ -16,7 +16,7 @@ type Teacher = {
   batches: Array<{
     id: string
     batchCode: string
-    timing: string
+    schedule: string | null
     startDate: string | null
     endDate: string | null
     status: string
@@ -60,9 +60,12 @@ export default function TeachersPage() {
       return { status: "Not Available", color: "bg-gray-200 text-gray-600", nextAvailable: null }
     }
 
-    const currentBatches = teacher.batches.filter(
-      (b) => b.timing === slot && (b.status === "RUNNING" || b.status === "FILLING")
-    )
+    // Check schedule field for "Morning" or "Evening" keywords
+    const currentBatches = teacher.batches.filter((b) => {
+      const schedule = b.schedule?.toLowerCase() || ""
+      const targetSlot = slot.toLowerCase()
+      return (schedule.includes(targetSlot)) && (b.status === "RUNNING" || b.status === "FILLING")
+    })
 
     if (currentBatches.length === 0) {
       return { status: "Available", color: "bg-success/10 text-success", nextAvailable: null }
@@ -213,7 +216,7 @@ export default function TeachersPage() {
                               {batch.batchCode}
                             </div>
                             <div className="text-xs text-gray-600">
-                              {batch.timing} • {batch.status}
+                              {batch.schedule || "No schedule"} • {batch.status}
                             </div>
                           </div>
                           <div className="text-xs text-gray-500">

@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             batchCode: true,
-            timing: true,
+            schedule: true,
             startDate: true,
             endDate: true,
             status: true,

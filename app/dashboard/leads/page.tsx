@@ -454,6 +454,13 @@ export default function LeadsPage() {
                         <>
                           <span className="text-gray-300">|</span>
                           <Link
+                            href={`/dashboard/leads/${lead.id}/invoice`}
+                            className="text-primary hover:text-primary/80"
+                          >
+                            📱
+                          </Link>
+                          <span className="text-gray-300">|</span>
+                          <Link
                             href={`/dashboard/leads/${lead.id}/convert`}
                             className="text-success hover:text-green-700"
                           >

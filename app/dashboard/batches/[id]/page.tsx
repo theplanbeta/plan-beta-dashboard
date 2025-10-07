@@ -254,7 +254,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                           Level: <span className="font-medium">{student.currentLevel}</span>
                         </span>
                         <span className="text-gray-600">
-                          Attendance: <span className="font-medium">{student.attendanceRate ? student.attendanceRate.toFixed(0) : 0}%</span>
+                          Attendance: <span className="font-medium">{(student.attendanceRate || 0).toFixed(0)}%</span>
                         </span>
                       </div>
                     </div>

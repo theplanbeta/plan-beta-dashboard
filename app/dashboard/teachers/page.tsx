@@ -138,6 +138,12 @@ export default function TeachersPage() {
                     </div>
                   </div>
                 </div>
+                <Link
+                  href={`/dashboard/teachers/${teacher.id}/edit`}
+                  className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Edit
+                </Link>
               </div>
 
               {/* Teaching Details Grid */}

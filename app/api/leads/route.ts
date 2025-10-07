@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     // Debug logging
     console.log("📋 Lead creation attempt:")
-    console.log("User:", user.email, "| Role:", user.role)
+    console.log("User ID:", user.id, "| Role:", user.role)
     console.log("Request body:", JSON.stringify(body, null, 2))
 
     // Validate request body

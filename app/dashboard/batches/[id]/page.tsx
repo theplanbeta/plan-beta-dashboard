@@ -38,7 +38,7 @@ type Batch = {
     balance: number
     classesAttended: number
     totalClasses: number
-    attendanceRate: number
+    attendanceRate: number | null
   }>
 }
 

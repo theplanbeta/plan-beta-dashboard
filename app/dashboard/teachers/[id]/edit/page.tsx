@@ -13,11 +13,20 @@ const LEVELS = ['A1', 'A2', 'B1', 'B2'] as const
 const TIMINGS = ['Morning', 'Evening'] as const
 const CURRENCIES = ['EUR', 'INR'] as const
 
+// PB Tarif rates in INR per hour
+const PB_TARIF_RATES = {
+  A1: 600,
+  A2: 650,
+  B1: 700,
+  B2: 750,
+}
+
 export default function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
+  const [usePBTarif, setUsePBTarif] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     teacherLevels: [] as string[],
@@ -108,12 +117,39 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
     }
   }
 
+  const calculatePBTarifRate = (levels: string[]) => {
+    if (levels.length === 0) return null
+    // Get the highest rate from selected levels
+    const rates = levels.map(level => PB_TARIF_RATES[level as keyof typeof PB_TARIF_RATES])
+    return Math.max(...rates)
+  }
+
+  const handlePBTarifToggle = (checked: boolean) => {
+    setUsePBTarif(checked)
+    if (checked) {
+      // Auto-fill rate based on selected levels and set currency to INR
+      const rate = calculatePBTarifRate(formData.teacherLevels)
+      setFormData(prev => ({
+        ...prev,
+        hourlyRate: rate ? String(rate) : "",
+        currency: "INR"
+      }))
+    }
+  }
+
   const handleCheckboxChange = (field: 'teacherLevels' | 'teacherTimings', value: string) => {
     setFormData(prev => {
       const currentValues = prev[field]
       const newValues = currentValues.includes(value)
         ? currentValues.filter(v => v !== value)
         : [...currentValues, value]
+
+      // If PB Tarif is enabled and we're changing levels, update hourly rate
+      if (field === 'teacherLevels' && usePBTarif) {
+        const highestRate = calculatePBTarifRate(newValues)
+        return { ...prev, [field]: newValues, hourlyRate: highestRate ? String(highestRate) : "", currency: "INR" }
+      }
+
       return { ...prev, [field]: newValues }
     })
   }
@@ -273,6 +309,27 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         {/* Compensation */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Compensation</h2>
+
+          {/* PB Tarif Toggle */}
+          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={usePBTarif}
+                onChange={(e) => handlePBTarifToggle(e.target.checked)}
+                className="w-5 h-5 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+              />
+              <div>
+                <span className="font-medium text-gray-900">Use PB Tarif</span>
+                <p className="text-xs text-gray-600 mt-1">
+                  A1: ₹600/hr • A2: ₹650/hr • B1: ₹700/hr • B2: ₹750/hr
+                  <br />
+                  <span className="text-blue-600">Auto-fills hourly rate based on highest selected level</span>
+                </p>
+              </div>
+            </label>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -284,9 +341,15 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
                 min="0"
                 value={formData.hourlyRate}
                 onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={usePBTarif}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="25.00"
               />
+              {usePBTarif && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Rate is auto-calculated from PB Tarif
+                </p>
+              )}
             </div>
 
             <div>
@@ -296,7 +359,8 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
               <select
                 value={formData.currency}
                 onChange={(e) => setFormData({ ...formData, currency: e.target.value as typeof CURRENCIES[number] })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={usePBTarif}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 {CURRENCIES.map((currency) => (
                   <option key={currency} value={currency}>
@@ -304,6 +368,11 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
                   </option>
                 ))}
               </select>
+              {usePBTarif && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Currency is set to INR for PB Tarif
+                </p>
+              )}
             </div>
           </div>
         </div>

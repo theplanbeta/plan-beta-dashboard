@@ -253,9 +253,6 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                         <span className="text-gray-600">
                           Level: <span className="font-medium">{student.currentLevel}</span>
                         </span>
-                        <span className="text-gray-600">
-                          Attendance: <span className="font-medium">{Number(student.attendanceRate || 0).toFixed(0)}%</span>
-                        </span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-2">

@@ -82,6 +82,30 @@ export default function BatchesPage() {
       ? batches.reduce((sum, b) => sum + b.fillRate, 0) / batches.length
       : 0
 
+  // Group batches by month/year of start date
+  const batchesByMonth = batches.reduce((acc, batch) => {
+    if (!batch.startDate) {
+      // Batches without start date go to "Unscheduled"
+      if (!acc["Unscheduled"]) acc["Unscheduled"] = []
+      acc["Unscheduled"].push(batch)
+      return acc
+    }
+
+    const date = new Date(batch.startDate)
+    const monthYear = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+
+    if (!acc[monthYear]) acc[monthYear] = []
+    acc[monthYear].push(batch)
+    return acc
+  }, {} as Record<string, Batch[]>)
+
+  // Sort month keys chronologically
+  const sortedMonths = Object.keys(batchesByMonth).sort((a, b) => {
+    if (a === "Unscheduled") return 1
+    if (b === "Unscheduled") return -1
+    return new Date(a).getTime() - new Date(b).getTime()
+  })
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -168,16 +192,28 @@ export default function BatchesPage() {
         </div>
       </div>
 
-      {/* Batches Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {batches.length === 0 ? (
-          <div className="col-span-full text-center py-12 bg-white rounded-lg shadow">
-            <div className="text-gray-500">
-              No batches found. Click &quot;Create Batch&quot; to add your first batch.
-            </div>
+      {/* Batches by Month */}
+      {batches.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-gray-500">
+            No batches found. Click &quot;Create Batch&quot; to add your first batch.
           </div>
-        ) : (
-          batches.map((batch) => (
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {sortedMonths.map((monthYear) => (
+            <div key={monthYear} className="space-y-4">
+              {/* Month Header */}
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-semibold text-foreground">{monthYear}</h2>
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-sm rounded">
+                  {batchesByMonth[monthYear].length} {batchesByMonth[monthYear].length === 1 ? 'batch' : 'batches'}
+                </span>
+              </div>
+
+              {/* Batches Grid for this month */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {batchesByMonth[monthYear].map((batch) => (
             <Link
               key={batch.id}
               href={`/dashboard/batches/${batch.id}`}
@@ -250,9 +286,12 @@ export default function BatchesPage() {
                 </div>
               </div>
             </Link>
-          ))
-        )}
-      </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

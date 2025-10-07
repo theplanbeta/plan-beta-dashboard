@@ -5,6 +5,7 @@ import { sendEmail } from "@/lib/email"
 import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
 import { Prisma } from "@prisma/client"
+import { getEurEquivalent, EXCHANGE_RATE } from "@/lib/pricing"
 
 const Decimal = Prisma.Decimal
 
@@ -145,6 +146,16 @@ export async function POST(request: NextRequest) {
     const finalPrice = originalPrice.minus(discountApplied)
     const balance = finalPrice.minus(totalPaid)
 
+    // Calculate EUR equivalents for aggregation
+    const currency = data.currency || "EUR"
+    const eurEquivalent = new Decimal(
+      getEurEquivalent(Number(finalPrice), currency as "EUR" | "INR").toFixed(2)
+    )
+    const totalPaidEur = new Decimal(
+      getEurEquivalent(Number(totalPaid), currency as "EUR" | "INR").toFixed(2)
+    )
+    const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
+
     // If converting from lead, update the lead record
     const leadId = data.leadId
 
@@ -161,9 +172,12 @@ export async function POST(request: NextRequest) {
         originalPrice,
         discountApplied,
         finalPrice,
-        currency: data.currency || "EUR",
+        currency,
+        eurEquivalent,
+        exchangeRateUsed,
         paymentStatus: data.paymentStatus || "PENDING",
         totalPaid,
+        totalPaidEur,
         balance,
         referralSource: data.referralSource || "OTHER",
         referredById: data.referredById || null,

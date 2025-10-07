@@ -16,6 +16,7 @@ type Student = {
   paymentStatus: string
   finalPrice: number
   balance: number
+  currency: string
   completionStatus: string
   batch: {
     id: string
@@ -232,7 +233,7 @@ export default function StudentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {formatCurrency(Number(student.balance))}
+                      {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={`px-2 py-1 rounded text-xs ${getCompletionBadge(student.completionStatus)}`}>

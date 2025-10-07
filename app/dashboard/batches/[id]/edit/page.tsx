@@ -3,13 +3,15 @@
 import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
 
 interface Teacher {
   id: string
   name: string
   email: string
-  specializations?: string
-  hourlyRate?: number
+  teacherLevels: string[]
+  hourlyRate?: Record<string, number> | null
+  currency?: string | null
 }
 
 export default function EditBatchPage({ params }: { params: Promise<{ id: string }> }) {
@@ -23,7 +25,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
   const [formData, setFormData] = useState({
     batchCode: "",
-    level: "A1",
+    level: "A1" as CourseLevel,
     totalSeats: 10,
     revenueTarget: 0,
     teacherCost: 0,
@@ -39,6 +41,18 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     fetchBatch()
     fetchTeachers()
   }, [id])
+
+  // Auto-calculate revenue target when form data loads
+  useEffect(() => {
+    if (formData.level && formData.revenueTarget === 0) {
+      const pricePerStudent = COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0
+      const minProfitableStudents = (formData.level === "A1" || formData.level === "A2") ? 5 : 6
+      setFormData(prev => ({
+        ...prev,
+        revenueTarget: pricePerStudent * minProfitableStudents
+      }))
+    }
+  }, [formData.level])
 
   const fetchTeachers = async () => {
     try {
@@ -110,10 +124,43 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "number" ? parseFloat(value) || 0 : value,
-    }))
+    const newValue = type === "number" ? parseFloat(value) || 0 : value
+
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: newValue,
+      }
+
+      // Auto-fill teacher cost when teacher is selected
+      if (name === "teacherId" && value) {
+        const selectedTeacher = teachers.find(t => t.id === value)
+        if (selectedTeacher?.hourlyRate?.[prev.level]) {
+          // Assuming 60 hours total for a batch (adjust as needed)
+          const hourlyRate = selectedTeacher.hourlyRate[prev.level]
+          updated.teacherCost = hourlyRate * 60
+        }
+      }
+
+      // Auto-fill revenue target when level changes
+      if (name === "level") {
+        const level = value as CourseLevel
+        const pricePerStudent = COURSE_PRICING[level]?.EUR || 0
+        const minProfitableStudents = (level === "A1" || level === "A2") ? 5 : 6
+        updated.revenueTarget = pricePerStudent * minProfitableStudents
+
+        // Also update teacher cost if teacher is already selected
+        if (prev.teacherId) {
+          const selectedTeacher = teachers.find(t => t.id === prev.teacherId)
+          if (selectedTeacher?.hourlyRate?.[value as string]) {
+            const hourlyRate = selectedTeacher.hourlyRate[value as string]
+            updated.teacherCost = hourlyRate * 60
+          }
+        }
+      }
+
+      return updated
+    })
   }
 
   if (initialLoading) {
@@ -233,13 +280,18 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100"
               >
                 <option value="">-- No teacher assigned --</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.name} ({teacher.email})
-                    {teacher.specializations ? ` - ${teacher.specializations}` : ''}
-                    {teacher.hourlyRate ? ` - ₹${teacher.hourlyRate}/hr` : ''}
-                  </option>
-                ))}
+                {teachers.map((teacher) => {
+                  const levelRate = teacher.hourlyRate?.[formData.level]
+                  const currency = teacher.currency || 'EUR'
+                  const currencySymbol = currency === 'INR' ? '₹' : '€'
+                  const rateText = levelRate ? ` - ${currencySymbol}${levelRate}/hr` : ''
+
+                  return (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.name} ({teacher.teacherLevels.join(', ')}){rateText}
+                    </option>
+                  )
+                })}
               </select>
               {loadingTeachers && (
                 <p className="text-xs text-gray-500 mt-1">Loading teachers...</p>
@@ -304,6 +356,21 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         <div className="space-y-4 border-t pt-6">
           <h2 className="text-lg font-semibold text-foreground">Financial</h2>
 
+          {/* Pricing Info Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Course Price: €{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0} per student
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Minimum profitable: {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
+                  ({formData.level === "A1" || formData.level === "A2" ? "3" : "4"} is break-even but risky)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -316,9 +383,12 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50"
+                readOnly
               />
-              <p className="text-xs text-gray-500 mt-1">Expected total revenue from this batch</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Auto: €{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
+              </p>
             </div>
 
             <div>
@@ -332,9 +402,10 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50"
+                readOnly
               />
-              <p className="text-xs text-gray-500 mt-1">Total cost to pay the teacher</p>
+              <p className="text-xs text-gray-500 mt-1">Auto-calculated: teacher hourly rate × 60 hrs</p>
             </div>
           </div>
 

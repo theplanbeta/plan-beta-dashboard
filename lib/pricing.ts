@@ -90,6 +90,10 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   INR: '₹',
 }
 
+// Exchange rate (1 EUR = X INR)
+// Update this periodically or when rates change significantly
+export const EXCHANGE_RATE = 104.5 // 1 EUR = 104.5 INR
+
 // Get price for a specific level and currency
 export function getPrice(level: CourseLevel, currency: Currency = 'EUR'): number {
   return COURSE_PRICING[level][currency]
@@ -124,6 +128,23 @@ export function formatCurrency(
 ): string {
   const formatted = amount.toFixed(2)
   return includeSymbol ? `${CURRENCY_SYMBOLS[currency]}${formatted}` : formatted
+}
+
+// Convert INR to EUR
+export function convertToEUR(amount: number, fromCurrency: Currency): number {
+  if (fromCurrency === 'EUR') return amount
+  return amount / EXCHANGE_RATE
+}
+
+// Convert EUR to INR
+export function convertToINR(amount: number, fromCurrency: Currency): number {
+  if (fromCurrency === 'INR') return amount
+  return amount * EXCHANGE_RATE
+}
+
+// Get EUR equivalent for any currency amount
+export function getEurEquivalent(amount: number, currency: Currency): number {
+  return convertToEUR(amount, currency)
 }
 
 // All available course levels for dropdowns

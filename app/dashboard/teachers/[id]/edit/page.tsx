@@ -123,7 +123,13 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         router.push("/dashboard/teachers")
       } else {
         const error = await res.json()
-        alert(error.error || "Failed to update teacher")
+        console.error("Validation error:", error)
+        if (error.details) {
+          const fieldErrors = error.details.map((d: any) => `${d.path.join('.')}: ${d.message}`).join('\n')
+          alert(`Validation failed:\n${fieldErrors}`)
+        } else {
+          alert(error.error || "Failed to update teacher")
+        }
       }
     } catch (error) {
       console.error("Error updating teacher:", error)

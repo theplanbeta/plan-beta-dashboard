@@ -97,9 +97,13 @@ export async function PATCH(
     const { id } = await params
     const body = await req.json()
 
+    // Log the incoming request for debugging
+    console.log('Update teacher request:', JSON.stringify(body, null, 2))
+
     // Validate request
     const validation = updateTeacherSchema.safeParse(body)
     if (!validation.success) {
+      console.error('Validation failed:', validation.error.issues)
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }

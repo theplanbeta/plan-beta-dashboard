@@ -24,16 +24,18 @@ export default function NewBatchPage() {
     level: "A1",
     timing: "Morning",
     totalSeats: 10,
-    revenueTarget: 0,
-    teacherCost: 0,
     teacherId: "",
     startDate: "",
     endDate: "",
     schedule: "",
     status: "PLANNING",
     notes: "",
-    currency: "EUR" as "EUR" | "INR",
   })
+
+  // Get minimum students based on level
+  const getMinimumStudents = (level: string): number => {
+    return (level === "A1" || level === "A2") ? 5 : 6
+  }
 
   useEffect(() => {
     fetchTeachers()
@@ -233,6 +235,9 @@ export default function NewBatchPage() {
                 max="50"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              <p className="text-xs text-gray-600 mt-1">
+                Minimum target: {getMinimumStudents(formData.level)} students for {formData.level}
+              </p>
             </div>
 
             <div>
@@ -338,72 +343,6 @@ export default function NewBatchPage() {
               placeholder="e.g., Mon/Wed/Fri 6:00 PM - 8:00 PM"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
-          </div>
-        </div>
-
-        {/* Financial */}
-        <div className="space-y-4 border-t pt-6">
-          <h2 className="text-lg font-semibold text-foreground">Financial</h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Currency <span className="text-error">*</span>
-              </label>
-              <select
-                name="currency"
-                value={formData.currency}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="EUR">EUR (€)</option>
-                <option value="INR">INR (₹)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Revenue Target ({formData.currency === "EUR" ? "€" : "₹"})
-              </label>
-              <input
-                type="number"
-                name="revenueTarget"
-                value={formData.revenueTarget}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder={formData.currency === "EUR" ? "134.00" : "14000.00"}
-              />
-              <p className="text-xs text-gray-500 mt-1">Expected total revenue from this batch</p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teacher Cost ({formData.currency === "EUR" ? "€" : "₹"})
-              </label>
-              <input
-                type="number"
-                name="teacherCost"
-                value={formData.teacherCost}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder={formData.currency === "EUR" ? "50.00" : "5000.00"}
-              />
-              <p className="text-xs text-gray-500 mt-1">Total cost to pay the teacher</p>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded-md">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Expected Profit:</span>
-              <span className="font-semibold text-success">
-                {formData.currency === "EUR" ? "€" : "₹"}{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
-              </span>
-            </div>
           </div>
         </div>
 

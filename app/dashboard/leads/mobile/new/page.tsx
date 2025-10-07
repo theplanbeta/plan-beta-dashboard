@@ -203,11 +203,11 @@ export default function MobileNewLeadPage() {
 
         {/* Course Interest */}
         <div className="bg-white rounded-lg shadow-sm p-5 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Course Interest</h2>
+          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Booking Details</h2>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Interested Level
+              Booked Level
             </label>
             <select
               name="interestedLevel"
@@ -253,7 +253,7 @@ export default function MobileNewLeadPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Preferred Month
+              Booked Month
             </label>
             <select
               name="interestedMonth"

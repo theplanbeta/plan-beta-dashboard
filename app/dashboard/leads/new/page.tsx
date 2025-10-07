@@ -288,7 +288,7 @@ export default function NewLeadPage() {
               >
                 <option value="NEW">New</option>
                 <option value="CONTACTED">Contacted</option>
-                <option value="INTERESTED">Interested</option>
+                <option value="INTERESTED">Booked</option>
                 <option value="TRIAL_SCHEDULED">Trial Scheduled</option>
                 <option value="TRIAL_ATTENDED">Trial Attended</option>
               </select>
@@ -298,11 +298,11 @@ export default function NewLeadPage() {
 
         {/* Interest Details */}
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Interest Details</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Interested Level
+                Booked Level
               </label>
               <select
                 name="interestedLevel"
@@ -338,7 +338,7 @@ export default function NewLeadPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Interested Month
+                Booked Month
               </label>
               <select
                 name="interestedMonth"

@@ -423,11 +423,11 @@ export default function LeadDetailPage({
 
         {/* Interest Details */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Interest Details</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
           <div className="space-y-3">
             {lead.interestedLevel && (
               <div>
-                <div className="text-sm text-gray-500">Interested Level</div>
+                <div className="text-sm text-gray-500">Booked Level</div>
                 <div className="text-gray-900">{lead.interestedLevel}</div>
               </div>
             )}
@@ -439,7 +439,7 @@ export default function LeadDetailPage({
             )}
             {lead.interestedMonth && (
               <div>
-                <div className="text-sm text-gray-500">Interested Month</div>
+                <div className="text-sm text-gray-500">Booked Month</div>
                 <div className="text-gray-900">{lead.interestedMonth}</div>
               </div>
             )}

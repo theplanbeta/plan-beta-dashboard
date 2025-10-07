@@ -121,15 +121,8 @@ function NewStudentForm() {
         throw new Error("Failed to fetch leads")
       }
       const data = await res.json()
-      // Filter to only show qualified leads (QUALIFIED, TRIAL_SCHEDULED, TRIAL_ATTENDED)
-      const qualifiedLeads = Array.isArray(data)
-        ? data.filter((lead: Lead) =>
-            lead.status === "QUALIFIED" ||
-            lead.status === "TRIAL_SCHEDULED" ||
-            lead.status === "TRIAL_ATTENDED"
-          )
-        : []
-      setLeads(qualifiedLeads)
+      // Show all unconverted leads
+      setLeads(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error fetching leads:", error)
       setLeads([])

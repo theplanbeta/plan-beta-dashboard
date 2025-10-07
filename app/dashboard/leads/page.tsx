@@ -256,7 +256,7 @@ export default function LeadsPage() {
               <option value="">All Statuses</option>
               <option value="NEW">New</option>
               <option value="CONTACTED">Contacted</option>
-              <option value="INTERESTED">Interested</option>
+              <option value="INTERESTED">Booked</option>
               <option value="TRIAL_SCHEDULED">Trial Scheduled</option>
               <option value="TRIAL_ATTENDED">Trial Attended</option>
               <option value="CONVERTED">Converted</option>
@@ -355,7 +355,7 @@ export default function LeadsPage() {
                   Source
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Interested In
+                  Booked For
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Follow-up

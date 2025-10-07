@@ -150,8 +150,8 @@ export async function POST(request: NextRequest) {
         source: data.source,
         status: data.status || "NEW",
         quality: data.quality || "WARM",
-        interestedLevel: data.interestedLevel || null,
-        interestedType: data.interestedType || null,
+        interestedLevel: (data.interestedLevel || null) as any, // Type cast for relaxed validation
+        interestedType: (data.interestedType || null) as any, // Type cast for relaxed validation
         interestedMonth: data.interestedMonth || null,
         interestedBatchTime: data.interestedBatchTime || null,
         batchId: data.batchId || null,

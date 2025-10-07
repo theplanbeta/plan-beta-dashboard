@@ -5,19 +5,19 @@ import { z } from "zod"
 
 // Validation schema for creating a lead (relaxed validation)
 const createLeadSchema = z.object({
-  name: z.string().min(1, "Name required"), // Relaxed from 2 to 1
-  whatsapp: z.string().min(1, "WhatsApp required"), // Accept any non-empty string
-  email: z.string().optional().or(z.literal("")), // No email format validation
-  phone: z.string().optional().or(z.literal("")),
+  name: z.string().min(1, "Name required"),
+  whatsapp: z.string().transform(val => val?.replace(/\+/g, '') || val).pipe(z.string().min(1, "WhatsApp required")), // Remove + symbols
+  email: z.string().optional().or(z.literal("")),
+  phone: z.string().transform(val => val?.replace(/\+/g, '') || val).optional().or(z.literal("")), // Remove + symbols
   source: z.enum(["META_ADS", "INSTAGRAM", "GOOGLE", "ORGANIC", "REFERRAL", "OTHER"]),
   status: z.enum(["NEW", "CONTACTED", "TRIAL_SCHEDULED", "TRIAL_ATTENDED", "CONVERTED", "LOST"]).optional(),
   quality: z.enum(["HOT", "WARM", "COLD"]).optional(),
-  interestedLevel: z.string().optional().or(z.literal("")), // Accept any string
-  interestedType: z.string().optional().or(z.literal("")), // Accept any string
+  interestedLevel: z.string().optional().or(z.literal("")),
+  interestedType: z.string().optional().or(z.literal("")),
   interestedMonth: z.string().optional().or(z.literal("")),
   interestedBatchTime: z.string().optional().or(z.literal("")),
   batchId: z.string().optional().or(z.literal("")),
-  notes: z.string().optional().or(z.literal("")), // Removed max length
+  notes: z.string().optional().or(z.literal("")),
   followUpDate: z.string().optional().or(z.literal("")),
 })
 

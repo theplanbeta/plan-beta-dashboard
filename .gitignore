@@ -35,3 +35,9 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations
+
+# PWA
+/public/sw.js
+/public/workbox-*.js
+/public/sw.js.map
+/public/workbox-*.js.map

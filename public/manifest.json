@@ -1,0 +1,36 @@
+{
+  "name": "Plan Beta School Management",
+  "short_name": "Plan Beta",
+  "description": "School Management System for Plan Beta School of German",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "640x1136",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["business", "education", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false
+}

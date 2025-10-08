@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
         interestedLevel: validatedData.interestedLevel,
         interestedMonth: validatedData.interestedMonth,
         interestedBatchTime: validatedData.interestedBatchTime,
-        source: "DIRECT", // Default source for quick entry
+        source: "ORGANIC", // Default source for quick entry
         status: "NEW", // Default status
         quality: "WARM", // Default quality
         assignedToId: session.user.id, // Assign to current user

@@ -121,7 +121,6 @@ export async function PUT(
         status,
         quality,
         interestedLevel,
-        interestedType,
         batchId,
         notes,
         followUpDate: followUpDate ? new Date(followUpDate) : null,

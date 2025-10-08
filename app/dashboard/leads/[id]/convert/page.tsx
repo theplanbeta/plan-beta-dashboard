@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
-import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
+import { COMBO_LEVEL_PRICING, calculateComboPrice, type ComboLevel } from "@/lib/pricing"
 
 type Lead = {
   id: string
@@ -11,13 +11,15 @@ type Lead = {
   email: string | null
   source: string
   interestedLevel: string | null
-  interestedType: string | null
+  interestedCombo: boolean | null
+  interestedLevels: string[]
   interestedBatch: {
     id: string
     batchCode: string
     level: string
   } | null
   converted: boolean
+  trialAttendedDate: string | null
 }
 
 type Batch = {
@@ -41,7 +43,8 @@ export default function ConvertLeadPage({
   const [converting, setConverting] = useState(false)
   const [formData, setFormData] = useState({
     batchId: "",
-    enrollmentType: "",
+    isCombo: false,
+    comboLevels: [] as ComboLevel[],
     originalPrice: "",
     discountApplied: "0",
     trialAttended: true,
@@ -70,7 +73,8 @@ export default function ConvertLeadPage({
         // Pre-fill form data from lead
         setFormData({
           batchId: leadData.interestedBatch?.id || "",
-          enrollmentType: leadData.interestedType || "",
+          isCombo: leadData.interestedCombo || false,
+          comboLevels: leadData.interestedLevels || [],
           originalPrice: "",
           discountApplied: "0",
           trialAttended: leadData.trialAttendedDate !== null,
@@ -95,8 +99,13 @@ export default function ConvertLeadPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.batchId || !formData.enrollmentType || !formData.originalPrice) {
+    if (!formData.batchId || !formData.originalPrice) {
       alert("Please fill in all required fields")
+      return
+    }
+
+    if (formData.isCombo && formData.comboLevels.length === 0) {
+      alert("Please select at least one combo level")
       return
     }
 
@@ -108,7 +117,8 @@ export default function ConvertLeadPage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           batchId: formData.batchId,
-          enrollmentType: formData.enrollmentType,
+          isCombo: formData.isCombo,
+          comboLevels: formData.comboLevels,
           originalPrice: parseFloat(formData.originalPrice),
           discountApplied: parseFloat(formData.discountApplied),
           trialAttended: formData.trialAttended,
@@ -131,21 +141,9 @@ export default function ConvertLeadPage({
     }
   }
 
-  const calculateEnrollmentPrice = (type: string, currency: "EUR" | "INR"): number => {
-    const prices = {
-      // Individual courses
-      A1_ONLY: COURSE_PRICING.A1[currency],
-      A1_HYBRID: COURSE_PRICING.A1_HYBRID[currency],
-      A2_ONLY: COURSE_PRICING.A2[currency],
-      B1_ONLY: COURSE_PRICING.B1[currency],
-      B2_ONLY: COURSE_PRICING.B2[currency],
-      SPOKEN_GERMAN: COURSE_PRICING.SPOKEN_GERMAN[currency],
-      // Package courses
-      FOUNDATION_A1_A2: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency],
-      CAREER_A1_A2_B1: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency],
-      COMPLETE_PATHWAY: COURSE_PRICING.A1[currency] + COURSE_PRICING.A2[currency] + COURSE_PRICING.B1[currency] + COURSE_PRICING.B2[currency],
-    }
-    return prices[type as keyof typeof prices] || 0
+  const calculateComboTotalPrice = (): number => {
+    if (!formData.isCombo || formData.comboLevels.length === 0) return 0
+    return calculateComboPrice(formData.comboLevels, formData.currency)
   }
 
   const handleChange = (
@@ -157,18 +155,34 @@ export default function ConvertLeadPage({
 
     const updates: any = { [e.target.name]: value }
 
-    // Auto-populate price when enrollment type or currency changes
-    if (e.target.name === "enrollmentType" && value) {
-      const price = calculateEnrollmentPrice(value as string, formData.currency)
-      updates.originalPrice = price.toString()
-    } else if (e.target.name === "currency" && formData.enrollmentType) {
-      const price = calculateEnrollmentPrice(formData.enrollmentType, value as "EUR" | "INR")
-      updates.originalPrice = price.toString()
+    // Reset combo levels when unchecking combo
+    if (e.target.name === "isCombo" && !value) {
+      updates.comboLevels = []
+      updates.originalPrice = ""
     }
 
     setFormData({
       ...formData,
       ...updates,
+    })
+  }
+
+  const handleComboLevelToggle = (level: ComboLevel) => {
+    const currentLevels = [...formData.comboLevels]
+    const index = currentLevels.indexOf(level)
+
+    if (index > -1) {
+      currentLevels.splice(index, 1)
+    } else {
+      currentLevels.push(level)
+    }
+
+    const price = calculateComboPrice(currentLevels, formData.currency)
+
+    setFormData({
+      ...formData,
+      comboLevels: currentLevels,
+      originalPrice: price > 0 ? price.toString() : "",
     })
   }
 
@@ -273,55 +287,65 @@ export default function ConvertLeadPage({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enrollment Type <span className="text-red-500">*</span>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="isCombo"
+                  checked={formData.isCombo}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span className="text-sm font-medium text-gray-700">Combo Package</span>
               </label>
-              <select
-                name="enrollmentType"
-                required
-                value={formData.enrollmentType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Select enrollment type</option>
-                <optgroup label="Individual Courses">
-                  <option value="A1_ONLY">
-                    A1 (€{COURSE_PRICING.A1.EUR} / ₹{COURSE_PRICING.A1.INR})
-                  </option>
-                  <option value="A1_HYBRID">
-                    A1 Hybrid (€{COURSE_PRICING.A1_HYBRID.EUR} / ₹{COURSE_PRICING.A1_HYBRID.INR})
-                  </option>
-                  <option value="A2_ONLY">
-                    A2 (€{COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A2.INR})
-                  </option>
-                  <option value="B1_ONLY">
-                    B1 (€{COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.B1.INR})
-                  </option>
-                  <option value="B2_ONLY">
-                    B2 (€{COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.B2.INR})
-                  </option>
-                  <option value="SPOKEN_GERMAN">
-                    Spoken German (€{COURSE_PRICING.SPOKEN_GERMAN.EUR} / ₹{COURSE_PRICING.SPOKEN_GERMAN.INR})
-                  </option>
-                </optgroup>
-                <optgroup label="Course Packages">
-                  <option value="FOUNDATION_A1_A2">
-                    Foundation - A1 + A2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR})
-                  </option>
-                  <option value="CAREER_A1_A2_B1">
-                    Career - A1 + A2 + B1 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR})
-                  </option>
-                  <option value="COMPLETE_PATHWAY">
-                    Complete Pathway - A1 + A2 + B1 + B2 (€{COURSE_PRICING.A1.EUR + COURSE_PRICING.A2.EUR + COURSE_PRICING.B1.EUR + COURSE_PRICING.B2.EUR} / ₹{COURSE_PRICING.A1.INR + COURSE_PRICING.A2.INR + COURSE_PRICING.B1.INR + COURSE_PRICING.B2.INR})
-                  </option>
-                </optgroup>
-              </select>
-              {lead.interestedType && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Lead was interested in: {lead.interestedType.replace(/_/g, " ")}
-                </p>
-              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Check this box to enroll in multiple levels at discounted combo rates
+              </p>
             </div>
+
+            {formData.isCombo && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Select Combo Levels <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(['A1', 'A2', 'B1', 'B2'] as ComboLevel[]).map((level) => (
+                    <label
+                      key={level}
+                      className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                        formData.comboLevels.includes(level)
+                          ? 'border-primary bg-primary/10'
+                          : 'border-gray-300 bg-white hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={formData.comboLevels.includes(level)}
+                          onChange={() => handleComboLevelToggle(level)}
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <span className="text-sm font-medium">{level}</span>
+                      </div>
+                      <span className="text-xs text-gray-600">
+                        {formData.currency === "EUR" ? "€" : "₹"}
+                        {COMBO_LEVEL_PRICING[level][formData.currency]}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                {formData.comboLevels.length > 0 && (
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-300">
+                    <div className="text-sm text-gray-700">
+                      Selected: <span className="font-semibold">{formData.comboLevels.join(', ')}</span>
+                    </div>
+                    <div className="text-lg font-bold text-primary mt-1">
+                      Total: {formData.currency === "EUR" ? "€" : "₹"}
+                      {calculateComboTotalPrice().toFixed(2)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div>

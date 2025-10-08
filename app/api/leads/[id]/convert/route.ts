@@ -23,16 +23,25 @@ export async function POST(
 
     const {
       batchId,
-      enrollmentType,
+      isCombo,
+      comboLevels,
       originalPrice,
       discountApplied,
       trialAttended,
     } = body
 
     // Validate required fields
-    if (!batchId || !enrollmentType || !originalPrice) {
+    if (!batchId || originalPrice === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields: batchId, enrollmentType, originalPrice" },
+        { error: "Missing required fields: batchId, originalPrice" },
+        { status: 400 }
+      )
+    }
+
+    // Validate combo fields
+    if (isCombo && (!comboLevels || comboLevels.length === 0)) {
+      return NextResponse.json(
+        { error: "Combo enrollment requires at least one combo level" },
         { status: 400 }
       )
     }
@@ -86,7 +95,8 @@ export async function POST(
           email: lead.email,
           enrollmentDate: new Date(),
           currentLevel: batch.level,
-          enrollmentType,
+          isCombo: isCombo || false,
+          comboLevels: isCombo ? comboLevels : [],
           batchId,
           originalPrice,
           discountApplied: discountApplied || 0,

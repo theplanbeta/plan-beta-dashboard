@@ -9,7 +9,8 @@ type Student = {
   name: string
   whatsapp: string
   email: string | null
-  enrollmentType: string
+  isCombo: boolean
+  comboLevels: string[]
   currentLevel: string
   batchId: string | null
   originalPrice: number
@@ -41,7 +42,8 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
     name: "",
     whatsapp: "",
     email: "",
-    enrollmentType: "A1_ONLY",
+    isCombo: false,
+    comboLevels: [] as string[],
     currentLevel: "NEW",
     batchId: "",
     originalPrice: 0,
@@ -80,7 +82,8 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
         name: data.name,
         whatsapp: data.whatsapp,
         email: data.email || "",
-        enrollmentType: data.enrollmentType,
+        isCombo: data.isCombo || false,
+        comboLevels: data.comboLevels || [],
         currentLevel: data.currentLevel,
         batchId: data.batchId || "",
         originalPrice: Number(data.originalPrice),

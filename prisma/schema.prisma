@@ -20,17 +20,7 @@ enum UserRole {
   TEACHER
 }
 
-enum EnrollmentType {
-  A1_ONLY
-  A1_HYBRID
-  A2_ONLY
-  B1_ONLY
-  B2_ONLY
-  SPOKEN_GERMAN
-  FOUNDATION_A1_A2
-  CAREER_A1_A2_B1
-  COMPLETE_PATHWAY
-}
+// Removed - replaced with isCombo + comboLevels
 
 enum Level {
   NEW
@@ -184,7 +174,8 @@ model Student {
   // Enrollment Details
   enrollmentDate    DateTime          @default(now())
   currentLevel      Level             @default(NEW)
-  enrollmentType    EnrollmentType
+  isCombo           Boolean           @default(false)
+  comboLevels       String[]          // ["A1", "A2", "B1", "B2"]
 
   // Batch Assignment
   batch             Batch?            @relation(fields: [batchId], references: [id])
@@ -549,7 +540,8 @@ model Lead {
   status          LeadStatus   @default(NEW)
   quality         LeadQuality  @default(WARM)
   interestedLevel Level?       // Which level they're interested in
-  interestedType  EnrollmentType? // Which package they're interested in
+  interestedCombo Boolean?     // Whether they're interested in combo
+  interestedLevels String[]    @default([]) // Which levels if combo (A1, A2, B1, B2)
 
   // Tracking
   firstContactDate DateTime    @default(now())
@@ -782,7 +774,8 @@ model ConversionAttempt {
   paidAmount      Decimal  @db.Decimal(10, 2)
   currency        String
   batchId         String?
-  enrollmentType  String?
+  isCombo         Boolean?
+  comboLevels     String[]  @default([])
 
   // Status
   status          String   @default("PENDING") // PENDING, COMPLETED, FAILED

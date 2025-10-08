@@ -35,7 +35,8 @@ export async function POST(
       originalPrice,
       discountApplied = 0,
       payableNow,
-      enrollmentType,
+      isCombo,
+      comboLevels,
       customItems,
     } = body
 

@@ -3,6 +3,7 @@
 
 export type Currency = 'EUR' | 'INR'
 export type CourseLevel = 'A1' | 'A1_HYBRID' | 'A2' | 'B1' | 'B2' | 'SPOKEN_GERMAN'
+export type ComboLevel = 'A1' | 'A2' | 'B1' | 'B2'
 
 export interface PricingInfo {
   EUR: number
@@ -41,6 +42,26 @@ export const COURSE_PRICING: Record<CourseLevel, PricingInfo> = {
   SPOKEN_GERMAN: {
     EUR: 120,
     INR: 12000,
+  },
+}
+
+// Combo level pricing (individual level prices for combo packages)
+export const COMBO_LEVEL_PRICING: Record<ComboLevel, PricingInfo> = {
+  A1: {
+    EUR: 134,
+    INR: 14000,
+  },
+  A2: {
+    EUR: 156,
+    INR: 16000,
+  },
+  B1: {
+    EUR: 172,
+    INR: 18000,
+  },
+  B2: {
+    EUR: 220,
+    INR: 22000,
   },
 }
 
@@ -149,6 +170,24 @@ export function getEurEquivalent(amount: number, currency: Currency): number {
 
 // All available course levels for dropdowns
 export const COURSE_LEVELS: CourseLevel[] = Object.keys(COURSE_PRICING) as CourseLevel[]
+
+// Available combo levels
+export const COMBO_LEVELS: ComboLevel[] = ['A1', 'A2', 'B1', 'B2']
+
+// Calculate total price for combo levels
+export function calculateComboPrice(
+  levels: ComboLevel[],
+  currency: Currency = 'EUR'
+): number {
+  return levels.reduce((total, level) => {
+    return total + COMBO_LEVEL_PRICING[level][currency]
+  }, 0)
+}
+
+// Get price for a combo level
+export function getComboLevelPrice(level: ComboLevel, currency: Currency = 'EUR'): number {
+  return COMBO_LEVEL_PRICING[level][currency]
+}
 
 // Batch timing options
 export const BATCH_TIMINGS = ['Morning', 'Evening'] as const

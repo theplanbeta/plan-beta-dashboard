@@ -171,12 +171,20 @@ export default function LeadsPage() {
           <h1 className="text-3xl font-bold text-foreground">Leads</h1>
           <p className="text-gray-500">Manage and convert leads to students</p>
         </div>
-        <Link
-          href="/dashboard/leads/new"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-        >
-          + Add Lead
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/dashboard/leads/quick"
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+          >
+            ⚡ Quick Add
+          </Link>
+          <Link
+            href="/dashboard/leads/new"
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark font-medium"
+          >
+            + Full Form
+          </Link>
+        </div>
       </div>
 
       {/* Quick Follow-up Filters */}

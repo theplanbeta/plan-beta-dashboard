@@ -12,7 +12,8 @@ type Student = {
   whatsapp: string
   email: string | null
   currentLevel: string
-  enrollmentType: string
+  isCombo: boolean
+  comboLevels: string[]
   paymentStatus: string
   finalPrice: number
   balance: number
@@ -79,6 +80,13 @@ export default function StudentsPage() {
       ON_HOLD: "bg-warning/10 text-warning",
     }
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
+  }
+
+  const getEnrollmentDisplay = (student: Student) => {
+    if (student.isCombo && student.comboLevels.length > 0) {
+      return `Combo: ${student.comboLevels.join(', ')}`
+    }
+    return student.currentLevel
   }
 
   if (loading) {
@@ -209,8 +217,12 @@ export default function StudentsPage() {
                 {/* Level & Batch */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-white rounded-lg p-3">
-                    <div className="text-xs text-gray-500 mb-2">Level</div>
-                    <div className="text-base font-bold text-gray-900">{student.currentLevel}</div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      {student.isCombo ? 'Combo Levels' : 'Level'}
+                    </div>
+                    <div className="text-base font-bold text-gray-900">
+                      {getEnrollmentDisplay(student)}
+                    </div>
                   </div>
                   <div className="bg-white rounded-lg p-3">
                     <div className="text-xs text-gray-500 mb-2">Batch</div>
@@ -322,9 +334,18 @@ export default function StudentsPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
-                        {student.currentLevel}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-2 py-1 rounded text-xs inline-block ${
+                          student.isCombo ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {student.isCombo ? 'Combo' : student.currentLevel}
+                        </span>
+                        {student.isCombo && student.comboLevels.length > 0 && (
+                          <span className="text-xs text-gray-600">
+                            {student.comboLevels.join(', ')}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {student.batch ? student.batch.batchCode : "-"}

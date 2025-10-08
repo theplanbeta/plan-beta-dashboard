@@ -14,7 +14,8 @@ const Decimal = Prisma.Decimal
 const payAndConvertSchema = z.object({
   paidAmount: z.number().positive('Paid amount must be positive').max(100000, 'Amount exceeds maximum'),
   batchId: z.string().optional(),
-  enrollmentType: z.enum(['A1_ONLY', 'A1_TO_B1', 'A1_TO_B2']).optional(),
+  isCombo: z.boolean().optional(),
+  comboLevels: z.array(z.enum(['A1', 'A2', 'B1', 'B2'])).optional(),
   idempotencyKey: z.string().min(1, 'Idempotency key required'),
 })
 
@@ -57,7 +58,7 @@ export async function POST(
       )
     }
 
-    const { paidAmount, batchId, enrollmentType, idempotencyKey } = validation.data
+    const { paidAmount, batchId, isCombo, comboLevels, idempotencyKey } = validation.data
 
     // Fetch invoice with lead
     const invoice = await prisma.invoice.findUnique({
@@ -89,7 +90,8 @@ export async function POST(
           paidAmount,
           currency: invoice.currency,
           batchId,
-          enrollmentType,
+          isCombo,
+          comboLevels: comboLevels || [],
           status: 'PENDING',
           userId: session.user.id,
           userEmail: session.user.email || null,
@@ -134,7 +136,8 @@ export async function POST(
               paidAmount,
               currency: invoice.currency,
               batchId,
-              enrollmentType,
+              isCombo,
+              comboLevels: comboLevels || [],
               status: 'PENDING',
               userId: session.user.id,
               userEmail: session.user.email || null,
@@ -218,7 +221,8 @@ export async function POST(
           email: invoice.lead!.email || null,
           enrollmentDate: new Date(),
           currentLevel: invoice.lead!.interestedLevel || 'NEW',
-          enrollmentType: (enrollmentType || invoice.lead!.interestedType || 'A1_ONLY') as any,
+          isCombo: isCombo || invoice.lead!.interestedCombo || false,
+          comboLevels: comboLevels || invoice.lead!.interestedLevels || [],
           batchId: batchId || invoice.lead!.batchId || null,
           originalPrice: finalPrice,
           discountApplied: 0,
@@ -310,7 +314,8 @@ export async function POST(
         metadata: {
           studentId: result.student.studentId,
           studentName: result.student.name,
-          enrollmentType: result.student.enrollmentType,
+          isCombo: result.student.isCombo,
+          comboLevels: result.student.comboLevels,
           finalPrice: Number(result.student.finalPrice),
           currency: result.student.currency,
         },

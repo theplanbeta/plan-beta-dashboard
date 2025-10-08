@@ -68,6 +68,22 @@ body {
   }
 }
 
+/* PWA Install Prompt Animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease-out;
+}
+
 /* Text color utilities for better visibility */
 .text-foreground {
   color: #1e293b !important;

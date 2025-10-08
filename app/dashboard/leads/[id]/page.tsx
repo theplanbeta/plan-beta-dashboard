@@ -226,42 +226,76 @@ export default function LeadDetailPage({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">{lead.name}</h1>
-          <p className="text-gray-500">Lead Details</p>
+      <div>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">{lead.name}</h1>
+            <p className="text-sm text-gray-500">Lead Details</p>
+          </div>
         </div>
-        <div className="flex gap-3">
-          {!lead.converted && (
-            <>
-              <Link
-                href={`/dashboard/leads/${id}/invoice`}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-              >
-                📱 Generate Invoice
-              </Link>
-              <Link
-                href={`/dashboard/leads/${id}/edit`}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-              >
-                Edit
-              </Link>
-              <Link
-                href={`/dashboard/leads/${id}/convert`}
-                className="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700"
-              >
-                Convert to Student
-              </Link>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="px-4 py-2 bg-error text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </>
-          )}
-        </div>
+
+        {/* Desktop Actions */}
+        {!lead.converted && (
+          <div className="hidden md:flex gap-2 mt-4">
+            <Link
+              href={`/dashboard/leads/${id}/invoice`}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm"
+            >
+              📱 Generate Invoice
+            </Link>
+            <Link
+              href={`/dashboard/leads/${id}/edit`}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
+            >
+              Edit
+            </Link>
+            <Link
+              href={`/dashboard/leads/${id}/convert`}
+              className="px-4 py-2 bg-success text-white rounded-lg hover:bg-green-700 text-sm"
+            >
+              Convert to Student
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-4 py-2 bg-error text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </button>
+          </div>
+        )}
+
+        {/* Mobile Actions - Compact Grid */}
+        {!lead.converted && (
+          <div className="md:hidden grid grid-cols-2 gap-2 mt-4">
+            <Link
+              href={`/dashboard/leads/${id}/invoice`}
+              className="flex items-center justify-center gap-2 px-3 py-2.5 bg-primary text-white rounded-lg text-sm font-medium"
+            >
+              <span className="text-base">📱</span>
+              <span>Invoice</span>
+            </Link>
+            <Link
+              href={`/dashboard/leads/${id}/edit`}
+              className="flex items-center justify-center px-3 py-2.5 border border-gray-300 rounded-lg text-gray-700 text-sm font-medium"
+            >
+              Edit
+            </Link>
+            <Link
+              href={`/dashboard/leads/${id}/convert`}
+              className="flex items-center justify-center px-3 py-2.5 bg-success text-white rounded-lg text-sm font-medium"
+            >
+              Convert
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-3 py-2.5 bg-error text-white rounded-lg disabled:opacity-50 text-sm font-medium"
+            >
+              {deleting ? "..." : "Delete"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Converted Banner */}

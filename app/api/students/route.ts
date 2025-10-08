@@ -17,7 +17,8 @@ const createStudentSchema = z.object({
   batchId: z.string().optional(),
   enrollmentDate: z.string().optional(),
   currentLevel: z.enum(["NEW", "A1", "A2", "B1", "B2", "SPOKEN_GERMAN"]).optional(),
-  enrollmentType: z.enum(["A1_ONLY", "A1_HYBRID", "A2_ONLY", "B1_ONLY", "B2_ONLY", "SPOKEN_GERMAN", "FOUNDATION_A1_A2", "CAREER_A1_A2_B1", "COMPLETE_PATHWAY"]),
+  isCombo: z.boolean().optional(),
+  comboLevels: z.array(z.enum(["A1", "A2", "B1", "B2"])).optional(),
   originalPrice: z.number().positive("Original price must be positive").max(1000000, "Price exceeds maximum"),
   discountApplied: z.number().min(0, "Discount cannot be negative").optional(),
   currency: z.enum(["INR", "EUR"]).optional(),
@@ -29,23 +30,6 @@ const createStudentSchema = z.object({
   trialDate: z.string().optional(),
   notes: z.string().max(1000, "Notes too long").optional(),
   leadId: z.string().optional(),
-}).refine((data) => {
-  // Validation logic: enrollmentType must match currentLevel
-  const validations: Record<string, string[]> = {
-    'NEW': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-    'A1': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-    'A2': ['A2_ONLY', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-    'B1': ['B1_ONLY', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-    'B2': ['B2_ONLY', 'COMPLETE_PATHWAY'],
-    'SPOKEN_GERMAN': ['SPOKEN_GERMAN']
-  }
-
-  const level = data.currentLevel || 'NEW'
-  const allowedTypes = validations[level] || []
-  return allowedTypes.includes(data.enrollmentType)
-}, {
-  message: "Enrollment plan doesn't match starting level. Please select a compatible plan.",
-  path: ["enrollmentType"]
 })
 
 // GET /api/students - List all students
@@ -66,10 +50,10 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-        { whatsapp: { contains: search } },
-        { studentId: { contains: search } },
+        { name: { contains: search, mode: "insensitive" as Prisma.QueryMode } },
+        { email: { contains: search, mode: "insensitive" as Prisma.QueryMode } },
+        { whatsapp: { contains: search, mode: "insensitive" as Prisma.QueryMode } },
+        { studentId: { contains: search, mode: "insensitive" as Prisma.QueryMode } },
       ]
     }
 
@@ -168,7 +152,8 @@ export async function POST(request: NextRequest) {
         batchId: data.batchId || null,
         enrollmentDate: data.enrollmentDate ? new Date(data.enrollmentDate) : new Date(),
         currentLevel: data.currentLevel || "NEW",
-        enrollmentType: data.enrollmentType,
+        isCombo: data.isCombo || false,
+        comboLevels: data.comboLevels || [],
         originalPrice,
         discountApplied,
         finalPrice,

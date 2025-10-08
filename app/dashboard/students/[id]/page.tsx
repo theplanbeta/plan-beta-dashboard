@@ -13,7 +13,8 @@ type Student = {
   email: string | null
   enrollmentDate: string
   currentLevel: string
-  enrollmentType: string
+  isCombo: boolean
+  comboLevels: string[]
   originalPrice: number
   discountApplied: number
   finalPrice: number
@@ -195,12 +196,16 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Current Level</div>
+          <div className="text-sm text-gray-600">
+            {student.isCombo ? 'Combo Package' : 'Current Level'}
+          </div>
           <div className="text-2xl font-bold text-foreground mt-1">
-            {student.currentLevel}
+            {student.isCombo ? 'Combo' : student.currentLevel}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {student.enrollmentType.replace(/_/g, " ")}
+            {student.isCombo && student.comboLevels.length > 0
+              ? student.comboLevels.join(', ')
+              : student.currentLevel}
           </div>
         </div>
       </div>

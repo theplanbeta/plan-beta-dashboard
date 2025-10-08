@@ -135,7 +135,7 @@ async function main() {
 
   if (recentStudent) {
     console.log(`✅ Student: ${recentStudent.studentId} - ${recentStudent.name}`)
-    console.log(`   Enrollment Type: ${recentStudent.enrollmentType}`)
+    console.log(`   Enrollment Type: ${recentStudent.isCombo ? `Combo (${recentStudent.comboLevels.join(', ')})` : 'Single Level'}`)
     console.log(`   Final Price: €${recentStudent.finalPrice}`)
     console.log(`   Payment Status: ${recentStudent.paymentStatus}`)
     console.log(`   Batch: ${recentStudent.batch?.batchCode}`)

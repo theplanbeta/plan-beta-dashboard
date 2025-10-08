@@ -75,7 +75,6 @@ async function main() {
   // Step 4: Convert Lead to Student
   console.log('\n4️⃣  STEP 4: Converting lead to student...')
 
-  const enrollmentType = 'A1_ONLY'
   const originalPrice = 8000
   const discountApplied = 500
   const finalPrice = originalPrice - discountApplied
@@ -97,7 +96,8 @@ async function main() {
         email: hotLead.email,
         enrollmentDate: new Date(),
         currentLevel: availableBatch.level,
-        enrollmentType,
+        isCombo: false,
+        comboLevels: [],
         batchId: availableBatch.id,
         originalPrice,
         discountApplied,
@@ -135,7 +135,7 @@ async function main() {
 
   console.log(`✅ Conversion successful!`)
   console.log(`   Created Student: ${result.student.studentId} - ${result.student.name}`)
-  console.log(`   Enrollment Type: ${result.student.enrollmentType}`)
+  console.log(`   Enrollment Type: ${result.student.isCombo ? 'COMBO' : 'Single Level'}`)
   console.log(`   Final Price: €${result.student.finalPrice}`)
   console.log(`   Payment Status: ${result.student.paymentStatus}`)
   console.log(`   Batch: ${availableBatch.batchCode}`)

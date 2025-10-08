@@ -165,7 +165,7 @@ export default function StudentsPage() {
       {/* Students Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Mobile Card View */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden space-y-3 p-3">
           {students.length === 0 ? (
             <div className="text-center py-12 px-4">
               <p className="text-gray-500">No students found</p>
@@ -178,79 +178,75 @@ export default function StudentsPage() {
             </div>
           ) : (
             students.map((student) => (
-              <div key={student.id} className="p-4 hover:bg-gray-50">
-                {/* Student Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{student.name}</h3>
-                    <p className="text-xs text-primary font-medium mt-1">
+              <div key={student.id} className="bg-gray-50 rounded-xl p-5 space-y-4">
+                {/* Name & ID */}
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-gray-900">{student.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-primary/10 text-primary">
                       {student.studentId}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCompletionBadge(student.completionStatus)}`}>
+                    </span>
+                    <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getCompletionBadge(student.completionStatus)}`}>
                       {student.completionStatus}
                     </span>
                   </div>
                 </div>
 
                 {/* Contact Info */}
-                <div className="space-y-1 mb-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">📱</span>
-                    <span className="text-gray-900">{student.whatsapp}</span>
+                <div className="space-y-2.5 bg-white rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📱</span>
+                    <div className="text-sm font-semibold text-gray-900">{student.whatsapp}</div>
                   </div>
                   {student.email && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">📧</span>
-                      <span className="text-gray-600 text-xs">{student.email}</span>
+                    <div className="flex items-center gap-3 pt-2 border-t">
+                      <span className="text-xl">📧</span>
+                      <div className="text-sm text-gray-700 break-all">{student.email}</div>
                     </div>
                   )}
                 </div>
 
-                {/* Level & Batch Info */}
-                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Level</div>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
-                      {student.currentLevel}
-                    </span>
+                {/* Level & Batch */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-2">Level</div>
+                    <div className="text-base font-bold text-gray-900">{student.currentLevel}</div>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Batch</div>
-                    <span className="text-xs font-medium">
+                  <div className="bg-white rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-2">Batch</div>
+                    <div className="text-sm font-semibold text-gray-900">
                       {student.batch ? student.batch.batchCode : "-"}
-                    </span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Payment Info */}
-                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Payment</div>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(student.paymentStatus)}`}>
+                <div className="bg-white rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">Payment Status</span>
+                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(student.paymentStatus)}`}>
                       {student.paymentStatus}
                     </span>
                   </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Balance</div>
-                    <span className="text-xs font-semibold text-gray-900">
+                  <div className="flex items-center justify-between pt-3 border-t">
+                    <span className="text-xs text-gray-500">Balance Due</span>
+                    <span className="text-lg font-bold text-gray-900">
                       {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
                     </span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <div className="flex gap-2">
                   <Link
                     href={`/dashboard/students/${student.id}`}
-                    className="flex-1 py-2 px-3 text-center bg-primary text-white rounded-lg text-sm font-medium"
+                    className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
                   >
-                    View
+                    View Details
                   </Link>
                   <Link
                     href={`/dashboard/students/${student.id}/edit`}
-                    className="py-2 px-3 bg-info/10 text-info rounded-lg text-sm font-medium"
+                    className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
                   >
                     Edit
                   </Link>

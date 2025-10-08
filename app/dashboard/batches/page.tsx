@@ -211,38 +211,40 @@ export default function BatchesPage() {
                 </span>
               </div>
 
-              {/* Batches Grid for this month - Responsive on mobile */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              {/* Batches Grid - Mobile friendly */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {batchesByMonth[monthYear].map((batch) => (
             <Link
               key={batch.id}
               href={`/dashboard/batches/${batch.id}`}
-              className="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition-shadow"
+              className="bg-gray-50 rounded-xl p-5 hover:shadow-lg transition-shadow space-y-4"
             >
               {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {batch.batchCode}
-                  </h3>
-                  <p className="text-sm text-gray-600">Level {batch.level}</p>
+              <div className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900">
+                      {batch.batchCode}
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">Level {batch.level}</p>
+                  </div>
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(batch.status)}`}>
+                    {batch.status}
+                  </span>
                 </div>
-                <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(batch.status)}`}>
-                  {batch.status}
-                </span>
               </div>
 
               {/* Fill Rate Progress */}
-              <div className="mb-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Capacity</span>
-                  <span className={`font-semibold ${getFillRateColor(batch.fillRate)}`}>
-                    {batch.enrolledCount}/{batch.totalSeats} ({batch.fillRate.toFixed(0)}%)
+              <div className="bg-white rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-600">Capacity</span>
+                  <span className={`text-sm font-bold ${getFillRateColor(batch.fillRate)}`}>
+                    {batch.enrolledCount}/{batch.totalSeats}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className={`h-2 rounded-full ${
+                    className={`h-3 rounded-full transition-all ${
                       batch.fillRate >= 80
                         ? "bg-success"
                         : batch.fillRate >= 50
@@ -252,35 +254,49 @@ export default function BatchesPage() {
                     style={{ width: `${Math.min(batch.fillRate, 100)}%` }}
                   />
                 </div>
+                <div className="text-center">
+                  <span className={`text-lg font-bold ${getFillRateColor(batch.fillRate)}`}>
+                    {batch.fillRate.toFixed(0)}%
+                  </span>
+                  <span className="text-xs text-gray-500"> filled</span>
+                </div>
               </div>
 
               {/* Teacher */}
               {batch.teacher && (
-                <div className="mb-4 text-sm">
-                  <span className="text-gray-600">Teacher: </span>
-                  <span className="font-medium">{batch.teacher.name}</span>
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Teacher</div>
+                  <div className="text-sm font-semibold text-gray-900">{batch.teacher.name}</div>
                 </div>
               )}
 
               {/* Dates */}
               {batch.startDate && (
-                <div className="mb-4 text-sm text-gray-600">
-                  {formatDate(batch.startDate)}
-                  {batch.endDate && ` - ${formatDate(batch.endDate)}`}
+                <div className="bg-white rounded-lg p-3">
+                  <div className="text-xs text-gray-500 mb-1">Schedule</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {formatDate(batch.startDate)}
+                    {batch.endDate && (
+                      <>
+                        <br />
+                        <span className="text-xs text-gray-600">to {formatDate(batch.endDate)}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
               {/* Revenue */}
-              <div className="border-t pt-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Revenue</span>
-                  <span className="font-semibold">
+              <div className="bg-white rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Revenue</span>
+                  <span className="text-base font-bold text-gray-900">
                     {formatCurrency(Number(batch.revenueActual || 0))}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm mt-1">
-                  <span className="text-gray-600">Target</span>
-                  <span className="text-gray-500">
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-xs text-gray-500">Target</span>
+                  <span className="text-sm text-gray-600">
                     {formatCurrency(Number(batch.revenueTarget))}
                   </span>
                 </div>

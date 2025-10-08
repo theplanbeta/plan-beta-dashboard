@@ -336,7 +336,7 @@ export default function LeadsPage() {
       {/* Leads Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Mobile Card View */}
-        <div className="md:hidden divide-y divide-gray-200">
+        <div className="md:hidden space-y-3 p-3">
           {filteredAndSortedLeads.length === 0 ? (
             <div className="text-center py-12 px-4">
               <p className="text-gray-500">No leads found</p>
@@ -349,96 +349,93 @@ export default function LeadsPage() {
             </div>
           ) : (
             filteredAndSortedLeads.map((lead) => (
-              <div key={lead.id} className="p-4 hover:bg-gray-50">
-                {/* Lead Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{lead.name}</h3>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Added {formatDate(lead.createdAt)}
-                    </p>
-                    {lead.converted && lead.convertedToStudent && (
-                      <span className="inline-block text-xs text-success mt-1">
-                        → {lead.convertedToStudent.studentId}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(lead.status)}`}>
+              <div key={lead.id} className="bg-gray-50 rounded-xl p-5 space-y-4">
+                {/* Name & Badges */}
+                <div className="space-y-3">
+                  <h3 className="text-lg font-bold text-gray-900">{lead.name}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getStatusBadge(lead.status)}`}>
                       {lead.status.replace(/_/g, " ")}
                     </span>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getQualityBadge(lead.quality)}`}>
+                    <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getQualityBadge(lead.quality)}`}>
                       {lead.quality}
                     </span>
+                    {lead.converted && lead.convertedToStudent && (
+                      <span className="px-3 py-1.5 text-xs font-semibold rounded-full bg-success/10 text-success">
+                        ✓ {lead.convertedToStudent.studentId}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Contact Info */}
-                <div className="space-y-1 mb-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500">📱</span>
-                    <span className="text-gray-900">{lead.whatsapp}</span>
-                    <span className="text-xs text-gray-500">({lead.contactAttempts} attempts)</span>
+                <div className="space-y-2.5 bg-white rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📱</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">{lead.whatsapp}</div>
+                      <div className="text-xs text-gray-500">{lead.contactAttempts} contact attempts</div>
+                    </div>
                   </div>
                   {lead.email && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-500">📧</span>
-                      <span className="text-gray-600 text-xs">{lead.email}</span>
+                    <div className="flex items-center gap-3 pt-2 border-t">
+                      <span className="text-xl">📧</span>
+                      <div className="text-sm text-gray-700 break-all">{lead.email}</div>
                     </div>
                   )}
                 </div>
 
-                {/* Follow-up & Batch Info */}
-                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Follow-up</div>
-                    {lead.followUpDate ? (
-                      <div className="flex items-center gap-1">
-                        <span>{getFollowUpIndicator(lead.followUpDate).emoji}</span>
-                        <span className={`text-xs ${getFollowUpIndicator(lead.followUpDate).class}`}>
-                          {formatDate(lead.followUpDate)}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-xs text-gray-400">Not set</span>
-                    )}
-                  </div>
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1">Interested</div>
-                    {lead.interestedLevel ? (
-                      <>
-                        <div className="text-xs font-medium">{lead.interestedLevel}</div>
-                        {lead.interestedBatch && (
-                          <div className="text-xs text-gray-500">
-                            {lead.interestedBatch.batchCode}
+                {/* Follow-up & Interest */}
+                {(lead.followUpDate || lead.interestedLevel) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {lead.followUpDate && (
+                      <div className="bg-white rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-2">Follow-up</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-lg">{getFollowUpIndicator(lead.followUpDate).emoji}</span>
+                          <div className={`text-sm font-medium ${getFollowUpIndicator(lead.followUpDate).class}`}>
+                            {formatDate(lead.followUpDate)}
                           </div>
+                        </div>
+                      </div>
+                    )}
+                    {lead.interestedLevel && (
+                      <div className="bg-white rounded-lg p-3">
+                        <div className="text-xs text-gray-500 mb-2">Interested</div>
+                        <div className="text-sm font-semibold text-gray-900">{lead.interestedLevel}</div>
+                        {lead.interestedBatch && (
+                          <div className="text-xs text-gray-600 mt-1">{lead.interestedBatch.batchCode}</div>
                         )}
-                      </>
-                    ) : (
-                      <span className="text-xs text-gray-400">-</span>
+                      </div>
                     )}
                   </div>
+                )}
+
+                {/* Metadata */}
+                <div className="text-xs text-gray-500 pt-2 border-t">
+                  Added {formatDate(lead.createdAt)}
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                <div className="flex gap-2">
                   <Link
                     href={`/dashboard/leads/${lead.id}`}
-                    className="flex-1 py-2 px-3 text-center bg-primary text-white rounded-lg text-sm font-medium"
+                    className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
                   >
-                    View
+                    View Details
                   </Link>
                   {!lead.converted ? (
                     <>
                       <Link
                         href={`/dashboard/leads/${lead.id}/invoice`}
-                        className="py-2 px-3 bg-primary/10 text-primary rounded-lg text-sm font-medium"
+                        className="py-3 px-4 bg-primary/10 text-primary rounded-xl text-xl"
+                        title="Generate Invoice"
                       >
                         📱
                       </Link>
                       <Link
                         href={`/dashboard/leads/${lead.id}/convert`}
-                        className="flex-1 py-2 px-3 text-center bg-success text-white rounded-lg text-sm font-medium"
+                        className="flex-1 py-3 px-4 text-center bg-success text-white rounded-xl text-sm font-semibold shadow-sm"
                       >
                         Convert
                       </Link>
@@ -446,7 +443,7 @@ export default function LeadsPage() {
                   ) : lead.convertedToStudent ? (
                     <Link
                       href={`/dashboard/students/${lead.convertedToStudent.id}`}
-                      className="flex-1 py-2 px-3 text-center bg-info text-white rounded-lg text-sm font-medium"
+                      className="flex-1 py-3 px-4 text-center bg-info text-white rounded-xl text-sm font-semibold shadow-sm"
                     >
                       View Student
                     </Link>

@@ -204,7 +204,6 @@ export default function LeadDetailPage({
         body: JSON.stringify({
           paidAmount: Number(paidAmount),
           batchId: lead?.interestedBatch?.id,
-          enrollmentType: lead?.interestedType,
         }),
       })
 

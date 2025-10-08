@@ -46,7 +46,8 @@ function NewStudentForm() {
     name: "",
     whatsapp: "",
     email: "",
-    enrollmentType: "A1_ONLY",
+    isCombo: false,
+    comboLevels: [] as string[],
     currentLevel: "NEW",
     batchId: batchId || "",
     originalPrice: 0,
@@ -129,20 +130,13 @@ function NewStudentForm() {
     }
   }
 
-  // Validation: Check if enrollmentType matches startingLevel
-  const validateEnrollment = (level: string, enrollmentType: string): string | null => {
-    const validations: Record<string, string[]> = {
-      'NEW': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-      'A1': ['A1_ONLY', 'A1_HYBRID', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-      'A2': ['A2_ONLY', 'FOUNDATION_A1_A2', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-      'B1': ['B1_ONLY', 'CAREER_A1_A2_B1', 'COMPLETE_PATHWAY'],
-      'B2': ['B2_ONLY', 'COMPLETE_PATHWAY'],
-      'SPOKEN_GERMAN': ['SPOKEN_GERMAN']
+  // Validation: Check if combo levels include currentLevel
+  const validateEnrollment = (isCombo: boolean, comboLevels: string[], currentLevel: string): string | null => {
+    if (isCombo && comboLevels.length === 0) {
+      return "Please select at least one level for combo enrollment"
     }
-
-    const allowedTypes = validations[level] || []
-    if (!allowedTypes.includes(enrollmentType)) {
-      return `Enrollment plan "${enrollmentType}" doesn't match starting level "${level}". Please select a compatible plan.`
+    if (isCombo && !comboLevels.includes(currentLevel)) {
+      return `Current level "${currentLevel}" must be included in combo levels`
     }
     return null
   }
@@ -152,8 +146,8 @@ function NewStudentForm() {
     setLoading(true)
     setError("")
 
-    // Validate enrollment type matches starting level
-    const validationError = validateEnrollment(formData.currentLevel, formData.enrollmentType)
+    // Validate combo enrollment
+    const validationError = validateEnrollment(formData.isCombo, formData.comboLevels, formData.currentLevel)
     if (validationError) {
       setError(validationError)
       setLoading(false)
@@ -469,34 +463,53 @@ function NewStudentForm() {
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enrollment Plan <span className="text-error">*</span>
-              </label>
-              <select
-                name="enrollmentType"
-                value={formData.enrollmentType}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <optgroup label="Individual Courses">
-                  <option value="A1_ONLY">A1 Only</option>
-                  <option value="A1_HYBRID">A1 Hybrid</option>
-                  <option value="A2_ONLY">A2 Only</option>
-                  <option value="B1_ONLY">B1 Only</option>
-                  <option value="B2_ONLY">B2 Only</option>
-                  <option value="SPOKEN_GERMAN">Spoken German</option>
-                </optgroup>
-                <optgroup label="Package Deals">
-                  <option value="FOUNDATION_A1_A2">Foundation Track (A1 + A2)</option>
-                  <option value="CAREER_A1_A2_B1">Career Track (A1 + A2 + B1)</option>
-                  <option value="COMPLETE_PATHWAY">Complete Pathway (A1 → B2)</option>
-                </optgroup>
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Total learning path they&apos;re committing to (affects pricing)
-              </p>
+            <div className="col-span-2">
+              <div className="flex items-center mb-3">
+                <input
+                  type="checkbox"
+                  name="isCombo"
+                  checked={formData.isCombo}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, isCombo: e.target.checked }))
+                  }
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <label className="ml-2 text-sm font-medium text-gray-700">
+                  Combo Enrollment (Multiple Levels)
+                </label>
+              </div>
+
+              {formData.isCombo && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Combo Levels <span className="text-error">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['A1', 'A2', 'B1', 'B2'].map((level) => (
+                      <label key={level} className="flex items-center p-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={formData.comboLevels.includes(level)}
+                          onChange={(e) => {
+                            const checked = e.target.checked
+                            setFormData((prev) => ({
+                              ...prev,
+                              comboLevels: checked
+                                ? [...prev.comboLevels, level]
+                                : prev.comboLevels.filter(l => l !== level)
+                            }))
+                          }}
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{level}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Student will progress through all selected levels
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>

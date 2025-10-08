@@ -72,9 +72,16 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
         bySource[s.referralSource] = (bySource[s.referralSource] || 0) + 1
       })
 
-      const byEnrollmentType: Record<string, number> = {}
-      students.forEach((s: { enrollmentType: string }) => {
-        byEnrollmentType[s.enrollmentType] = (byEnrollmentType[s.enrollmentType] || 0) + 1
+      const byEnrollmentType: Record<string, number> = {
+        'Single-Level': 0,
+        'Combo': 0
+      }
+      students.forEach((s: { isCombo: boolean; currentLevel: string; comboLevels: string[] }) => {
+        if (s.isCombo) {
+          byEnrollmentType['Combo'] = (byEnrollmentType['Combo'] || 0) + 1
+        } else {
+          byEnrollmentType['Single-Level'] = (byEnrollmentType['Single-Level'] || 0) + 1
+        }
       })
 
       const fillingBatches = batches.filter((b: { status: string }) => b.status === 'FILLING')

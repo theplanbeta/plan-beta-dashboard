@@ -233,23 +233,6 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enrollment Type
-              </label>
-              <select
-                name="enrollmentType"
-                value={formData.enrollmentType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="A1_ONLY">A1 Only</option>
-                <option value="FOUNDATION_A1_A2">Foundation (A1 + A2)</option>
-                <option value="CAREER_A1_A2_B1">Career (A1 + A2 + B1)</option>
-                <option value="COMPLETE_PATHWAY">Complete Pathway</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Current Level
               </label>
               <select
@@ -264,6 +247,52 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
                 <option value="B1">B1</option>
                 <option value="B2">B2</option>
               </select>
+            </div>
+
+            <div>
+              <div className="flex items-center mb-3">
+                <input
+                  type="checkbox"
+                  name="isCombo"
+                  checked={formData.isCombo}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, isCombo: e.target.checked }))
+                  }
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <label className="ml-2 text-sm font-medium text-gray-700">
+                  Combo Enrollment (Multiple Levels)
+                </label>
+              </div>
+
+              {formData.isCombo && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Combo Levels
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['A1', 'A2', 'B1', 'B2'].map((level) => (
+                      <label key={level} className="flex items-center p-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={formData.comboLevels.includes(level)}
+                          onChange={(e) => {
+                            const checked = e.target.checked
+                            setFormData((prev) => ({
+                              ...prev,
+                              comboLevels: checked
+                                ? [...prev.comboLevels, level]
+                                : prev.comboLevels.filter(l => l !== level)
+                            }))
+                          }}
+                          className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{level}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

@@ -118,13 +118,14 @@ export async function GET(request: NextRequest) {
     const avgDailyRevenue = totalRevenue / daysAgo
     const projectedMonthlyRevenue = avgDailyRevenue * 30
 
-    // Revenue by enrollment type
+    // Revenue by enrollment type - now using combo system
     const revenueByType = students.reduce((acc, student) => {
       const studentRevenue = student.payments.reduce(
         (sum, p) => sum + Number(p.amount),
         0
       )
-      acc[student.enrollmentType] = (acc[student.enrollmentType] || 0) + studentRevenue
+      const enrollmentKey = student.isCombo ? 'COMBO' : student.currentLevel
+      acc[enrollmentKey] = (acc[enrollmentKey] || 0) + studentRevenue
       return acc
     }, {} as Record<string, number>)
 

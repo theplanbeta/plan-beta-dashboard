@@ -23,7 +23,6 @@ export default function NewLeadPage() {
     quality: "WARM",
     status: "NEW",
     interestedLevel: "",
-    interestedType: "",
     interestedMonth: "",
     interestedBatchTime: "",
     notes: "",
@@ -299,7 +298,7 @@ export default function NewLeadPage() {
         {/* Interest Details */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Booked Level
@@ -315,24 +314,6 @@ export default function NewLeadPage() {
                 <option value="A2">A2 - Elementary</option>
                 <option value="B1">B1 - Intermediate</option>
                 <option value="B2">B2 - Upper Intermediate</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enrollment Type
-              </label>
-              <select
-                name="interestedType"
-                value={formData.interestedType}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Not specified</option>
-                <option value="A1_ONLY">A1 Only</option>
-                <option value="FOUNDATION_A1_A2">Foundation (A1 + A2)</option>
-                <option value="CAREER_A1_A2_B1">Career (A1 + A2 + B1)</option>
-                <option value="COMPLETE_PATHWAY">Complete Pathway</option>
               </select>
             </div>
 
@@ -406,23 +387,26 @@ export default function NewLeadPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 mt-6">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="px-6 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+            className="px-8 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-base shadow-sm"
           >
             {loading ? "Creating..." : "Create Lead"}
           </button>
         </div>
       </form>
+
+      {/* Spacer for mobile */}
+      <div className="h-20"></div>
     </div>
   )
 }

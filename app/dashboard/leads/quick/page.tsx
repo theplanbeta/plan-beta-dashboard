@@ -22,8 +22,11 @@ const BATCH_TIMINGS = ["Morning", "Evening"]
 export default function QuickLeadEntry() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [parsing, setParsing] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [showSmartPaste, setShowSmartPaste] = useState(false)
+  const [pastedText, setPastedText] = useState("")
 
   const [formData, setFormData] = useState({
     name: "",
@@ -32,6 +35,55 @@ export default function QuickLeadEntry() {
     interestedMonth: new Date().toLocaleString('default', { month: 'long' }),
     interestedBatchTime: "Morning",
   })
+
+  const handleSmartParse = async () => {
+    if (!pastedText.trim()) {
+      setError("Please paste some text to parse")
+      return
+    }
+
+    setParsing(true)
+    setError("")
+
+    try {
+      // Warmup call to reduce latency
+      fetch("/api/warmup").catch(() => {})
+
+      const res = await fetch("/api/leads/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: pastedText }),
+      })
+
+      if (res.ok) {
+        const result = await res.json()
+        const parsed = result.data
+
+        // Update form with parsed data
+        setFormData({
+          name: parsed.name || formData.name,
+          whatsapp: parsed.whatsapp || formData.whatsapp,
+          interestedLevel: parsed.interestedLevel || formData.interestedLevel,
+          interestedMonth: formData.interestedMonth,
+          interestedBatchTime: formData.interestedBatchTime,
+        })
+
+        // Close the smart paste panel
+        setShowSmartPaste(false)
+        setPastedText("")
+        setSuccess(true)
+        setTimeout(() => setSuccess(false), 2000)
+      } else {
+        const error = await res.json()
+        setError(error.error || "Failed to parse lead data")
+      }
+    } catch (error) {
+      console.error("Error parsing lead data:", error)
+      setError("Failed to parse lead data. Please try again.")
+    } finally {
+      setParsing(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,7 +149,7 @@ export default function QuickLeadEntry() {
           <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
-          <span className="text-green-800 font-medium">Lead added successfully!</span>
+          <span className="text-green-800 font-medium">✅ Success!</span>
         </div>
       )}
 
@@ -107,6 +159,59 @@ export default function QuickLeadEntry() {
           <p className="text-red-800">{error}</p>
         </div>
       )}
+
+      {/* Smart Paste Feature */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-dashed border-purple-300 rounded-lg p-5 mb-6">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h3 className="text-base font-semibold text-purple-900 flex items-center gap-2">
+              ✨ Smart Paste (AI)
+            </h3>
+            <p className="text-sm text-purple-700 mt-1">
+              Paste contact info - AI auto-fills the form
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowSmartPaste(!showSmartPaste)}
+            className="px-3 py-1.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium"
+          >
+            {showSmartPaste ? "Hide" : "Try It"}
+          </button>
+        </div>
+
+        {showSmartPaste && (
+          <div className="mt-4 space-y-3">
+            <textarea
+              value={pastedText}
+              onChange={(e) => setPastedText(e.target.value)}
+              placeholder="Paste anything here...&#10;&#10;Example:&#10;Name: Rahul Sharma&#10;WhatsApp: 9876543210&#10;Interested in A2 level"
+              rows={6}
+              className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleSmartParse}
+                disabled={parsing || !pastedText.trim()}
+                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 font-medium text-sm"
+              >
+                {parsing ? "🤖 Parsing..." : "🚀 Parse with AI"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPastedText("")
+                  setShowSmartPaste(false)
+                }}
+                className="px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Quick Entry Form */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -133,12 +238,13 @@ export default function QuickLeadEntry() {
               WhatsApp Number *
             </label>
             <input
-              type="tel"
+              type="text"
               required
+              minLength={5}
               value={formData.whatsapp}
               onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
-              placeholder="91XXXXXXXXXX"
+              placeholder="Phone number (any format)"
             />
           </div>
 

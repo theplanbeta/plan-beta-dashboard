@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { getAllowedNavigation } from "@/lib/permissions"
 import type { UserRole } from "@/lib/permissions"
 import PWAInstallPrompt from "@/components/PWAInstallPrompt"
+import { useTheme } from "@/lib/ThemeContext"
 
 export default function DashboardLayout({
   children,
@@ -18,6 +19,7 @@ export default function DashboardLayout({
   const router = useRouter()
   const [overdueCount, setOverdueCount] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { theme, toggleTheme } = useTheme()
 
   // Get role-based navigation
   const userRole = (session?.user?.role as UserRole) || 'TEACHER'
@@ -60,43 +62,60 @@ export default function DashboardLayout({
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
 
       {/* Mobile Header with Back Button & Hamburger */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           {showBackButton && (
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           )}
-          <h1 className="text-lg font-bold text-primary">Plan Beta</h1>
+          <h1 className="text-lg font-bold text-primary dark:text-blue-400">Plan Beta</h1>
         </div>
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {mobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
             ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
             )}
-          </svg>
-        </button>
+          </button>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)}>
-          <div className="fixed inset-y-0 right-0 w-64 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-y-0 right-0 w-64 bg-white dark:bg-gray-800 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex flex-col h-full pt-16">
               <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 {navigation.map((item) => {
@@ -108,7 +127,7 @@ export default function DashboardLayout({
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`flex items-center justify-between px-4 py-3 text-sm font-medium rounded-md transition-colors ${
-                        isActive ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"
+                        isActive ? "bg-primary dark:bg-blue-600 text-white" : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                       }`}
                     >
                       <span>{item.name}</span>
@@ -123,12 +142,12 @@ export default function DashboardLayout({
                   )
                 })}
               </nav>
-              <div className="p-4 border-t border-gray-200">
-                <p className="text-sm font-medium text-gray-900 truncate">{session?.user?.name}</p>
-                <p className="text-xs text-gray-500 truncate mb-3">{session?.user?.role}</p>
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{session?.user?.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mb-3">{session?.user?.role}</p>
                 <button
                   onClick={() => signOut({ callbackUrl: "/login" })}
-                  className="w-full px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                  className="w-full px-4 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
                 >
                   Sign out
                 </button>
@@ -139,10 +158,25 @@ export default function DashboardLayout({
       )}
 
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200">
+      <div className="hidden lg:block fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <div className="flex flex-col h-full">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-primary">Plan Beta</h1>
+          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+            <h1 className="text-xl font-bold text-primary dark:text-blue-400">Plan Beta</h1>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              )}
+            </button>
           </div>
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
@@ -153,7 +187,7 @@ export default function DashboardLayout({
                   key={item.name}
                   href={item.href}
                   className={`flex items-center justify-between px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isActive ? "bg-primary text-white" : "text-gray-700 hover:bg-gray-100"
+                    isActive ? "bg-primary dark:bg-blue-600 text-white" : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
                   <span>{item.name}</span>
@@ -168,15 +202,15 @@ export default function DashboardLayout({
               )
             })}
           </nav>
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{session?.user?.name}</p>
-                <p className="text-xs text-gray-500 truncate">{session?.user?.role}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{session?.user?.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{session?.user?.role}</p>
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="ml-3 text-sm text-gray-500 hover:text-gray-700"
+                className="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
                 Sign out
               </button>
@@ -191,13 +225,13 @@ export default function DashboardLayout({
       </div>
 
       {/* Bottom Navigation for Mobile */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50">
         <div className="grid grid-cols-5 gap-1 p-2">
           {/* Home/Dashboard */}
           <Link
             href="/dashboard"
             className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors ${
-              pathname === '/dashboard' ? "bg-primary/10 text-primary" : "text-gray-600"
+              pathname === '/dashboard' ? "bg-primary/10 dark:bg-blue-900/30 text-primary dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
             }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,7 +249,7 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors relative ${
-                  isActive ? "bg-primary/10 text-primary" : "text-gray-600"
+                  isActive ? "bg-primary/10 dark:bg-blue-900/30 text-primary dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
                 }`}
               >
                 {showBadge && (

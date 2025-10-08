@@ -333,9 +333,132 @@ export default function LeadsPage() {
         </div>
       </div>
 
-      {/* Leads Table */}
+      {/* Leads Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {filteredAndSortedLeads.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <p className="text-gray-500">No leads found</p>
+              <Link
+                href="/dashboard/leads/new"
+                className="text-primary hover:text-primary-dark mt-2 inline-block"
+              >
+                Add your first lead
+              </Link>
+            </div>
+          ) : (
+            filteredAndSortedLeads.map((lead) => (
+              <div key={lead.id} className="p-4 hover:bg-gray-50">
+                {/* Lead Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{lead.name}</h3>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Added {formatDate(lead.createdAt)}
+                    </p>
+                    {lead.converted && lead.convertedToStudent && (
+                      <span className="inline-block text-xs text-success mt-1">
+                        → {lead.convertedToStudent.studentId}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadge(lead.status)}`}>
+                      {lead.status.replace(/_/g, " ")}
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getQualityBadge(lead.quality)}`}>
+                      {lead.quality}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-1 mb-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500">📱</span>
+                    <span className="text-gray-900">{lead.whatsapp}</span>
+                    <span className="text-xs text-gray-500">({lead.contactAttempts} attempts)</span>
+                  </div>
+                  {lead.email && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">📧</span>
+                      <span className="text-gray-600 text-xs">{lead.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Follow-up & Batch Info */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Follow-up</div>
+                    {lead.followUpDate ? (
+                      <div className="flex items-center gap-1">
+                        <span>{getFollowUpIndicator(lead.followUpDate).emoji}</span>
+                        <span className={`text-xs ${getFollowUpIndicator(lead.followUpDate).class}`}>
+                          {formatDate(lead.followUpDate)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">Not set</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Interested</div>
+                    {lead.interestedLevel ? (
+                      <>
+                        <div className="text-xs font-medium">{lead.interestedLevel}</div>
+                        {lead.interestedBatch && (
+                          <div className="text-xs text-gray-500">
+                            {lead.interestedBatch.batchCode}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <Link
+                    href={`/dashboard/leads/${lead.id}`}
+                    className="flex-1 py-2 px-3 text-center bg-primary text-white rounded-lg text-sm font-medium"
+                  >
+                    View
+                  </Link>
+                  {!lead.converted ? (
+                    <>
+                      <Link
+                        href={`/dashboard/leads/${lead.id}/invoice`}
+                        className="py-2 px-3 bg-primary/10 text-primary rounded-lg text-sm font-medium"
+                      >
+                        📱
+                      </Link>
+                      <Link
+                        href={`/dashboard/leads/${lead.id}/convert`}
+                        className="flex-1 py-2 px-3 text-center bg-success text-white rounded-lg text-sm font-medium"
+                      >
+                        Convert
+                      </Link>
+                    </>
+                  ) : lead.convertedToStudent ? (
+                    <Link
+                      href={`/dashboard/students/${lead.convertedToStudent.id}`}
+                      className="flex-1 py-2 px-3 text-center bg-info text-white rounded-lg text-sm font-medium"
+                    >
+                      View Student
+                    </Link>
+                  ) : null}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

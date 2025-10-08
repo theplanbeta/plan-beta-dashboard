@@ -162,9 +162,115 @@ export default function StudentsPage() {
         </div>
       </div>
 
-      {/* Students Table */}
+      {/* Students Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden divide-y divide-gray-200">
+          {students.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <p className="text-gray-500">No students found</p>
+              <Link
+                href="/dashboard/students/new"
+                className="text-primary hover:text-primary-dark mt-2 inline-block"
+              >
+                Add your first student
+              </Link>
+            </div>
+          ) : (
+            students.map((student) => (
+              <div key={student.id} className="p-4 hover:bg-gray-50">
+                {/* Student Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-900">{student.name}</h3>
+                    <p className="text-xs text-primary font-medium mt-1">
+                      {student.studentId}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCompletionBadge(student.completionStatus)}`}>
+                      {student.completionStatus}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="space-y-1 mb-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500">📱</span>
+                    <span className="text-gray-900">{student.whatsapp}</span>
+                  </div>
+                  {student.email && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">📧</span>
+                      <span className="text-gray-600 text-xs">{student.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Level & Batch Info */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Level</div>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium">
+                      {student.currentLevel}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Batch</div>
+                    <span className="text-xs font-medium">
+                      {student.batch ? student.batch.batchCode : "-"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Info */}
+                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Payment</div>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadge(student.paymentStatus)}`}>
+                      {student.paymentStatus}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Balance</div>
+                    <span className="text-xs font-semibold text-gray-900">
+                      {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <Link
+                    href={`/dashboard/students/${student.id}`}
+                    className="flex-1 py-2 px-3 text-center bg-primary text-white rounded-lg text-sm font-medium"
+                  >
+                    View
+                  </Link>
+                  <Link
+                    href={`/dashboard/students/${student.id}/edit`}
+                    className="py-2 px-3 bg-info/10 text-info rounded-lg text-sm font-medium"
+                  >
+                    Edit
+                  </Link>
+                  <div className="inline-block">
+                    <GenerateInvoiceButton
+                      studentId={student.id}
+                      variant="outline"
+                      showPreview={false}
+                    >
+                      📄
+                    </GenerateInvoiceButton>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>

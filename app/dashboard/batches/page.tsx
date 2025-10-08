@@ -211,13 +211,13 @@ export default function BatchesPage() {
                 </span>
               </div>
 
-              {/* Batches Grid for this month */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Batches Grid for this month - Responsive on mobile */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {batchesByMonth[monthYear].map((batch) => (
             <Link
               key={batch.id}
               href={`/dashboard/batches/${batch.id}`}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition-shadow"
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">

@@ -100,12 +100,14 @@ export async function GET(request: NextRequest) {
       overdue: students.filter((s) => s.paymentStatus === "OVERDUE").length,
     }
 
-    // Enrollment type breakdown
+    // Enrollment type breakdown - now using combo system
     const enrollmentBreakdown = {
-      A1_ONLY: students.filter((s) => s.enrollmentType === "A1_ONLY").length,
-      FOUNDATION_A1_A2: students.filter((s) => s.enrollmentType === "FOUNDATION_A1_A2").length,
-      CAREER_A1_A2_B1: students.filter((s) => s.enrollmentType === "CAREER_A1_A2_B1").length,
-      COMPLETE_PATHWAY: students.filter((s) => s.enrollmentType === "COMPLETE_PATHWAY").length,
+      COMBO: students.filter((s) => s.isCombo).length,
+      SINGLE_LEVEL: students.filter((s) => !s.isCombo).length,
+      A1: students.filter((s) => !s.isCombo && s.currentLevel === "A1").length,
+      A2: students.filter((s) => !s.isCombo && s.currentLevel === "A2").length,
+      B1: students.filter((s) => !s.isCombo && s.currentLevel === "B1").length,
+      B2: students.filter((s) => !s.isCombo && s.currentLevel === "B2").length,
     }
 
     // Churn risk analysis

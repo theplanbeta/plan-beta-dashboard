@@ -1,5 +1,6 @@
 // Self-cleaning service worker to replace broken cached version
 // This will clear all caches and unregister itself
+// User needs to manually refresh the page after cleanup
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing cleanup service worker')
@@ -20,26 +21,16 @@ self.addEventListener('activate', (event) => {
       console.log('[SW] All caches deleted, unregistering service worker')
       return self.registration.unregister()
     }).then(() => {
-      console.log('[SW] Service worker unregistered, reloading clients')
-      return self.clients.matchAll()
-    }).then((clients) => {
-      clients.forEach(client => {
-        console.log('[SW] Reloading client:', client.url)
-        client.navigate(client.url)
-      })
+      console.log('[SW] ✅ Cleanup complete! Please refresh the page manually.')
+      console.log('[SW] Press Cmd+R (Mac) or Ctrl+R (Windows/Linux) to reload')
     }).catch((error) => {
       console.error('[SW] Error during cleanup:', error)
     })
   )
 })
 
-// Serve no content for any fetch requests while cleanup is happening
+// Don't intercept any fetch requests - let them pass through normally
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      return new Response('Service worker is cleaning up, please refresh the page.', {
-        headers: { 'Content-Type': 'text/plain' }
-      })
-    })
-  )
+  // Just let the request go through to the network normally
+  return
 })

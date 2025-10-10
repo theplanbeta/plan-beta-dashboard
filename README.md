@@ -1,50 +1,57 @@
-# Plan Beta School Management System
+# Plan Beta Dashboard - German Language School Management System
 
-A **production-ready** school management system built with Next.js 15, TypeScript, Prisma, and NextAuth with **complete observability** and **audit logging**.
+A **production-ready** school management system built with Next.js 15, TypeScript, Prisma, and NextAuth with complete email automation, dark mode, PWA support, and comprehensive backup system.
 
-![Version](https://img.shields.io/badge/version-2.0-blue)
+![Version](https://img.shields.io/badge/version-3.0-blue)
 ![Status](https://img.shields.io/badge/status-production--ready-green)
-![Monitoring](https://img.shields.io/badge/monitoring-enabled-brightgreen)
+![Email](https://img.shields.io/badge/email-active-brightgreen)
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - PostgreSQL database (Neon recommended)
 - npm or yarn
+- Resend account for email functionality
 
 ### Setup Instructions
 
-1. **Install dependencies:**
-
+1. **Clone and install:**
 ```bash
+git clone https://github.com/theplanbeta/plan-beta-dashboard.git
+cd plan-beta-dashboard
 npm install
 ```
 
 2. **Set up environment variables:**
 
-Create a `.env.local` file in the root directory:
+Create a `.env` file in the root directory:
 
 ```env
-# Database (Get this from Neon.tech)
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+# Database (Neon PostgreSQL)
+DATABASE_URL="postgresql://neondb_owner:npg_rvf4a3DopMhW@ep-dark-shadow-agv0fe98.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&connection_limit=10&pool_timeout=20"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="generate-with-openssl-rand-base64-32"
+NEXTAUTH_SECRET="oTmXOhyFKONW4OW/Wo6HqGsPkZ05YoUr0NmqRdnwlXI="
 
-# Sentry (Production Error Tracking - Optional)
-NEXT_PUBLIC_SENTRY_DSN="https://your-dsn@sentry.io/project-id"
+# Email (Resend) - ACTIVE & VERIFIED ✅
+RESEND_API_KEY="re_FxkRNtvY_8APyQZGavwzk74dHFFnq3YNJ"
+EMAIL_FROM="Plan Beta <noreply@planbeta.in>"
+SUPPORT_EMAIL="hello@planbeta.in"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+UPI_ID="planbeta@paytm"
 
-# Email (Optional - for production)
-RESEND_API_KEY="your-resend-api-key"
+# Cron Job Security
+CRON_SECRET="your-cron-secret-key-here"
+
+# AI Features (Gemini for Smart Paste)
+GEMINI_API_KEY="AIzaSyBzYmqDxD_f3n2Np3zoGVc4kmQTxkm5bqY"
 ```
 
 3. **Set up the database:**
-
 ```bash
 # Push schema to database
 npx prisma db push
@@ -52,50 +59,338 @@ npx prisma db push
 # Generate Prisma Client
 npx prisma generate
 
-# Seed the database with test user
+# Seed the database with default users
 npm run db:seed
 ```
 
 4. **Start the development server:**
-
 ```bash
 npm run dev
 ```
 
-5. **Login:**
+5. **Login credentials:**
 
-Open [http://localhost:3000](http://localhost:3000) and login with:
+Open [http://localhost:3000](http://localhost:3000)
 
-- **Email:** admin@planbeta.in
-- **Password:** admin123
+| Role | Email | Password |
+|------|-------|----------|
+| **Founder** (Full Access) | admin@planbeta.in | admin123 |
+| **Marketing** | marketing@planbeta.in | marketing123 |
+| **Teacher** | teacher@planbeta.in | teacher123 |
 
-6. **Access System Monitoring:**
+---
 
-- **Activity Dashboard:** [http://localhost:3000/dashboard/activity](http://localhost:3000/dashboard/activity) (Founders only)
-- **System Health:** [http://localhost:3000/api/system/health](http://localhost:3000/api/system/health)
-- **Audit Logs API:** [http://localhost:3000/api/system/audit-logs](http://localhost:3000/api/system/audit-logs)
+## 🔑 Production Credentials & API Keys
+
+### Database (Neon PostgreSQL)
+- **Provider:** Neon.tech
+- **Connection String:** `postgresql://neondb_owner:npg_rvf4a3DopMhW@ep-dark-shadow-agv0fe98.c-2.eu-central-1.aws.neon.tech/neondb`
+- **Features:** Connection pooling (max 10), 20s timeout
+- **Status:** ✅ Active
+
+### Email Service (Resend)
+- **Provider:** Resend
+- **API Key:** `re_FxkRNtvY_8APyQZGavwzk74dHFFnq3YNJ`
+- **Domain:** `planbeta.in` ✅ **VERIFIED**
+- **From Address:** `Plan Beta <noreply@planbeta.in>`
+- **Support Email:** `hello@planbeta.in`
+- **Status:** ✅ Fully Operational
+- **DNS Records Set:** TXT records on Hostinger
+- **Features Active:**
+  - Student welcome emails
+  - Payment confirmations & reminders
+  - Attendance alerts
+  - Batch start notifications
+  - Referral payout notifications
+  - Month completion emails
+  - Feedback notifications
+  - Database backup emails
+
+### AI Integration (Google Gemini)
+- **Provider:** Google AI
+- **API Key:** `AIzaSyBzYmqDxD_f3n2Np3zoGVc4kmQTxkm5bqY`
+- **Usage:** Smart Paste feature for lead parsing
+- **Status:** ✅ Active
+
+### Authentication
+- **Provider:** NextAuth.js v4
+- **Secret:** `oTmXOhyFKONW4OW/Wo6HqGsPkZ05YoUr0NmqRdnwlXI=`
+- **Strategy:** JWT with credentials provider
+- **Password Hashing:** bcryptjs
+
+### Deployment
+- **Platform:** Vercel
+- **Repository:** https://github.com/theplanbeta/plan-beta-dashboard
+- **Production URL:** https://plan-beta-dashboard.vercel.app (configure in Vercel)
+- **Branch:** main (auto-deploys on push)
+
+---
+
+## 📧 Email System - FULLY OPERATIONAL
+
+### Active Email Features
+
+**1. Student Welcome Emails** 🎉
+- **Trigger:** New student enrollment
+- **Template:** `student-welcome`
+- **Includes:** Student ID, level, batch code, enrollment date, portal link
+- **Location:** `app/api/students/route.ts:198-207`
+
+**2. Payment Confirmation Emails** ✅
+- **Trigger:** Payment marked as COMPLETED
+- **Template:** `payment-received`
+- **Includes:** Amount, method, transaction ID, remaining balance
+- **Location:** `app/api/payments/route.ts:158-173`
+
+**3. Payment Reminder Emails** 💰
+- **Trigger:** Automated cron for OVERDUE students
+- **Template:** `payment-reminder`
+- **Includes:** Outstanding balance, days overdue, payment options
+- **Location:** `app/api/cron/payment-reminders/route.ts`
+- **Endpoint:** `POST /api/cron/payment-reminders` (requires CRON_SECRET)
+
+**4. Attendance Alert Emails** ⚠️
+- **Trigger:** Automated cron for students <50% attendance
+- **Template:** `attendance-alert`
+- **Includes:** Current attendance rate, classes attended/total
+- **Location:** `app/api/cron/attendance-alerts/route.ts`
+- **Endpoint:** `POST /api/cron/attendance-alerts` (requires CRON_SECRET)
+
+**5. Month Completion Emails** 🎊
+- **Trigger:** Student completes Month 1 (30+ days, ≥50% attendance)
+- **Template:** `month-complete`
+- **Includes:** Progress stats, referral payout notification
+- **Location:** `app/api/cron/month-completion/route.ts`
+- **Endpoint:** `POST /api/cron/month-completion` (requires CRON_SECRET)
+
+**6. Batch Start Emails** 🚀
+- **Trigger:** Batch start date set or status → RUNNING
+- **Template:** `batch-start`
+- **Includes:** Batch code, level, schedule, instructor, start date
+- **Location:** `app/api/batches/[id]/route.ts:149-179`
+
+**7. Referral Payout Emails** 💸
+- **Trigger:** Referral payout status → PAID
+- **Template:** `referral-payout`
+- **Includes:** Payout amount, referee name, payment date
+- **Location:** `app/api/referrals/[id]/route.ts:113-127`
+
+**8. Feedback Notifications** 📣
+- **Trigger:** User submits bug/feature/question feedback
+- **Sends to:** Support team (hello@planbeta.in)
+- **Includes:** Feedback type, description, page, priority, submitter
+- **Location:** `app/api/feedback/route.ts:66-101`
+
+**9. Database Backup Emails** 💾
+- **Trigger:** User login (30min cooldown) or manual backup button
+- **Sends to:** hello@planbeta.in
+- **Attachment:** Complete database JSON backup
+- **Location:** `app/api/cron/backup/route.ts`
+- **Manual Trigger:** Backup button in sidebar (Founder only)
+
+### Email Templates
+All templates are defined in `lib/email.ts` with beautiful HTML formatting:
+- Responsive design (max-width: 600px)
+- Brand colors and styling
+- Clear call-to-action buttons
+- Professional formatting
+- Dynamic content
+
+### Email Preferences (Student-Level)
+Students control their email notifications via database flags:
+```typescript
+emailNotifications: true  // Master toggle
+emailWelcome: true        // Welcome emails
+emailPayment: true        // Payment emails
+emailAttendance: true     // Attendance alerts
+emailBatch: true          // Batch notifications
+emailReferral: true       // Referral payouts
+```
+
+All flags default to `true` in schema (prisma/schema.prisma:79-84).
+
+### Testing Emails Locally
+```bash
+# Test by performing actions in the app:
+1. Create a new student → Welcome email sent
+2. Record a payment → Confirmation email sent
+3. Submit feedback → Notification sent to support
+
+# Test cron endpoints (requires CRON_SECRET header):
+curl -X POST http://localhost:3000/api/cron/payment-reminders \
+  -H "Authorization: Bearer your-cron-secret-key-here"
+
+curl -X POST http://localhost:3000/api/cron/attendance-alerts \
+  -H "Authorization: Bearer your-cron-secret-key-here"
+
+curl -X POST http://localhost:3000/api/cron/month-completion \
+  -H "Authorization: Bearer your-cron-secret-key-here"
+```
+
+---
+
+## 📡 Complete API Reference
+
+### Authentication
+- `POST /api/auth/callback/credentials` - Login
+- `POST /api/auth/signout` - Logout
+
+### Students
+- `GET /api/students` - List all students (with filters)
+- `POST /api/students` - Create student (sends welcome email ✉️)
+- `GET /api/students/[id]` - Get student details
+- `PUT /api/students/[id]` - Update student
+- `DELETE /api/students/[id]` - Delete student
+
+### Leads
+- `GET /api/leads` - List all leads
+- `POST /api/leads` - Create lead
+- `POST /api/leads/parse` - Smart Paste AI parsing
+- `GET /api/leads/[id]` - Get lead details
+- `PUT /api/leads/[id]` - Update lead
+- `DELETE /api/leads/[id]` - Delete lead
+- `POST /api/leads/[id]/invoice` - Generate invoice for lead
+
+### Payments
+- `GET /api/payments` - List all payments
+- `POST /api/payments` - Record payment (sends confirmation email ✉️)
+
+### Batches
+- `GET /api/batches` - List all batches
+- `POST /api/batches` - Create batch
+- `GET /api/batches/[id]` - Get batch details
+- `PUT /api/batches/[id]` - Update batch (sends batch-start emails ✉️)
+- `DELETE /api/batches/[id]` - Delete batch
+
+### Invoices
+- `GET /api/invoices` - List all invoices
+- `POST /api/invoices` - Create invoice
+- `GET /api/invoices/[id]` - Get invoice details
+- `PUT /api/invoices/[id]` - Update invoice
+- `POST /api/invoices/[id]/pay-and-convert` - Pay invoice & convert lead to student
+
+### Referrals
+- `GET /api/referrals` - List all referrals
+- `POST /api/referrals` - Create referral
+- `GET /api/referrals/[id]` - Get referral details
+- `PUT /api/referrals/[id]` - Update referral (sends payout email ✉️)
+- `DELETE /api/referrals/[id]` - Delete referral
+
+### Attendance
+- `GET /api/attendance` - List attendance records
+- `POST /api/attendance` - Mark attendance
+- `PUT /api/attendance/[id]` - Update attendance
+
+### Automated Cron Jobs ⏰
+All require `Authorization: Bearer ${CRON_SECRET}` header
+
+- `POST /api/cron/payment-reminders` - Send payment reminders ✉️
+- `POST /api/cron/attendance-alerts` - Send attendance alerts ✉️
+- `POST /api/cron/month-completion` - Process month completions ✉️
+- `POST /api/cron/backup` - Backup database & email ✉️
+
+### Feedback
+- `POST /api/feedback` - Submit feedback (sends to support ✉️)
+- `GET /api/feedback` - Get all feedback (Founder only)
+
+### System Monitoring
+- `GET /api/system/health` - System health check
+- `GET /api/system/audit-logs` - Audit logs
+
+---
+
+## 💾 Backup & Restore System
+
+### Automated Backups
+**Trigger:** Every user login (with 30-minute cooldown)
+**Location:** `lib/auth.ts:43-49`, `app/api/cron/backup/route.ts`
+**Email:** Sent to `hello@planbeta.in` with JSON attachment
+**Contains:** All students, leads, batches, payments, referrals, attendance, invoices, audit logs
+
+### Manual Backup (Founder Only)
+**Location:** Sidebar in dashboard layout
+**Action:** Click "Backup Database" button
+**Response:** "✓ Backup sent to email" or "Backup created recently"
+
+### Backup Scripts
+```bash
+# Local backup to file
+npm run backup
+# Creates: backups/backup-TIMESTAMP.json
+
+# Restore from backup
+npx tsx scripts/restore-database.ts backup-TIMESTAMP.json
+
+# Bulk import students/leads from template
+npm run import
+# Uses: import-data.json (auto-generated template)
+```
+
+### Database Verification
+```bash
+# Check database state
+npx tsx check-db.ts
+# Shows: Record counts and recent entries for all tables
+```
+
+---
+
+## 🎨 UI Features
+
+### Dark Mode 🌙
+- **Toggle:** Available in mobile header and desktop sidebar
+- **Persistence:** Saved to localStorage
+- **Auto-detection:** Respects system preference on first load
+- **Implementation:** React Context (`lib/ThemeContext.tsx`)
+- **Classes:** Tailwind `dark:` classes throughout
+
+### PWA Support 📱
+- **Service Worker:** Auto-generated
+- **Manifest:** `/public/manifest.json`
+- **Install Prompt:** Component at `components/PWAInstallPrompt.tsx`
+- **Offline:** Basic offline support
+- **Icons:** 192x192 and 512x512 in `/public/`
+
+### Mobile Optimization
+- **Responsive:** Tailwind breakpoints (sm, md, lg, xl)
+- **Bottom Navigation:** 5-button nav on mobile
+- **Hamburger Menu:** Full menu overlay on mobile
+- **Back Button:** Contextual back navigation
+- **Large Touch Targets:** 44x44px minimum
+
+### Smart Paste AI 🤖
+- **Location:** Quick lead form (`/dashboard/leads/quick`)
+- **Feature:** Parse contact info from pasted text
+- **API:** Google Gemini AI
+- **Extracts:** Name, WhatsApp, interest level
+- **UI:** Collapsible textarea with parse button
 
 ---
 
 ## 📦 Tech Stack
 
 ### Core
-- **Frontend:** Next.js 15.5.4, React 19, TypeScript 5
-- **Backend:** Next.js API Routes with Server Actions
-- **Database:** PostgreSQL (via Prisma ORM 6.16.3)
-- **Auth:** NextAuth.js v5 (Role-based access control)
+- **Framework:** Next.js 15.5.4 (App Router)
+- **Language:** TypeScript 5
+- **Database:** PostgreSQL (Prisma ORM 6.16.3)
+- **Auth:** NextAuth.js v4 (JWT strategy)
 - **Styling:** Tailwind CSS 4
+- **UI:** React 19.1.0
 
-### Monitoring & Observability
-- **Audit Logging:** Custom audit trail system (all actions tracked)
-- **Error Tracking:** Sentry integration (@sentry/nextjs)
-- **Health Monitoring:** Real-time system health checks
-- **Activity Dashboard:** Live feed of all operations
+### Features
+- **Email:** Resend API
+- **AI:** Google Gemini API
+- **PWA:** @ducanh2912/next-pwa
+- **Forms:** React Hook Form + Zod validation
+- **State:** Zustand + React Query
+- **PDF:** jsPDF + jspdf-autotable
+- **Date:** date-fns
 
-### Additional
-- **Form Validation:** Zod, React Hook Form
-- **Multi-Currency:** EUR (€) and INR (₹) support
-- **Invoice Generation:** Integrated with standalone invoice generator
+### Deployment
+- **Hosting:** Vercel
+- **Database:** Neon (serverless Postgres)
+- **Git:** GitHub
+- **Domain:** planbeta.in (for emails)
 
 ---
 
@@ -103,229 +398,63 @@ Open [http://localhost:3000](http://localhost:3000) and login with:
 
 ```
 plan-beta-dashboard/
-├── app/                           # Next.js app directory
-│   ├── api/                       # API routes
-│   │   ├── leads/                 # Lead management APIs
-│   │   ├── students/              # Student management APIs
-│   │   ├── invoices/              # Invoice APIs
-│   │   ├── batches/               # Batch management APIs
-│   │   └── system/                # System monitoring APIs ⭐ NEW
-│   │       ├── audit-logs/        # Audit log access
-│   │       └── health/            # Health check endpoint
-│   ├── dashboard/                 # Dashboard pages
-│   │   ├── students/              # Student management
-│   │   ├── leads/                 # Lead management ⭐ NEW
-│   │   ├── batches/               # Batch management
-│   │   ├── marketing/             # Marketing dashboard ⭐ NEW
-│   │   └── activity/              # System activity feed ⭐ NEW
-│   ├── login/                     # Login page
-│   ├── layout.tsx                 # Root layout
-│   └── providers.tsx              # Client providers
-├── lib/                           # Utility functions
-│   ├── prisma.ts                  # Prisma client
-│   ├── auth.ts                    # NextAuth configuration
-│   ├── pricing.ts                 # Centralized pricing ⭐ NEW
-│   ├── audit.ts                   # Audit logging system ⭐ NEW
-│   ├── device-detection.ts        # Mobile device detection ⭐ NEW
-│   └── utils.ts                   # Helper functions
-├── prisma/                        # Database schema & migrations
-│   ├── schema.prisma              # Complete database schema
-│   └── seed.ts                    # Seed script
-├── sentry.client.config.ts        # Sentry frontend config ⭐ NEW
-├── sentry.server.config.ts        # Sentry backend config ⭐ NEW
-├── PRODUCTION-MONITORING.md       # Monitoring guide ⭐ NEW
-└── public/                        # Static assets
-```
-
----
-
-## 🔥 Features
-
-### ✅ **Implemented Features**
-
-#### **Foundation & Authentication**
-- ✅ Next.js 15 with App Router
-- ✅ TypeScript with strict mode
-- ✅ Tailwind CSS with Plan Beta branding
-- ✅ NextAuth.js role-based authentication
-- ✅ Protected dashboard routes
-- ✅ Login/logout functionality
-
-#### **Student Management**
-- ✅ Complete student CRUD operations
-- ✅ Student enrollment tracking
-- ✅ Multi-currency support (EUR/INR)
-- ✅ Payment status tracking
-- ✅ Batch assignment
-- ✅ Student detail pages with full history
-
-#### **Lead Management System** ⭐ NEW
-- ✅ Lead CRUD operations
-- ✅ Lead quality scoring (HOT/WARM/COLD)
-- ✅ Lead status tracking (NEW → CONTACTED → CONVERTED)
-- ✅ Trial class scheduling
-- ✅ Follow-up tracking
-- ✅ Lead-to-student conversion workflow
-- ✅ Marketing dashboard with metrics
-- ✅ **Mobile-optimized lead submission** (phones only) ⭐ NEW
-  - Device detection (phone vs tablet vs desktop)
-  - Touch-friendly UI with large buttons
-  - Mobile redirect dialog with preference storage
-  - Dedicated mobile form route
-
-#### **Invoice & Payment System** ⭐ NEW
-- ✅ Invoice generation for leads
-- ✅ Multi-currency invoices (EUR/INR)
-- ✅ Flexible batch selection (Month + Time)
-- ✅ Payment tracking with partial payments
-- ✅ Invoice status management (DRAFT/SENT/PAID/CANCELLED)
-- ✅ One-click "Pay & Convert" (Invoice → Student)
-- ✅ Integration with standalone invoice generator
-- ✅ Centralized pricing configuration
-
-#### **Batch Management**
-- ✅ Batch CRUD operations
-- ✅ Teacher assignment
-- ✅ Enrollment tracking
-- ✅ Capacity management
-- ✅ Batch status workflow
-
-#### **Production Monitoring & Observability** ⭐ NEW
-- ✅ **Complete audit logging system**
-  - Every action tracked with full context
-  - User, IP address, timestamp tracking
-  - Before/after state capture
-  - 22+ action types monitored
-
-- ✅ **Real-time Activity Dashboard** (`/dashboard/activity`)
-  - Live feed of all operations
-  - Auto-refresh every 10 seconds
-  - Error filtering
-  - 24-hour statistics
-  - Top actions leaderboard
-
-- ✅ **System Health Monitoring** (`/api/system/health`)
-  - Database connection checks
-  - Query performance monitoring
-  - Error rate tracking
-  - Recent activity metrics
-
-- ✅ **Sentry Integration**
-  - Automatic error capture
-  - Session replay
-  - Source maps
-  - Performance monitoring
-
-- ✅ **Critical Operation Tracking**
-  - Invoice generation (success/failure)
-  - Payment processing
-  - Lead conversions
-  - Database transactions
-
-#### **Multi-Currency Support** ⭐ NEW
-- ✅ EUR (€) and INR (₹) pricing
-- ✅ Currency selection for students
-- ✅ Currency-aware invoices
-- ✅ Centralized pricing configuration
-- ✅ Dynamic currency symbols
-
----
-
-## 📊 Database Schema
-
-The system includes **12 main tables** with complete audit trail:
-
-### Core Entities
-1. **User** - Authentication & roles (FOUNDER/MARKETING/TEACHER)
-2. **Student** - Student information, enrollment, multi-currency
-3. **Lead** - Lead management with conversion tracking ⭐ NEW
-4. **Batch** - Course batches with teacher assignment
-5. **Invoice** - Multi-currency invoices linked to leads ⭐ NEW
-
-### Financial
-6. **Payment** - Payment transactions with invoice tracking
-7. **Referral** - Referral system with payouts
-8. **Upsell** - Upsell tracking
-
-### Operational
-9. **Attendance** - Daily attendance tracking
-10. **EmailQueue** - Email automation queue
-11. **DailyMetrics** - Analytics & reporting
-
-### Monitoring ⭐ NEW
-12. **AuditLog** - Complete audit trail of all operations
-    - Action tracking (22+ action types)
-    - Severity levels (INFO/WARNING/ERROR/CRITICAL)
-    - User context (who, when, from where)
-    - Entity tracking (what was affected)
-    - Error logging (stack traces, error messages)
-    - Metadata (before/after states, transaction details)
-
----
-
-## 🔐 Security & Compliance
-
-### Authentication
-- ✅ Role-based access control (FOUNDER/MARKETING/TEACHER)
-- ✅ Protected API routes
-- ✅ Session management via NextAuth
-- ✅ Secure password hashing
-
-### Audit Trail
-- ✅ Every critical action logged
-- ✅ IP address tracking
-- ✅ User agent tracking
-- ✅ Timestamp tracking
-- ✅ Before/after state capture
-- ✅ Financial transaction logging
-
-### Data Protection
-- ✅ Environment variable management
-- ✅ Database connection encryption
-- ✅ Sensitive data filtering in error logs
-- ✅ GDPR-compliant data handling
-
----
-
-## 🎯 Key Workflows
-
-### 1. Lead → Student Conversion (Invoice-First)
-
-**Traditional Flow (Manual):**
-```
-Lead → Convert → Re-enter pricing → Create Student
-```
-
-**New Streamlined Flow:**
-```
-Lead → Generate Invoice → Mark as Paid → Auto-create Student ✅
-```
-
-**Benefits:**
-- ✅ No manual re-entry of pricing
-- ✅ Complete audit trail
-- ✅ Atomic database transaction
-- ✅ Payment linked to invoice
-- ✅ Batch enrollment auto-updated
-
-### 2. Multi-Currency Pricing
-
-**Lead Creation:**
-```
-Select Level (A1/A2/B1/B2) → Select Month → Select Time (Morning/Evening)
-↓
-Generate Invoice → Choose Currency (EUR/INR) → Enter Amount
-↓
-Invoice created with correct pricing and batch info
-```
-
-### 3. Real-Time Monitoring
-
-**Activity Dashboard Updates:**
-```
-User Action → Audit Log Created → Activity Feed Updates (10s refresh)
-                               ↓
-                        Error? → Sentry Alert + Email
+├── app/
+│   ├── api/                      # API routes
+│   │   ├── students/             # Student CRUD
+│   │   ├── leads/                # Lead management + Smart Paste
+│   │   ├── payments/             # Payment processing
+│   │   ├── batches/              # Batch management
+│   │   ├── invoices/             # Invoice generation
+│   │   ├── referrals/            # Referral system
+│   │   ├── attendance/           # Attendance tracking
+│   │   ├── feedback/             # Feedback submission
+│   │   ├── cron/                 # Automated jobs
+│   │   │   ├── backup/           # Database backups
+│   │   │   ├── payment-reminders/
+│   │   │   ├── attendance-alerts/
+│   │   │   └── month-completion/
+│   │   └── system/               # Health & audit logs
+│   ├── dashboard/                # Protected dashboard pages
+│   │   ├── students/             # Student management UI
+│   │   ├── leads/                # Lead management UI
+│   │   │   ├── new/              # Full lead form
+│   │   │   └── quick/            # Quick form with Smart Paste
+│   │   ├── batches/              # Batch management UI
+│   │   ├── payments/             # Payment records UI
+│   │   ├── referrals/            # Referral tracking UI
+│   │   ├── attendance/           # Attendance marking UI
+│   │   ├── activity/             # System activity feed
+│   │   └── layout.tsx            # Dashboard layout (sidebar, nav)
+│   ├── login/                    # Login page
+│   ├── layout.tsx                # Root layout (ThemeProvider)
+│   └── page.tsx                  # Landing page
+├── lib/                          # Utilities
+│   ├── prisma.ts                 # Prisma client singleton
+│   ├── auth.ts                   # NextAuth config + backup trigger
+│   ├── email.ts                  # Email templates & sending
+│   ├── ThemeContext.tsx          # Dark mode context
+│   ├── permissions.ts            # Role-based permissions
+│   ├── api-permissions.ts        # API route permissions
+│   ├── pricing.ts                # Pricing configuration
+│   ├── utils.ts                  # Helper functions
+│   └── audit.ts                  # Audit logging
+├── prisma/
+│   ├── schema.prisma             # Database schema
+│   └── seed.ts                   # Default users seeder
+├── scripts/
+│   ├── backup-database.ts        # Manual backup script
+│   ├── restore-database.ts       # Restore from backup
+│   └── bulk-import.ts            # Import students/leads
+├── components/
+│   └── PWAInstallPrompt.tsx      # PWA install prompt
+├── public/
+│   ├── manifest.json             # PWA manifest
+│   ├── icon-192x192.png          # PWA icons
+│   └── icon-512x512.png
+├── .env                          # Environment variables
+├── check-db.ts                   # Database verification
+├── package.json                  # Dependencies & scripts
+└── README.md                     # This file
 ```
 
 ---
@@ -334,338 +463,223 @@ User Action → Audit Log Created → Activity Feed Updates (10s refresh)
 
 ```bash
 # Development
-npm run dev              # Start development server (localhost:3000)
-npm run build            # Build for production
+npm run dev              # Start dev server (localhost:3000)
+npm run build            # Production build
 npm start                # Start production server
 
 # Database
-npx prisma db push       # Push schema to database
-npx prisma generate      # Generate Prisma Client
-npx prisma studio        # Open Prisma Studio (GUI)
-npm run db:seed          # Seed database with test data
+npx prisma db push       # Push schema changes to database
+npx prisma generate      # Regenerate Prisma Client
+npx prisma studio        # Open Prisma Studio GUI (localhost:5555)
+npm run db:seed          # Seed database with default users
+
+# Backup & Restore
+npm run backup           # Create local backup (backups/ folder)
+npm run restore          # Restore from backup file
+npm run import           # Import students/leads from template
+npx tsx check-db.ts      # Verify database state
 
 # Code Quality
 npm run lint             # Run ESLint
-npm run type-check       # TypeScript type checking
-
-# Testing
-npm run test             # Run audit log tests
 ```
 
 ---
 
-## 📡 API Endpoints
+## 🔐 User Roles & Permissions
 
-### Student Management
-- `GET /api/students` - List all students
-- `POST /api/students` - Create new student
-- `GET /api/students/[id]` - Get student details
-- `PUT /api/students/[id]` - Update student
-- `DELETE /api/students/[id]` - Delete student
+### FOUNDER (Full Access)
+- All features unlocked
+- Manage users, students, leads, batches, payments, referrals
+- View system activity & audit logs
+- Access backup functionality
+- Configure settings
 
-### Lead Management
-- `GET /api/leads` - List all leads
-- `POST /api/leads` - Create new lead
-- `GET /api/leads/[id]` - Get lead details
-- `PUT /api/leads/[id]` - Update lead
-- `DELETE /api/leads/[id]` - Delete lead
-- `POST /api/leads/[id]/invoice` - Generate invoice for lead ⭐ NEW
+### MARKETING
+- Create & manage leads
+- Generate invoices for leads
+- Quick lead entry with Smart Paste
+- View marketing dashboard
+- Convert leads to students (via invoice payment)
 
-### Invoice & Payments
-- `POST /api/invoices/[id]/pay-and-convert` - Mark paid & convert ⭐ NEW
-- `GET /api/leads/[id]/invoice` - Get lead invoices ⭐ NEW
-
-### System Monitoring ⭐ NEW
-- `GET /api/system/health` - System health check
-- `GET /api/system/audit-logs?type=all&limit=50` - Get audit logs
-- `GET /api/system/audit-logs?type=errors` - Get error logs only
-- `GET /api/system/audit-logs?type=stats` - Get 24h statistics
-
-### Batch Management
-- `GET /api/batches` - List all batches
-- `POST /api/batches` - Create new batch
-- `PUT /api/batches/[id]` - Update batch
-- `DELETE /api/batches/[id]` - Delete batch
+### TEACHER
+- View assigned batches
+- View students in their batches
+- Mark attendance
+- View class schedules
+- Limited to own batches only
 
 ---
 
-## 🔍 Monitoring & Debugging
+## 🚀 Production Deployment Checklist
 
-### Activity Dashboard (`/dashboard/activity`)
-
-**Access:** Founder role only
-
-**Features:**
-- 📊 Real-time activity feed (auto-refresh)
-- 🚨 Error filtering (all vs errors only)
-- 📈 24-hour statistics dashboard
-- 👥 User and IP tracking
-- 🔝 Top actions leaderboard
-- 🎨 Color-coded severity levels
-
-**View Modes:**
-- **All Activity** - Every logged action
-- **Errors Only** - WARNING, ERROR, CRITICAL
-
-### System Health Check
-
-**Endpoint:** `GET /api/system/health`
-
-**Checks:**
-- ✅ Database connection
-- ✅ Query performance (<1s threshold)
-- ✅ Error rate in last hour
-- ✅ System metrics (counts)
-- ✅ Recent activity (24h conversions/payments)
-
-**Response:**
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-10-06T12:00:00Z",
-  "responseTime": "45ms",
-  "checks": {
-    "database": { "status": "healthy" },
-    "databasePerformance": { "queryTime": "12ms" },
-    "errorRate": { "errorRate": "0.5%", "errors": 2, "critical": 0 },
-    "systemMetrics": { "students": 125, "leads": 340 },
-    "recentActivity": { "conversions": 12, "payments": 18 }
-  }
-}
-```
-
-### Sentry Error Tracking
-
-**Setup:**
-1. Create account at [sentry.io](https://sentry.io)
-2. Add `NEXT_PUBLIC_SENTRY_DSN` to `.env.local`
-3. Errors automatically sent in production
-
-**Features:**
-- Automatic error capture
-- Source maps for exact line numbers
-- Session replay
-- Performance monitoring
-- User context tracking
-
----
-
-## 📋 Tracked Actions (Audit Log)
-
-### Authentication
-- `LOGIN`, `LOGOUT`, `LOGIN_FAILED`
-
-### Lead Management
-- `LEAD_CREATED`, `LEAD_UPDATED`, `LEAD_DELETED`, `LEAD_CONVERTED`
-
-### Invoice Management
-- `INVOICE_GENERATED`, `INVOICE_SENT`, `INVOICE_UPDATED`, `INVOICE_CANCELLED`
-
-### Payment & Conversion
-- `PAYMENT_RECEIVED`, `STUDENT_CREATED`, `LEAD_TO_STUDENT_CONVERSION`
-
-### Student Management
-- `STUDENT_UPDATED`, `STUDENT_DELETED`
-
-### Batch Management
-- `BATCH_CREATED`, `BATCH_UPDATED`, `BATCH_DELETED`
-
-### System Events
-- `SYSTEM_ERROR`, `DATABASE_ERROR`, `API_ERROR`, `EMAIL_SENT`, `EMAIL_FAILED`
-
----
-
-## 🔑 Default Login Credentials
-
-- **Email:** admin@planbeta.in
-- **Password:** admin123
-- **Role:** FOUNDER (full access)
-
-⚠️ **Important:** Change these credentials in production!
-
----
-
-## 📖 Documentation
-
-### Comprehensive Guides
-- **[PRODUCTION-MONITORING.md](./PRODUCTION-MONITORING.md)** - Complete monitoring guide ⭐ NEW
-  - Audit logging usage
-  - Sentry setup
-  - Health monitoring
-  - Alert configuration
-  - Troubleshooting
-
-### Additional Documentation
-- Quick Start Guide (this file)
-- Prisma Schema Documentation
-- API Documentation (see API Endpoints section)
-
----
-
-## 🚀 Production Deployment
-
-### Environment Variables (Production)
-
-```env
-# Database
-DATABASE_URL="your-production-postgres-url"
-
-# NextAuth
-NEXTAUTH_URL="https://your-domain.com"
-NEXTAUTH_SECRET="strong-random-secret"
-
-# Sentry (Recommended)
-NEXT_PUBLIC_SENTRY_DSN="https://your-dsn@sentry.io/project"
-
-# Email
-RESEND_API_KEY="your-resend-key"
-```
-
-### Deployment Checklist
-
-- [ ] Set all environment variables
-- [ ] Run `npx prisma db push` on production database
-- [ ] Change default admin credentials
-- [ ] Configure Sentry DSN
-- [ ] Set up uptime monitoring for `/api/system/health`
-- [ ] Configure email alerts for CRITICAL errors
-- [ ] Test invoice generation flow
+### Pre-Deployment
+- [ ] Review and update `.env` with production values
+- [ ] Change default admin password
+- [ ] Test all email flows
+- [ ] Verify Resend domain (planbeta.in)
+- [ ] Test backup system
+- [ ] Review user roles and permissions
+- [ ] Test invoice generation
 - [ ] Test lead-to-student conversion
-- [ ] Verify Activity Dashboard access
-- [ ] Review audit logs
-- [ ] Set up backup strategy
+
+### Vercel Setup
+1. Connect GitHub repository
+2. Set environment variables in Vercel dashboard:
+   ```
+   DATABASE_URL=postgresql://...
+   NEXTAUTH_URL=https://your-domain.vercel.app
+   NEXTAUTH_SECRET=your-secret
+   RESEND_API_KEY=re_...
+   EMAIL_FROM=Plan Beta <noreply@planbeta.in>
+   SUPPORT_EMAIL=hello@planbeta.in
+   NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
+   UPI_ID=planbeta@paytm
+   CRON_SECRET=your-cron-secret
+   GEMINI_API_KEY=AIza...
+   ```
+3. Deploy from `main` branch
+4. Configure custom domain (optional)
+
+### Post-Deployment
+- [ ] Test login with all user roles
+- [ ] Create test student (verify welcome email)
+- [ ] Record test payment (verify confirmation email)
+- [ ] Submit test feedback (verify support email)
+- [ ] Test backup system (manual button)
+- [ ] Monitor email delivery in Resend dashboard
+- [ ] Check Vercel logs for errors
+- [ ] Set up uptime monitoring
 
 ### Recommended Monitoring
-
-**Uptime Monitoring:**
-- Ping `/api/system/health` every 5 minutes
-- Alert if response status !== "healthy"
-
-**Error Alerts:**
-- Daily email digest of CRITICAL errors
-- Slack/Discord webhook for immediate failures
-- Sentry notifications for production errors
+- **Uptime Robot:** Ping `/api/system/health` every 5 minutes
+- **Email Monitoring:** Check Resend dashboard daily
+- **Backup Verification:** Check hello@planbeta.in for backup emails
+- **Error Tracking:** Review Vercel logs weekly
 
 ---
 
-## 🎨 Branding
+## 🔧 Troubleshooting
 
-### Colors
-- **Primary:** Custom brand color
-- **Success:** Green (#10b981)
-- **Error:** Red (#ef4444)
-- **Warning:** Yellow (#f59e0b)
-- **Info:** Blue (#3b82f6)
+### Email Issues
+**Problem:** Emails not sending
+**Solution:**
+1. Verify Resend API key is correct
+2. Check domain verification at resend.com/domains
+3. Verify DNS records on Hostinger
+4. Check student email preferences in database
+5. Review Vercel logs for email errors
 
-### Logo
-- Located in `/public/` directory
-- Accessible via dashboard sidebar
+### Database Connection Issues
+**Problem:** Database connection timeout
+**Solution:**
+1. Check DATABASE_URL is correct
+2. Verify Neon project is active
+3. Check connection pooling settings
+4. Increase pool_timeout in connection string
+
+### Build Failures
+**Problem:** Vercel build fails
+**Solution:**
+1. Run `npm run build` locally first
+2. Check for TypeScript errors
+3. Verify all environment variables are set
+4. Clear Vercel cache and rebuild
+
+### Login Issues
+**Problem:** Cannot login
+**Solution:**
+1. Verify NEXTAUTH_SECRET is set
+2. Check NEXTAUTH_URL matches deployment URL
+3. Run `npm run db:seed` to reset passwords
+4. Clear browser cookies and try again
 
 ---
 
-## 🤝 Support
+## 📞 Support
 
-### Contact
-- **Email:** info@planbeta.in
-- **Documentation:** See `PRODUCTION-MONITORING.md`
+### Contacts
+- **Email:** hello@planbeta.in
+- **GitHub:** https://github.com/theplanbeta/plan-beta-dashboard
+- **Issues:** https://github.com/theplanbeta/plan-beta-dashboard/issues
 
-### Debugging
-1. Check Activity Dashboard (`/dashboard/activity`)
-2. Review System Health (`/api/system/health`)
-3. Check Sentry dashboard (sentry.io)
-4. Review audit logs via API
+### Documentation
+- This README.md (comprehensive guide)
+- API documentation (see API Reference section)
+- Email system documentation (see Email System section)
+- Backup system documentation (see Backup & Restore section)
+
+### Getting Help
+1. Check this README first
+2. Review relevant documentation section
+3. Check GitHub issues for similar problems
+4. Create new issue with detailed description
+5. Contact support team at hello@planbeta.in
 
 ---
 
-## 📈 Future Enhancements
+## 📋 Recent Updates
+
+### Latest (October 2025) - Email System Restoration
+✅ **Restored all email functionality**
+- Student welcome emails
+- Payment confirmations & reminders
+- Attendance alerts
+- Batch start notifications
+- Referral payout notifications
+- Month completion emails
+- Feedback notifications to support
+- Database backup emails
+
+✅ **Email infrastructure verified**
+- Domain: planbeta.in ✅ VERIFIED
+- Resend API: ✅ OPERATIONAL
+- All DNS records configured on Hostinger
+
+### Previous Updates
+✅ **Database backup system** (automated + manual)
+✅ **Dark mode** (global theme with localStorage)
+✅ **PWA support** (installable app)
+✅ **Smart Paste AI** (lead parsing with Gemini)
+✅ **Mobile optimization** (responsive dashboard)
+✅ **Role-based permissions** (FOUNDER/MARKETING/TEACHER)
+
+---
+
+## 📈 Roadmap
 
 ### Planned Features
-- [ ] Email automation system
+- [ ] Student portal (login & track progress)
+- [ ] WhatsApp integration (automated messages)
+- [ ] SMS notifications (Twilio integration)
 - [ ] Advanced analytics dashboard
-- [ ] Student portal
-- [ ] Parent notifications
-- [ ] Attendance tracking
+- [ ] Parent portal & notifications
+- [ ] Certificate generation
 - [ ] Automated upsell campaigns
-- [ ] Referral tracking system
-- [ ] Mobile app
+- [ ] Mobile app (React Native)
+
+### In Progress
+- ✅ Email system (COMPLETED)
+- ✅ Backup system (COMPLETED)
+- ✅ Dark mode (COMPLETED)
 
 ---
 
-## 🏆 Achievement Summary
+## 🏆 Credits
 
-### What Makes This Production-Ready
+**Built with:**
+- Next.js (React framework)
+- Prisma (Database ORM)
+- NextAuth.js (Authentication)
+- Resend (Email service)
+- Neon (PostgreSQL hosting)
+- Vercel (Deployment)
+- Claude Code (AI-assisted development)
 
-✅ **Complete Observability**
-- Every action logged with full context
-- Real-time activity monitoring
-- System health checks
-- Error tracking with Sentry
-
-✅ **Financial Transaction Safety**
-- Atomic database transactions
-- Complete audit trail
-- Payment tracking
-- Invoice generation with history
-
-✅ **Multi-Currency Support**
-- EUR and INR pricing
-- Centralized configuration
-- Currency-aware invoices
-
-✅ **Streamlined Workflows**
-- Invoice-first lead conversion
-- One-click payment processing
-- Auto-batch enrollment
-
-✅ **Security & Compliance**
-- Role-based access control
-- IP address tracking
-- Audit logs for compliance
-- Secure authentication
-
-✅ **Developer Experience**
-- TypeScript throughout
-- Comprehensive error handling
-- Detailed documentation
-- Easy deployment
-
----
-
----
-
-## 📱 Latest Updates (October 7, 2025)
-
-### Mobile-Optimized Lead Submission
-
-**What's New:**
-- ✅ Smart device detection that distinguishes phones from tablets/desktops
-- ✅ Mobile redirect dialog on Marketing Dashboard
-- ✅ Dedicated mobile-optimized lead form (`/dashboard/leads/mobile/new`)
-- ✅ Touch-friendly UI with 44x44px minimum button sizes
-- ✅ Fixed header and bottom submit button for better mobile UX
-- ✅ localStorage preference to avoid repeat prompts
-
-**How It Works:**
-1. Marketing user logs in from a smartphone
-2. System detects mobile device (phones only, not tablets)
-3. Dialog appears: "Mobile Device Detected"
-4. User chooses: "Use Mobile-Optimized Version" or "Continue with Desktop"
-5. Preference is saved to localStorage
-6. Mobile form provides streamlined lead entry with large touch targets
-
-**Files Added:**
-- `lib/device-detection.ts` - Device detection utilities
-- `app/dashboard/leads/mobile/new/page.tsx` - Mobile-optimized form
-- Updated `app/dashboard/components/MarketingDashboard.tsx` with redirect logic
-
-**Benefits:**
-- ⚡ Faster lead entry on mobile devices
-- 📱 Better UX for field marketing staff
-- 🎯 Reduced input errors with larger touch targets
-- 🔄 Seamless fallback to desktop version if preferred
+**Developed by:** Plan Beta Team
+**Last Updated:** October 10, 2025
+**Version:** 3.0 (Email System Active)
+**Status:** 🟢 Production Ready
 
 ---
 
 **Built with ❤️ using Next.js, Prisma, and Claude Code**
-
-**Version:** 2.0 | **Status:** Production Ready | **Last Updated:** October 7, 2025

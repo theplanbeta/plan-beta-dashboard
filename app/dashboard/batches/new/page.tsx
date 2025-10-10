@@ -30,6 +30,8 @@ export default function NewBatchPage() {
     schedule: "",
     status: "PLANNING",
     notes: "",
+    revenueTarget: 0,
+    teacherCost: 0,
   })
 
   // Get minimum students based on level
@@ -120,6 +122,14 @@ export default function NewBatchPage() {
         [name]: newValue,
       }
 
+      // Set unlimited seats for A1_HYBRID_MALAYALAM
+      if (name === "level" && newValue === "A1_HYBRID_MALAYALAM") {
+        updated.totalSeats = 999
+      } else if (name === "level" && prev.level === "A1_HYBRID_MALAYALAM") {
+        // Reset to default when switching away from hybrid
+        updated.totalSeats = 10
+      }
+
       // Auto-calculate end date when start date or level changes
       if (name === "startDate" || name === "level") {
         const startDate = name === "startDate" ? newValue as string : prev.startDate
@@ -178,9 +188,11 @@ export default function NewBatchPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="A1">A1 (60 hours - 8 weeks)</option>
+                <option value="A1_HYBRID_MALAYALAM">A1 Hybrid Malayalam (Recorded Sessions - Unlimited Seats)</option>
                 <option value="A2">A2 (60 hours - 8 weeks)</option>
                 <option value="B1">B1 (90 hours - 12 weeks)</option>
                 <option value="B2">B2 (90 hours - 12 weeks)</option>
+                <option value="SPOKEN_GERMAN">Spoken German</option>
               </select>
             </div>
 
@@ -232,11 +244,16 @@ export default function NewBatchPage() {
                 onChange={handleChange}
                 required
                 min="1"
-                max="50"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                max="9999"
+                disabled={formData.level === "A1_HYBRID_MALAYALAM"}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100"
               />
               <p className="text-xs text-gray-600 mt-1">
-                Minimum target: {getMinimumStudents(formData.level)} students for {formData.level}
+                {formData.level === "A1_HYBRID_MALAYALAM" ? (
+                  <span className="text-green-600 font-medium">✓ Unlimited seats (recorded sessions)</span>
+                ) : (
+                  <>Minimum target: {getMinimumStudents(formData.level)} students for {formData.level}</>
+                )}
               </p>
             </div>
 

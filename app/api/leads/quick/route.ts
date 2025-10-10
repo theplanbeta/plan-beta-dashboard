@@ -6,8 +6,8 @@ import { z } from "zod"
 
 const quickLeadSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  whatsapp: z.string().min(10, "Valid WhatsApp number is required"),
-  interestedLevel: z.enum(["A1", "A2", "B1", "B2", "SPOKEN_GERMAN"]),
+  whatsapp: z.string().min(5, "Phone number is required"), // More lenient - accepts any format
+  interestedLevel: z.enum(["A1", "A1_HYBRID_MALAYALAM", "A2", "B1", "B2", "SPOKEN_GERMAN"]),
   interestedMonth: z.string().min(1, "Month is required"),
   interestedBatchTime: z.enum(["Morning", "Evening"]),
 })

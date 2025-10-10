@@ -2,7 +2,7 @@
 // Single source of truth for all course fees and pricing logic
 
 export type Currency = 'EUR' | 'INR'
-export type CourseLevel = 'A1' | 'A1_HYBRID' | 'A2' | 'B1' | 'B2' | 'SPOKEN_GERMAN'
+export type CourseLevel = 'A1' | 'A1_HYBRID' | 'A1_HYBRID_MALAYALAM' | 'A2' | 'B1' | 'B2' | 'SPOKEN_GERMAN'
 export type ComboLevel = 'A1' | 'A2' | 'B1' | 'B2'
 
 export interface PricingInfo {
@@ -24,6 +24,10 @@ export const COURSE_PRICING: Record<CourseLevel, PricingInfo> = {
     INR: 14000,
   },
   A1_HYBRID: {
+    EUR: 100,
+    INR: 10000,
+  },
+  A1_HYBRID_MALAYALAM: {
     EUR: 100,
     INR: 10000,
   },
@@ -78,6 +82,12 @@ export const COURSE_INFO: Record<CourseLevel, Omit<CoursePricing, 'EUR' | 'INR'>
     label: 'A1 Hybrid',
     description: 'German Language Course - A1 Hybrid',
     color: '#06b6d4', // cyan
+  },
+  A1_HYBRID_MALAYALAM: {
+    level: 'A1_HYBRID_MALAYALAM',
+    label: 'A1 Hybrid Malayalam',
+    description: 'German Language Course - A1 Hybrid Malayalam (Recorded Sessions)',
+    color: '#14b8a6', // teal
   },
   A2: {
     level: 'A2',

@@ -9,9 +9,9 @@ const Decimal = Prisma.Decimal
 // Validation schema for creating a batch
 const createBatchSchema = z.object({
   batchCode: z.string().min(3, "Batch code too short").max(50, "Batch code too long"),
-  level: z.enum(["A1", "A2", "B1", "B2"]),
+  level: z.enum(["A1", "A2", "B1", "B2", "SPOKEN_GERMAN", "A1_HYBRID_MALAYALAM"]),
   teacherId: z.string().optional(),
-  totalSeats: z.number().int().positive("Total seats must be positive").max(100, "Too many seats"),
+  totalSeats: z.number().int().positive("Total seats must be positive").max(9999, "Too many seats"),
   revenueTarget: z.number().min(0, "Revenue target cannot be negative").max(10000000, "Revenue target too high"),
   teacherCost: z.number().min(0, "Teacher cost cannot be negative").max(1000000, "Teacher cost too high"),
   startDate: z.string().optional(),

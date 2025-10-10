@@ -86,6 +86,32 @@ export default function DashboardLayout({
     return () => clearInterval(interval)
   }, [])
 
+  // Trigger backup on dashboard load (with cooldown)
+  useEffect(() => {
+    // Only trigger for FOUNDER role
+    if (userRole !== 'FOUNDER') return
+
+    const triggerBackupOnLoad = async () => {
+      try {
+        console.log('🔄 Checking backup status on dashboard load...')
+        await fetch('/api/cron/backup', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.skipped) {
+              console.log('⏭️  Backup skipped (recent backup exists)')
+            } else if (data.success) {
+              console.log('✅ Auto-backup completed on dashboard load')
+            }
+          })
+      } catch (error) {
+        console.error('❌ Auto-backup failed:', error)
+        // Silently fail - not critical
+      }
+    }
+
+    triggerBackupOnLoad()
+  }, [userRole])
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* PWA Install Prompt */}

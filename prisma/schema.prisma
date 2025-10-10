@@ -428,6 +428,7 @@ enum Level {
   B1
   B2
   SPOKEN_GERMAN
+  A1_HYBRID_MALAYALAM
 }
 
 enum PaymentStatus {

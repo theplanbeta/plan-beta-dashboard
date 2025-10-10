@@ -40,11 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Prevent flash of incorrect theme
-  if (!mounted) {
-    return <>{children}</>
-  }
-
+  // Always provide context, even before mounted
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}

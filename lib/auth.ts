@@ -41,11 +41,32 @@ export const authOptions: NextAuthOptions = {
 
         // Trigger backup on successful login (fire and forget)
         if (typeof window === 'undefined') {
-          fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/cron/backup`, {
+          const backupUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/cron/backup`
+          console.log('🔄 Triggering backup on login...')
+
+          fetch(backupUrl, {
             method: 'POST',
-          }).catch(() => {
-            // Silently fail - backup is not critical for login
+            headers: {
+              'Content-Type': 'application/json',
+            },
           })
+            .then(res => {
+              if (res.ok) {
+                return res.json().then(data => {
+                  if (data.skipped) {
+                    console.log('⏭️  Backup skipped (recent backup exists)')
+                  } else {
+                    console.log('✅ Backup triggered successfully')
+                  }
+                })
+              } else {
+                console.error('❌ Backup endpoint returned error:', res.status)
+              }
+            })
+            .catch(err => {
+              console.error('❌ Failed to trigger backup:', err.message)
+              // Silently fail - backup is not critical for login
+            })
         }
 
         return {

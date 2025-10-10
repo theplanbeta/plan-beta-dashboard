@@ -6,6 +6,7 @@ import Link from "next/link"
 
 const LEVELS = [
   { value: "A1", label: "A1 - Beginner" },
+  { value: "A1_HYBRID_MALAYALAM", label: "A1 Hybrid Malayalam (Recorded)" },
   { value: "A2", label: "A2 - Elementary" },
   { value: "B1", label: "B1 - Intermediate" },
   { value: "B2", label: "B2 - Upper Intermediate" },
@@ -130,15 +131,15 @@ export default function QuickLeadEntry() {
         <div className="flex items-center gap-3 mb-2">
           <Link
             href="/dashboard/leads"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quick Lead Entry</h1>
-            <p className="text-sm text-gray-600">Rapid lead capture for marketing team</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quick Lead Entry</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Rapid lead capture for marketing team</p>
           </div>
         </div>
       </div>
@@ -214,11 +215,11 @@ export default function QuickLeadEntry() {
       </div>
 
       {/* Quick Entry Form */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Name *
             </label>
             <input
@@ -226,7 +227,7 @@ export default function QuickLeadEntry() {
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base dark:bg-gray-700 dark:text-white"
               placeholder="Student name"
               autoFocus
             />
@@ -234,7 +235,7 @@ export default function QuickLeadEntry() {
 
           {/* WhatsApp */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               WhatsApp Number *
             </label>
             <input
@@ -243,21 +244,21 @@ export default function QuickLeadEntry() {
               minLength={5}
               value={formData.whatsapp}
               onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base dark:bg-gray-700 dark:text-white"
               placeholder="Phone number (any format)"
             />
           </div>
 
           {/* Level */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Interested Level *
             </label>
             <select
               required
               value={formData.interestedLevel}
               onChange={(e) => setFormData({ ...formData, interestedLevel: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base dark:bg-gray-700 dark:text-white"
             >
               {LEVELS.map((level) => (
                 <option key={level.value} value={level.value}>
@@ -269,14 +270,14 @@ export default function QuickLeadEntry() {
 
           {/* Month */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Interested Month *
             </label>
             <select
               required
               value={formData.interestedMonth}
               onChange={(e) => setFormData({ ...formData, interestedMonth: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-base dark:bg-gray-700 dark:text-white"
             >
               {MONTHS.map((month) => (
                 <option key={month} value={month}>
@@ -288,7 +289,7 @@ export default function QuickLeadEntry() {
 
           {/* Batch Timing */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Preferred Batch Timing *
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -300,7 +301,7 @@ export default function QuickLeadEntry() {
                   className={`px-4 py-3 rounded-lg border-2 font-medium transition-all ${
                     formData.interestedBatchTime === timing
                       ? "border-primary bg-primary text-white"
-                      : "border-gray-300 bg-white text-gray-700 hover:border-gray-400"
+                      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500"
                   }`}
                 >
                   {timing}
@@ -320,7 +321,7 @@ export default function QuickLeadEntry() {
             </button>
             <Link
               href="/dashboard/leads"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-base text-center"
+              className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium text-base text-center"
             >
               Cancel
             </Link>

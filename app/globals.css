@@ -152,10 +152,7 @@ button {
   animation: slideUp 0.4s ease-out;
 }
 
-/* Ensure proper contrast for all text elements */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--foreground);
-}
+/* Text contrast is now handled by Tailwind utilities */
 
 /* Link hover states */
 a {

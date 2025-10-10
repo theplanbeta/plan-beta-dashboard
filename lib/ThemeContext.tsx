@@ -12,16 +12,12 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize from HTML class (set by blocking script)
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    }
-    return 'light'
-  })
+  // Always start with 'light' to avoid hydration mismatch
+  // The blocking script in layout.tsx handles the initial theme
+  const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
-    // Sync with actual DOM state on mount
+    // Sync with actual DOM state after hydration
     const isDark = document.documentElement.classList.contains('dark')
     setTheme(isDark ? 'dark' : 'light')
   }, [])

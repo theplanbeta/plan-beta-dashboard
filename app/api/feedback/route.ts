@@ -63,21 +63,42 @@ export async function POST(req: NextRequest) {
       }
     )
 
-    // TODO: Optionally send email notification to admin
-    // await sendEmail({
-    //   to: 'admin@planbeta.in',
-    //   subject: `[${type}] ${title}`,
-    //   text: `
-    //     Feedback Type: ${type}
-    //     Page: ${page}
-    //     Priority: ${priority || 'MEDIUM'}
-    //     Submitted by: ${session.user.name} (${session.user.email})
-    //
-    //     ${description}
-    //
-    //     Contact: ${contactEmail || session.user.email}
-    //   `
-    // })
+    // Send email notification to support team
+    // Note: Using basic email sending - you may want to create a formal template later
+    try {
+      const { Resend } = await import('resend')
+      const resend = new Resend(process.env.RESEND_API_KEY)
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Plan Beta <noreply@planbeta.in>',
+        to: process.env.SUPPORT_EMAIL || 'hello@planbeta.in',
+        subject: `[FEEDBACK - ${type}] ${title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: ${type === 'BUG' ? '#dc2626' : type === 'FEATURE' ? '#3b82f6' : '#f59e0b'};">
+              ${type === 'BUG' ? '🐛' : type === 'FEATURE' ? '💡' : '❓'} ${type} Report
+            </h2>
+
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">${title}</h3>
+              <p style="white-space: pre-wrap;">${description}</p>
+            </div>
+
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>Submitted by:</strong> ${session.user.name || 'Unknown'} (${session.user.email || 'No email'})</p>
+              <p style="margin: 5px 0 0 0;"><strong>Page:</strong> ${page}</p>
+              <p style="margin: 5px 0 0 0;"><strong>Priority:</strong> ${priority || 'MEDIUM'}</p>
+              ${contactEmail ? `<p style="margin: 5px 0 0 0;"><strong>Contact:</strong> ${contactEmail}</p>` : ''}
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px;">Submitted on ${new Date().toLocaleString()}</p>
+          </div>
+        `,
+      })
+    } catch (emailError) {
+      console.error('Failed to send feedback email notification:', emailError)
+      // Don't fail the request if email fails
+    }
 
     return NextResponse.json({
       success: true,

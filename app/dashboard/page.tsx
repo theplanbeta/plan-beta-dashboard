@@ -90,10 +90,10 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Welcome back, {session?.user?.name}!
           </h1>
-          <p className="mt-2 text-gray-600">Loading dashboard...</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -103,28 +103,28 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Welcome back, {session?.user?.name}!
         </h1>
-        <p className="mt-2 text-gray-600">
+        <p className="mt-2 text-gray-600 dark:text-gray-300">
           Here&apos;s what&apos;s happening with your school today.
         </p>
       </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href="/dashboard/students" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link href="/dashboard/students" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Total Students</p>
-              <p className="mt-2 text-3xl font-semibold text-foreground">{data.students.total}</p>
-              <p className="text-xs text-success mt-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Students</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{data.students.total}</p>
+              <p className="text-xs text-success dark:text-green-400 mt-1">
                 +{data.students.recentEnrollments} this month
               </p>
             </div>
-            <div className="p-3 bg-primary/10 rounded-full">
+            <div className="p-3 bg-primary/10 dark:bg-primary/20 rounded-full">
               <svg
-                className="w-6 h-6 text-primary"
+                className="w-6 h-6 text-primary dark:text-red-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -140,18 +140,18 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/batches" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link href="/dashboard/batches" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Active Batches</p>
-              <p className="mt-2 text-3xl font-semibold text-foreground">{data.batches.active}</p>
-              <p className="text-xs text-info mt-1">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Batches</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">{data.batches.active}</p>
+              <p className="text-xs text-info dark:text-blue-400 mt-1">
                 {data.batches.avgFillRate.toFixed(0)}% avg fill rate
               </p>
             </div>
-            <div className="p-3 bg-success/10 rounded-full">
+            <div className="p-3 bg-success/10 dark:bg-success/20 rounded-full">
               <svg
-                className="w-6 h-6 text-success"
+                className="w-6 h-6 text-success dark:text-green-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -167,20 +167,20 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/payments" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link href="/dashboard/payments" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="mt-2 text-3xl font-semibold text-success">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
+              <p className="mt-2 text-3xl font-semibold text-success dark:text-green-400">
                 {formatCurrency(data.financial.totalRevenue)}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 +{formatCurrency(data.financial.recentRevenue)} this month
               </p>
             </div>
-            <div className="p-3 bg-warning/10 rounded-full">
+            <div className="p-3 bg-warning/10 dark:bg-warning/20 rounded-full">
               <svg
-                className="w-6 h-6 text-warning"
+                className="w-6 h-6 text-warning dark:text-yellow-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -196,18 +196,18 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/attendance" className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+        <Link href="/dashboard/attendance" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">Attendance Rate</p>
-              <p className="mt-2 text-3xl font-semibold text-foreground">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Attendance Rate</p>
+              <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-white">
                 {data.attendance.avgRate.toFixed(0)}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">Average across all students</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Average across all students</p>
             </div>
-            <div className="p-3 bg-info/10 rounded-full">
+            <div className="p-3 bg-info/10 dark:bg-info/20 rounded-full">
               <svg
-                className="w-6 h-6 text-info"
+                className="w-6 h-6 text-info dark:text-blue-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -227,86 +227,86 @@ export default function DashboardPage() {
       {/* Charts and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Student Status */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Student Status</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Status</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Active</span>
+              <span className="text-gray-600 dark:text-gray-300">Active</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-success h-2 rounded-full"
+                    className="bg-success dark:bg-green-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.students.active / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.students.active}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.students.active}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Completed</span>
+              <span className="text-gray-600 dark:text-gray-300">Completed</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-info h-2 rounded-full"
+                    className="bg-info dark:bg-blue-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.students.completed / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.students.completed}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.students.completed}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Dropped</span>
+              <span className="text-gray-600 dark:text-gray-300">Dropped</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-error h-2 rounded-full"
+                    className="bg-error dark:bg-red-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.students.dropped / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.students.dropped}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.students.dropped}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Payment Status */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Payment Status</h2>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Status</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Paid</span>
+              <span className="text-gray-600 dark:text-gray-300">Paid</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-success h-2 rounded-full"
+                    className="bg-success dark:bg-green-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.financial.paymentBreakdown.paid / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.financial.paymentBreakdown.paid}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.financial.paymentBreakdown.paid}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Partial</span>
+              <span className="text-gray-600 dark:text-gray-300">Partial</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-info h-2 rounded-full"
+                    className="bg-info dark:bg-blue-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.financial.paymentBreakdown.partial / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.financial.paymentBreakdown.partial}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.financial.paymentBreakdown.partial}</span>
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-gray-600">Overdue</span>
+              <span className="text-gray-600 dark:text-gray-300">Overdue</span>
               <div className="flex items-center space-x-2">
-                <div className="w-48 bg-gray-200 rounded-full h-2">
+                <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
-                    className="bg-error h-2 rounded-full"
+                    className="bg-error dark:bg-red-400 h-2 rounded-full transition-all"
                     style={{ width: `${data.students.total > 0 ? (data.financial.paymentBreakdown.overdue / data.students.total) * 100 : 0}%` }}
                   />
                 </div>
-                <span className="font-semibold w-12 text-right">{data.financial.paymentBreakdown.overdue}</span>
+                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">{data.financial.paymentBreakdown.overdue}</span>
               </div>
             </div>
           </div>
@@ -315,18 +315,18 @@ export default function DashboardPage() {
 
       {/* Churn Risk Alert */}
       {data.churnRisk.high > 0 && (
-        <div className="bg-error/10 border border-error p-4 rounded-md">
+        <div className="bg-error/10 dark:bg-error/20 border border-error dark:border-red-400 p-4 rounded-md">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-error">⚠️ High Churn Risk Alert</h3>
-              <p className="text-sm text-gray-700 mt-1">
+              <h3 className="font-semibold text-error dark:text-red-400">⚠️ High Churn Risk Alert</h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
                 {data.churnRisk.high} student(s) at high risk of dropping out.
                 Review attendance and engagement immediately.
               </p>
             </div>
             <Link
               href="/dashboard/students"
-              className="px-4 py-2 bg-error text-white rounded-md hover:bg-error/90"
+              className="px-4 py-2 bg-error dark:bg-red-500 text-white rounded-md hover:bg-error/90 dark:hover:bg-red-600 transition-colors"
             >
               View Students
             </Link>
@@ -335,29 +335,29 @@ export default function DashboardPage() {
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link
             href="/dashboard/students/new"
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left"
+            className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary dark:hover:border-red-400 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors text-left"
           >
-            <h3 className="font-medium text-foreground">Add New Student</h3>
-            <p className="mt-1 text-sm text-gray-600">Enroll a new student</p>
+            <h3 className="font-medium text-gray-900 dark:text-white">Add New Student</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Enroll a new student</p>
           </Link>
           <Link
             href="/dashboard/attendance/bulk"
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left"
+            className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary dark:hover:border-red-400 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors text-left"
           >
-            <h3 className="font-medium text-foreground">Mark Attendance</h3>
-            <p className="mt-1 text-sm text-gray-600">Record today&apos;s attendance</p>
+            <h3 className="font-medium text-gray-900 dark:text-white">Mark Attendance</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Record today&apos;s attendance</p>
           </Link>
           <Link
             href="/dashboard/payments/new"
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left"
+            className="p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary dark:hover:border-red-400 hover:bg-primary/5 dark:hover:bg-primary/10 transition-colors text-left"
           >
-            <h3 className="font-medium text-foreground">Record Payment</h3>
-            <p className="mt-1 text-sm text-gray-600">Log a new payment</p>
+            <h3 className="font-medium text-gray-900 dark:text-white">Record Payment</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Log a new payment</p>
           </Link>
         </div>
       </div>

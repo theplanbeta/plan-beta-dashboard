@@ -6,10 +6,12 @@
   --primary-dark: #b82824;
   --primary-light: #fee2e2;
 
-  /* Neutral Colors */
+  /* Light Mode Colors */
   --background: #ffffff;
   --foreground: #1e293b;
   --secondary: #1e293b;
+  --card-bg: #ffffff;
+  --card-hover-bg: #f9fafb;
 
   /* Status Colors */
   --success: #10b981;
@@ -17,14 +19,52 @@
   --error: #ef4444;
   --info: #3b82f6;
 
-  /* Grays */
+  /* Grays - Light Mode */
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
   --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
   --gray-500: #6b7280;
+  --gray-600: #4b5563;
   --gray-700: #374151;
+  --gray-800: #1f2937;
   --gray-900: #111827;
+
+  /* Border & Shadow */
+  --border-color: #e5e7eb;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark Mode Colors */
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --secondary: #cbd5e1;
+  --card-bg: #1e293b;
+  --card-hover-bg: #334155;
+
+  /* Status Colors (slightly adjusted for dark mode) */
+  --success: #34d399;
+  --warning: #fbbf24;
+  --error: #f87171;
+  --info: #60a5fa;
+
+  /* Grays - Dark Mode */
+  --gray-50: #1e293b;
+  --gray-100: #334155;
+  --gray-200: #475569;
+  --gray-300: #64748b;
+  --gray-400: #94a3b8;
+  --gray-500: #cbd5e1;
+  --gray-600: #e2e8f0;
+  --gray-700: #f1f5f9;
+  --gray-800: #f8fafc;
+  --gray-900: #ffffff;
+
+  /* Border & Shadow */
+  --border-color: #334155;
+  --shadow-color: rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -42,29 +82,57 @@
   --color-gray-100: var(--gray-100);
   --color-gray-200: var(--gray-200);
   --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
   --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
   --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
   --color-gray-900: var(--gray-900);
   --font-sans: system-ui, -apple-system, sans-serif;
 }
 
-/* Disable dark mode - force light theme for better visibility */
+/* Base body styles with smooth transitions */
 body {
-  background: #ffffff;
-  color: #1e293b;
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Ensure all text has good contrast */
-* {
-  color-scheme: light;
+/* Smooth transitions for all theme-dependent elements */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Remove transitions for specific elements that shouldn't animate */
+input,
+textarea,
+select,
+button {
+  transition-property: none;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Card utilities with proper theming */
+  .card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    background-color: var(--card-hover-bg);
+    box-shadow: 0 10px 15px -3px var(--shadow-color);
   }
 }
 
@@ -84,35 +152,51 @@ body {
   animation: slideUp 0.4s ease-out;
 }
 
-/* Text color utilities for better visibility */
-.text-foreground {
-  color: #1e293b !important;
+/* Ensure proper contrast for all text elements */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--foreground);
 }
 
-.text-gray-900 {
-  color: #111827 !important;
+/* Link hover states */
+a {
+  transition: color 0.2s ease;
 }
 
-.text-gray-700 {
-  color: #374151 !important;
+/* Form inputs dark mode support */
+input,
+textarea,
+select {
+  background-color: var(--card-bg);
+  color: var(--foreground);
+  border-color: var(--border-color);
 }
 
-.text-gray-600 {
-  color: #4b5563 !important;
+input::placeholder,
+textarea::placeholder {
+  color: var(--gray-400);
 }
 
-.text-gray-500 {
-  color: #6b7280 !important;
+/* Scrollbar styling for dark mode */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Ensure white backgrounds have dark text */
-.bg-white,
-.bg-gray-50 {
-  color: #1e293b;
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
 }
 
-/* Card and container text */
-.rounded-lg,
-.shadow {
-  color: #1e293b;
+::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) var(--gray-100);
 }

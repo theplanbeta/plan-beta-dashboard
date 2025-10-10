@@ -22,6 +22,12 @@ export default function DashboardLayout({
   const { theme, toggleTheme } = useTheme()
   const [backingUp, setBackingUp] = useState(false)
   const [backupMessage, setBackupMessage] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  // Prevent hydration mismatch for theme-dependent UI
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Get role-based navigation
   const userRole = (session?.user?.role as UserRole) || 'TEACHER'
@@ -136,7 +142,7 @@ export default function DashboardLayout({
           <button
             onClick={toggleTheme}
             className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            {...(mounted && { title: `Switch to ${theme === 'light' ? 'dark' : 'light'} mode` })}
           >
             {theme === 'light' ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,7 +222,7 @@ export default function DashboardLayout({
             <button
               onClick={toggleTheme}
               className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              {...(mounted && { title: `Switch to ${theme === 'light' ? 'dark' : 'light'} mode` })}
             >
               {theme === 'light' ? (
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

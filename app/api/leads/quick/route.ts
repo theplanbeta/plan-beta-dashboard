@@ -22,6 +22,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = quickLeadSchema.parse(body)
 
+    // Verify user exists before assigning
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    })
+
     // Create lead with minimal required fields
     const lead = await prisma.lead.create({
       data: {
@@ -33,7 +39,7 @@ export async function POST(request: NextRequest) {
         source: "ORGANIC", // Default source for quick entry
         status: "NEW", // Default status
         quality: "WARM", // Default quality
-        assignedToId: session.user.id, // Assign to current user
+        assignedToId: userExists ? session.user.id : null, // Only assign if user exists
       },
     })
 

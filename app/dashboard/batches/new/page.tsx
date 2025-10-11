@@ -64,6 +64,20 @@ export default function NewBatchPage() {
     return convertAmount(hourlyRate * 60, teacherCurrency, currency)
   }
 
+  const applySuggestedRevenueTarget = () => {
+    const suggested = getSuggestedRevenueTarget(formData.level, formData.currency)
+    setFormData((prev) => ({ ...prev, revenueTarget: suggested }))
+    setHasManualRevenueTarget(false)
+  }
+
+  const applySuggestedTeacherCost = () => {
+    if (!formData.teacherId) return
+    const suggestion = findTeacherCostSuggestion(formData.teacherId, formData.level, formData.currency)
+    if (suggestion === null) return
+    setFormData((prev) => ({ ...prev, teacherCost: suggestion }))
+    setHasManualTeacherCost(false)
+  }
+
   useEffect(() => {
     fetchTeachers()
   }, [])
@@ -164,7 +178,24 @@ export default function NewBatchPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target
-    const newValue = type === "number" ? parseFloat(value) || 0 : value
+    const newValue =
+      type === "number"
+        ? parseFloat(value) || 0
+        : name === "currency"
+        ? (value as SupportedCurrency)
+        : value
+
+    if (name === "revenueTarget") {
+      setHasManualRevenueTarget(true)
+    }
+
+    if (name === "teacherCost") {
+      setHasManualTeacherCost(true)
+    }
+
+    if (name === "teacherId") {
+      setHasManualTeacherCost(false)
+    }
 
     setFormData((prev) => {
       const updated = {
@@ -198,6 +229,16 @@ export default function NewBatchPage() {
       return updated
     })
   }
+
+  const alternateCurrency: SupportedCurrency = formData.currency === "INR" ? "EUR" : "INR"
+  const coursePriceSelected = COURSE_PRICING[formData.level]?.[formData.currency] || 0
+  const coursePriceAlternate = convertAmount(coursePriceSelected, formData.currency, alternateCurrency)
+  const suggestedRevenueTarget = getSuggestedRevenueTarget(formData.level, formData.currency)
+  const suggestedTeacherCost = formData.teacherId
+    ? findTeacherCostSuggestion(formData.teacherId, formData.level, formData.currency)
+    : null
+  const expectedProfit = (Number(formData.revenueTarget) || 0) - (Number(formData.teacherCost) || 0)
+  const expectedProfitAlternate = convertAmount(expectedProfit, formData.currency, alternateCurrency)
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -336,13 +377,21 @@ export default function NewBatchPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100"
               >
                 <option value="">-- No teacher assigned --</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.name} ({teacher.email})
-                    {teacher.specializations ? ` - ${teacher.specializations}` : ''}
-                    {teacher.hourlyRate ? ` - ₹${teacher.hourlyRate}/hr` : ''}
-                  </option>
-                ))}
+                {teachers.map((teacher) => {
+                  const levelRate = teacher.hourlyRate?.[formData.level]
+                  const teacherCurrency = normalizeCurrency(teacher.currency)
+                  const rateText = typeof levelRate === "number"
+                    ? ` - ${formatCurrency(levelRate, teacherCurrency)}/hr`
+                    : ""
+
+                  return (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.name} ({teacher.email})
+                      {teacher.specializations ? ` - ${teacher.specializations}` : ''}
+                      {rateText}
+                    </option>
+                  )
+                })}
               </select>
               {loadingTeachers && (
                 <p className="text-xs text-gray-500 mt-1">Loading teachers...</p>

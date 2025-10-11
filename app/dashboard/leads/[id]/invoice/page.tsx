@@ -174,7 +174,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
       case 'email':
         // Download the image and prompt user to attach manually
         handleShare('download')
-        alert(`Invoice downloaded! Please attach it to your email manually.\n\nSuggested email text:\n\nHi ${lead.name}!\n\nPlease find attached your invoice for ${lead.level} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`)
+        alert(`Invoice downloaded! Please attach it to your email manually.\n\nSuggested email text:\n\nHi ${lead.name}!\n\nPlease find attached your invoice for ${selectedLevel} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`)
         break
 
       case 'download':
@@ -432,7 +432,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
                   autoFocus
                   onBlur={() => setIsEditingPayable(false)}
                 />
-                <span className="text-sm text-gray-600">{lead.currency}</span>
+                <span className="text-sm text-gray-600">{currency}</span>
               </div>
             ) : (
               <button

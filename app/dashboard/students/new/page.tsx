@@ -111,9 +111,9 @@ function NewStudentForm() {
     }
 
     // Single level pricing
-    const level = formData.currentLevel as CourseLevel
+    const level = formData.currentLevel
     if (level && level !== 'NEW' && (COURSE_PRICING as any)[level]) {
-      const price = getPrice(level, formData.currency)
+      const price = getPrice(level as CourseLevel, formData.currency)
       setFormData(prev => ({ ...prev, originalPrice: price }))
     }
   }, [formData.currentLevel, formData.currency, formData.isCombo, JSON.stringify(formData.comboLevels)])

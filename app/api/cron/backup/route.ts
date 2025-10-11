@@ -25,6 +25,7 @@ async function performBackup() {
     })
 
     if (recentBackup) {
+      console.log('⏭️  Backup skipped - recent backup exists:', recentBackup.createdAt)
       return NextResponse.json({
         success: true,
         message: 'Backup already created recently',

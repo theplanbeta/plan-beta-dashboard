@@ -94,8 +94,8 @@ export default function DashboardLayout({
 
   // Trigger backup on dashboard load (with cooldown)
   useEffect(() => {
-    // Only trigger for FOUNDER role
-    if (userRole !== 'FOUNDER') return
+    // Only trigger for FOUNDER and MARKETING roles
+    if (userRole !== 'FOUNDER' && userRole !== 'MARKETING') return
 
     const triggerBackupOnLoad = async () => {
       try {
@@ -270,8 +270,8 @@ export default function DashboardLayout({
             })}
           </nav>
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
-            {/* Backup Button - Only for FOUNDER */}
-            {userRole === 'FOUNDER' && (
+            {/* Backup Button - Only for FOUNDER and MARKETING */}
+            {(userRole === 'FOUNDER' || userRole === 'MARKETING') && (
               <button
                 onClick={handleBackup}
                 disabled={backingUp}

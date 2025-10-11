@@ -121,7 +121,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <p className="text-red-600">Failed to load profile</p>
           {error && <p className="text-sm text-gray-600 mt-2">{error}</p>}
         </div>
@@ -148,16 +148,16 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Basic Information</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="name">Full Name *</label>
+                <label className="form-label" htmlFor="name">Full Name *</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="name"
                   name="name"
                   type="text"
@@ -167,9 +167,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email (read-only)</label>
+                <label className="form-label" htmlFor="email">Email (read-only)</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1 bg-gray-50"
+                  className="input mt-1 bg-gray-50 dark:bg-gray-700"
                   id="email"
                   type="email"
                   defaultValue={profile.email}
@@ -178,9 +178,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone">Phone</label>
+                <label className="form-label" htmlFor="phone">Phone</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="phone"
                   name="phone"
                   type="tel"
@@ -189,9 +189,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="whatsapp">WhatsApp</label>
+                <label className="form-label" htmlFor="whatsapp">WhatsApp</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="whatsapp"
                   name="whatsapp"
                   type="tel"
@@ -200,9 +200,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="preferredContact">Preferred Contact Method</label>
+                <label className="form-label" htmlFor="preferredContact">Preferred Contact Method</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="preferredContact"
                   name="preferredContact"
                   type="text"
@@ -212,9 +212,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="hourlyRate">Hourly Rate (₹/€)</label>
+                <label className="form-label" htmlFor="hourlyRate">Hourly Rate (₹/€)</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="hourlyRate"
                   name="hourlyRate"
                   type="number"
@@ -228,12 +228,12 @@ export default function ProfilePage() {
 
           {/* Professional Information */}
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Professional Information</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Professional Information</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="bio">Bio</label>
+                <label className="form-label" htmlFor="bio">Bio</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="textarea mt-1"
                   id="bio"
                   name="bio"
                   rows={3}
@@ -243,9 +243,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="qualifications">Qualifications</label>
+                <label className="form-label" htmlFor="qualifications">Qualifications</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="textarea mt-1"
                   id="qualifications"
                   name="qualifications"
                   rows={3}
@@ -255,9 +255,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="experience">Experience</label>
+                <label className="form-label" htmlFor="experience">Experience</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="textarea mt-1"
                   id="experience"
                   name="experience"
                   rows={3}
@@ -267,9 +267,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="specializations">Specializations</label>
+                <label className="form-label" htmlFor="specializations">Specializations</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="textarea mt-1"
                   id="specializations"
                   name="specializations"
                   rows={2}
@@ -279,9 +279,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="languages">Languages Spoken</label>
+                <label className="form-label" htmlFor="languages">Languages Spoken</label>
                 <input
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="input mt-1"
                   id="languages"
                   name="languages"
                   type="text"
@@ -291,9 +291,9 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="availability">Availability</label>
+                <label className="form-label" htmlFor="availability">Availability</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                  className="textarea mt-1"
                   id="availability"
                   name="availability"
                   rows={3}
@@ -305,15 +305,15 @@ export default function ProfilePage() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+          <div className="flex justify-end gap-3 pt-4 panel-section">
             <button
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+              className="btn-outline"
               type="button"
               onClick={() => router.push('/dashboard')}
             >
               Cancel
             </button>
-            <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90" type="submit" disabled={saving}>
+            <button className="btn-primary" type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>

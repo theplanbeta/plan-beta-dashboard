@@ -287,7 +287,7 @@ function NewStudentForm() {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="panel p-6 space-y-6">
         {error && (
           <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">
             {error}

@@ -281,7 +281,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
 
         {/* Visible preview for user */}
         {/* Lead Info Card */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <h2 className="font-semibold text-gray-700 mb-3">Lead Details</h2>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
@@ -302,7 +302,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Course & Pricing */}
-        <div className="bg-white rounded-lg shadow p-4 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4 space-y-4">
           <h2 className="font-semibold text-gray-700">Invoice Details</h2>
 
           {/* Course */}

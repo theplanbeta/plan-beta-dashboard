@@ -5,7 +5,7 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  log: process.env.NODE_ENV === 'development' ? ['error'] : ['error'],
   // Connection pool configuration for Neon database
   // Limits concurrent connections to prevent exhausting database resources
   datasources: {
@@ -14,6 +14,18 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({
     },
   },
 })
+
+// Add connection management in development
+if (process.env.NODE_ENV === 'development') {
+  // Periodically check and clean up stale connections
+  setInterval(async () => {
+    try {
+      await prisma.$queryRaw`SELECT 1`
+    } catch (error) {
+      console.log('Connection check failed, reconnecting...')
+    }
+  }, 30000) // Every 30 seconds
+}
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 

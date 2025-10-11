@@ -144,7 +144,7 @@ export default function InsightsPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">Student Growth</div>
           <div className={`text-2xl font-bold mt-1 ${data.kpis.studentGrowthRate >= 0 ? "text-success" : "text-error"}`}>
             {data.kpis.studentGrowthRate >= 0 ? "+" : ""}{data.kpis.studentGrowthRate}
@@ -152,7 +152,7 @@ export default function InsightsPage() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Net change</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">Revenue Growth</div>
           <div className={`text-2xl font-bold mt-1 ${data.kpis.revenueGrowthRate >= 0 ? "text-success" : "text-error"}`}>
             {data.kpis.revenueGrowthRate >= 0 ? "+" : ""}{data.kpis.revenueGrowthRate.toFixed(1)}%
@@ -160,7 +160,7 @@ export default function InsightsPage() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Period over period</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">Avg Class Size</div>
           <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.avgClassSize.toFixed(1)}
@@ -168,7 +168,7 @@ export default function InsightsPage() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Students per batch</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">Capacity Used</div>
           <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.capacityUtilization.toFixed(0)}%
@@ -176,7 +176,7 @@ export default function InsightsPage() {
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Batch utilization</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">Satisfaction</div>
           <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.customerSatisfaction.toFixed(0)}%
@@ -203,7 +203,7 @@ export default function InsightsPage() {
 
       {/* Revenue Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h2>
           <LineChart
             data={data.revenue.daily.map((d) => ({ date: d.date, value: d.revenue }))}
@@ -226,7 +226,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Type</h2>
           <BarChart
             data={Object.entries(data.revenue.byType).map(([label, value]) => ({
@@ -241,7 +241,7 @@ export default function InsightsPage() {
 
       {/* Student Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Enrollment Trend</h2>
           <LineChart
             data={data.students.enrollmentsByDay.map((d) => ({ date: d.date, value: d.count }))}
@@ -269,7 +269,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Attendance Distribution</h2>
           <DonutChart
             data={[
@@ -284,7 +284,7 @@ export default function InsightsPage() {
 
       {/* Churn & Retention */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Churn Analysis
             <span className={`ml-3 text-2xl font-bold ${data.churn.rate > 10 ? "text-error" : "text-success"}`}>
@@ -361,7 +361,7 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cohort Retention</h2>
           <BarChart
             data={data.students.cohortRetention.slice(-6).map((d) => ({
@@ -375,7 +375,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Batch Performance */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Performance</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
@@ -417,7 +417,7 @@ export default function InsightsPage() {
       </div>
 
       {/* Forecasts */}
-      <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold mb-4 text-white">Next Month Forecast</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
@@ -445,7 +445,7 @@ export default function InsightsPage() {
 
       {/* Payment & Collection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Methods</h2>
           <DonutChart
             data={Object.entries(data.payments.methodDistribution).map(([label, value]) => ({
@@ -458,7 +458,7 @@ export default function InsightsPage() {
           />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Collection Metrics</h2>
           <div className="space-y-6">
             <div>
@@ -505,7 +505,7 @@ export default function InsightsPage() {
 
       {/* Top Referrers */}
       {data.referrals.topReferrers.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Referrers
             <span className="ml-3 text-sm font-normal text-gray-600 dark:text-gray-400">

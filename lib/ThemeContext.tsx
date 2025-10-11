@@ -19,19 +19,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Sync with actual DOM state after hydration
-    const isDark = document.documentElement.classList.contains('dark')
+    const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')
     setTheme(isDark ? 'dark' : 'light')
   }, [])
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
+    // Derive from DOM to avoid stale state on first click
+    const currentlyDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')
+    const newTheme = currentlyDark ? 'light' : 'dark'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
 
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
+      document.body.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
+      document.body.classList.remove('dark')
     }
 
     // Announce theme change to screen readers

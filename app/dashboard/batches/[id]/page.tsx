@@ -174,7 +174,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Fill Rate</div>
           <div className={`text-2xl font-bold mt-1 ${getFillRateColor(batch.fillRate)}`}>
             {batch.fillRate.toFixed(0)}%
@@ -184,7 +184,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Revenue</div>
           <div className="text-2xl font-bold text-foreground mt-1">
             {formatCurrency(Number(batch.revenueActual))}
@@ -194,7 +194,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Profit</div>
           <div className={`text-2xl font-bold mt-1 ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
             {formatCurrency(Number(batch.profit))}
@@ -204,7 +204,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Teacher Cost</div>
           <div className="text-2xl font-bold text-foreground mt-1">
             {formatCurrency(Number(batch.teacherCost))}
@@ -219,7 +219,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Student Roster */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-foreground">Student Roster</h2>
               <Link
@@ -278,7 +278,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Batch Information */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Batch Information</h3>
             <div className="space-y-3">
               <div>
@@ -328,7 +328,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {/* Financial Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Financial Details</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -361,7 +361,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
 
           {/* Capacity Progress */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Capacity</h3>
             <div className="space-y-3">
               <div className="flex justify-between text-sm">

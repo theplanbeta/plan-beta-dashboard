@@ -324,7 +324,7 @@ export default function LeadDetailPage({
 
       {/* Invoices Section */}
       {!lead.converted && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-foreground">Invoices</h2>
             <button
@@ -411,7 +411,7 @@ export default function LeadDetailPage({
       {/* Main Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Contact Information */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
           <div className="space-y-3">
             <div>
@@ -434,7 +434,7 @@ export default function LeadDetailPage({
         </div>
 
         {/* Lead Status */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Lead Status</h2>
           <div className="space-y-3">
             <div>
@@ -461,7 +461,7 @@ export default function LeadDetailPage({
         </div>
 
         {/* Interest Details */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
           <div className="space-y-3">
             {lead.interestedLevel && (
@@ -503,7 +503,7 @@ export default function LeadDetailPage({
         </div>
 
         {/* Timeline */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Timeline</h2>
           <div className="space-y-3">
             <div>
@@ -540,7 +540,7 @@ export default function LeadDetailPage({
 
       {/* Notes */}
       {(lead.notes || lead.followUpNotes) && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Notes</h2>
           <div className="space-y-4">
             {lead.notes && (
@@ -561,7 +561,7 @@ export default function LeadDetailPage({
 
       {/* Assigned To */}
       {lead.assignedTo && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-lg font-semibold text-foreground mb-4">Assigned To</h2>
           <div>
             <div className="text-gray-900">{lead.assignedTo.name}</div>
@@ -711,8 +711,8 @@ function InvoiceGeneratorModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-lg border border-gray-200 dark:border-gray-700 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 panel-section bg-white dark:bg-gray-800 px-6 py-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-foreground">Generate Invoice</h2>
             <button

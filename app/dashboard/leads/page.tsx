@@ -188,7 +188,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Quick Follow-up Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setFollowUpFilter("")}
@@ -244,7 +244,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <input
@@ -314,23 +314,23 @@ export default function LeadsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Leads</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">{leads.length}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Hot Leads</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">
             {leads.filter((l) => l.quality === "HOT" && !l.converted).length}
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Converted</div>
           <div className="text-2xl font-bold text-success dark:text-green-400">
             {leads.filter((l) => l.converted).length}
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Conversion Rate</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
             {leads.length > 0
@@ -342,7 +342,7 @@ export default function LeadsPage() {
       </div>
 
       {/* Leads Table/Cards - Desktop: Table, Mobile: Cards */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3 p-3">
           {filteredAndSortedLeads.length === 0 ? (

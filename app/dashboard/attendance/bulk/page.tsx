@@ -168,7 +168,7 @@ export default function BulkAttendancePage() {
       </div>
 
       {/* Batch & Date Selection */}
-      <div className="bg-white p-6 rounded-lg shadow space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -226,23 +226,23 @@ export default function BulkAttendancePage() {
       {/* Stats */}
       {selectedBatch && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow text-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 text-center">
             <div className="text-sm text-gray-600">Total</div>
             <div className="text-xl font-bold text-foreground mt-1">{totalStudents}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow text-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 text-center">
             <div className="text-sm text-gray-600">Present</div>
             <div className="text-xl font-bold text-success mt-1">{presentCount}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow text-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 text-center">
             <div className="text-sm text-gray-600">Absent</div>
             <div className="text-xl font-bold text-error mt-1">{absentCount}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow text-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 text-center">
             <div className="text-sm text-gray-600">Excused</div>
             <div className="text-xl font-bold text-warning mt-1">{excusedCount}</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow text-center">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 text-center">
             <div className="text-sm text-gray-600">Late</div>
             <div className="text-xl font-bold text-info mt-1">{lateCount}</div>
           </div>
@@ -252,7 +252,7 @@ export default function BulkAttendancePage() {
       {/* Attendance Form */}
       {selectedBatch && (
         <form onSubmit={handleSubmit}>
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 space-y-4">
             {error && (
               <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">
                 {error}
@@ -337,7 +337,7 @@ export default function BulkAttendancePage() {
       )}
 
       {!selectedBatch && (
-        <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-12 text-center text-gray-500 dark:text-gray-400">
           Select a batch to start marking attendance
         </div>
       )}

@@ -149,7 +149,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       {/* Payment Info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Payment Information</h2>
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -197,7 +197,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Student Info Sidebar */}
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Student Information</h3>
             <div className="space-y-3">
               <div>
@@ -237,7 +237,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Payment Status</h3>
             <div className="space-y-3">
               <div className="flex justify-between">

@@ -109,7 +109,7 @@ export default function PaymentsPage() {
         </div>
         <Link
           href="/dashboard/payments/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           + Record Payment
         </Link>
@@ -117,21 +117,21 @@ export default function PaymentsPage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Revenue</div>
           <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">
             {formatCurrency(totalRevenue)}
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Completed</div>
           <div className="text-2xl font-bold text-foreground dark:text-white mt-1">{completedPayments}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Pending</div>
           <div className="text-2xl font-bold text-warning dark:text-yellow-400 mt-1">{pendingPayments}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Avg Payment</div>
           <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">
             {formatCurrency(avgPayment)}
@@ -140,7 +140,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -193,7 +193,7 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payments Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">

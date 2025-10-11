@@ -84,24 +84,24 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <div className="text-sm font-medium text-gray-600">My Batches</div>
           <div className="mt-2 text-3xl font-bold text-primary">{data.myBatches.length}</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <div className="text-sm font-medium text-gray-600">My Students</div>
           <div className="mt-2 text-3xl font-bold text-primary">{data.myStudents.active}</div>
           <div className="mt-1 text-sm text-gray-500">{data.myStudents.total} total</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <div className="text-sm font-medium text-gray-600">Attendance Today</div>
           <div className="mt-2 text-3xl font-bold text-warning">{data.todayAttendance.pending}</div>
           <div className="mt-1 text-sm text-gray-500">pending</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
           <div className="text-sm font-medium text-gray-600">Avg Attendance</div>
           <div className="mt-2 text-3xl font-bold text-success">
             {data.avgAttendanceRate.toFixed(1)}%
@@ -110,7 +110,7 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* My Batches */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-foreground">My Batches</h2>
         </div>
@@ -148,7 +148,7 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Link
           href="/dashboard/attendance"
-          className="bg-primary text-white rounded-lg shadow p-6 hover:bg-primary-dark transition-colors"
+          className="bg-primary text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-primary-dark transition-colors"
         >
           <div className="text-lg font-semibold">Mark Attendance</div>
           <div className="mt-2 text-sm opacity-90">
@@ -158,7 +158,7 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
 
         <Link
           href="/dashboard/students"
-          className="bg-white border-2 border-primary text-primary rounded-lg shadow p-6 hover:bg-gray-50 transition-colors"
+          className="bg-white dark:bg-gray-800 border-2 border-primary text-primary rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <div className="text-lg font-semibold">View My Students</div>
           <div className="mt-2 text-sm">

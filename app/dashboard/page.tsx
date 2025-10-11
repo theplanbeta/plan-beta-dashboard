@@ -113,7 +113,7 @@ export default function DashboardPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href="/dashboard/students" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <Link href="/dashboard/students" className="panel panel-hover p-6 hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Students</p>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/batches" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <Link href="/dashboard/batches" className="panel panel-hover p-6 hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Batches</p>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/payments" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <Link href="/dashboard/payments" className="panel panel-hover p-6 hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
           </div>
         </Link>
 
-        <Link href="/dashboard/attendance" className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <Link href="/dashboard/attendance" className="panel panel-hover p-6 hover:scale-105 transition-all">
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Attendance Rate</p>
@@ -227,7 +227,7 @@ export default function DashboardPage() {
       {/* Charts and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Student Status */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="panel p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Status</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -270,7 +270,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Payment Status */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="panel p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Status</h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -335,7 +335,7 @@ export default function DashboardPage() {
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6">
+      <div className="panel p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link

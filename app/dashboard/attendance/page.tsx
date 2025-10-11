@@ -101,14 +101,14 @@ export default function AttendancePage() {
         </div>
         <Link
           href="/dashboard/attendance/bulk"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           Bulk Mark Attendance
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -146,26 +146,26 @@ export default function AttendancePage() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Students</div>
               <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalStudents}</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">Present</div>
               <div className="text-2xl font-bold text-success mt-1">{presentCount}</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">Absent</div>
               <div className="text-2xl font-bold text-error mt-1">{absentCount}</div>
             </div>
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
               <div className="text-sm text-gray-600 dark:text-gray-400">Attendance Rate</div>
               <div className="text-2xl font-bold text-info mt-1">{attendanceRate}%</div>
             </div>
           </div>
 
           {/* Attendance List */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
             <div className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                 Attendance for {formatDate(selectedDate)}
@@ -211,7 +211,7 @@ export default function AttendancePage() {
       )}
 
       {!selectedBatch && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-12 text-center text-gray-500 dark:text-gray-400">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-12 text-center text-gray-500 dark:text-gray-400">
           Select a batch and date to view attendance records
         </div>
       )}

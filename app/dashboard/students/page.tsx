@@ -107,14 +107,14 @@ export default function StudentsPage() {
         </div>
         <Link
           href="/dashboard/students/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           + Add Student
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 space-y-4">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -171,7 +171,7 @@ export default function StudentsPage() {
       </div>
 
       {/* Students Table/Cards - Desktop: Table, Mobile: Cards */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3 p-3">
           {students.length === 0 ? (

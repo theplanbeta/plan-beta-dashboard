@@ -132,19 +132,19 @@ export default function BatchesPage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Batches</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalBatches}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Active Batches</div>
           <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">{activeBatches}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Students</div>
           <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">{totalStudents}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Avg Fill Rate</div>
           <div className={`text-2xl font-bold mt-1 ${getFillRateColor(avgFillRate)}`}>
             {avgFillRate.toFixed(0)}%
@@ -153,7 +153,7 @@ export default function BatchesPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -194,7 +194,7 @@ export default function BatchesPage() {
 
       {/* Batches by Month */}
       {batches.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-gray-500 dark:text-gray-400">
             No batches found. Click &quot;Create Batch&quot; to add your first batch.
           </div>
@@ -217,7 +217,7 @@ export default function BatchesPage() {
             <Link
               key={batch.id}
               href={`/dashboard/batches/${batch.id}`}
-              className="bg-gray-50 dark:bg-gray-700 rounded-xl p-5 hover:shadow-lg dark:hover:shadow-2xl transition-shadow space-y-4 border border-gray-200 dark:border-gray-600"
+              className="bg-gray-50 dark:bg-gray-700 rounded-xl p-5 hover:shadow-md dark:hover:shadow-lg transition-shadow space-y-4 border border-gray-200 dark:border-gray-600"
             >
               {/* Header */}
               <div className="space-y-2">

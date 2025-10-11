@@ -139,25 +139,25 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-lg hover:scale-105 transition-all">
           <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Leads</div>
           <div className="mt-2 text-3xl font-bold text-purple-600 dark:text-purple-400">{data.leads.total}</div>
           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{data.leads.hot} hot leads</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-lg hover:scale-105 transition-all">
           <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Conversion Rate</div>
           <div className="mt-2 text-3xl font-bold text-success dark:text-green-400">{data.leads.conversionRate.toFixed(1)}%</div>
           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{data.leads.converted} converted</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-lg hover:scale-105 transition-all">
           <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Students</div>
           <div className="mt-2 text-3xl font-bold text-primary dark:text-red-400">{data.students.total}</div>
           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">{data.students.thisMonth} this month</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg dark:hover:shadow-2xl hover:scale-105 transition-all">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-lg hover:scale-105 transition-all">
           <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Available Seats</div>
           <div className="mt-2 text-3xl font-bold text-warning dark:text-yellow-400">{data.batches.seatsAvailable}</div>
           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">across all batches</div>
@@ -165,8 +165,8 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* Enrollment Sources */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="panel-section px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Enrollment Sources</h2>
         </div>
         <div className="p-6">
@@ -194,8 +194,8 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* Enrollment Types */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="panel-section px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Enrollment Types</h2>
         </div>
         <div className="p-6">
@@ -216,7 +216,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-4">
         <Link
           href="/dashboard/leads/new"
-          className="bg-purple-600 dark:bg-purple-500 text-white rounded-lg shadow dark:shadow-xl p-6 hover:bg-purple-700 dark:hover:bg-purple-600 hover:scale-105 transition-all"
+          className="bg-purple-600 dark:bg-purple-500 text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-purple-700 dark:hover:bg-purple-600 hover:scale-105 transition-all"
         >
           <div className="text-lg font-semibold">Add New Lead</div>
           <div className="mt-2 text-sm opacity-90">
@@ -226,7 +226,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
 
         <Link
           href="/dashboard/leads"
-          className="bg-primary dark:bg-red-500 text-white rounded-lg shadow dark:shadow-xl p-6 hover:bg-primary-dark dark:hover:bg-red-600 hover:scale-105 transition-all"
+          className="bg-primary dark:bg-red-500 text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-primary-dark dark:hover:bg-red-600 hover:scale-105 transition-all"
         >
           <div className="text-lg font-semibold">Manage Leads</div>
           <div className="mt-2 text-sm opacity-90">
@@ -236,7 +236,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
 
         <Link
           href="/dashboard/referrals"
-          className="bg-success dark:bg-green-500 text-white rounded-lg shadow dark:shadow-xl p-6 hover:bg-green-600 dark:hover:bg-green-600 hover:scale-105 transition-all"
+          className="bg-success dark:bg-green-500 text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-green-600 dark:hover:bg-green-600 hover:scale-105 transition-all"
         >
           <div className="text-lg font-semibold">Manage Referrals</div>
           <div className="mt-2 text-sm opacity-90">
@@ -246,7 +246,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
 
         <Link
           href="/dashboard/insights"
-          className="bg-white dark:bg-gray-800 border-2 border-primary dark:border-red-400 text-primary dark:text-red-400 rounded-lg shadow dark:shadow-xl p-6 hover:bg-gray-50 dark:hover:bg-gray-700 hover:scale-105 transition-all"
+          className="bg-white dark:bg-gray-800 border-2 border-primary dark:border-red-400 text-primary dark:text-red-400 rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-gray-50 dark:hover:bg-gray-700 hover:scale-105 transition-all"
         >
           <div className="text-lg font-semibold">View Insights</div>
           <div className="mt-2 text-sm">

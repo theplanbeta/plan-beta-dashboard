@@ -93,7 +93,7 @@ export default function TeachersPage() {
           </label>
           <Link
             href="/dashboard/teachers/new"
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+            className="btn-primary"
           >
             + Add Teacher
           </Link>
@@ -102,11 +102,11 @@ export default function TeachersPage() {
 
       {/* Teachers List */}
       {teachers.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-12 text-center">
           <div className="text-gray-500 mb-4">No teachers added yet</div>
           <Link
             href="/dashboard/teachers/new"
-            className="inline-block px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+            className="btn-primary inline-block px-6 py-2"
           >
             Add Your First Teacher
           </Link>
@@ -116,7 +116,7 @@ export default function TeachersPage() {
           {filteredTeachers.map((teacher) => (
             <div
               key={teacher.id}
-              className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md dark:hover:shadow-lg transition-shadow"
             >
               {/* Teacher Header */}
               <div className="flex items-start justify-between mb-4">
@@ -160,7 +160,7 @@ export default function TeachersPage() {
                 </div>
                 <Link
                   href={`/dashboard/teachers/${teacher.id}/edit`}
-                  className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                  className="btn-outline text-sm"
                 >
                   Edit
                 </Link>

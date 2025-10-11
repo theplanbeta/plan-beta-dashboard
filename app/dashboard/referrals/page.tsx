@@ -94,7 +94,7 @@ export default function ReferralsPage() {
         </div>
         <Link
           href="/dashboard/referrals/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+          className="btn-primary"
         >
           + Add Referral
         </Link>
@@ -102,25 +102,25 @@ export default function ReferralsPage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Referrals</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalReferrals}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Month 1 Complete</div>
           <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">{completedMonth1}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Pending Payouts</div>
           <div className="text-2xl font-bold text-warning dark:text-yellow-400 mt-1">{pendingPayouts}</div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Paid Out</div>
           <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">
             {formatCurrency(totalPayouts)}
           </div>
         </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Pending Amount</div>
           <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">
             {formatCurrency(pendingPayoutAmount)}
@@ -129,7 +129,7 @@ export default function ReferralsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -166,7 +166,7 @@ export default function ReferralsPage() {
       </div>
 
       {/* Referrals Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">

@@ -143,7 +143,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         <div className="flex space-x-3">
           <Link
             href={`/dashboard/students/${student.id}/edit`}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+            className="btn-primary"
           >
             Edit Student
           </Link>
@@ -165,7 +165,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Total Paid</div>
           <div className="text-2xl font-bold text-foreground mt-1">
             {formatCurrency(Number(student.totalPaid))}
@@ -175,7 +175,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Balance</div>
           <div className="text-2xl font-bold text-warning mt-1">
             {formatCurrency(Number(student.balance))}
@@ -185,7 +185,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Attendance Rate</div>
           <div className="text-2xl font-bold text-foreground mt-1">
             {Number(student.attendanceRate).toFixed(0)}%
@@ -195,7 +195,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">
             {student.isCombo ? 'Combo Package' : 'Current Level'}
           </div>
@@ -214,7 +214,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Personal Information */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Personal Information</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -263,7 +263,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Recent Payments */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Payment History</h2>
             {student.payments.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No payments recorded yet</div>
@@ -290,7 +290,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Pricing Breakdown */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Pricing Details</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -323,7 +323,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Recent Attendance */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Recent Attendance</h3>
             {student.attendance.length === 0 ? (
               <div className="text-center py-4 text-gray-500 text-sm">No attendance records</div>

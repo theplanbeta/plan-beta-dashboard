@@ -61,7 +61,7 @@ export default function HelpPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Feedback Form */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Report an Issue or Request a Feature</h2>
 
             {success && (
@@ -238,7 +238,7 @@ export default function HelpPage() {
         {/* Quick Links & Resources */}
         <div className="space-y-6">
           {/* User Guide */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">📚 User Guide</h3>
             <p className="text-sm text-gray-600 mb-4">
               Complete guide for using the dashboard
@@ -253,7 +253,7 @@ export default function HelpPage() {
           </div>
 
           {/* Quick Help */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">⚡ Quick Help</h3>
             <div className="space-y-3 text-sm">
               <div>
@@ -272,7 +272,7 @@ export default function HelpPage() {
           </div>
 
           {/* Common Tasks */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">✅ Common Tasks</h3>
             <div className="space-y-2 text-sm">
               <Link href="/dashboard/leads/new" className="block text-primary hover:underline">

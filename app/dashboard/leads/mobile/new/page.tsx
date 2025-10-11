@@ -66,9 +66,9 @@ export default function MobileNewLeadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
       {/* Fixed Header */}
-      <div className="sticky top-0 bg-white border-b border-gray-200 shadow-sm z-10">
+      <div className="sticky top-0 bg-white dark:bg-gray-800 panel-section shadow-sm z-10">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-gray-900">Add New Lead</h1>
@@ -86,7 +86,7 @@ export default function MobileNewLeadPage() {
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
         {/* Contact Information Section */}
-        <div className="bg-white rounded-lg shadow-sm p-5 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Contact Info</h2>
 
           <div>
@@ -136,7 +136,7 @@ export default function MobileNewLeadPage() {
         </div>
 
         {/* Lead Classification */}
-        <div className="bg-white rounded-lg shadow-sm p-5 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Classification</h2>
 
           <div>
@@ -191,8 +191,8 @@ export default function MobileNewLeadPage() {
                 onClick={() => setFormData({ ...formData, quality: "COLD" })}
                 className={`py-3 px-4 rounded-lg font-medium text-sm border-2 transition-all ${
                   formData.quality === "COLD"
-                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                    : "bg-white border-gray-200 text-gray-600"
+                    ? "bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                 }`}
               >
                 ❄️ Cold
@@ -202,7 +202,7 @@ export default function MobileNewLeadPage() {
         </div>
 
         {/* Course Interest */}
-        <div className="bg-white rounded-lg shadow-sm p-5 space-y-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Booking Details</h2>
 
           <div>
@@ -213,7 +213,7 @@ export default function MobileNewLeadPage() {
               name="interestedLevel"
               value={formData.interestedLevel}
               onChange={handleChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">Select level...</option>
               <option value="A1">A1 - Beginner</option>
@@ -232,7 +232,7 @@ export default function MobileNewLeadPage() {
               name="interestedType"
               value={formData.interestedType}
               onChange={handleChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">Select package...</option>
               <optgroup label="Individual Courses">
@@ -259,7 +259,7 @@ export default function MobileNewLeadPage() {
               name="interestedMonth"
               value={formData.interestedMonth}
               onChange={handleChange}
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">Select month...</option>
               {MONTHS.map((month) => (
@@ -278,8 +278,8 @@ export default function MobileNewLeadPage() {
                 onClick={() => setFormData({ ...formData, interestedBatchTime: "Morning" })}
                 className={`py-3 px-4 rounded-lg font-medium text-sm border-2 transition-all ${
                   formData.interestedBatchTime === "Morning"
-                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                    : "bg-white border-gray-200 text-gray-600"
+                    ? "bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                 }`}
               >
                 🌅 Morning
@@ -289,8 +289,8 @@ export default function MobileNewLeadPage() {
                 onClick={() => setFormData({ ...formData, interestedBatchTime: "Evening" })}
                 className={`py-3 px-4 rounded-lg font-medium text-sm border-2 transition-all ${
                   formData.interestedBatchTime === "Evening"
-                    ? "bg-blue-50 border-blue-500 text-blue-700"
-                    : "bg-white border-gray-200 text-gray-600"
+                    ? "bg-blue-50 border-blue-500 text-blue-700 dark:bg-blue-900/30 dark:border-blue-400 dark:text-blue-300"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                 }`}
               >
                 🌆 Evening
@@ -300,7 +300,7 @@ export default function MobileNewLeadPage() {
         </div>
 
         {/* Notes */}
-        <div className="bg-white rounded-lg shadow-sm p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Notes (Optional)
           </label>
@@ -316,7 +316,7 @@ export default function MobileNewLeadPage() {
       </form>
 
       {/* Fixed Bottom Submit Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 shadow-lg">
         <button
           type="submit"
           onClick={handleSubmit}

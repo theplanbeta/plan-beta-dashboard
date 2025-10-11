@@ -119,12 +119,12 @@ export default function DashboardLayout({
   }, [userRole])
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#1e1e1e]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
 
       {/* Mobile Header with Back Button & Hamburger */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-4 z-50">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 panel-section flex items-center justify-between px-4 z-50">
         <div className="flex items-center gap-2">
           {showBackButton && (
             <button
@@ -222,7 +222,7 @@ export default function DashboardLayout({
       {/* Desktop Sidebar */}
       <div className="hidden lg:block fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between h-16 px-6 panel-section">
             <h1 className="text-xl font-bold text-primary dark:text-blue-400">Plan Beta</h1>
             <button
               onClick={toggleTheme}

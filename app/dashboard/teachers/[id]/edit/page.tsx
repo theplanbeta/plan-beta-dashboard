@@ -252,7 +252,7 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         <p className="text-gray-500">Update teacher profile</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="panel p-6 space-y-6">
         {/* Basic Information */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Basic Information</h2>

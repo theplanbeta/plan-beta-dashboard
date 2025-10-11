@@ -180,7 +180,7 @@ export default function ReferralDetailPage({ params }: { params: Promise<{ id: s
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Referral Information */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Referral Information</h2>
 
             <div className="grid grid-cols-2 gap-6">
@@ -230,7 +230,7 @@ export default function ReferralDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Referee Progress */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Referee Progress</h2>
 
             <div className="grid grid-cols-3 gap-4">
@@ -279,7 +279,7 @@ export default function ReferralDetailPage({ params }: { params: Promise<{ id: s
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Payout Information */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Payout Information</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
@@ -308,7 +308,7 @@ export default function ReferralDetailPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Eligibility Checklist */}
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <h3 className="font-semibold text-foreground mb-4">Payout Eligibility</h3>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">

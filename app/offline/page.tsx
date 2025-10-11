@@ -31,10 +31,10 @@ export default function OfflinePage() {
   }, [isOnline])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+      <div className="max-w-md w-full panel p-8 text-center">
         <div className="mb-6">
-          <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
             <svg
               className="w-10 h-10 text-gray-400"
               fill="none"
@@ -50,23 +50,23 @@ export default function OfflinePage() {
             </svg>
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             You're Offline
           </h1>
 
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
             You're currently not connected to the internet. Some features may be limited.
           </p>
 
           {isOnline ? (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <p className="text-green-800 font-medium">
+            <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 mb-4">
+              <p className="text-green-800 dark:text-green-300 font-medium">
                 🟢 Back online! Reloading...
               </p>
             </div>
           ) : (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-              <p className="text-amber-800 text-sm">
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg p-4 mb-6">
+              <p className="text-amber-800 dark:text-amber-300 text-sm">
                 <strong>What you can do offline:</strong>
                 <ul className="mt-2 text-left space-y-1">
                   <li>• View cached dashboard data</li>
@@ -81,21 +81,21 @@ export default function OfflinePage() {
         <div className="space-y-3">
           <Link
             href="/dashboard"
-            className="block w-full py-3 px-4 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            className="btn-primary block w-full py-3 px-4 rounded-lg"
           >
             Go to Dashboard
           </Link>
 
           <button
             onClick={() => window.location.reload()}
-            className="block w-full py-3 px-4 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            className="btn-outline block w-full py-3 px-4 rounded-lg"
           >
             Try Again
           </button>
         </div>
 
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Your changes will sync automatically when you're back online.
           </p>
         </div>

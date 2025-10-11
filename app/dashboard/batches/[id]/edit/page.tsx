@@ -43,10 +43,10 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     fetchTeachers()
   }, [id])
 
-  // Auto-calculate revenue target when form data loads
+  // Auto-calculate revenue target when form data loads (in INR)
   useEffect(() => {
     if (formData.level && formData.revenueTarget === 0) {
-      const pricePerStudent = COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0
+      const pricePerStudent = COURSE_PRICING[formData.level as CourseLevel]?.INR || 0
       const minProfitableStudents = (formData.level === "A1" || formData.level === "A2") ? 5 : 6
       setFormData(prev => ({
         ...prev,
@@ -78,7 +78,8 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         batchCode: data.batchCode,
         level: data.level,
         totalSeats: data.totalSeats,
-        revenueTarget: Number(data.revenueTarget),
+        // Convert revenue target from EUR (DB) to INR (UI)
+        revenueTarget: Number(data.revenueTarget) * EXCHANGE_RATE,
         teacherCost: Number(data.teacherCost),
         teacherId: data.teacherId || "",
         startDate: data.startDate ? new Date(data.startDate).toISOString().split("T")[0] : "",
@@ -102,10 +103,16 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     setFieldErrors({})
 
     try {
+      // Convert revenue target from INR (UI) to EUR (DB) before saving
+      const dataToSave = {
+        ...formData,
+        revenueTarget: formData.revenueTarget / EXCHANGE_RATE,
+      }
+
       const res = await fetch(`/api/batches/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSave),
       })
 
       if (!res.ok) {
@@ -162,10 +169,10 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         }
       }
 
-      // Auto-fill revenue target when level changes
+      // Auto-fill revenue target when level changes (in INR)
       if (name === "level") {
         const level = value as CourseLevel
-        const pricePerStudent = COURSE_PRICING[level]?.EUR || 0
+        const pricePerStudent = COURSE_PRICING[level]?.INR || 0
         const minProfitableStudents = (level === "A1" || level === "A2") ? 5 : 6
         updated.revenueTarget = pricePerStudent * minProfitableStudents
 
@@ -415,7 +422,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  Course Price: €{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0} per student
+                  Course Price: ₹{COURSE_PRICING[formData.level as CourseLevel]?.INR || 0} per student (€{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0})
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
                   Minimum profitable: {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
@@ -428,7 +435,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Revenue Target (€)
+                Revenue Target (₹)
               </label>
               <input
                 type="number"
@@ -441,7 +448,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 readOnly
               />
               <p className="text-xs text-gray-500 mt-1">
-                Auto: €{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
+                Auto: ₹{COURSE_PRICING[formData.level as CourseLevel]?.INR || 0} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students (in INR)
               </p>
             </div>
 
@@ -465,9 +472,15 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
           <div className="bg-gray-50 p-4 rounded-md">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Expected Profit:</span>
+              <span className="text-gray-600">Expected Profit (INR):</span>
               <span className="font-semibold text-success">
-                €{(formData.revenueTarget - (formData.teacherCost / EXCHANGE_RATE)).toFixed(2)}
+                ₹{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm mt-2 pt-2 border-t border-gray-200">
+              <span className="text-gray-600">Expected Profit (EUR):</span>
+              <span className="font-semibold text-success">
+                €{((formData.revenueTarget - formData.teacherCost) / EXCHANGE_RATE).toFixed(2)}
               </span>
             </div>
           </div>

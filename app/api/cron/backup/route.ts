@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import fs from 'fs'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 60 seconds timeout
+export const runtime = 'nodejs'
 
 async function performBackup() {
   try {
@@ -12,12 +15,13 @@ async function performBackup() {
     const recentBackup = await prisma.auditLog.findFirst({
       where: {
         description: {
-          contains: 'database backup completed'
+          contains: 'database backup completed',
+          mode: 'insensitive',
         },
         createdAt: {
-          gte: new Date(Date.now() - 30 * 60 * 1000) // 30 minutes ago
-        }
-      }
+          gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        },
+      },
     })
 
     if (recentBackup) {
@@ -71,6 +75,18 @@ async function performBackup() {
         attendance,
         invoices,
         auditLogs,
+      }
+    }
+
+    // Save a local JSON file in development for easy verification
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const dir = path.join(process.cwd(), 'backups')
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+        const filename = `backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+        fs.writeFileSync(path.join(dir, filename), JSON.stringify(backup, null, 2), 'utf-8')
+      } catch (e) {
+        console.error('Failed to write local backup file:', e)
       }
     }
 

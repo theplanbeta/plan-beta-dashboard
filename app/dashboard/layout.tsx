@@ -306,7 +306,7 @@ export default function DashboardLayout({
               </div>
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="ml-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                className="ml-3 btn-outline px-3 py-1 text-sm"
               >
                 Sign out
               </button>
@@ -337,7 +337,7 @@ export default function DashboardLayout({
           </Link>
 
           {/* First 4 navigation items */}
-          {navigation.slice(0, 4).map((item) => {
+          {navigation.slice(0, 3).map((item) => {
             const isActive = pathname === item.href
             const showBadge = item.name === "Leads" && overdueCount > 0
             return (
@@ -357,6 +357,18 @@ export default function DashboardLayout({
               </Link>
             )
           })}
+
+          {/* Logout item */}
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            aria-label="Sign out"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2h4a2 2 0 012 2v1" />
+            </svg>
+            <span className="text-xs font-medium mt-1">Logout</span>
+          </button>
         </div>
       </div>
     </div>

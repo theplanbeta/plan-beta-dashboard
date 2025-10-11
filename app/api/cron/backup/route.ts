@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { put } from '@vercel/blob'
 import { AuditAction, AuditSeverity } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sendBackupEmail } from '@/lib/email'
@@ -82,13 +83,27 @@ async function performBackup(skipCooldown = false) {
     }
 
     const backupJson = JSON.stringify(backup, null, 2)
+    const filename = `backup-${backup.timestamp.replace(/[:.]/g, '-')}.json`
 
-    // Save a local JSON file in development for easy verification
+    // Save backup to Vercel Blob Storage (works in all environments)
+    let blobUrl = null
+    try {
+      const blob = await put(filename, backupJson, {
+        access: 'public',
+        addRandomSuffix: false,
+      })
+      blobUrl = blob.url
+      console.log('📁 Backup saved to Vercel Blob:', blobUrl)
+    } catch (e) {
+      console.error('Failed to upload backup to Vercel Blob:', e)
+      // Continue anyway - at least send email
+    }
+
+    // Also save local file in development for easy verification
     if (process.env.NODE_ENV !== 'production') {
       try {
         const dir = path.join(process.cwd(), 'backups')
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-        const filename = `backup-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
         fs.writeFileSync(path.join(dir, filename), backupJson, 'utf-8')
       } catch (e) {
         console.error('Failed to write local backup file:', e)
@@ -138,6 +153,7 @@ async function performBackup(skipCooldown = false) {
         metadata: {
           backupCounts: backup.counts,
           timestamp: backup.timestamp,
+          blobUrl: blobUrl || undefined,
         },
       },
     })
@@ -148,7 +164,10 @@ async function performBackup(skipCooldown = false) {
       success: true,
       timestamp: backup.timestamp,
       counts: backup.counts,
-      message: 'Backup completed and emailed successfully'
+      blobUrl,
+      message: blobUrl
+        ? 'Backup completed, uploaded to Vercel Blob, and emailed successfully'
+        : 'Backup completed and emailed successfully (Blob upload failed)'
     })
 
   } catch (error) {

@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 60 seconds timeout
 
-export async function POST(request: NextRequest) {
+async function performBackup() {
   try {
     // Check if backup was done recently (within last 30 minutes) to avoid spam
     const recentBackup = await prisma.auditLog.findFirst({
@@ -174,4 +174,13 @@ export async function POST(request: NextRequest) {
   } finally {
     await prisma.$disconnect()
   }
+}
+
+// Support both GET (for Vercel Cron) and POST (for manual triggers)
+export async function GET(request: NextRequest) {
+  return performBackup()
+}
+
+export async function POST(request: NextRequest) {
+  return performBackup()
 }

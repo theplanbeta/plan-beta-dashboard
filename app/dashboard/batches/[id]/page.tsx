@@ -4,6 +4,7 @@ import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { normalizeCurrency } from "@/lib/currency"
 
 type Batch = {
   id: string
@@ -33,7 +34,7 @@ type Batch = {
     studentId: string
     name: string
     whatsapp: string
-    currency: "EUR" | "INR"
+    currency: string | null
     currentLevel: string
     paymentStatus: string
     finalPrice: number
@@ -135,7 +136,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     return "text-error"
   }
 
-  const batchCurrency = batch.currency === "INR" ? "INR" : "EUR"
+  const batchCurrency = normalizeCurrency(batch.currency)
 
   const formatAmount = (amount: number) => formatCurrency(amount, batchCurrency)
 
@@ -268,10 +269,16 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                       </span>
                       <div className="text-right">
                         <div className="text-sm font-medium">
-                          {formatCurrency(Number(student.totalPaid ?? 0), student.currency)}
+                          {formatCurrency(
+                            Number(student.totalPaid ?? 0),
+                            normalizeCurrency(student.currency)
+                          )}
                         </div>
                         <div className="text-xs text-gray-500">
-                          of {formatCurrency(Number(student.finalPrice ?? 0), student.currency)}
+                          of {formatCurrency(
+                            Number(student.finalPrice ?? 0),
+                            normalizeCurrency(student.currency)
+                          )}
                         </div>
                       </div>
                     </div>

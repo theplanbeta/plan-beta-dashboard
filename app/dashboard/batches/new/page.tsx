@@ -197,6 +197,16 @@ export default function NewBatchPage() {
       setHasManualTeacherCost(false)
     }
 
+    if (name === "level") {
+      setHasManualRevenueTarget(false)
+      setHasManualTeacherCost(false)
+    }
+
+    if (name === "currency") {
+      setHasManualRevenueTarget(false)
+      setHasManualTeacherCost(false)
+    }
+
     setFormData((prev) => {
       const updated = {
         ...prev,

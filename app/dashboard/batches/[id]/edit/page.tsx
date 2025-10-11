@@ -34,6 +34,18 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     return pricePerStudent * minProfitableStudents
   }
 
+  const findTeacherCostSuggestion = (
+    teacherId: string,
+    level: CourseLevel,
+    currency: SupportedCurrency
+  ) => {
+    const teacher = teachers.find(t => t.id === teacherId)
+    if (!teacher?.hourlyRate?.[level]) return null
+    const hourlyRate = teacher.hourlyRate[level]
+    const teacherCurrency = normalizeCurrency(teacher.currency)
+    return convertAmount(hourlyRate * 60, teacherCurrency, currency)
+  }
+
   const applySuggestedRevenueTarget = () => {
     const suggested = getSuggestedRevenueTarget(formData.level, formData.currency)
     setFormData((prev) => ({

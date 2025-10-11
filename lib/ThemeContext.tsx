@@ -15,6 +15,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Always start with 'light' to avoid hydration mismatch
   // The blocking script in layout.tsx handles the initial theme
   const [theme, setTheme] = useState<Theme>('light')
+  const [announcement, setAnnouncement] = useState('')
 
   useEffect(() => {
     // Sync with actual DOM state after hydration
@@ -32,12 +33,25 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.classList.remove('dark')
     }
+
+    // Announce theme change to screen readers
+    setAnnouncement(`Switched to ${newTheme} mode`)
+    setTimeout(() => setAnnouncement(''), 1000)
   }
 
   // Always provide context, even before mounted
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
+      {/* Screen reader announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </ThemeContext.Provider>
   )
 }

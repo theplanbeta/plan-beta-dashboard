@@ -41,7 +41,7 @@ export default function DashboardLayout({
     setBackingUp(true)
     setBackupMessage('')
     try {
-      const res = await fetch('/api/cron/backup', { method: 'POST' })
+      const res = await fetch('/api/cron/backup?manual=true', { method: 'POST' })
       const data = await res.json()
 
       if (data.skipped) {

@@ -9,29 +9,34 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 60 seconds timeout
 export const runtime = 'nodejs'
 
-async function performBackup() {
+async function performBackup(skipCooldown = false) {
   try {
     // Check if backup was done recently (within last 30 minutes) to avoid spam
-    const recentBackup = await prisma.auditLog.findFirst({
-      where: {
-        description: {
-          contains: 'database backup completed',
-          mode: 'insensitive',
+    // Skip cooldown check for manual triggers
+    if (!skipCooldown) {
+      const recentBackup = await prisma.auditLog.findFirst({
+        where: {
+          description: {
+            contains: 'database backup completed',
+            mode: 'insensitive',
+          },
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          },
         },
-        createdAt: {
-          gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        },
-      },
-    })
-
-    if (recentBackup) {
-      console.log('⏭️  Backup skipped - recent backup exists:', recentBackup.createdAt)
-      return NextResponse.json({
-        success: true,
-        message: 'Backup already created recently',
-        lastBackup: recentBackup.createdAt,
-        skipped: true
       })
+
+      if (recentBackup) {
+        console.log('⏭️  Backup skipped - recent backup exists:', recentBackup.createdAt)
+        return NextResponse.json({
+          success: true,
+          message: 'Backup already created recently',
+          lastBackup: recentBackup.createdAt,
+          skipped: true
+        })
+      }
+    } else {
+      console.log('🔓 Manual backup - bypassing cooldown')
     }
 
     console.log('🔄 Starting backup...')
@@ -194,10 +199,14 @@ async function performBackup() {
 }
 
 // Support both GET (for Vercel Cron) and POST (for manual triggers)
+// GET: Respects 30-min cooldown (automatic cron jobs)
+// POST with ?manual=true: Bypasses cooldown (manual button clicks)
 export async function GET(request: NextRequest) {
   return performBackup()
 }
 
 export async function POST(request: NextRequest) {
-  return performBackup()
+  const { searchParams } = new URL(request.url)
+  const isManual = searchParams.get('manual') === 'true'
+  return performBackup(isManual)
 }

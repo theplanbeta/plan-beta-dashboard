@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
 export default withPWA({
   dest: "public",
   disable: true, // Temporarily disabled due to sw.js error
-  register: true,
+  register: false, // Disable service worker registration
   sw: "sw.js",
   fallbacks: {
     document: "/offline",

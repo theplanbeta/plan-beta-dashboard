@@ -266,6 +266,8 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 className={`select ${fieldErrors.level ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="A1">A1</option>
+                <option value="A1_HYBRID">A1 Hybrid (Pre-recorded)</option>
+                <option value="A1_HYBRID_MALAYALAM">A1 Hybrid Malayalam</option>
                 <option value="A2">A2</option>
                 <option value="B1">B1</option>
                 <option value="B2">B2</option>

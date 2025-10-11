@@ -54,8 +54,9 @@ export async function GET(request: NextRequest) {
     ).length
 
     // Calculate financial metrics
-    const totalRevenue = payments.reduce(
-      (sum, p) => sum + Number(p.amount),
+    // Use totalPaidEur (EUR equivalent) from students for accurate revenue
+    const totalRevenue = students.reduce(
+      (sum, s) => sum + Number(s.totalPaidEur),
       0
     )
     const totalPending = students.reduce(
@@ -124,14 +125,10 @@ export async function GET(request: NextRequest) {
       (s) => new Date(s.enrollmentDate) >= thirtyDaysAgo
     ).length
 
-    // Recent payments (last 30 days)
-    const recentPayments = payments.filter(
-      (p) => new Date(p.paymentDate) >= thirtyDaysAgo
-    )
-    const recentRevenue = recentPayments.reduce(
-      (sum, p) => sum + Number(p.amount),
-      0
-    )
+    // Recent revenue (last 30 days) - sum totalPaidEur from recently enrolled students
+    const recentRevenue = students
+      .filter((s) => new Date(s.enrollmentDate) >= thirtyDaysAgo)
+      .reduce((sum, s) => sum + Number(s.totalPaidEur), 0)
 
     // Level distribution
     const levelDistribution = {

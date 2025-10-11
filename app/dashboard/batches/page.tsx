@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { normalizeCurrency } from "@/lib/currency"
 
 type Batch = {
   id: string
   batchCode: string
   level: string
+  currency?: string | null
   totalSeats: number
   enrolledCount: number
   fillRate: number
@@ -291,13 +293,19 @@ export default function BatchesPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Revenue</span>
                   <span className="text-base font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(Number(batch.revenueActual || 0))}
+                    {formatCurrency(
+                      Number(batch.revenueActual || 0),
+                      normalizeCurrency(batch.currency)
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-600">
                   <span className="text-xs text-gray-500 dark:text-gray-400">Target</span>
                   <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {formatCurrency(Number(batch.revenueTarget))}
+                    {formatCurrency(
+                      Number(batch.revenueTarget || 0),
+                      normalizeCurrency(batch.currency)
+                    )}
                   </span>
                 </div>
               </div>

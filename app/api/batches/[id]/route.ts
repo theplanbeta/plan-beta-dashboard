@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma"
 import { sendEmail, sendBatchEmails } from "@/lib/email"
 import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
-import { EXCHANGE_RATE } from "@/lib/pricing"
 import { convertAmount, normalizeCurrency, type SupportedCurrency } from "@/lib/currency"
 
 // Helpers to coerce payloads from form values

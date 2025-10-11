@@ -447,35 +447,144 @@ export default function NewBatchPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Schedule (Optional)
-            </label>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Schedule (Optional)
+        </label>
+        <input
+          type="text"
+          name="schedule"
+          value={formData.schedule}
+          onChange={handleChange}
+          placeholder="e.g., Mon/Wed/Fri 6:00 PM - 8:00 PM"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+    </div>
+
+    {/* Financial */}
+    <div className="space-y-4 border-t pt-6">
+      <h2 className="text-lg font-semibold text-foreground">Financial</h2>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-900">
+            Course Price: {formatCurrency(coursePriceSelected, formData.currency)} per student
+            {coursePriceAlternate > 0 && (
+              <span className="text-xs text-gray-600"> ({formatCurrency(coursePriceAlternate, alternateCurrency)})</span>
+            )}
+          </p>
+          <p className="text-xs text-gray-600">
+            Minimum profitable: {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
+            ({formData.level === "A1" || formData.level === "A2" ? "3" : "4"} is break-even but risky)
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Currency
+        </label>
+        <select
+          name="currency"
+          value={formData.currency}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="INR">INR (₹)</option>
+          <option value="EUR">EUR (€)</option>
+        </select>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Revenue Target ({formData.currency})
+          </label>
+          <div className="flex gap-2">
             <input
-              type="text"
-              name="schedule"
-              value={formData.schedule}
+              type="number"
+              name="revenueTarget"
+              value={formData.revenueTarget}
               onChange={handleChange}
-              placeholder="e.g., Mon/Wed/Fri 6:00 PM - 8:00 PM"
+              min="0"
+              step="0.01"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <button
+              type="button"
+              onClick={applySuggestedRevenueTarget}
+              className="px-3 py-2 border border-primary text-primary rounded-md text-xs font-semibold hover:bg-primary hover:text-white transition-colors"
+            >
+              Use suggested
+            </button>
           </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Suggested: {formatCurrency(coursePriceSelected, formData.currency)} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students = {formatCurrency(suggestedRevenueTarget, formData.currency)}
+          </p>
         </div>
 
-        {/* Notes */}
-        <div className="border-t pt-6">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Notes (Optional)
+            Teacher Cost ({formData.currency})
           </label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="Any additional information about this batch..."
-          />
+          <div className="flex gap-2">
+            <input
+              type="number"
+              name="teacherCost"
+              value={formData.teacherCost}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={applySuggestedTeacherCost}
+              disabled={!suggestedTeacherCost}
+              className="px-3 py-2 border border-primary text-primary rounded-md text-xs font-semibold hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Use suggested
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            {suggestedTeacherCost
+              ? `Suggested baseline: ${formatCurrency(suggestedTeacherCost, formData.currency)} (hourly rate × 60 hrs)`
+              : "Select a teacher to calculate baseline (hourly rate × 60 hrs)."}
+          </p>
         </div>
+      </div>
+
+      <div className="bg-gray-50 p-4 rounded-md space-y-2">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Expected Profit ({formData.currency})</span>
+          <span className={`font-semibold ${expectedProfit >= 0 ? 'text-success' : 'text-error'}`}>
+            {formatCurrency(expectedProfit, formData.currency)}
+          </span>
+        </div>
+        <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+          <span className="text-gray-600">Expected Profit ({alternateCurrency})</span>
+          <span className={`font-semibold ${expectedProfitAlternate >= 0 ? 'text-success' : 'text-error'}`}>
+            {formatCurrency(expectedProfitAlternate, alternateCurrency)}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    {/* Notes */}
+    <div className="border-t pt-6">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Notes (Optional)
+      </label>
+      <textarea
+        name="notes"
+        value={formData.notes}
+        onChange={handleChange}
+        rows={4}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+        placeholder="Any additional information about this batch..."
+      />
+    </div>
 
         {/* Submit */}
         <div className="flex justify-end space-x-4 border-t pt-6">

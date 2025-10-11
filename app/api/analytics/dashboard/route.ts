@@ -74,8 +74,8 @@ export async function GET(request: NextRequest) {
       batches.length > 0
         ? batches.reduce((sum, b) => sum + Number(b.fillRate), 0) / batches.length
         : 0
-    const totalSeatsAvailable = batches.reduce((sum, b) => b.totalSeats, 0)
-    const totalSeatsOccupied = batches.reduce((sum, b) => b.enrolledCount, 0)
+    const totalSeatsAvailable = batches.reduce((sum, b) => sum + b.totalSeats, 0)
+    const totalSeatsOccupied = batches.reduce((sum, b) => sum + b.enrolledCount, 0)
 
     // Calculate referral metrics
     const totalReferrals = referrals.length
@@ -105,10 +105,14 @@ export async function GET(request: NextRequest) {
     const enrollmentBreakdown = {
       COMBO: students.filter((s) => s.isCombo).length,
       SINGLE_LEVEL: students.filter((s) => !s.isCombo).length,
+      NEW: students.filter((s) => !s.isCombo && s.currentLevel === "NEW").length,
       A1: students.filter((s) => !s.isCombo && s.currentLevel === "A1").length,
+      A1_HYBRID: students.filter((s) => !s.isCombo && s.currentLevel === "A1_HYBRID").length,
+      A1_HYBRID_MALAYALAM: students.filter((s) => !s.isCombo && s.currentLevel === "A1_HYBRID_MALAYALAM").length,
       A2: students.filter((s) => !s.isCombo && s.currentLevel === "A2").length,
       B1: students.filter((s) => !s.isCombo && s.currentLevel === "B1").length,
       B2: students.filter((s) => !s.isCombo && s.currentLevel === "B2").length,
+      SPOKEN_GERMAN: students.filter((s) => !s.isCombo && s.currentLevel === "SPOKEN_GERMAN").length,
     }
 
     // Churn risk analysis
@@ -134,9 +138,12 @@ export async function GET(request: NextRequest) {
     const levelDistribution = {
       NEW: students.filter((s) => s.currentLevel === "NEW").length,
       A1: students.filter((s) => s.currentLevel === "A1").length,
+      A1_HYBRID: students.filter((s) => s.currentLevel === "A1_HYBRID").length,
+      A1_HYBRID_MALAYALAM: students.filter((s) => s.currentLevel === "A1_HYBRID_MALAYALAM").length,
       A2: students.filter((s) => s.currentLevel === "A2").length,
       B1: students.filter((s) => s.currentLevel === "B1").length,
       B2: students.filter((s) => s.currentLevel === "B2").length,
+      SPOKEN_GERMAN: students.filter((s) => s.currentLevel === "SPOKEN_GERMAN").length,
     }
 
     return NextResponse.json({

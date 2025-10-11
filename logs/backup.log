@@ -1,0 +1,36 @@
+
+> plan-beta-dashboard@0.1.0 backup
+> tsx scripts/backup-database.ts
+
+📦 Starting database backup...
+
+✅ Backup completed successfully!
+
+📊 Backed up:
+   Users: 3
+   Students: 0
+   Leads: 0
+   Batches: 0
+   Payments: 0
+   Referrals: 0
+   Attendance: 0
+
+💾 Saved to: /Users/deepak/plan-beta-dashboard/backups/backup-2025-10-11T00-11-10-115Z.json
+
+> plan-beta-dashboard@0.1.0 backup
+> tsx scripts/backup-database.ts
+
+📦 Starting database backup...
+
+✅ Backup completed successfully!
+
+📊 Backed up:
+   Users: 3
+   Students: 0
+   Leads: 0
+   Batches: 0
+   Payments: 0
+   Referrals: 0
+   Attendance: 0
+
+💾 Saved to: /Users/deepak/plan-beta-dashboard/backups/backup-2025-10-11T00-11-25-542Z.json

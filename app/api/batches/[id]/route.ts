@@ -4,6 +4,7 @@ import { sendEmail, sendBatchEmails } from "@/lib/email"
 import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
 import { EXCHANGE_RATE } from "@/lib/pricing"
+import { convertAmount, normalizeCurrency, type SupportedCurrency } from "@/lib/currency"
 
 // Helpers to coerce payloads from form values
 const nullableString = z.preprocess((v) => (v === "" ? null : v), z.string().nullable().optional())
@@ -54,37 +55,37 @@ export async function GET(
     // Calculate stats
     const enrolledCount = batch.students.length
     const fillRate = batch.totalSeats > 0 ? (enrolledCount / batch.totalSeats) * 100 : 0
-    const targetCurrency = (batch.currency === 'INR' ? 'INR' : 'EUR') as 'EUR' | 'INR'
-
-    const convertToTarget = (amount: number, sourceCurrency?: string | null) => {
-      if (!amount) return 0
-      const from = (sourceCurrency === 'INR' || sourceCurrency === 'EUR') ? sourceCurrency : targetCurrency
-      if (from === targetCurrency) return amount
-      if (from === 'INR' && targetCurrency === 'EUR') {
-        return amount / EXCHANGE_RATE
-      }
-      if (from === 'EUR' && targetCurrency === 'INR') {
-        return amount * EXCHANGE_RATE
-      }
-      return amount
-    }
+    const batchCurrency: SupportedCurrency = normalizeCurrency(batch.currency)
 
     const revenueActual = batch.students.reduce((sum, student) => {
       const paid = Number(student.totalPaid ?? 0)
-      return sum + convertToTarget(paid, student.currency)
+      const studentCurrency = normalizeCurrency((student as any).currency)
+      return sum + convertAmount(paid, studentCurrency, batchCurrency)
     }, 0)
 
     const revenuePotential = batch.students.reduce((sum, student) => {
       const finalPrice = Number(student.finalPrice ?? 0)
-      return sum + convertToTarget(finalPrice, student.currency)
+      const studentCurrency = normalizeCurrency((student as any).currency)
+      return sum + convertAmount(finalPrice, studentCurrency, batchCurrency)
     }, 0)
 
-    const teacherCost = convertToTarget(Number(batch.teacherCost ?? 0), batch.currency)
-    const revenueTarget = convertToTarget(Number(batch.revenueTarget ?? 0), batch.currency)
+    const teacherCost = convertAmount(
+      Number(batch.teacherCost ?? 0),
+      normalizeCurrency(batch.currency),
+      batchCurrency
+    )
+
+    const revenueTarget = convertAmount(
+      Number(batch.revenueTarget ?? 0),
+      normalizeCurrency(batch.currency),
+      batchCurrency
+    )
+
     const profit = revenueActual - teacherCost
 
     return NextResponse.json({
       ...batch,
+      currency: batchCurrency,
       enrolledCount,
       fillRate,
       revenueActual,

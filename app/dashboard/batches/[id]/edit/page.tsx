@@ -3,7 +3,9 @@
 import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { COURSE_PRICING, EXCHANGE_RATE, type CourseLevel } from "@/lib/pricing"
+import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
+import { convertAmount, normalizeCurrency, type SupportedCurrency } from "@/lib/currency"
+import { formatCurrency } from "@/lib/utils"
 
 interface Teacher {
   id: string
@@ -26,14 +28,14 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
   const [hasManualRevenueTarget, setHasManualRevenueTarget] = useState(false)
   const [hasManualTeacherCost, setHasManualTeacherCost] = useState(false)
 
-  const getSuggestedRevenueTarget = (level: CourseLevel) => {
-    const pricePerStudent = COURSE_PRICING[level]?.INR || 0
-    const minProfitableStudents = (level === "A1" || level === "A2") ? 5 : 6
+  const getSuggestedRevenueTarget = (level: CourseLevel, currency: SupportedCurrency) => {
+    const pricePerStudent = COURSE_PRICING[level]?.[currency] || 0
+    const minProfitableStudents = level === "A1" || level === "A2" ? 5 : 6
     return pricePerStudent * minProfitableStudents
   }
 
   const applySuggestedRevenueTarget = () => {
-    const suggested = getSuggestedRevenueTarget(formData.level)
+    const suggested = getSuggestedRevenueTarget(formData.level, formData.currency)
     setFormData((prev) => ({
       ...prev,
       revenueTarget: suggested,
@@ -43,12 +45,11 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
   const applySuggestedTeacherCost = () => {
     if (!formData.teacherId) return
-    const teacher = teachers.find(t => t.id === formData.teacherId)
-    if (!teacher?.hourlyRate?.[formData.level]) return
-    const hourlyRate = teacher.hourlyRate[formData.level]
+    const converted = findTeacherCostSuggestion(formData.teacherId, formData.level, formData.currency)
+    if (converted === null) return
     setFormData((prev) => ({
       ...prev,
-      teacherCost: hourlyRate * 60,
+      teacherCost: converted,
     }))
     setHasManualTeacherCost(false)
   }
@@ -56,6 +57,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
   const [formData, setFormData] = useState({
     batchCode: "",
     level: "A1" as CourseLevel,
+    currency: "INR" as SupportedCurrency,
     totalSeats: 10,
     revenueTarget: 0,
     teacherCost: 0,
@@ -66,14 +68,26 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     status: "PLANNING",
     notes: "",
   })
-  const suggestedRevenueTarget = getSuggestedRevenueTarget(formData.level)
+  const suggestedRevenueTarget = getSuggestedRevenueTarget(formData.level, formData.currency)
   const suggestedTeacherCost = (() => {
     if (!formData.teacherId) return null
     const teacher = teachers.find(t => t.id === formData.teacherId)
     if (!teacher?.hourlyRate?.[formData.level]) return null
     const hourlyRate = teacher.hourlyRate[formData.level]
-    return hourlyRate * 60
+    const teacherCurrency = normalizeCurrency(teacher.currency)
+    return convertAmount(hourlyRate * 60, teacherCurrency, formData.currency)
   })()
+
+  const alternateCurrency: SupportedCurrency = formData.currency === "INR" ? "EUR" : "INR"
+  const coursePriceSelected = COURSE_PRICING[formData.level]?.[formData.currency] || 0
+  const coursePriceAlternate = convertAmount(coursePriceSelected, formData.currency, alternateCurrency)
+  const expectedProfit =
+    (Number(formData.revenueTarget) || 0) - (Number(formData.teacherCost) || 0)
+  const expectedProfitAlternate = convertAmount(
+    expectedProfit,
+    formData.currency,
+    alternateCurrency
+  )
 
   useEffect(() => {
     fetchBatch()
@@ -99,13 +113,17 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
       if (!res.ok) throw new Error("Failed to fetch batch")
 
       const data = await res.json()
+      const currency = normalizeCurrency(data.currency)
+      const fetchedRevenueTarget = Number(data.revenueTarget ?? 0)
+      const fetchedTeacherCost = Number(data.teacherCost ?? 0)
+
       setFormData({
         batchCode: data.batchCode,
         level: data.level,
+        currency,
         totalSeats: data.totalSeats,
-        // Convert revenue target from EUR (DB) to INR (UI)
-        revenueTarget: Number(data.revenueTarget) * EXCHANGE_RATE,
-        teacherCost: Number(data.teacherCost),
+        revenueTarget: fetchedRevenueTarget,
+        teacherCost: fetchedTeacherCost,
         teacherId: data.teacherId || "",
         startDate: data.startDate ? new Date(data.startDate).toISOString().split("T")[0] : "",
         endDate: data.endDate ? new Date(data.endDate).toISOString().split("T")[0] : "",
@@ -113,8 +131,20 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         status: data.status,
         notes: data.notes || "",
       })
-      setHasManualRevenueTarget(Number(data.revenueTarget) !== 0)
-      setHasManualTeacherCost(Number(data.teacherCost) !== 0)
+      const suggestedRevenue = getSuggestedRevenueTarget(data.level, currency)
+      const revenueDiff = Math.abs(fetchedRevenueTarget - suggestedRevenue)
+      setHasManualRevenueTarget(revenueDiff > 0.5)
+
+      const teacherSuggest = (() => {
+        if (!data.teacherId) return null
+        const teacher = teachers.find(t => t.id === data.teacherId)
+        if (!teacher?.hourlyRate?.[data.level]) return null
+        const hourlyRate = teacher.hourlyRate[data.level]
+        const teacherCurrency = normalizeCurrency(teacher.currency)
+        return convertAmount(hourlyRate * 60, teacherCurrency, currency)
+      })()
+      const costDiff = teacherSuggest === null ? 0 : Math.abs(fetchedTeacherCost - teacherSuggest)
+      setHasManualTeacherCost(teacherSuggest === null ? fetchedTeacherCost !== 0 : costDiff > 0.5)
     } catch (err) {
       console.error(err)
       setError("Failed to load batch")
@@ -130,10 +160,10 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     setFieldErrors({})
 
     try {
-      // Convert revenue target from INR (UI) to EUR (DB) before saving
       const dataToSave = {
         ...formData,
-        revenueTarget: formData.revenueTarget / EXCHANGE_RATE,
+        revenueTarget: Number(formData.revenueTarget || 0),
+        teacherCost: Number(formData.teacherCost || 0),
       }
 
       const res = await fetch(`/api/batches/${id}`, {
@@ -178,7 +208,12 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target
-    const newValue = type === "number" ? parseFloat(value) || 0 : value
+    const newValue =
+      type === "number"
+        ? parseFloat(value) || 0
+        : name === "currency"
+        ? (value as SupportedCurrency)
+        : value
 
     if (name === "revenueTarget") {
       setHasManualRevenueTarget(true)
@@ -193,28 +228,25 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         [name]: newValue,
       }
 
-      // Auto-fill teacher cost when teacher is selected
-      if (name === "teacherId" && value && !hasManualTeacherCost) {
-        const selectedTeacher = teachers.find(t => t.id === value)
-        if (selectedTeacher?.hourlyRate?.[prev.level]) {
-          // Assuming 60 hours total for a batch (adjust as needed)
-          const hourlyRate = selectedTeacher.hourlyRate[prev.level]
-          updated.teacherCost = hourlyRate * 60
+      const nextCurrency: SupportedCurrency =
+        name === "currency" ? (newValue as SupportedCurrency) : prev.currency
+      const nextLevel: CourseLevel = name === "level" ? (newValue as CourseLevel) : prev.level
+
+      if ((name === "level" || name === "currency") && !hasManualRevenueTarget) {
+        updated.revenueTarget = getSuggestedRevenueTarget(nextLevel, nextCurrency)
+      }
+
+      if (name === "teacherId" && typeof value === "string" && value && !hasManualTeacherCost) {
+        const suggestion = findTeacherCostSuggestion(value, nextLevel, nextCurrency)
+        if (suggestion !== null) {
+          updated.teacherCost = suggestion
         }
       }
 
-      // Auto-fill revenue target when level changes (in INR)
-      if (name === "level" && !hasManualRevenueTarget) {
-        const level = value as CourseLevel
-        updated.revenueTarget = getSuggestedRevenueTarget(level)
-      }
-
-      // Also update teacher cost if teacher is already selected and auto mode active
-      if (name === "level" && prev.teacherId && !hasManualTeacherCost) {
-        const selectedTeacher = teachers.find(t => t.id === prev.teacherId)
-        if (selectedTeacher?.hourlyRate?.[value as string]) {
-          const hourlyRate = selectedTeacher.hourlyRate[value as string]
-          updated.teacherCost = hourlyRate * 60
+      if ((name === "level" || name === "currency") && prev.teacherId && !hasManualTeacherCost) {
+        const suggestion = findTeacherCostSuggestion(prev.teacherId, nextLevel, nextCurrency)
+        if (suggestion !== null) {
+          updated.teacherCost = suggestion
         }
       }
 
@@ -364,13 +396,17 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 <option value="">-- No teacher assigned --</option>
                 {teachers.map((teacher) => {
                   const levelRate = teacher.hourlyRate?.[formData.level]
-                  const currency = teacher.currency || 'EUR'
-                  const currencySymbol = currency === 'INR' ? '₹' : '€'
-                  const rateText = levelRate ? ` - ${currencySymbol}${levelRate}/hr` : ''
+                  const teacherCurrency = normalizeCurrency(teacher.currency)
+                  const rateText =
+                    typeof levelRate === "number"
+                      ? ` - ${formatCurrency(levelRate, teacherCurrency)}/hr`
+                      : ""
 
                   return (
                     <option key={teacher.id} value={teacher.id}>
-                      {teacher.name} ({teacher.teacherLevels.join(', ')}){rateText}
+                      {teacher.name}
+                      {teacher.teacherLevels?.length ? ` (${teacher.teacherLevels.join(", ")})` : ""}
+                      {rateText}
                     </option>
                   )
                 })}
@@ -453,11 +489,14 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
           {/* Pricing Info Banner */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <div className="flex-1">
+              <div className="flex-1 space-y-1">
                 <p className="text-sm font-medium text-gray-900">
-                  Course Price: ₹{COURSE_PRICING[formData.level as CourseLevel]?.INR || 0} per student (€{COURSE_PRICING[formData.level as CourseLevel]?.EUR || 0})
+                  Course Price: {formatCurrency(coursePriceSelected, formData.currency)} per student
+                  {coursePriceAlternate > 0 && (
+                    <span className="text-xs text-gray-600"> ({formatCurrency(coursePriceAlternate, alternateCurrency)})</span>
+                  )}
                 </p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-gray-600">
                   Minimum profitable: {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students
                   ({formData.level === "A1" || formData.level === "A2" ? "3" : "4"} is break-even but risky)
                 </p>
@@ -465,10 +504,25 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Currency
+            </label>
+            <select
+              name="currency"
+              value={formData.currency}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="INR">INR (₹)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Revenue Target (₹)
+                Revenue Target ({formData.currency})
               </label>
               <div className="flex gap-2">
                 <input
@@ -489,13 +543,13 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Suggested: ₹{COURSE_PRICING[formData.level as CourseLevel]?.INR || 0} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students = ₹{suggestedRevenueTarget.toFixed(2)}
+                Suggested: {formatCurrency(coursePriceSelected, formData.currency)} × {formData.level === "A1" || formData.level === "A2" ? "5" : "6"} students = {formatCurrency(suggestedRevenueTarget, formData.currency)}
               </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teacher Cost (₹)
+                Teacher Cost ({formData.currency})
               </label>
               <div className="flex gap-2">
                 <input
@@ -517,22 +571,24 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Suggested baseline: {suggestedTeacherCost ? `₹${suggestedTeacherCost.toFixed(2)}` : "Select a teacher to calculate"} (hourly rate × 60 hrs). Adjust for custom arrangements.
+                {suggestedTeacherCost
+                  ? `Suggested baseline: ${formatCurrency(suggestedTeacherCost, formData.currency)} (hourly rate × 60 hrs)`
+                  : "Select a teacher to calculate baseline (hourly rate × 60 hrs)."}
               </p>
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-md">
+          <div className="bg-gray-50 p-4 rounded-md space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Expected Profit (INR):</span>
-              <span className="font-semibold text-success">
-                ₹{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
+              <span className="text-gray-600">Expected Profit ({formData.currency})</span>
+              <span className={`font-semibold ${expectedProfit >= 0 ? 'text-success' : 'text-error'}`}>
+                {formatCurrency(expectedProfit, formData.currency)}
               </span>
             </div>
-            <div className="flex justify-between text-sm mt-2 pt-2 border-t border-gray-200">
-              <span className="text-gray-600">Expected Profit (EUR):</span>
-              <span className="font-semibold text-success">
-                €{((formData.revenueTarget - formData.teacherCost) / EXCHANGE_RATE).toFixed(2)}
+            <div className="flex justify-between text-sm pt-2 border-t border-gray-200">
+              <span className="text-gray-600">Expected Profit ({alternateCurrency})</span>
+              <span className={`font-semibold ${expectedProfitAlternate >= 0 ? 'text-success' : 'text-error'}`}>
+                {formatCurrency(expectedProfitAlternate, alternateCurrency)}
               </span>
             </div>
           </div>

@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { COURSE_PRICING, EXCHANGE_RATE, type CourseLevel } from "@/lib/pricing"
+import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
+import { convertAmount, normalizeCurrency, type SupportedCurrency } from "@/lib/currency"
 import { formatCurrency } from "@/lib/utils"
 
 interface Teacher {
@@ -21,11 +22,13 @@ export default function NewBatchPage() {
   const [error, setError] = useState("")
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loadingTeachers, setLoadingTeachers] = useState(true)
+  const [hasManualRevenueTarget, setHasManualRevenueTarget] = useState(false)
+  const [hasManualTeacherCost, setHasManualTeacherCost] = useState(false)
 
   const [formData, setFormData] = useState({
     batchCode: "",
     level: "A1" as CourseLevel,
-    currency: "INR" as "INR" | "EUR",
+    currency: "INR" as SupportedCurrency,
     timing: "Morning",
     totalSeats: 10,
     teacherId: "",
@@ -43,9 +46,46 @@ export default function NewBatchPage() {
     return (level === "A1" || level === "A2") ? 5 : 6
   }
 
+  const getSuggestedRevenueTarget = (level: CourseLevel, currency: SupportedCurrency) => {
+    const pricePerStudent = COURSE_PRICING[level]?.[currency] || 0
+    const minProfitableStudents = level === "A1" || level === "A2" ? 5 : 6
+    return pricePerStudent * minProfitableStudents
+  }
+
+  const findTeacherCostSuggestion = (
+    teacherId: string,
+    level: CourseLevel,
+    currency: SupportedCurrency
+  ) => {
+    const teacher = teachers.find(t => t.id === teacherId)
+    if (!teacher?.hourlyRate?.[level]) return null
+    const hourlyRate = teacher.hourlyRate[level]
+    const teacherCurrency = normalizeCurrency(teacher.currency)
+    return convertAmount(hourlyRate * 60, teacherCurrency, currency)
+  }
+
   useEffect(() => {
     fetchTeachers()
   }, [])
+
+  useEffect(() => {
+    if (hasManualRevenueTarget) return
+    setFormData((prev) => {
+      const suggested = getSuggestedRevenueTarget(prev.level, prev.currency)
+      if (Math.abs(prev.revenueTarget - suggested) <= 0.5) return prev
+      return { ...prev, revenueTarget: suggested }
+    })
+  }, [formData.level, formData.currency, hasManualRevenueTarget])
+
+  useEffect(() => {
+    if (hasManualTeacherCost) return
+    setFormData((prev) => {
+      if (!prev.teacherId) return prev
+      const suggestion = findTeacherCostSuggestion(prev.teacherId, prev.level, prev.currency)
+      if (suggestion === null || Math.abs(prev.teacherCost - suggestion) <= 0.5) return prev
+      return { ...prev, teacherCost: suggestion }
+    })
+  }, [formData.teacherId, formData.level, formData.currency, hasManualTeacherCost, teachers])
 
   const fetchTeachers = async () => {
     try {
@@ -66,10 +106,16 @@ export default function NewBatchPage() {
     setError("")
 
     try {
+      const payload = {
+        ...formData,
+        revenueTarget: Number(formData.revenueTarget || 0),
+        teacherCost: Number(formData.teacherCost || 0),
+      }
+
       const res = await fetch("/api/batches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {

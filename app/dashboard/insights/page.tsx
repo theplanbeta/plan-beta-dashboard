@@ -106,7 +106,7 @@ export default function InsightsPage() {
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading insights...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading insights...</div>
       </div>
     )
   }
@@ -126,14 +126,14 @@ export default function InsightsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Insights & Analytics</h1>
-          <p className="mt-2 text-gray-600">Data-driven insights to grow your school</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Insights & Analytics</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Data-driven insights to grow your school</p>
         </div>
 
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary"
         >
           <option value="7">Last 7 days</option>
           <option value="30">Last 30 days</option>
@@ -144,44 +144,44 @@ export default function InsightsPage() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Student Growth</div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Student Growth</div>
           <div className={`text-2xl font-bold mt-1 ${data.kpis.studentGrowthRate >= 0 ? "text-success" : "text-error"}`}>
             {data.kpis.studentGrowthRate >= 0 ? "+" : ""}{data.kpis.studentGrowthRate}
           </div>
-          <div className="text-xs text-gray-500 mt-1">Net change</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Net change</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Revenue Growth</div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Revenue Growth</div>
           <div className={`text-2xl font-bold mt-1 ${data.kpis.revenueGrowthRate >= 0 ? "text-success" : "text-error"}`}>
             {data.kpis.revenueGrowthRate >= 0 ? "+" : ""}{data.kpis.revenueGrowthRate.toFixed(1)}%
           </div>
-          <div className="text-xs text-gray-500 mt-1">Period over period</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Period over period</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Avg Class Size</div>
-          <div className="text-2xl font-bold mt-1 text-foreground">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Avg Class Size</div>
+          <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.avgClassSize.toFixed(1)}
           </div>
-          <div className="text-xs text-gray-500 mt-1">Students per batch</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Students per batch</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Capacity Used</div>
-          <div className="text-2xl font-bold mt-1 text-foreground">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Capacity Used</div>
+          <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.capacityUtilization.toFixed(0)}%
           </div>
-          <div className="text-xs text-gray-500 mt-1">Batch utilization</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Batch utilization</div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-4">
-          <div className="text-sm text-gray-600">Satisfaction</div>
-          <div className="text-2xl font-bold mt-1 text-foreground">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">Satisfaction</div>
+          <div className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">
             {data.kpis.customerSatisfaction.toFixed(0)}%
           </div>
-          <div className="text-xs text-gray-500 mt-1">Avg attendance</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Avg attendance</div>
         </div>
       </div>
 
@@ -203,8 +203,8 @@ export default function InsightsPage() {
 
       {/* Revenue Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Revenue Trend</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h2>
           <LineChart
             data={data.revenue.daily.map((d) => ({ date: d.date, value: d.revenue }))}
             color="#10b981"
@@ -212,13 +212,13 @@ export default function InsightsPage() {
           />
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-gray-600">Avg Daily</div>
-              <div className="text-xl font-bold text-foreground">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Daily</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
                 {formatCurrency(data.revenue.avgDaily)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Projected Monthly</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Projected Monthly</div>
               <div className="text-xl font-bold text-success">
                 {formatCurrency(data.revenue.projected)}
               </div>
@@ -226,8 +226,8 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Revenue by Type</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Type</h2>
           <BarChart
             data={Object.entries(data.revenue.byType).map(([label, value]) => ({
               label: label.replace(/_/g, " "),
@@ -241,36 +241,36 @@ export default function InsightsPage() {
 
       {/* Student Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Enrollment Trend</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Enrollment Trend</h2>
           <LineChart
             data={data.students.enrollmentsByDay.map((d) => ({ date: d.date, value: d.count }))}
             color="#8b5cf6"
           />
           <div className="mt-4 grid grid-cols-3 gap-4">
             <div>
-              <div className="text-sm text-gray-600">Avg Daily</div>
-              <div className="text-xl font-bold text-foreground">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Daily</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
                 {data.students.avgDailyEnrollments.toFixed(1)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Avg Lifetime</div>
-              <div className="text-xl font-bold text-foreground">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Lifetime</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
                 {data.students.avgLifetime} days
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-600">Avg Value</div>
-              <div className="text-xl font-bold text-foreground">
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Value</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">
                 {formatCurrency(data.students.avgValue)}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Attendance Distribution</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Attendance Distribution</h2>
           <DonutChart
             data={[
               { label: "Excellent (≥90%)", value: data.attendance.distribution.excellent, color: "#10b981" },
@@ -284,8 +284,8 @@ export default function InsightsPage() {
 
       {/* Churn & Retention */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Churn Analysis
             <span className={`ml-3 text-2xl font-bold ${data.churn.rate > 10 ? "text-error" : "text-success"}`}>
               {data.churn.rate.toFixed(1)}%
@@ -293,9 +293,9 @@ export default function InsightsPage() {
           </h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Low Attendance</span>
+              <span className="text-gray-600 dark:text-gray-300">Low Attendance</span>
               <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-error h-2 rounded-full"
                     style={{
@@ -309,15 +309,15 @@ export default function InsightsPage() {
                     }}
                   />
                 </div>
-                <span className="font-semibold w-8 text-right">
+                <span className="font-semibold w-8 text-right text-gray-900 dark:text-white">
                   {data.churn.reasons.lowAttendance}
                 </span>
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Payment Issues</span>
+              <span className="text-gray-600 dark:text-gray-300">Payment Issues</span>
               <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-warning h-2 rounded-full"
                     style={{
@@ -331,15 +331,15 @@ export default function InsightsPage() {
                     }}
                   />
                 </div>
-                <span className="font-semibold w-8 text-right">
+                <span className="font-semibold w-8 text-right text-gray-900 dark:text-white">
                   {data.churn.reasons.paymentIssues}
                 </span>
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Other Reasons</span>
+              <span className="text-gray-600 dark:text-gray-300">Other Reasons</span>
               <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     className="bg-info h-2 rounded-full"
                     style={{
@@ -353,7 +353,7 @@ export default function InsightsPage() {
                     }}
                   />
                 </div>
-                <span className="font-semibold w-8 text-right">
+                <span className="font-semibold w-8 text-right text-gray-900 dark:text-white">
                   {data.churn.reasons.other}
                 </span>
               </div>
@@ -361,8 +361,8 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Cohort Retention</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Cohort Retention</h2>
           <BarChart
             data={data.students.cohortRetention.slice(-6).map((d) => ({
               label: new Date(d.month + "-01").toLocaleDateString("en-US", { month: "short" }),
@@ -375,21 +375,21 @@ export default function InsightsPage() {
       </div>
 
       {/* Batch Performance */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Batch Performance</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Performance</h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div>
             <h3 className="text-sm font-medium text-success mb-3">Top Performing Batches</h3>
             <div className="space-y-2">
               {data.batches.topPerforming.map((batch: Record<string, unknown>, index: number) => (
-                <div key={index} className="flex justify-between items-center p-3 bg-success/5 rounded-lg">
+                <div key={index} className="flex justify-between items-center p-3 bg-success/5 dark:bg-success/10 rounded-lg">
                   <div>
-                    <div className="font-medium">{String(batch.batchCode)}</div>
-                    <div className="text-sm text-gray-600">{String(batch.enrolledCount)} students</div>
+                    <div className="font-medium text-gray-900 dark:text-white">{String(batch.batchCode)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{String(batch.enrolledCount)} students</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-success">{Number(batch.profitMargin).toFixed(0)}%</div>
-                    <div className="text-xs text-gray-500">profit margin</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">profit margin</div>
                   </div>
                 </div>
               ))}
@@ -400,14 +400,14 @@ export default function InsightsPage() {
             <h3 className="text-sm font-medium text-error mb-3">Needs Attention</h3>
             <div className="space-y-2">
               {data.batches.needsAttention.map((batch, index) => (
-                <div key={index} className="flex justify-between items-center p-3 bg-error/5 rounded-lg">
+                <div key={index} className="flex justify-between items-center p-3 bg-error/5 dark:bg-error/10 rounded-lg">
                   <div>
-                    <div className="font-medium">{String(batch.batchCode)}</div>
-                    <div className="text-sm text-gray-600">{String(batch.enrolledCount)} students</div>
+                    <div className="font-medium text-gray-900 dark:text-white">{String(batch.batchCode)}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{String(batch.enrolledCount)} students</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-error">{Number(batch.avgAttendance).toFixed(0)}%</div>
-                    <div className="text-xs text-gray-500">attendance</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">attendance</div>
                   </div>
                 </div>
               ))}
@@ -417,26 +417,26 @@ export default function InsightsPage() {
       </div>
 
       {/* Forecasts */}
-      <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Next Month Forecast</h2>
+      <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold mb-4 text-white">Next Month Forecast</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div>
-            <div className="text-sm opacity-90">Revenue</div>
-            <div className="text-2xl font-bold mt-1">
+            <div className="text-sm opacity-90 text-white">Revenue</div>
+            <div className="text-2xl font-bold mt-1 text-white">
               {formatCurrency(data.forecasts.nextMonthRevenue)}
             </div>
           </div>
           <div>
-            <div className="text-sm opacity-90">New Enrollments</div>
-            <div className="text-2xl font-bold mt-1">{data.forecasts.nextMonthEnrollments}</div>
+            <div className="text-sm opacity-90 text-white">New Enrollments</div>
+            <div className="text-2xl font-bold mt-1 text-white">{data.forecasts.nextMonthEnrollments}</div>
           </div>
           <div>
-            <div className="text-sm opacity-90">Expected Churn</div>
-            <div className="text-2xl font-bold mt-1">{data.forecasts.expectedChurn}</div>
+            <div className="text-sm opacity-90 text-white">Expected Churn</div>
+            <div className="text-2xl font-bold mt-1 text-white">{data.forecasts.expectedChurn}</div>
           </div>
           <div>
-            <div className="text-sm opacity-90">Projected Profit</div>
-            <div className="text-2xl font-bold mt-1">
+            <div className="text-sm opacity-90 text-white">Projected Profit</div>
+            <div className="text-2xl font-bold mt-1 text-white">
               {formatCurrency(data.forecasts.projectedProfit)}
             </div>
           </div>
@@ -445,8 +445,8 @@ export default function InsightsPage() {
 
       {/* Payment & Collection */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Payment Methods</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Methods</h2>
           <DonutChart
             data={Object.entries(data.payments.methodDistribution).map(([label, value]) => ({
               label: label.replace(/_/g, " "),
@@ -458,17 +458,17 @@ export default function InsightsPage() {
           />
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Collection Metrics</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Collection Metrics</h2>
           <div className="space-y-6">
             <div>
               <div className="flex justify-between mb-2">
-                <span className="text-gray-600">Collection Efficiency</span>
-                <span className="font-bold text-foreground">
+                <span className="text-gray-600 dark:text-gray-300">Collection Efficiency</span>
+                <span className="font-bold text-gray-900 dark:text-white">
                   {data.payments.collectionEfficiency.toFixed(0)}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full ${
                     data.payments.collectionEfficiency >= 80 ? "bg-success" : "bg-warning"
@@ -480,20 +480,20 @@ export default function InsightsPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-gray-600">Avg Payment</div>
-                <div className="text-xl font-bold text-foreground mt-1">
+                <div className="text-sm text-gray-600 dark:text-gray-400">Avg Payment</div>
+                <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
                   {formatCurrency(data.payments.avgSize)}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Outstanding</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Outstanding</div>
                 <div className="text-xl font-bold text-warning mt-1">
                   {formatCurrency(data.revenue.outstanding)}
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <div className="text-sm text-error">Overdue Amount</div>
               <div className="text-2xl font-bold text-error mt-1">
                 {formatCurrency(data.revenue.overdue)}
@@ -505,10 +505,10 @@ export default function InsightsPage() {
 
       {/* Top Referrers */}
       {data.referrals.topReferrers.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Referrers
-            <span className="ml-3 text-sm font-normal text-gray-600">
+            <span className="ml-3 text-sm font-normal text-gray-600 dark:text-gray-400">
               Conversion: {data.referrals.conversionRate.toFixed(0)}%
             </span>
           </h2>
@@ -516,19 +516,19 @@ export default function InsightsPage() {
             {data.referrals.topReferrers.map((referrer, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center p-3 hover:bg-gray-50 rounded-lg"
+                className="flex justify-between items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center font-bold text-primary">
                     #{index + 1}
                   </div>
-                  <div className="font-medium">{String(referrer.name)}</div>
+                  <div className="font-medium text-gray-900 dark:text-white">{String(referrer.name)}</div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-foreground">
+                  <div className="font-bold text-gray-900 dark:text-white">
                     {String(referrer.successfulReferrals)} successful
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {String(referrer.referralCount)} total referrals
                   </div>
                 </div>

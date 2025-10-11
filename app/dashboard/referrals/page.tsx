@@ -79,7 +79,7 @@ export default function ReferralsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading referrals...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading referrals...</div>
       </div>
     )
   }
@@ -89,8 +89,8 @@ export default function ReferralsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Referral Program</h1>
-          <p className="mt-2 text-gray-600">Track referrals and manage payouts</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Referral Program</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Track referrals and manage payouts</p>
         </div>
         <Link
           href="/dashboard/referrals/new"
@@ -102,43 +102,43 @@ export default function ReferralsPage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Total Referrals</div>
-          <div className="text-2xl font-bold text-foreground mt-1">{totalReferrals}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Total Referrals</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalReferrals}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Month 1 Complete</div>
-          <div className="text-2xl font-bold text-success mt-1">{completedMonth1}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Month 1 Complete</div>
+          <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">{completedMonth1}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Pending Payouts</div>
-          <div className="text-2xl font-bold text-warning mt-1">{pendingPayouts}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Pending Payouts</div>
+          <div className="text-2xl font-bold text-warning dark:text-yellow-400 mt-1">{pendingPayouts}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Total Paid Out</div>
-          <div className="text-2xl font-bold text-success mt-1">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Total Paid Out</div>
+          <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">
             {formatCurrency(totalPayouts)}
           </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Pending Amount</div>
-          <div className="text-2xl font-bold text-info mt-1">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Pending Amount</div>
+          <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">
             {formatCurrency(pendingPayoutAmount)}
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Payout Status
             </label>
             <select
               value={payoutFilter}
               onChange={(e) => setPayoutFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Status</option>
               <option value="PENDING">Pending</option>
@@ -149,13 +149,13 @@ export default function ReferralsPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Month 1 Status
             </label>
             <select
               value={month1Filter}
               onChange={(e) => setMonth1Filter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All</option>
               <option value="true">Completed</option>
@@ -166,47 +166,47 @@ export default function ReferralsPage() {
       </div>
 
       {/* Referrals Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Referrer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Referee
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Referral Date
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Attendance
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Month 1
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Payout
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {referrals.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     No referrals found
                   </td>
                 </tr>
               ) : (
                 referrals.map((referral) => (
-                  <tr key={referral.id} className="hover:bg-gray-50">
+                  <tr key={referral.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
                         href={`/dashboard/students/${referral.referrer.id}`}
@@ -214,7 +214,7 @@ export default function ReferralsPage() {
                       >
                         {referral.referrer.name}
                       </Link>
-                      <div className="text-xs text-gray-500">{referral.referrer.studentId}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{referral.referrer.studentId}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Link
@@ -223,14 +223,14 @@ export default function ReferralsPage() {
                       >
                         {referral.referee.name}
                       </Link>
-                      <div className="text-xs text-gray-500">{referral.referee.studentId}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{referral.referee.studentId}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {formatDate(referral.referralDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <span className={`font-medium ${
-                        Number(referral.referee.attendanceRate) >= 50 ? "text-success" : "text-error"
+                        Number(referral.referee.attendanceRate) >= 50 ? "text-success dark:text-green-400" : "text-error dark:text-red-400"
                       }`}>
                         {Number(referral.referee.attendanceRate).toFixed(0)}%
                       </span>
@@ -241,12 +241,12 @@ export default function ReferralsPage() {
                           ✓ Complete
                         </span>
                       ) : (
-                        <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
+                        <span className="px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
                           In Progress
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
                       {formatCurrency(Number(referral.payoutAmount))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

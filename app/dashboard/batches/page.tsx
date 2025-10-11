@@ -119,8 +119,8 @@ export default function BatchesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Batches</h1>
-          <p className="mt-2 text-gray-600">Manage course batches and capacity</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Batches</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-300">Manage course batches and capacity</p>
         </div>
         <Link
           href="/dashboard/batches/new"
@@ -132,20 +132,20 @@ export default function BatchesPage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Total Batches</div>
-          <div className="text-2xl font-bold text-foreground mt-1">{totalBatches}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Total Batches</div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{totalBatches}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Active Batches</div>
-          <div className="text-2xl font-bold text-success mt-1">{activeBatches}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Active Batches</div>
+          <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">{activeBatches}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Total Students</div>
-          <div className="text-2xl font-bold text-info mt-1">{totalStudents}</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Total Students</div>
+          <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">{totalStudents}</div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="text-sm text-gray-600">Avg Fill Rate</div>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-600 dark:text-gray-300">Avg Fill Rate</div>
           <div className={`text-2xl font-bold mt-1 ${getFillRateColor(avgFillRate)}`}>
             {avgFillRate.toFixed(0)}%
           </div>
@@ -153,16 +153,16 @@ export default function BatchesPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Level
             </label>
             <select
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Levels</option>
               <option value="A1">A1</option>
@@ -173,13 +173,13 @@ export default function BatchesPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Status
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">All Status</option>
               <option value="PLANNING">Planning</option>
@@ -194,8 +194,8 @@ export default function BatchesPage() {
 
       {/* Batches by Month */}
       {batches.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow">
-          <div className="text-gray-500">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="text-gray-500 dark:text-gray-400">
             No batches found. Click &quot;Create Batch&quot; to add your first batch.
           </div>
         </div>
@@ -205,8 +205,8 @@ export default function BatchesPage() {
             <div key={monthYear} className="space-y-4">
               {/* Month Header */}
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-semibold text-foreground">{monthYear}</h2>
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-sm rounded">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{monthYear}</h2>
+                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm rounded">
                   {batchesByMonth[monthYear].length} {batchesByMonth[monthYear].length === 1 ? 'batch' : 'batches'}
                 </span>
               </div>
@@ -217,16 +217,16 @@ export default function BatchesPage() {
             <Link
               key={batch.id}
               href={`/dashboard/batches/${batch.id}`}
-              className="bg-gray-50 rounded-xl p-5 hover:shadow-lg transition-shadow space-y-4"
+              className="bg-gray-50 dark:bg-gray-700 rounded-xl p-5 hover:shadow-lg dark:hover:shadow-2xl transition-shadow space-y-4 border border-gray-200 dark:border-gray-600"
             >
               {/* Header */}
               <div className="space-y-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">
                       {batch.batchCode}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">Level {batch.level}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Level {batch.level}</p>
                   </div>
                   <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(batch.status)}`}>
                     {batch.status}
@@ -235,21 +235,21 @@ export default function BatchesPage() {
               </div>
 
               {/* Fill Rate Progress */}
-              <div className="bg-white rounded-lg p-4 space-y-3">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-600">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">Capacity</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Capacity</span>
                   <span className={`text-sm font-bold ${getFillRateColor(batch.fillRate)}`}>
                     {batch.enrolledCount}/{batch.totalSeats}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-3">
                   <div
                     className={`h-3 rounded-full transition-all ${
                       batch.fillRate >= 80
-                        ? "bg-success"
+                        ? "bg-success dark:bg-green-400"
                         : batch.fillRate >= 50
-                        ? "bg-warning"
-                        : "bg-error"
+                        ? "bg-warning dark:bg-yellow-400"
+                        : "bg-error dark:bg-red-400"
                     }`}
                     style={{ width: `${Math.min(batch.fillRate, 100)}%` }}
                   />
@@ -258,28 +258,28 @@ export default function BatchesPage() {
                   <span className={`text-lg font-bold ${getFillRateColor(batch.fillRate)}`}>
                     {batch.fillRate.toFixed(0)}%
                   </span>
-                  <span className="text-xs text-gray-500"> filled</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400"> filled</span>
                 </div>
               </div>
 
               {/* Teacher */}
               {batch.teacher && (
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Teacher</div>
-                  <div className="text-sm font-semibold text-gray-900">{batch.teacher.name}</div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Teacher</div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">{batch.teacher.name}</div>
                 </div>
               )}
 
               {/* Dates */}
               {batch.startDate && (
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-xs text-gray-500 mb-1">Schedule</div>
-                  <div className="text-sm font-medium text-gray-900">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Schedule</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
                     {formatDate(batch.startDate)}
                     {batch.endDate && (
                       <>
                         <br />
-                        <span className="text-xs text-gray-600">to {formatDate(batch.endDate)}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">to {formatDate(batch.endDate)}</span>
                       </>
                     )}
                   </div>
@@ -287,16 +287,16 @@ export default function BatchesPage() {
               )}
 
               {/* Revenue */}
-              <div className="bg-white rounded-lg p-4 space-y-2">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-2 border border-gray-200 dark:border-gray-600">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Revenue</span>
-                  <span className="text-base font-bold text-gray-900">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Revenue</span>
+                  <span className="text-base font-bold text-gray-900 dark:text-white">
                     {formatCurrency(Number(batch.revenueActual || 0))}
                   </span>
                 </div>
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <span className="text-xs text-gray-500">Target</span>
-                  <span className="text-sm text-gray-600">
+                <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-600">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">Target</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
                     {formatCurrency(Number(batch.revenueTarget))}
                   </span>
                 </div>

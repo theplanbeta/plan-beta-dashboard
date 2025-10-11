@@ -3,13 +3,16 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { COURSE_PRICING, EXCHANGE_RATE, type CourseLevel } from "@/lib/pricing"
+import { formatCurrency } from "@/lib/utils"
 
 interface Teacher {
   id: string
   name: string
   email: string
   specializations?: string
-  hourlyRate?: number
+  hourlyRate?: Record<string, number> | null
+  currency?: string | null
 }
 
 export default function NewBatchPage() {
@@ -21,7 +24,8 @@ export default function NewBatchPage() {
 
   const [formData, setFormData] = useState({
     batchCode: "",
-    level: "A1",
+    level: "A1" as CourseLevel,
+    currency: "INR" as "INR" | "EUR",
     timing: "Morning",
     totalSeats: 10,
     teacherId: "",

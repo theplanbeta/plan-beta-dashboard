@@ -1,0 +1,3 @@
+Batch Code,Level,Enrollment Date (YYYY-MM-DD),Student Name,WhatsApp (E.164),Email,Referral Source,Currency,Original Price,Discount,Amount Paid,Payment Status,Trial Attended,Notes
+A1-OCT-AM,A1,2025-10-12,First Student,+491701234567,first.student@example.com,ORGANIC,EUR,134.00,0.00,134.00,PAID,TRUE,"Paid in full on enrollment"
+A1-OCT-AM,A1,2025-10-12,Second Student,+918001112223,,REFERRAL,INR,14000.00,1000.00,6000.00,PARTIAL,FALSE,"Referral by existing student; balance pending"

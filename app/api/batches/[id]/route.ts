@@ -12,6 +12,7 @@ const nullableString = z.preprocess((v) => (v === "" ? null : v), z.string().nul
 const updateBatchSchema = z.object({
   batchCode: z.string().min(1, "Batch code required"),
   level: z.enum(["NEW", "A1", "A1_HYBRID", "A1_HYBRID_MALAYALAM", "A2", "B1", "B2", "SPOKEN_GERMAN"]),
+  currency: z.enum(["EUR", "INR"]).optional(),
   teacherId: nullableString,
   totalSeats: z.preprocess((v) => (typeof v === 'string' ? parseInt(v as string, 10) : v), z.number().int().positive().max(50, "Max 50 seats")),
   revenueTarget: z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number().min(0)).optional(),
@@ -53,19 +54,43 @@ export async function GET(
     // Calculate stats
     const enrolledCount = batch.students.length
     const fillRate = batch.totalSeats > 0 ? (enrolledCount / batch.totalSeats) * 100 : 0
-    const revenueActual = batch.students.reduce(
-      (sum, student) => sum + Number(student.finalPrice),
-      0
-    )
-    // Convert teacher cost from INR to EUR before calculating profit
-    const teacherCostEur = Number(batch.teacherCost) / EXCHANGE_RATE
-    const profit = revenueActual - teacherCostEur
+    const targetCurrency = (batch.currency === 'INR' ? 'INR' : 'EUR') as 'EUR' | 'INR'
+
+    const convertToTarget = (amount: number, sourceCurrency?: string | null) => {
+      if (!amount) return 0
+      const from = (sourceCurrency === 'INR' || sourceCurrency === 'EUR') ? sourceCurrency : targetCurrency
+      if (from === targetCurrency) return amount
+      if (from === 'INR' && targetCurrency === 'EUR') {
+        return amount / EXCHANGE_RATE
+      }
+      if (from === 'EUR' && targetCurrency === 'INR') {
+        return amount * EXCHANGE_RATE
+      }
+      return amount
+    }
+
+    const revenueActual = batch.students.reduce((sum, student) => {
+      const paid = Number(student.totalPaid ?? 0)
+      return sum + convertToTarget(paid, student.currency)
+    }, 0)
+
+    const revenuePotential = batch.students.reduce((sum, student) => {
+      const finalPrice = Number(student.finalPrice ?? 0)
+      return sum + convertToTarget(finalPrice, student.currency)
+    }, 0)
+
+    const teacherCost = convertToTarget(Number(batch.teacherCost ?? 0), batch.currency)
+    const revenueTarget = convertToTarget(Number(batch.revenueTarget ?? 0), batch.currency)
+    const profit = revenueActual - teacherCost
 
     return NextResponse.json({
       ...batch,
       enrolledCount,
       fillRate,
       revenueActual,
+      revenuePotential,
+      revenueTarget,
+      teacherCost,
       profit,
     })
   } catch (error) {
@@ -122,6 +147,7 @@ export async function PUT(
       data: {
         batchCode: data.batchCode,
         level: data.level,
+        currency: data.currency || undefined,
         teacherId: data.teacherId || null,
         totalSeats: data.totalSeats,
         revenueTarget: data.revenueTarget,

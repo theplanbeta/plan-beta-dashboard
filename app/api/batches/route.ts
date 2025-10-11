@@ -10,6 +10,7 @@ const Decimal = Prisma.Decimal
 const createBatchSchema = z.object({
   batchCode: z.string().min(3, "Batch code too short").max(50, "Batch code too long"),
   level: z.enum(["NEW", "A1", "A1_HYBRID", "A1_HYBRID_MALAYALAM", "A2", "B1", "B2", "SPOKEN_GERMAN"]),
+  currency: z.enum(["EUR", "INR"]).optional(),
   teacherId: z.string().optional(),
   totalSeats: z.number().int().positive("Total seats must be positive").max(9999, "Too many seats"),
   revenueTarget: z.number().min(0, "Revenue target cannot be negative").max(10000000, "Revenue target too high"),
@@ -116,6 +117,7 @@ export async function POST(request: NextRequest) {
       data: {
         batchCode: data.batchCode,
         level: data.level,
+        currency: data.currency || "EUR",
         teacherId: data.teacherId || null,
         totalSeats: data.totalSeats,
         enrolledCount: 0,

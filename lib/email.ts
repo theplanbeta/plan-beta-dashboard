@@ -304,3 +304,73 @@ export async function sendBatchEmails(
 
   return { successful, failed, total: recipients.length }
 }
+
+type BackupCounts = Record<string, number>
+
+export async function sendBackupEmail({
+  to,
+  counts,
+  backupJson,
+  timestamp,
+  filename,
+}: {
+  to?: string | string[]
+  counts: BackupCounts
+  backupJson: string
+  timestamp: string
+  filename?: string
+}) {
+  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'your-resend-api-key') {
+    return { success: false, error: 'RESEND_API_KEY is not configured' }
+  }
+
+  if (!resend) {
+    return { success: false, error: 'Email client not initialised' }
+  }
+
+  const recipientList = Array.isArray(to)
+    ? to
+    : [to || process.env.SUPPORT_EMAIL || 'hello@planbeta.in']
+
+  const safeFilename =
+    filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json`
+
+  const summaryRows = Object.entries(counts)
+    .map(([name, value]) => `<li><strong>${name}:</strong> ${value}</li>`)
+    .join('')
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1d4ed8;">Plan Beta Database Backup</h2>
+      <p><strong>Timestamp:</strong> ${timestamp}</p>
+      <p>A fresh JSON backup is attached.</p>
+      <h3>Record counts</h3>
+      <ul>
+        ${summaryRows}
+      </ul>
+      <p style="font-size: 12px; color: #6b7280;">
+        This email was generated automatically by the dashboard backup service.
+      </p>
+    </div>
+  `
+
+  try {
+    const result = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'Plan Beta Backups <noreply@planbeta.in>',
+      to: recipientList,
+      subject: `Database Backup - ${timestamp}`,
+      html,
+      attachments: [
+        {
+          filename: safeFilename,
+          content: Buffer.from(backupJson, 'utf-8').toString('base64'),
+        },
+      ],
+    })
+
+    return { success: true, data: result }
+  } catch (error) {
+    console.error('Failed to send backup email:', error)
+    return { success: false, error }
+  }
+}

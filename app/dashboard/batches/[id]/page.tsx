@@ -9,11 +9,13 @@ type Batch = {
   id: string
   batchCode: string
   level: string
+  currency: "EUR" | "INR"
   totalSeats: number
   enrolledCount: number
   fillRate: number
   revenueTarget: number
   revenueActual: number
+  revenuePotential?: number
   teacherCost: number
   profit: number
   startDate: string | null
@@ -31,6 +33,7 @@ type Batch = {
     studentId: string
     name: string
     whatsapp: string
+    currency: "EUR" | "INR"
     currentLevel: string
     paymentStatus: string
     finalPrice: number
@@ -132,6 +135,10 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
     return "text-error"
   }
 
+  const batchCurrency = batch.currency === "INR" ? "INR" : "EUR"
+
+  const formatAmount = (amount: number) => formatCurrency(amount, batchCurrency)
+
   const profitMargin = batch.revenueActual > 0
     ? ((batch.profit / batch.revenueActual) * 100).toFixed(1)
     : "0"
@@ -187,17 +194,17 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Revenue</div>
           <div className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(Number(batch.revenueActual))}
+            {formatAmount(Number(batch.revenueActual))}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Target: {formatCurrency(Number(batch.revenueTarget))}
+            Target: {formatAmount(Number(batch.revenueTarget))}
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Profit</div>
           <div className={`text-2xl font-bold mt-1 ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
-            {formatCurrency(Number(batch.profit))}
+            {formatAmount(Number(batch.profit))}
           </div>
           <div className="text-xs text-gray-500 mt-1">
             Margin: {profitMargin}%
@@ -207,7 +214,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Teacher Cost</div>
           <div className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(Number(batch.teacherCost))}
+            {formatAmount(Number(batch.teacherCost))}
           </div>
           <div className="text-xs text-gray-500 mt-1">
             {batch.teacher?.name || "Not assigned"}
@@ -261,10 +268,10 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                       </span>
                       <div className="text-right">
                         <div className="text-sm font-medium">
-                          {formatCurrency(Number(student.totalPaid))}
+                          {formatCurrency(Number(student.totalPaid ?? 0), student.currency)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          of {formatCurrency(Number(student.finalPrice))}
+                          of {formatCurrency(Number(student.finalPrice ?? 0), student.currency)}
                         </div>
                       </div>
                     </div>
@@ -333,24 +340,24 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Revenue Target</span>
-                <span className="font-medium">{formatCurrency(Number(batch.revenueTarget))}</span>
+                <span className="font-medium">{formatAmount(Number(batch.revenueTarget))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Revenue Actual</span>
                 <span className="font-medium text-success">
-                  {formatCurrency(Number(batch.revenueActual))}
+                  {formatAmount(Number(batch.revenueActual))}
                 </span>
               </div>
               <div className="flex justify-between pt-3 border-t">
                 <span className="text-gray-600">Teacher Cost</span>
                 <span className="font-medium text-error">
-                  {formatCurrency(Number(batch.teacherCost))}
+                  {formatAmount(Number(batch.teacherCost))}
                 </span>
               </div>
               <div className="flex justify-between pt-3 border-t">
                 <span className="font-semibold">Net Profit</span>
                 <span className={`font-semibold ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
-                  {formatCurrency(Number(batch.profit))}
+                  {formatAmount(Number(batch.profit))}
                 </span>
               </div>
               <div className="flex justify-between text-sm">

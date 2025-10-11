@@ -42,12 +42,28 @@ export default function DashboardLayout({
     setBackupMessage('')
     try {
       const res = await fetch('/api/cron/backup?manual=true', { method: 'POST' })
-      const data = await res.json()
+      let data: any = null
+      try {
+        data = await res.json()
+      } catch {
+        data = null
+      }
+
+      if (!res.ok) {
+        const message = data?.error ? `❌ ${data.error}` : '❌ Backup failed'
+        setBackupMessage(message)
+        return
+      }
 
       if (data.skipped) {
         setBackupMessage('Backup created recently')
       } else if (data.success) {
-        setBackupMessage('✓ Backup sent to email')
+        const formatCount = (value: unknown) =>
+          typeof value === 'number' && Number.isFinite(value) ? value : '?'
+        const summary = data?.counts
+          ? ` (students: ${formatCount(data.counts.students)}, leads: ${formatCount(data.counts.leads)})`
+          : ''
+        setBackupMessage(`✓ Backup emailed${summary}`)
       } else {
         setBackupMessage('❌ Backup failed')
       }
@@ -100,15 +116,19 @@ export default function DashboardLayout({
     const triggerBackupOnLoad = async () => {
       try {
         console.log('🔄 Checking backup status on dashboard load...')
-        await fetch('/api/cron/backup', { method: 'POST' })
-          .then(res => res.json())
-          .then(data => {
-            if (data.skipped) {
-              console.log('⏭️  Backup skipped (recent backup exists)')
-            } else if (data.success) {
-              console.log('✅ Auto-backup completed on dashboard load')
-            }
-          })
+        const res = await fetch('/api/cron/backup', { method: 'POST' })
+        const data = await res.json().catch(() => null)
+
+        if (!res.ok) {
+          console.error('❌ Auto-backup failed:', data?.error || res.statusText)
+          return
+        }
+
+        if (data?.skipped) {
+          console.log('⏭️  Backup skipped (recent backup exists)')
+        } else if (data?.success) {
+          console.log('✅ Auto-backup completed on dashboard load')
+        }
       } catch (error) {
         console.error('❌ Auto-backup failed:', error)
         // Silently fail - not critical

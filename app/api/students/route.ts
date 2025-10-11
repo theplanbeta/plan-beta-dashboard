@@ -12,14 +12,14 @@ const Decimal = Prisma.Decimal
 // Validation schema for creating a student
 const createStudentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
-  whatsapp: z.string().transform((val) => val.replace(/[\s\-()]/g, "")).pipe(z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid WhatsApp number format (must be 2-15 digits)")),
+  whatsapp: z.string().min(1, "WhatsApp number is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   batchId: z.string().optional(),
   enrollmentDate: z.string().optional(),
   currentLevel: z.enum(["NEW", "A1", "A2", "B1", "B2", "SPOKEN_GERMAN"]).optional(),
   isCombo: z.boolean().optional(),
   comboLevels: z.array(z.enum(["A1", "A2", "B1", "B2"])).optional(),
-  originalPrice: z.number().positive("Original price must be greater than 0").max(1000000, "Price exceeds maximum"),
+  originalPrice: z.number().min(0, "Original price cannot be negative").max(1000000, "Price exceeds maximum"),
   discountApplied: z.number().min(0, "Discount cannot be negative").optional(),
   currency: z.enum(["INR", "EUR"]).optional(),
   paymentStatus: z.enum(["PENDING", "PARTIAL", "PAID", "OVERDUE"]).optional(),

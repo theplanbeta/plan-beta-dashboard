@@ -4,6 +4,8 @@ import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +27,8 @@ function NewPaymentForm() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const { addToast } = useToast()
   const [students, setStudents] = useState<Student[]>([])
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
@@ -37,6 +41,19 @@ function NewPaymentForm() {
     transactionId: "",
     notes: "",
   })
+
+  // Dirty state guard
+  const [isDirty, setIsDirty] = useState(false)
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !loading) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, loading])
 
   useEffect(() => {
     fetchStudents()
@@ -85,9 +102,22 @@ function NewPaymentForm() {
       })
 
       if (!res.ok) {
-        throw new Error("Failed to record payment")
+        try {
+          const data = await res.json()
+          if (Array.isArray(data?.details)) {
+            setFieldErrors(parseZodIssues(data.details))
+            setError(data?.error || 'Validation failed')
+            return
+          }
+          setError(data?.error || 'Failed to record payment')
+          return
+        } catch {
+          setError('Failed to record payment')
+          return
+        }
       }
 
+      addToast('Payment recorded successfully', { type: 'success' })
       router.push("/dashboard/payments")
       router.refresh()
     } catch (err) {
@@ -106,6 +136,7 @@ function NewPaymentForm() {
       ...prev,
       [name]: type === "number" ? parseFloat(value) || 0 : value,
     }))
+    setIsDirty(true)
   }
 
   const handleStudentChange = (studentId: string) => {
@@ -147,7 +178,7 @@ function NewPaymentForm() {
           <h2 className="text-lg font-semibold text-foreground">Student Information</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="form-label">
               Select Student <span className="text-error">*</span>
             </label>
             <select
@@ -155,7 +186,7 @@ function NewPaymentForm() {
               value={formData.studentId}
               onChange={(e) => handleStudentChange(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`select ${fieldErrors.studentId ? 'border-red-500 focus:ring-red-500' : ''}`}
             >
               <option value="">Choose a student...</option>
               {students.map((student) => (
@@ -164,6 +195,9 @@ function NewPaymentForm() {
                 </option>
               ))}
             </select>
+            {fieldErrors.studentId && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.studentId}</p>
+            )}
           </div>
 
           {selectedStudent && (
@@ -204,7 +238,7 @@ function NewPaymentForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Amount (€) <span className="text-error">*</span>
               </label>
               <input
@@ -215,12 +249,15 @@ function NewPaymentForm() {
                 required
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.amount ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.amount && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.amount}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Payment Date <span className="text-error">*</span>
               </label>
               <input
@@ -229,12 +266,15 @@ function NewPaymentForm() {
                 value={formData.paymentDate}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.paymentDate ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.paymentDate && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.paymentDate}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Payment Method <span className="text-error">*</span>
               </label>
               <select
@@ -242,7 +282,7 @@ function NewPaymentForm() {
                 value={formData.method}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`select ${fieldErrors.method ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="CASH">Cash</option>
                 <option value="BANK_TRANSFER">Bank Transfer</option>
@@ -250,6 +290,9 @@ function NewPaymentForm() {
                 <option value="CARD">Card</option>
                 <option value="OTHER">Other</option>
               </select>
+              {fieldErrors.method && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.method}</p>
+              )}
             </div>
 
             <div>

@@ -3,7 +3,7 @@
 import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
+import { COURSE_PRICING, EXCHANGE_RATE, type CourseLevel } from "@/lib/pricing"
 
 interface Teacher {
   id: string
@@ -20,6 +20,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [initialLoading, setInitialLoading] = useState(true)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loadingTeachers, setLoadingTeachers] = useState(true)
 
@@ -98,6 +99,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     e.preventDefault()
     setLoading(true)
     setError("")
+    setFieldErrors({})
 
     try {
       const res = await fetch(`/api/batches/${id}`, {
@@ -107,7 +109,25 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
       })
 
       if (!res.ok) {
-        throw new Error("Failed to update batch")
+        // Try to parse validation errors from API
+        try {
+          const data = await res.json()
+          if (data?.details && Array.isArray(data.details)) {
+            const fe: Record<string, string> = {}
+            data.details.forEach((issue: any) => {
+              const path = Array.isArray(issue?.path) ? issue.path.join('.') : ''
+              const message = issue?.message || 'Invalid value'
+              if (path) fe[path] = message
+            })
+            setFieldErrors(fe)
+            setError(data?.error || 'Validation failed')
+          } else {
+            setError(data?.error || 'Failed to update batch')
+          }
+        } catch {
+          setError('Failed to update batch')
+        }
+        return
       }
 
       router.push(`/dashboard/batches/${id}`)
@@ -178,12 +198,22 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
           <h1 className="text-3xl font-bold text-foreground">Edit Batch</h1>
           <p className="mt-2 text-gray-600">Update batch information</p>
         </div>
-        <Link
-          href={`/dashboard/batches/${id}`}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Cancel
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setFormData(prev => ({...prev, teacherId: "", startDate: "", endDate: "", schedule: "", notes: ""}))}
+            className="btn-outline px-3 py-2"
+            title="Reset optional fields"
+          >
+            Reset Optional
+          </button>
+          <Link
+            href={`/dashboard/batches/${id}`}
+            className="btn-outline px-4 py-2"
+          >
+            Cancel
+          </Link>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="panel p-6 space-y-6">
@@ -199,7 +229,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Batch Code <span className="text-error">*</span>
               </label>
               <input
@@ -209,13 +239,16 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 onChange={handleChange}
                 required
                 placeholder="e.g., A1-JAN-EVE-01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.batchCode ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.batchCode && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.batchCode}</p>
+              )}
               <p className="text-xs text-gray-500 mt-1">Format: LEVEL-MONTH-TIME-NUMBER</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Level <span className="text-error">*</span>
               </label>
               <select
@@ -223,17 +256,20 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 value={formData.level}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`select ${fieldErrors.level ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="A1">A1</option>
                 <option value="A2">A2</option>
                 <option value="B1">B1</option>
                 <option value="B2">B2</option>
               </select>
+              {fieldErrors.level && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.level}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Total Seats <span className="text-error">*</span>
               </label>
               <input
@@ -244,19 +280,22 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 required
                 min="1"
                 max="50"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.totalSeats ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.totalSeats && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.totalSeats}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`select ${fieldErrors.status ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="PLANNING">Planning</option>
                 <option value="FILLING">Filling</option>
@@ -266,10 +305,13 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 <option value="POSTPONED">Postponed</option>
                 <option value="CANCELLED">Cancelled</option>
               </select>
+              {fieldErrors.status && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.status}</p>
+              )}
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Assign Teacher
               </label>
               <select
@@ -277,7 +319,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 value={formData.teacherId}
                 onChange={handleChange}
                 disabled={loadingTeachers}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-100"
+                className={`select disabled:bg-gray-100 ${fieldErrors.teacherId ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="">-- No teacher assigned --</option>
                 {teachers.map((teacher) => {
@@ -293,6 +335,9 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                   )
                 })}
               </select>
+              {fieldErrors.teacherId && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.teacherId}</p>
+              )}
               {loadingTeachers && (
                 <p className="text-xs text-gray-500 mt-1">Loading teachers...</p>
               )}
@@ -311,7 +356,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Start Date
               </label>
               <input
@@ -319,12 +364,15 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 name="startDate"
                 value={formData.startDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.startDate ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.startDate && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.startDate}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 End Date
               </label>
               <input
@@ -332,13 +380,16 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 name="endDate"
                 value={formData.endDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.endDate ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.endDate && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.endDate}</p>
+              )}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="form-label">
               Schedule (Optional)
             </label>
             <input
@@ -347,8 +398,11 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
               value={formData.schedule}
               onChange={handleChange}
               placeholder="e.g., Mon/Wed/Fri 6:00 PM - 8:00 PM"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`input ${fieldErrors.schedule ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
+            {fieldErrors.schedule && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.schedule}</p>
+            )}
           </div>
         </div>
 
@@ -393,7 +447,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Teacher Cost (€)
+                Teacher Cost (₹)
               </label>
               <input
                 type="number"
@@ -405,7 +459,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-gray-50"
                 readOnly
               />
-              <p className="text-xs text-gray-500 mt-1">Auto-calculated: teacher hourly rate × 60 hrs</p>
+              <p className="text-xs text-gray-500 mt-1">Auto-calculated: teacher hourly rate × 60 hrs (in INR)</p>
             </div>
           </div>
 
@@ -413,7 +467,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Expected Profit:</span>
               <span className="font-semibold text-success">
-                €{(formData.revenueTarget - formData.teacherCost).toFixed(2)}
+                €{(formData.revenueTarget - (formData.teacherCost / EXCHANGE_RATE)).toFixed(2)}
               </span>
             </div>
           </div>
@@ -421,7 +475,7 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
 
         {/* Notes */}
         <div className="border-t pt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="form-label">
             Notes (Optional)
           </label>
           <textarea
@@ -429,23 +483,23 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
             value={formData.notes}
             onChange={handleChange}
             rows={4}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`textarea ${fieldErrors.notes ? 'border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Any additional information about this batch..."
           />
+          {fieldErrors.notes && (
+            <p className="text-red-600 text-xs mt-1">{fieldErrors.notes}</p>
+          )}
         </div>
 
         {/* Submit */}
         <div className="flex justify-end space-x-4 border-t pt-6">
-          <Link
-            href={`/dashboard/batches/${id}`}
-            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
+          <Link href={`/dashboard/batches/${id}`} className="btn-outline px-6 py-2">
             Cancel
           </Link>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Updating..." : "Update Batch"}
           </button>

@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -12,6 +14,20 @@ export default function NewLeadPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [parsing, setParsing] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const { addToast } = useToast()
+  const [isDirty, setIsDirty] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !loading) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, loading])
   const [showSmartPaste, setShowSmartPaste] = useState(false)
   const [pastedText, setPastedText] = useState("")
   const [formData, setFormData] = useState({
@@ -41,10 +57,20 @@ export default function NewLeadPage() {
       })
 
       if (res.ok) {
+        addToast('Lead created successfully', { type: 'success' })
         router.push("/dashboard/leads")
-      } else {
-        const error = await res.json()
-        alert(error.error || "Failed to create lead")
+        return
+      }
+      try {
+        const data = await res.json()
+        if (Array.isArray(data?.details)) {
+          setFieldErrors(parseZodIssues(data.details))
+          alert(data?.error || 'Validation failed')
+        } else {
+          alert(data?.error || 'Failed to create lead')
+        }
+      } catch {
+        alert('Failed to create lead')
       }
     } catch (error) {
       console.error("Error creating lead:", error)
@@ -61,6 +87,7 @@ export default function NewLeadPage() {
       ...formData,
       [e.target.name]: e.target.value,
     })
+    setIsDirty(true)
   }
 
   const handleSmartParse = async () => {
@@ -184,7 +211,7 @@ export default function NewLeadPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="form-label">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -193,13 +220,13 @@ export default function NewLeadPage() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Full name"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="form-label">
                 WhatsApp <span className="text-red-500">*</span>
               </label>
               <input
@@ -208,33 +235,39 @@ export default function NewLeadPage() {
                 required
                 value={formData.whatsapp}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.whatsapp ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="+49 123 456789"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <label className="form-label">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="email@example.com"
               />
+              {fieldErrors.email && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
+              <label className="form-label">Phone</label>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="+49 123 456789"
               />
+              {fieldErrors.phone && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.phone}</p>
+              )}
             </div>
           </div>
         </div>

@@ -180,11 +180,22 @@ function NewStudentForm() {
       })
 
       if (!res.ok) {
-        throw new Error("Failed to create student")
+        try {
+          const data = await res.json()
+          if (Array.isArray(data?.details)) {
+            setFieldErrors(parseZodIssues(data.details))
+            setError(data?.error || 'Validation failed')
+          } else {
+            setError(data?.error || 'Failed to create student')
+          }
+        } catch {
+          setError('Failed to create student')
+        }
+      } else {
+        // success
+        router.push("/dashboard/students")
+        router.refresh()
       }
-
-      router.push("/dashboard/students")
-      router.refresh()
     } catch (err) {
       setError("Failed to create student. Please try again.")
       console.error(err)

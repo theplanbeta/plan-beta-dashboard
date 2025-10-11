@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { EXCHANGE_RATE } from "@/lib/pricing"
 
 // Type definitions for Prisma query results
 type PaymentRecord = {
@@ -179,7 +180,9 @@ export async function GET(request: NextRequest) {
         (sum, s) => sum + Number(s.finalPrice),
         0
       )
-      const profit = revenue - Number(batch.teacherCost)
+      // Convert teacher cost from INR to EUR before calculating profit
+      const teacherCostEur = Number(batch.teacherCost) / EXCHANGE_RATE
+      const profit = revenue - teacherCostEur
 
       return {
         batchCode: batch.batchCode,

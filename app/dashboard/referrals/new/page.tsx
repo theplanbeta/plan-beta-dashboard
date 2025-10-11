@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 type Student = {
   id: string
@@ -16,6 +18,9 @@ export default function NewReferralPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [students, setStudents] = useState<Student[]>([])
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const { addToast } = useToast()
 
   const [formData, setFormData] = useState({
     referrerId: "",
@@ -50,6 +55,7 @@ export default function NewReferralPage() {
 
     setLoading(true)
     setError("")
+    setFieldErrors({})
 
     try {
       const res = await fetch("/api/referrals", {
@@ -59,10 +65,21 @@ export default function NewReferralPage() {
       })
 
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Failed to create referral")
+        try {
+          const data = await res.json()
+          if (Array.isArray(data?.details)) {
+            setFieldErrors(parseZodIssues(data.details))
+            setError(data?.error || 'Validation failed')
+          } else {
+            setError(data?.error || 'Failed to create referral')
+          }
+        } catch {
+          setError('Failed to create referral')
+        }
+        return
       }
 
+      addToast('Referral created successfully', { type: 'success' })
       router.push("/dashboard/referrals")
       router.refresh()
     } catch (err: unknown) {
@@ -81,7 +98,19 @@ export default function NewReferralPage() {
       ...prev,
       [name]: type === "number" ? parseFloat(value) || 0 : value,
     }))
+    setIsDirty(true)
   }
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !loading) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, loading])
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -111,7 +140,7 @@ export default function NewReferralPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Referrer (Existing Student) <span className="text-error">*</span>
               </label>
               <select
@@ -119,7 +148,7 @@ export default function NewReferralPage() {
                 value={formData.referrerId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`select ${fieldErrors.referrerId ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="">Select student who referred...</option>
                 {students.map((student) => (
@@ -128,10 +157,13 @@ export default function NewReferralPage() {
                   </option>
                 ))}
               </select>
+              {fieldErrors.referrerId && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.referrerId}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Referee (New Student) <span className="text-error">*</span>
               </label>
               <select
@@ -139,7 +171,7 @@ export default function NewReferralPage() {
                 value={formData.refereeId}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`select ${fieldErrors.refereeId ? 'border-red-500 focus:ring-red-500' : ''}`}
               >
                 <option value="">Select referred student...</option>
                 {students
@@ -150,10 +182,13 @@ export default function NewReferralPage() {
                     </option>
                   ))}
               </select>
+              {fieldErrors.refereeId && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.refereeId}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Referral Date <span className="text-error">*</span>
               </label>
               <input
@@ -162,12 +197,15 @@ export default function NewReferralPage() {
                 value={formData.referralDate}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.referralDate ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.referralDate && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.referralDate}</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Enrollment Date (Optional)
               </label>
               <input
@@ -175,8 +213,11 @@ export default function NewReferralPage() {
                 name="enrollmentDate"
                 value={formData.enrollmentDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.enrollmentDate ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.enrollmentDate && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.enrollmentDate}</p>
+              )}
             </div>
           </div>
         </div>
@@ -186,7 +227,7 @@ export default function NewReferralPage() {
           <h2 className="text-lg font-semibold text-foreground">Payout Details</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="form-label">
               Payout Amount (€)
             </label>
             <input
@@ -196,8 +237,11 @@ export default function NewReferralPage() {
               onChange={handleChange}
               min="0"
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className={`input ${fieldErrors.payoutAmount ? 'border-red-500 focus:ring-red-500' : ''}`}
             />
+            {fieldErrors.payoutAmount && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.payoutAmount}</p>
+            )}
             <p className="text-xs text-gray-500 mt-1">
               Default: €2,000 (paid after referee completes 1 month with ≥50% attendance)
             </p>
@@ -206,7 +250,7 @@ export default function NewReferralPage() {
 
         {/* Notes */}
         <div className="border-t pt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="form-label">
             Notes (Optional)
           </label>
           <textarea
@@ -214,9 +258,12 @@ export default function NewReferralPage() {
             value={formData.notes}
             onChange={handleChange}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className={`textarea ${fieldErrors.notes ? 'border-red-500 focus:ring-red-500' : ''}`}
             placeholder="Any additional information about this referral..."
           />
+          {fieldErrors.notes && (
+            <p className="text-red-600 text-xs mt-1">{fieldErrors.notes}</p>
+          )}
         </div>
 
         {/* Info Box */}
@@ -231,17 +278,12 @@ export default function NewReferralPage() {
         </div>
 
         {/* Submit */}
-        <div className="flex justify-end space-x-4 border-t pt-6">
-          <Link
-            href="/dashboard/referrals"
-            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Cancel
-          </Link>
+        <div className="flex justify-end space-x-4 panel-section pt-6">
+          <Link href="/dashboard/referrals" className="btn-outline px-6 py-2">Cancel</Link>
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Creating..." : "Create Referral"}
           </button>

@@ -1,7 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 interface TimeSlot {
   id: string
@@ -25,6 +27,9 @@ export default function NewTeacherPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [usePBTarif, setUsePBTarif] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
     teacherLevels: [] as string[],
@@ -41,6 +46,7 @@ export default function NewTeacherPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setFieldErrors({})
 
     try {
       // Filter out empty time slots
@@ -74,16 +80,20 @@ export default function NewTeacherPage() {
       })
 
       if (res.ok) {
+        addToast('Teacher created successfully', { type: 'success' })
         router.push("/dashboard/teachers")
-      } else {
-        const error = await res.json()
-        console.error("Validation error:", error)
-        if (error.details) {
-          const fieldErrors = error.details.map((d: any) => `${d.path.join('.')}: ${d.message}`).join('\n')
-          alert(`Validation failed:\n${fieldErrors}`)
+        return
+      }
+      try {
+        const data = await res.json()
+        if (Array.isArray(data?.details)) {
+          setFieldErrors(parseZodIssues(data.details))
+          alert(data?.error || 'Validation failed')
         } else {
-          alert(error.error || "Failed to create teacher")
+          alert(data?.error || 'Failed to create teacher')
         }
+      } catch {
+        alert('Failed to create teacher')
       }
     } catch (error) {
       console.error("Error creating teacher:", error)
@@ -116,6 +126,7 @@ export default function NewTeacherPage() {
 
       return { ...prev, [field]: newValues }
     })
+    setIsDirty(true)
   }
 
   const calculatePBTarifRates = (levels: string[]): Record<string, string> => {
@@ -147,23 +158,38 @@ export default function NewTeacherPage() {
         [level]: value
       }
     }))
+    setIsDirty(true)
   }
 
   const addTimeSlot = () => {
     setTimeSlots([...timeSlots, { id: crypto.randomUUID(), startTime: "", endTime: "" }])
+    setIsDirty(true)
   }
 
   const removeTimeSlot = (id: string) => {
     if (timeSlots.length > 1) {
       setTimeSlots(timeSlots.filter(slot => slot.id !== id))
     }
+    setIsDirty(true)
   }
 
   const updateTimeSlot = (id: string, field: 'startTime' | 'endTime', value: string) => {
     setTimeSlots(timeSlots.map(slot =>
       slot.id === id ? { ...slot, [field]: value } : slot
     ))
+    setIsDirty(true)
   }
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !loading) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, loading])
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -177,17 +203,20 @@ export default function NewTeacherPage() {
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Basic Information</h2>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="form-label">
               Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true) }}
+              className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
               placeholder="Teacher's full name"
             />
+            {fieldErrors.name && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>
+            )}
           </div>
         </div>
 

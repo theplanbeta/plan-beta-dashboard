@@ -3,20 +3,25 @@ import { prisma } from "@/lib/prisma"
 import { sendEmail, sendBatchEmails } from "@/lib/email"
 import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
+import { EXCHANGE_RATE } from "@/lib/pricing"
 
-// Validation schema for updating batch
+// Helpers to coerce payloads from form values
+const nullableString = z.preprocess((v) => (v === "" ? null : v), z.string().nullable().optional())
+const numeric = z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number())
+
+// Validation schema for updating batch (accepts empty strings as nulls and coerces numbers)
 const updateBatchSchema = z.object({
   batchCode: z.string().min(1, "Batch code required"),
   level: z.enum(["A1", "A2", "B1", "B2"]),
-  teacherId: z.string().nullable().optional(),
-  totalSeats: z.number().int().positive().max(50, "Max 50 seats"),
-  revenueTarget: z.number().min(0).optional(),
-  teacherCost: z.number().min(0).optional(),
-  startDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
-  schedule: z.string().nullable().optional(),
+  teacherId: nullableString,
+  totalSeats: z.preprocess((v) => (typeof v === 'string' ? parseInt(v as string, 10) : v), z.number().int().positive().max(50, "Max 50 seats")),
+  revenueTarget: numeric.min(0).optional(),
+  teacherCost: numeric.min(0).optional(),
+  startDate: nullableString,
+  endDate: nullableString,
+  schedule: nullableString,
   status: z.enum(["PLANNING", "FILLING", "FULL", "RUNNING", "COMPLETED", "POSTPONED", "CANCELLED"]),
-  notes: z.string().nullable().optional(),
+  notes: nullableString,
 })
 
 // GET /api/batches/[id] - Get single batch
@@ -53,7 +58,9 @@ export async function GET(
       (sum, student) => sum + Number(student.finalPrice),
       0
     )
-    const profit = revenueActual - Number(batch.teacherCost)
+    // Convert teacher cost from INR to EUR before calculating profit
+    const teacherCostEur = Number(batch.teacherCost) / EXCHANGE_RATE
+    const profit = revenueActual - teacherCostEur
 
     return NextResponse.json({
       ...batch,

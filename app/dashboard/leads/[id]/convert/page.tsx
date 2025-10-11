@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { COMBO_LEVEL_PRICING, calculateComboPrice, getPrice, type ComboLevel, type CourseLevel } from "@/lib/pricing"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 type Lead = {
   id: string
@@ -41,6 +43,9 @@ export default function ConvertLeadPage({
   const [batches, setBatches] = useState<Batch[]>([])
   const [loading, setLoading] = useState(true)
   const [converting, setConverting] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     batchId: "",
     isCombo: false,
@@ -110,6 +115,7 @@ export default function ConvertLeadPage({
     }
 
     setConverting(true)
+    setFieldErrors({})
 
     try {
       const res = await fetch(`/api/leads/${id}/convert`, {
@@ -127,11 +133,20 @@ export default function ConvertLeadPage({
 
       if (res.ok) {
         const result = await res.json()
-        alert(`Successfully converted to student: ${result.student.studentId}`)
+        addToast(`Converted to student: ${result.student.studentId}`, { type: 'success' })
         router.push(`/dashboard/leads/${id}`)
-      } else {
-        const error = await res.json()
-        alert(error.error || "Failed to convert lead")
+        return
+      }
+      try {
+        const data = await res.json()
+        if (Array.isArray(data?.details)) {
+          setFieldErrors(parseZodIssues(data.details))
+          alert(data?.error || 'Validation failed')
+        } else {
+          alert(data?.error || 'Failed to convert lead')
+        }
+      } catch {
+        alert('Failed to convert lead')
       }
     } catch (error) {
       console.error("Error converting lead:", error)
@@ -165,6 +180,7 @@ export default function ConvertLeadPage({
       ...formData,
       ...updates,
     })
+    setIsDirty(true)
   }
 
   const handleComboLevelToggle = (level: ComboLevel) => {
@@ -184,7 +200,19 @@ export default function ConvertLeadPage({
       comboLevels: currentLevels,
       originalPrice: price > 0 ? price.toString() : "",
     })
+    setIsDirty(true)
   }
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !converting) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, converting])
 
   const calculateFinalPrice = () => {
     const original = parseFloat(formData.originalPrice) || 0
@@ -265,13 +293,13 @@ export default function ConvertLeadPage({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Batch <span className="text-red-500">*</span>
             </label>
-            <select
-              name="batchId"
-              required
-              value={formData.batchId}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-            >
+              <select
+                name="batchId"
+                required
+                value={formData.batchId}
+                onChange={handleChange}
+                className={`select ${fieldErrors.batchId ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
               <option value="">Select a batch</option>
               {batches.map((batch) => (
                 <option key={batch.id} value={batch.id}>
@@ -381,9 +409,12 @@ export default function ConvertLeadPage({
                   step="0.01"
                   value={formData.originalPrice}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className={`input ${fieldErrors.originalPrice ? 'border-red-500 focus:ring-red-500' : ''}`}
                   placeholder={formData.currency === "EUR" ? "134.00" : "14000.00"}
                 />
+                {fieldErrors.originalPrice && (
+                  <p className="text-red-600 text-xs mt-1">{fieldErrors.originalPrice}</p>
+                )}
               </div>
 
               <div>
@@ -397,9 +428,12 @@ export default function ConvertLeadPage({
                   step="0.01"
                   value={formData.discountApplied}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  className={`input ${fieldErrors.discountApplied ? 'border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="0.00"
                 />
+                {fieldErrors.discountApplied && (
+                  <p className="text-red-600 text-xs mt-1">{fieldErrors.discountApplied}</p>
+                )}
               </div>
             </div>
 

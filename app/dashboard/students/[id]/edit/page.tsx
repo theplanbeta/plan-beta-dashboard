@@ -3,6 +3,8 @@
 import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 type Student = {
   id: string
@@ -35,6 +37,9 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const { addToast } = useToast()
   const [student, setStudent] = useState<Student | null>(null)
   const [batches, setBatches] = useState<Batch[]>([])
 
@@ -107,6 +112,7 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
     e.preventDefault()
     setSaving(true)
     setError("")
+    setFieldErrors({})
 
     try {
       const res = await fetch(`/api/students/${id}`, {
@@ -115,8 +121,22 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
         body: JSON.stringify(formData),
       })
 
-      if (!res.ok) throw new Error("Failed to update student")
+      if (!res.ok) {
+        try {
+          const data = await res.json()
+          if (Array.isArray(data?.details)) {
+            setFieldErrors(parseZodIssues(data.details))
+            setError(data?.error || 'Validation failed')
+          } else {
+            setError(data?.error || 'Failed to update student')
+          }
+        } catch {
+          setError('Failed to update student')
+        }
+        return
+      }
 
+      addToast('Student updated successfully', { type: 'success' })
       router.push("/dashboard/students")
       router.refresh()
     } catch (err) {
@@ -140,7 +160,19 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
           ? (e.target as HTMLInputElement).checked
           : value,
     }))
+    setIsDirty(true)
   }
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !saving) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, saving])
 
   if (loading) {
     return (
@@ -185,7 +217,7 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="form-label">
                 Full Name <span className="text-error">*</span>
               </label>
               <input
@@ -194,8 +226,11 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {fieldErrors.name && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>
+              )}
             </div>
 
             <div>

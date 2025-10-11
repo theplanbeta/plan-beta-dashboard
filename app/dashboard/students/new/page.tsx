@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { COURSE_PRICING, COURSE_LEVELS, type Currency, type CourseLevel, getCurrencySymbol, calculateFinalPrice, calculateBalance, getPrice, calculateComboPrice } from "@/lib/pricing"
+import { parseZodIssues } from "@/lib/form-errors"
 
 
 type Batch = {
@@ -34,6 +35,7 @@ function NewStudentForm() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [batches, setBatches] = useState<Batch[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
   const [showLeadConversion, setShowLeadConversion] = useState(!!leadId)

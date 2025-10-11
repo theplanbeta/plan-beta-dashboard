@@ -7,7 +7,6 @@ import { EXCHANGE_RATE } from "@/lib/pricing"
 
 // Helpers to coerce payloads from form values
 const nullableString = z.preprocess((v) => (v === "" ? null : v), z.string().nullable().optional())
-const numeric = z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number())
 
 // Validation schema for updating batch (accepts empty strings as nulls and coerces numbers)
 const updateBatchSchema = z.object({
@@ -15,8 +14,8 @@ const updateBatchSchema = z.object({
   level: z.enum(["A1", "A2", "B1", "B2"]),
   teacherId: nullableString,
   totalSeats: z.preprocess((v) => (typeof v === 'string' ? parseInt(v as string, 10) : v), z.number().int().positive().max(50, "Max 50 seats")),
-  revenueTarget: numeric.min(0).optional(),
-  teacherCost: numeric.min(0).optional(),
+  revenueTarget: z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number().min(0)).optional(),
+  teacherCost: z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number().min(0)).optional(),
   startDate: nullableString,
   endDate: nullableString,
   schedule: nullableString,

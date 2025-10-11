@@ -11,7 +11,7 @@ const nullableString = z.preprocess((v) => (v === "" ? null : v), z.string().nul
 // Validation schema for updating batch (accepts empty strings as nulls and coerces numbers)
 const updateBatchSchema = z.object({
   batchCode: z.string().min(1, "Batch code required"),
-  level: z.enum(["A1", "A2", "B1", "B2"]),
+  level: z.enum(["NEW", "A1", "A1_HYBRID", "A1_HYBRID_MALAYALAM", "A2", "B1", "B2", "SPOKEN_GERMAN"]),
   teacherId: nullableString,
   totalSeats: z.preprocess((v) => (typeof v === 'string' ? parseInt(v as string, 10) : v), z.number().int().positive().max(50, "Max 50 seats")),
   revenueTarget: z.preprocess((v) => (typeof v === 'string' ? parseFloat(v as string) : v), z.number().min(0)).optional(),

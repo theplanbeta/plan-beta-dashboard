@@ -12,7 +12,7 @@ const limiter = rateLimit(RATE_LIMITS.STANDARD)
 // Validation schema for creating teacher
 const createTeacherSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  teacherLevels: z.array(z.enum(['A1', 'A2', 'B1', 'B2'])).optional().default([]),
+  teacherLevels: z.array(z.enum(['NEW', 'A1', 'A1_HYBRID', 'A1_HYBRID_MALAYALAM', 'A2', 'B1', 'B2', 'SPOKEN_GERMAN'])).optional().default([]),
   teacherTimings: z.array(z.enum(['Morning', 'Evening'])).optional().default([]),
   teacherTimeSlots: z.array(z.object({
     startTime: z.string(),

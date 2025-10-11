@@ -10,7 +10,7 @@ import { AuditAction } from '@prisma/client'
 // Validation schema for updating teacher profile
 const updateTeacherSchema = z.object({
   name: z.string().min(1).optional(),
-  teacherLevels: z.array(z.enum(['A1', 'A2', 'B1', 'B2'])).optional(),
+  teacherLevels: z.array(z.enum(['NEW', 'A1', 'A1_HYBRID', 'A1_HYBRID_MALAYALAM', 'A2', 'B1', 'B2', 'SPOKEN_GERMAN'])).optional(),
   teacherTimings: z.array(z.enum(['Morning', 'Evening'])).optional(),
   teacherTimeSlots: z.array(z.object({
     startTime: z.string(),

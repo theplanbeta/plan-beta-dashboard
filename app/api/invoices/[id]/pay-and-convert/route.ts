@@ -15,7 +15,7 @@ const payAndConvertSchema = z.object({
   paidAmount: z.number().positive('Paid amount must be positive').max(100000, 'Amount exceeds maximum'),
   batchId: z.string().optional(),
   isCombo: z.boolean().optional(),
-  comboLevels: z.array(z.enum(['A1', 'A2', 'B1', 'B2'])).optional(),
+  comboLevels: z.array(z.enum(['NEW', 'A1', 'A1_HYBRID', 'A1_HYBRID_MALAYALAM', 'A2', 'B1', 'B2', 'SPOKEN_GERMAN'])).optional(),
   idempotencyKey: z.string().min(1, 'Idempotency key required'),
 })
 

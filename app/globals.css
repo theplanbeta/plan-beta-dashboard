@@ -250,19 +250,8 @@ a {
   transition: color 0.2s ease;
 }
 
-/* Form inputs dark mode support */
-input,
-textarea,
-select {
-  background-color: var(--card-bg);
-  color: var(--foreground);
-  border-color: var(--border-color);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--gray-400);
-}
+/* Form inputs dark mode support - removed global styles to avoid conflicts with Tailwind */
+/* Tailwind classes on individual elements provide better control */
 
 /* Scrollbar styling for dark mode */
 ::-webkit-scrollbar {

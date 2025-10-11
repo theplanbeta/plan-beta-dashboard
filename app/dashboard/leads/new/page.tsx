@@ -118,8 +118,8 @@ export default function NewLeadPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Add New Lead</h1>
-        <p className="text-gray-500">Capture a new lead for conversion tracking</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Add New Lead</h1>
+        <p className="text-gray-600 dark:text-gray-300">Capture a new lead for conversion tracking</p>
       </div>
 
       {/* Smart Paste Feature */}
@@ -178,13 +178,13 @@ export default function NewLeadPage() {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-xl border border-gray-200 dark:border-gray-700 p-6 space-y-6">
         {/* Contact Information */}
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Contact Information</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -193,13 +193,13 @@ export default function NewLeadPage() {
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Full name"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 WhatsApp <span className="text-red-500">*</span>
               </label>
               <input
@@ -208,31 +208,31 @@ export default function NewLeadPage() {
                 required
                 value={formData.whatsapp}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="+49 123 456789"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="email@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
               <input
                 type="text"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="+49 123 456789"
               />
             </div>
@@ -241,10 +241,10 @@ export default function NewLeadPage() {
 
         {/* Lead Details */}
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Lead Details</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Source <span className="text-red-500">*</span>
               </label>
               <select
@@ -252,7 +252,7 @@ export default function NewLeadPage() {
                 required
                 value={formData.source}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="META_ADS">Meta Ads</option>
                 <option value="INSTAGRAM">Instagram</option>
@@ -264,12 +264,12 @@ export default function NewLeadPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quality</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quality</label>
               <select
                 name="quality"
                 value={formData.quality}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="HOT">Hot</option>
                 <option value="WARM">Warm</option>
@@ -278,12 +278,12 @@ export default function NewLeadPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="NEW">New</option>
                 <option value="CONTACTED">Contacted</option>
@@ -297,17 +297,17 @@ export default function NewLeadPage() {
 
         {/* Interest Details */}
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Booking Details</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Booking Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Booked Level
               </label>
               <select
                 name="interestedLevel"
                 value={formData.interestedLevel}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Not specified</option>
                 <option value="A1">A1 - Beginner</option>
@@ -318,14 +318,14 @@ export default function NewLeadPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Booked Month
               </label>
               <select
                 name="interestedMonth"
                 value={formData.interestedMonth}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select month</option>
                 {MONTHS.map((month) => (
@@ -337,14 +337,14 @@ export default function NewLeadPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Batch Time
               </label>
               <select
                 name="interestedBatchTime"
                 value={formData.interestedBatchTime}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">Select time</option>
                 <option value="Morning">Morning</option>
@@ -356,10 +356,10 @@ export default function NewLeadPage() {
 
         {/* Follow-up */}
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-4">Follow-up</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Follow-up</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Follow-up Date
               </label>
               <input
@@ -367,7 +367,7 @@ export default function NewLeadPage() {
                 name="followUpDate"
                 value={formData.followUpDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
           </div>
@@ -375,7 +375,7 @@ export default function NewLeadPage() {
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
           <textarea
             name="notes"
             value={formData.notes}
@@ -387,11 +387,11 @@ export default function NewLeadPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 mt-6">
+        <div className="flex gap-3 justify-end pt-2 border-t border-gray-200 dark:border-gray-700 mt-6">
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
+            className="px-6 py-2.5 border-2 border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
           >
             Cancel
           </button>

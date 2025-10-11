@@ -3,7 +3,7 @@
 import { use, useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { COURSE_PRICING, formatCurrency, REFUND_POLICY, SCHOOL_INFO, type CourseLevel } from "@/lib/pricing"
+import { COURSE_PRICING, REFUND_POLICY, SCHOOL_INFO, type CourseLevel } from "@/lib/pricing"
 import html2canvas from "html2canvas"
 
 type Lead = {
@@ -11,9 +11,8 @@ type Lead = {
   name: string
   whatsapp: string
   email: string | null
-  level: string
+  interestedLevel: string | null
   status: string
-  currency: string
 }
 
 export default function LeadInvoicePage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,11 +25,15 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
   // Invoice calculation state
   const [coursePrice, setCoursePrice] = useState(0)
   const [discount, setDiscount] = useState(0)
+  const [discountIsPercent, setDiscountIsPercent] = useState(false)
   const [amountPayableNow, setAmountPayableNow] = useState(0)
   const [isEditingDiscount, setIsEditingDiscount] = useState(false)
   const [isEditingPayable, setIsEditingPayable] = useState(false)
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null)
   const invoiceRef = useRef<HTMLDivElement>(null)
+  // User-selected options
+  const [selectedLevel, setSelectedLevel] = useState<CourseLevel>('A1')
+  const [currency, setCurrency] = useState<'EUR' | 'INR'>('EUR')
 
   useEffect(() => {
     fetchLead()
@@ -43,9 +46,11 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
 
       const data = await res.json()
       setLead(data)
-
-      // Set initial course price based on level and currency
-      const price = COURSE_PRICING[data.level as CourseLevel]?.[data.currency as 'EUR' | 'INR'] || 0
+      const initialLevel = (data.interestedLevel as CourseLevel) || 'A1'
+      setSelectedLevel(initialLevel)
+      setCurrency('EUR')
+      // Set initial course price based on interestedLevel & currency
+      const price = COURSE_PRICING[initialLevel]?.['EUR'] || 0
       setCoursePrice(price)
       setAmountPayableNow(price) // Default: full payment
     } catch (error) {
@@ -55,9 +60,39 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
     }
   }
 
-  const finalAmount = coursePrice - discount
+  const discountAmount = discountIsPercent
+    ? Math.max(0, Math.min(100, discount)) * (coursePrice / 100)
+    : Math.max(0, discount)
+  const finalAmount = Math.max(0, coursePrice - discountAmount)
   const balance = finalAmount - amountPayableNow
-  const currencySymbol = lead?.currency === 'INR' ? '₹' : '€'
+  const currencySymbol = currency === 'INR' ? '₹' : '€'
+
+  // Recalculate price when level or currency changes
+  useEffect(() => {
+    const p = COURSE_PRICING[selectedLevel]?.[currency] || 0
+    setCoursePrice(p)
+  }, [selectedLevel, currency])
+
+  // Load persisted options
+  useEffect(() => {
+    try {
+      const savedCurrency = localStorage.getItem('invoice.currency') as 'EUR' | 'INR' | null
+      const savedLevel = localStorage.getItem('invoice.level') as CourseLevel | null
+      const savedMode = localStorage.getItem('invoice.discountMode') as 'amount' | 'percent' | null
+      if (savedCurrency) setCurrency(savedCurrency)
+      if (savedLevel) setSelectedLevel(savedLevel)
+      if (savedMode) setDiscountIsPercent(savedMode === 'percent')
+    } catch {}
+  }, [])
+
+  // Persist options
+  useEffect(() => {
+    try {
+      localStorage.setItem('invoice.currency', currency)
+      localStorage.setItem('invoice.level', selectedLevel)
+      localStorage.setItem('invoice.discountMode', discountIsPercent ? 'percent' : 'amount')
+    } catch {}
+  }, [currency, selectedLevel, discountIsPercent])
 
   const handleGenerateInvoice = async () => {
     if (!lead || !invoiceRef.current) return
@@ -117,12 +152,12 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
           if (navigator.share && navigator.canShare({ files: [file] })) {
             await navigator.share({
               title: `Invoice - ${lead.name}`,
-              text: `Hi ${lead.name}! Here's your invoice for ${lead.level} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`,
+              text: `Hi ${lead.name}! Here's your invoice for ${selectedLevel} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`,
               files: [file],
             })
           } else {
             // Fallback: Open WhatsApp with text message only
-            const message = `Hi ${lead.name}! Here's your invoice for ${lead.level} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`
+            const message = `Hi ${lead.name}! Here's your invoice for ${selectedLevel} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`
             const whatsappUrl = `https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`
             window.open(whatsappUrl, '_blank')
             alert('Note: Please manually attach the downloaded invoice image to WhatsApp')
@@ -130,7 +165,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
         } catch (error) {
           console.error('Error sharing:', error)
           // Fallback to text-only WhatsApp
-          const message = `Hi ${lead.name}! Here's your invoice for ${lead.level} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`
+          const message = `Hi ${lead.name}! Here's your invoice for ${selectedLevel} German Course.\n\nAmount Due: ${currencySymbol}${amountPayableNow.toFixed(2)}\nBalance: ${currencySymbol}${balance.toFixed(2)}\n\nPay now to confirm your seat!`
           const whatsappUrl = `https://wa.me/${lead.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`
           window.open(whatsappUrl, '_blank')
         }
@@ -224,7 +259,7 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
             <h3 className="font-semibold text-gray-700 border-b pb-1">Course Details</h3>
             <div className="flex justify-between items-center py-2">
               <div>
-                <div className="font-medium">Level: {lead?.level}</div>
+                <div className="font-medium">Level: {lead?.interestedLevel || 'A1'}</div>
                 <div className="text-sm text-gray-600">German Language Course</div>
               </div>
               <div className="text-right">
@@ -232,10 +267,12 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
               </div>
             </div>
 
-            {discount > 0 && (
+            {discountAmount > 0 && (
               <div className="flex justify-between items-center py-2 border-t">
                 <div className="text-gray-700">Discount</div>
-                <div className="font-medium text-green-600">- {currencySymbol}{discount}</div>
+                <div className="font-medium text-green-600">
+                  - {discountIsPercent ? `${Math.min(100, Math.max(0, discount)).toFixed(0)}%` : `${currencySymbol}${discountAmount.toFixed(2)}`}
+                </div>
               </div>
             )}
 
@@ -305,15 +342,34 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4 space-y-4">
           <h2 className="font-semibold text-gray-700">Invoice Details</h2>
 
+          {/* Controls */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="form-label">Course Level</label>
+              <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value as CourseLevel)} className="select">
+                {(['A1','A1_HYBRID','A1_HYBRID_MALAYALAM','A2','B1','B2','SPOKEN_GERMAN'] as CourseLevel[]).map(lvl => (
+                  <option key={lvl} value={lvl}>{lvl.replace(/_/g,' ')}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Currency</label>
+              <select value={currency} onChange={(e) => setCurrency(e.target.value as 'EUR' | 'INR')} className="select">
+                <option value="EUR">EUR (€)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+            </div>
+          </div>
+
           {/* Course */}
           <div className="flex justify-between items-center py-3 border-b">
             <div>
-              <div className="font-medium">Course: {lead.level}</div>
+              <div className="font-medium">Course: {selectedLevel}</div>
               <div className="text-sm text-gray-500">German Language Course</div>
             </div>
             <div className="text-right">
               <div className="font-semibold">{currencySymbol}{coursePrice}</div>
-              <div className="text-xs text-gray-500">{lead.currency}</div>
+              <div className="text-xs text-gray-500">{currency}</div>
             </div>
           </div>
 
@@ -330,14 +386,22 @@ export default function LeadInvoicePage({ params }: { params: Promise<{ id: stri
                   autoFocus
                   onBlur={() => setIsEditingDiscount(false)}
                 />
-                <span className="text-sm text-gray-600">{lead.currency}</span>
+                <span className="text-sm text-gray-600">{discountIsPercent ? '%' : currency}</span>
+                <label className="flex items-center gap-2 text-xs text-gray-600 ml-2">
+                  <input type="checkbox" checked={discountIsPercent} onChange={(e) => setDiscountIsPercent(e.target.checked)} />
+                  As %
+                </label>
               </div>
             ) : (
               <button
                 onClick={() => setIsEditingDiscount(true)}
                 className="flex items-center gap-2 text-primary"
               >
-                <span className="font-medium">{currencySymbol}{discount}</span>
+                <span className="font-medium">
+                  {discountIsPercent
+                    ? `${Math.min(100, Math.max(0, discount)).toFixed(0)}%`
+                    : `${currencySymbol}${discountAmount.toFixed(2)}`}
+                </span>
                 <span className="text-xs">✏️ Edit</span>
               </button>
             )}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
-import { COMBO_LEVEL_PRICING, calculateComboPrice, type ComboLevel } from "@/lib/pricing"
+import { COMBO_LEVEL_PRICING, calculateComboPrice, getPrice, type ComboLevel, type CourseLevel } from "@/lib/pricing"
 
 type Lead = {
   id: string
@@ -191,6 +191,27 @@ export default function ConvertLeadPage({
     const discount = parseFloat(formData.discountApplied) || 0
     return original - discount
   }
+
+  // Auto-populate price when currency or batch selection changes (non-combo)
+  useEffect(() => {
+    if (formData.isCombo) {
+      // Recalculate combo price when currency changes
+      const price = calculateComboPrice(formData.comboLevels, formData.currency)
+      setFormData(prev => ({ ...prev, originalPrice: price > 0 ? price.toString() : "" }))
+      return
+    }
+    // If a batch is selected, use its level to derive price
+    if (formData.batchId) {
+      const batch = batches.find(b => b.id === formData.batchId)
+      if (batch && (batch.level as any)) {
+        const level = batch.level as CourseLevel
+        try {
+          const price = getPrice(level, formData.currency as any)
+          setFormData(prev => ({ ...prev, originalPrice: price ? price.toString() : prev.originalPrice }))
+        } catch {}
+      }
+    }
+  }, [formData.currency, formData.batchId, formData.isCombo, JSON.stringify(formData.comboLevels), batches])
 
   if (loading) {
     return (

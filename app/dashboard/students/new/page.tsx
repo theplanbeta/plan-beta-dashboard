@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { COURSE_PRICING, COURSE_LEVELS, type Currency, type CourseLevel, getCurrencySymbol, calculateFinalPrice, calculateBalance, getPrice } from "@/lib/pricing"
+import { COURSE_PRICING, COURSE_LEVELS, type Currency, type CourseLevel, getCurrencySymbol, calculateFinalPrice, calculateBalance, getPrice, calculateComboPrice } from "@/lib/pricing"
 
 
 type Batch = {
@@ -99,6 +99,24 @@ function NewStudentForm() {
       }
     }
   }, [selectedLeadId, leads])
+
+  // Auto-populate pricing based on selection
+  useEffect(() => {
+    // Combo pricing
+    if (formData.isCombo) {
+      const comboLevels = formData.comboLevels as any as ("A1" | "A2" | "B1" | "B2")[]
+      const price = comboLevels.length > 0 ? calculateComboPrice(comboLevels, formData.currency) : 0
+      setFormData(prev => ({ ...prev, originalPrice: price }))
+      return
+    }
+
+    // Single level pricing
+    const level = formData.currentLevel as CourseLevel
+    if (level && level !== 'NEW' && (COURSE_PRICING as any)[level]) {
+      const price = getPrice(level, formData.currency)
+      setFormData(prev => ({ ...prev, originalPrice: price }))
+    }
+  }, [formData.currentLevel, formData.currency, formData.isCombo, JSON.stringify(formData.comboLevels)])
 
   const fetchBatches = async () => {
     try {

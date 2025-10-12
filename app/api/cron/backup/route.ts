@@ -4,6 +4,7 @@ import path from 'path'
 import { AuditAction, AuditSeverity } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sendBackupEmail } from '@/lib/email'
+import { formatDateTime } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 60 seconds timeout
@@ -99,11 +100,14 @@ async function performBackup(skipCooldown = false) {
     // Send backup via email using Resend (includes full JSON as attachment)
     const supportEmail = process.env.SUPPORT_EMAIL || 'support@planbeta.in'
 
+    // Format timestamp for email display in Berlin timezone
+    const berlinTimestamp = formatDateTime(backup.timestamp)
+
     const emailResult = await sendBackupEmail({
       to: supportEmail,
       counts: backup.counts,
       backupJson,
-      timestamp: backup.timestamp,
+      timestamp: berlinTimestamp,
     })
 
     if (!emailResult.success) {

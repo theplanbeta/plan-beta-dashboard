@@ -12,8 +12,16 @@ jobs:
     steps:
       - name: Trigger backup endpoint
         run: |
-          curl -X POST "${{ secrets.BACKUP_ENDPOINT_URL }}" \
+          # Build URL with Vercel bypass token if provided
+          if [ -n "${{ secrets.VERCEL_AUTOMATION_BYPASS_TOKEN }}" ]; then
+            URL="${{ secrets.BACKUP_ENDPOINT_URL }}?x-vercel-protection-bypass=${{ secrets.VERCEL_AUTOMATION_BYPASS_TOKEN }}"
+          else
+            URL="${{ secrets.BACKUP_ENDPOINT_URL }}"
+          fi
+
+          curl -X POST "$URL" \
             -H "Content-Type: application/json" \
+            -H "x-vercel-protection-bypass: ${{ secrets.VERCEL_AUTOMATION_BYPASS_TOKEN }}" \
             -w "\nHTTP Status: %{http_code}\n" \
             -o response.json
 

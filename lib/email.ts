@@ -355,6 +355,9 @@ export async function sendBackupEmail({
   `
 
   try {
+    console.log('📧 Sending backup email to:', recipientList)
+    console.log('📧 Using Resend API key:', process.env.RESEND_API_KEY ? '✓ Configured' : '✗ Missing')
+
     const result = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'Plan Beta Backups <noreply@planbeta.in>',
       to: recipientList,
@@ -368,9 +371,11 @@ export async function sendBackupEmail({
       ],
     })
 
+    console.log('✅ Email sent successfully:', result)
     return { success: true, data: result }
   } catch (error) {
-    console.error('Failed to send backup email:', error)
+    console.error('❌ Failed to send backup email:', error)
+    console.error('Error details:', JSON.stringify(error, null, 2))
     return { success: false, error }
   }
 }

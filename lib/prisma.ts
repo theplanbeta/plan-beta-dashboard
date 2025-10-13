@@ -55,7 +55,7 @@ const extendedPrisma = basePrismaClient.$extends({
       },
     },
   },
-})
+}) as unknown as PrismaClient
 
 export const prisma = globalForPrisma.prisma ?? extendedPrisma
 

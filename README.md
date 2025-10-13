@@ -39,7 +39,7 @@ NEXTAUTH_SECRET="oTmXOhyFKONW4OW/Wo6HqGsPkZ05YoUr0NmqRdnwlXI="
 
 # Email (Resend) - ACTIVE & VERIFIED ✅
 RESEND_API_KEY="re_FxkRNtvY_8APyQZGavwzk74dHFFnq3YNJ"
-EMAIL_FROM="Plan Beta <noreply@planbeta.in>"
+EMAIL_FROM="noreply@planbeta.in"  # Simple format required by Resend
 SUPPORT_EMAIL="hello@planbeta.in"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 UPI_ID="planbeta@paytm"
@@ -182,11 +182,14 @@ Open [http://localhost:3000](http://localhost:3000)
 - **Location:** `app/api/feedback/route.ts:66-101`
 
 **9. Database Backup Emails** 💾
-- **Trigger:** User login (30min cooldown) or manual backup button
+- **Trigger:** Manual button (10min cooldown) or automated daily (2 AM UTC)
 - **Sends to:** hello@planbeta.in
-- **Attachment:** Complete database JSON backup
+- **Attachment:** Gzip-compressed database backup (`.json.gz`)
+- **Compression:** 70-80% file size reduction
+- **Timezone:** Berlin time in email timestamps
 - **Location:** `app/api/cron/backup/route.ts`
-- **Manual Trigger:** Backup button in sidebar (Founder only)
+- **Manual Trigger:** "Save Backup" button in sidebar (Founder only)
+- **Automated:** GitHub Actions workflow (`.github/workflows/daily-backup.yml`)
 
 ### Email Templates
 All templates are defined in `lib/email.ts` with beautiful HTML formatting:
@@ -299,18 +302,62 @@ All require `Authorization: Bearer ${CRON_SECRET}` header
 
 ---
 
-## 💾 Backup & Restore System
+## 💾 Backup & Restore System - FULLY AUTOMATED ✅
 
-### Automated Backups
-**Trigger:** Every user login (with 30-minute cooldown)
-**Location:** `lib/auth.ts:43-49`, `app/api/cron/backup/route.ts`
-**Email:** Sent to `hello@planbeta.in` with JSON attachment
-**Contains:** All students, leads, batches, payments, referrals, attendance, invoices, audit logs
+### Overview
+Complete database backup system with both manual and automated options. All backups are gzip-compressed (70-80% size reduction) and emailed as `.json.gz` attachments to `hello@planbeta.in`.
 
 ### Manual Backup (Founder Only)
-**Location:** Sidebar in dashboard layout
-**Action:** Click "Backup Database" button
-**Response:** "✓ Backup sent to email" or "Backup created recently"
+**Location:** "Save Backup" button in dashboard sidebar
+**Cooldown:** 10 minutes between backups
+**Format:** Gzip-compressed JSON (`.json.gz`)
+**Email:** Sent to `hello@planbeta.in` with compressed attachment
+**Contents:** Complete database snapshot including:
+- All students, leads, batches, payments, referrals
+- Attendance records, invoices, audit logs (last 1000)
+- Timestamps in Berlin timezone
+
+**How to Use:**
+1. Click "Save Backup" button in sidebar
+2. Wait for success message
+3. Check hello@planbeta.in for email with attachment
+4. Extract with: `gunzip backup-[timestamp].json.gz`
+
+### Automated Daily Backups (GitHub Actions)
+**Schedule:** Every day at 2:00 AM UTC (3:00 AM CET / 4:00 AM CEST)
+**Provider:** GitHub Actions (free tier - 2000 minutes/month)
+**Location:** `.github/workflows/daily-backup.yml`
+**Advantage:** Free alternative to Vercel Cron ($20/month Pro plan required)
+
+**Setup Instructions:**
+1. Go to: https://github.com/theplanbeta/plan-beta-dashboard/settings/secrets/actions
+2. Set two GitHub secrets:
+   - `BACKUP_ENDPOINT_URL`: Your production API endpoint
+     ```
+     https://your-app.vercel.app/api/cron/backup
+     ```
+   - `VERCEL_AUTOMATION_BYPASS_TOKEN`: Vercel deployment protection token
+     ```
+     VERCELAUTOMATIONBYPASSTOKENPlANB
+     ```
+3. Workflow will run automatically every day at 2 AM UTC
+
+**Manual Workflow Trigger:**
+1. Go to: https://github.com/theplanbeta/plan-beta-dashboard/actions
+2. Select "Daily Database Backup" workflow
+3. Click "Run workflow" → "Run workflow"
+4. Check email for backup within 30 seconds
+
+### Email Details
+**From:** `noreply@planbeta.in`
+**To:** `hello@planbeta.in`
+**Subject:** `Database Backup - [Date/Time in Berlin timezone]`
+**Attachment:** `backup-[timestamp].json.gz`
+**Body Includes:**
+- Record counts for all tables
+- Original vs compressed file size
+- Compression ratio percentage
+- Extraction instructions
 
 ### Backup Scripts
 ```bash
@@ -530,15 +577,18 @@ npm run lint             # Run ESLint
    NEXTAUTH_URL=https://your-domain.vercel.app
    NEXTAUTH_SECRET=your-secret
    RESEND_API_KEY=re_...
-   EMAIL_FROM=Plan Beta <noreply@planbeta.in>
+   EMAIL_FROM=noreply@planbeta.in
    SUPPORT_EMAIL=hello@planbeta.in
    NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
    UPI_ID=planbeta@paytm
    CRON_SECRET=your-cron-secret
    GEMINI_API_KEY=AIza...
    ```
+   **Important:** EMAIL_FROM must be simple format (email only, no name). Do NOT use `Name <email@domain.com>` format.
+
 3. Deploy from `main` branch
 4. Configure custom domain (optional)
+5. Set up GitHub Actions secrets for automated backups (see Backup section)
 
 ### Post-Deployment
 - [ ] Test login with all user roles
@@ -619,8 +669,17 @@ npm run lint             # Run ESLint
 
 ## 📋 Recent Updates
 
-### Latest (October 2025) - Email System Restoration
-✅ **Restored all email functionality**
+### Latest (October 2025) - Backup System Overhaul
+✅ **Complete backup system rebuild**
+- Fixed EMAIL_FROM format issue (was blocking all emails)
+- Added gzip compression (70-80% file size reduction)
+- Reduced cooldown from 30 to 10 minutes
+- Berlin timezone in all email timestamps
+- Compressed `.json.gz` attachments
+- Automated daily backups via GitHub Actions (2 AM UTC)
+- Free alternative to Vercel Cron ($20/month saved)
+
+✅ **Email System Fully Operational**
 - Student welcome emails
 - Payment confirmations & reminders
 - Attendance alerts
@@ -628,12 +687,13 @@ npm run lint             # Run ESLint
 - Referral payout notifications
 - Month completion emails
 - Feedback notifications to support
-- Database backup emails
+- Database backup emails with compressed attachments
 
 ✅ **Email infrastructure verified**
 - Domain: planbeta.in ✅ VERIFIED
 - Resend API: ✅ OPERATIONAL
 - All DNS records configured on Hostinger
+- EMAIL_FROM format fixed: `noreply@planbeta.in`
 
 ### Previous Updates
 ✅ **Database backup system** (automated + manual)

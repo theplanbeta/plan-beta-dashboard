@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { gzipSync } from 'zlib'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -333,21 +334,33 @@ export async function sendBackupEmail({
     : [to || process.env.SUPPORT_EMAIL || 'hello@planbeta.in']
 
   const safeFilename =
-    filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json`
+    filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json.gz`
 
   const summaryRows = Object.entries(counts)
     .map(([name, value]) => `<li><strong>${name}:</strong> ${value}</li>`)
     .join('')
 
+  // Compress the backup JSON to reduce file size
+  const compressed = gzipSync(Buffer.from(backupJson, 'utf-8'))
+  const originalSize = Buffer.byteLength(backupJson, 'utf-8')
+  const compressedSize = compressed.length
+  const compressionRatio = Math.round(((originalSize - compressedSize) / originalSize) * 100)
+
+  console.log(`📦 Backup compression: ${originalSize} bytes → ${compressedSize} bytes (${compressionRatio}% reduction)`)
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #1d4ed8;">Plan Beta Database Backup</h2>
       <p><strong>Timestamp:</strong> ${timestamp}</p>
-      <p>A fresh JSON backup is attached.</p>
+      <p>A compressed JSON backup (.gz) is attached.</p>
       <h3>Record counts</h3>
       <ul>
         ${summaryRows}
       </ul>
+      <p style="font-size: 12px; color: #6b7280;">
+        File size: ${Math.round(compressedSize / 1024)} KB (compressed from ${Math.round(originalSize / 1024)} KB)<br>
+        Extract with: <code>gunzip ${safeFilename}</code>
+      </p>
       <p style="font-size: 12px; color: #6b7280;">
         This email was generated automatically by the dashboard backup service.
       </p>
@@ -366,7 +379,7 @@ export async function sendBackupEmail({
       attachments: [
         {
           filename: safeFilename,
-          content: Buffer.from(backupJson, 'utf-8').toString('base64'),
+          content: compressed.toString('base64'),
         },
       ],
     })

@@ -12,31 +12,30 @@ export const runtime = 'nodejs'
 
 async function performBackup(skipCooldown = false) {
   try {
-    // COOLDOWN DISABLED FOR TESTING
     // Check if backup was done recently (within last 30 minutes) to avoid spam
     // Skip cooldown check for manual triggers
-    // if (!skipCooldown) {
-    //   const recentBackup = await prisma.auditLog.findFirst({
-    //     where: {
-    //       description: 'Database backup completed',
-    //       createdAt: {
-    //         gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    //       },
-    //     },
-    //   })
+    if (!skipCooldown) {
+      const recentBackup = await prisma.auditLog.findFirst({
+        where: {
+          description: 'Database backup completed',
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+          },
+        },
+      })
 
-    //   if (recentBackup) {
-    //     console.log('⏭️  Backup skipped - recent backup exists:', recentBackup.createdAt)
-    //     return NextResponse.json({
-    //       success: true,
-    //       message: 'Backup already created recently',
-    //       lastBackup: recentBackup.createdAt,
-    //       skipped: true
-    //     })
-    //   }
-    // } else {
-    //   console.log('🔓 Manual backup - bypassing cooldown')
-    // }
+      if (recentBackup) {
+        console.log('⏭️  Backup skipped - recent backup exists:', recentBackup.createdAt)
+        return NextResponse.json({
+          success: true,
+          message: 'Backup already created recently',
+          lastBackup: recentBackup.createdAt,
+          skipped: true
+        })
+      }
+    } else {
+      console.log('🔓 Manual backup - bypassing cooldown')
+    }
 
     console.log('🔄 Starting backup...')
 

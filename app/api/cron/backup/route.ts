@@ -12,14 +12,14 @@ export const runtime = 'nodejs'
 
 async function performBackup(skipCooldown = false) {
   try {
-    // Check if backup was done recently (within last 30 minutes) to avoid spam
+    // Check if backup was done recently (within last 10 minutes) to avoid spam
     // Skip cooldown check for manual triggers
     if (!skipCooldown) {
       const recentBackup = await prisma.auditLog.findFirst({
         where: {
           description: 'Database backup completed',
           createdAt: {
-            gte: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+            gte: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
           },
         },
       })

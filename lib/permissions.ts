@@ -67,7 +67,7 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    roles: ['FOUNDER', 'MARKETING', 'TEACHER'],
+    roles: ['FOUNDER', 'MARKETING'],
   },
   {
     name: 'My Dashboard',
@@ -92,7 +92,7 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Batches',
     href: '/dashboard/batches',
-    roles: ['FOUNDER', 'MARKETING', 'TEACHER'],
+    roles: ['FOUNDER', 'MARKETING'],
   },
   {
     name: 'Teachers',

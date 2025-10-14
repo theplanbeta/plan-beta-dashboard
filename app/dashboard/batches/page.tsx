@@ -294,27 +294,6 @@ export default function BatchesPage() {
                 </div>
               )}
 
-              {/* Revenue */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-2 border border-gray-200 dark:border-gray-600">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Revenue</span>
-                  <span className="text-base font-bold text-gray-900 dark:text-white">
-                    {formatCurrency(
-                      Number(batch.revenueActual || 0),
-                      normalizeCurrency(batch.currency)
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200 dark:border-gray-600">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Target</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {formatCurrency(
-                      Number(batch.revenueTarget || 0),
-                      normalizeCurrency(batch.currency)
-                    )}
-                  </span>
-                </div>
-              </div>
             </Link>
                 ))}
               </div>

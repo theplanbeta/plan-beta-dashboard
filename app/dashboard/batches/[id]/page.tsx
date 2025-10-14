@@ -189,47 +189,71 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600">Fill Rate</div>
-          <div className={`text-2xl font-bold mt-1 ${getFillRateColor(batch.fillRate)}`}>
-            {batch.fillRate.toFixed(0)}%
+      {!isTeacher ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Fill Rate</div>
+            <div className={`text-2xl font-bold mt-1 ${getFillRateColor(batch.fillRate)}`}>
+              {batch.fillRate.toFixed(0)}%
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {batch.enrolledCount} / {batch.totalSeats} seats
+            </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {batch.enrolledCount} / {batch.totalSeats} seats
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600">Revenue</div>
-          <div className="text-2xl font-bold text-foreground mt-1">
-            {formatAmount(Number(batch.revenueActual))}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Revenue</div>
+            <div className="text-2xl font-bold text-foreground mt-1">
+              {formatAmount(Number(batch.revenueActual))}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Target: {formatAmount(Number(batch.revenueTarget))}
+            </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            Target: {formatAmount(Number(batch.revenueTarget))}
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600">Profit</div>
-          <div className={`text-2xl font-bold mt-1 ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
-            {formatAmount(Number(batch.profit))}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Profit</div>
+            <div className={`text-2xl font-bold mt-1 ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
+              {formatAmount(Number(batch.profit))}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Margin: {profitMargin}%
+            </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            Margin: {profitMargin}%
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-600">Teacher Cost</div>
-          <div className="text-2xl font-bold text-foreground mt-1">
-            {formatAmount(Number(batch.teacherCost))}
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {batch.teacher?.name || "Not assigned"}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Teacher Cost</div>
+            <div className="text-2xl font-bold text-foreground mt-1">
+              {formatAmount(Number(batch.teacherCost))}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {batch.teacher?.name || "Not assigned"}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Fill Rate</div>
+            <div className={`text-2xl font-bold mt-1 ${getFillRateColor(batch.fillRate)}`}>
+              {batch.fillRate.toFixed(0)}%
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {batch.enrolledCount} / {batch.totalSeats} seats
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+            <div className="text-sm text-gray-600">Students Enrolled</div>
+            <div className="text-2xl font-bold text-foreground mt-1">
+              {batch.enrolledCount}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              Total Capacity: {batch.totalSeats}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -273,25 +297,27 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end space-y-2">
-                      <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
-                        {student.paymentStatus}
-                      </span>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">
-                          {formatCurrency(
-                            Number(student.totalPaid ?? 0),
-                            normalizeCurrency(student.currency)
-                          )}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          of {formatCurrency(
-                            Number(student.finalPrice ?? 0),
-                            normalizeCurrency(student.currency)
-                          )}
+                    {!isTeacher && (
+                      <div className="flex flex-col items-end space-y-2">
+                        <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
+                          {student.paymentStatus}
+                        </span>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {formatCurrency(
+                              Number(student.totalPaid ?? 0),
+                              normalizeCurrency(student.currency)
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            of {formatCurrency(
+                              Number(student.finalPrice ?? 0),
+                              normalizeCurrency(student.currency)
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -351,38 +377,40 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Financial Breakdown */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-foreground mb-4">Financial Details</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Revenue Target</span>
-                <span className="font-medium">{formatAmount(Number(batch.revenueTarget))}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Revenue Actual</span>
-                <span className="font-medium text-success">
-                  {formatAmount(Number(batch.revenueActual))}
-                </span>
-              </div>
-              <div className="flex justify-between pt-3 border-t">
-                <span className="text-gray-600">Teacher Cost</span>
-                <span className="font-medium text-error">
-                  {formatAmount(Number(batch.teacherCost))}
-                </span>
-              </div>
-              <div className="flex justify-between pt-3 border-t">
-                <span className="font-semibold">Net Profit</span>
-                <span className={`font-semibold ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
-                  {formatAmount(Number(batch.profit))}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Profit Margin</span>
-                <span className="font-medium">{profitMargin}%</span>
+          {/* Financial Breakdown - Hidden for teachers */}
+          {!isTeacher && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="font-semibold text-foreground mb-4">Financial Details</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Revenue Target</span>
+                  <span className="font-medium">{formatAmount(Number(batch.revenueTarget))}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Revenue Actual</span>
+                  <span className="font-medium text-success">
+                    {formatAmount(Number(batch.revenueActual))}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-3 border-t">
+                  <span className="text-gray-600">Teacher Cost</span>
+                  <span className="font-medium text-error">
+                    {formatAmount(Number(batch.teacherCost))}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-3 border-t">
+                  <span className="font-semibold">Net Profit</span>
+                  <span className={`font-semibold ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
+                    {formatAmount(Number(batch.profit))}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Profit Margin</span>
+                  <span className="font-medium">{profitMargin}%</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Capacity Progress */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">

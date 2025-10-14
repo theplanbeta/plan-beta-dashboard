@@ -343,21 +343,23 @@ export default function DashboardLayout({
       {/* Bottom Navigation for Mobile */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50">
         <div className="grid grid-cols-5 gap-1 p-2">
-          {/* Home/Dashboard */}
-          <Link
-            href="/dashboard"
-            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors ${
-              pathname === '/dashboard' ? "bg-primary/10 dark:bg-blue-900/30 text-primary dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <span className="text-xs font-medium mt-1">Home</span>
-          </Link>
+          {/* Home/Dashboard - Hidden for teachers */}
+          {userRole !== 'TEACHER' && (
+            <Link
+              href="/dashboard"
+              className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-colors ${
+                pathname === '/dashboard' ? "bg-primary/10 dark:bg-blue-900/30 text-primary dark:text-blue-400" : "text-gray-600 dark:text-gray-400"
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="text-xs font-medium mt-1">Home</span>
+            </Link>
+          )}
 
-          {/* First 4 navigation items */}
-          {navigation.slice(0, 3).map((item) => {
+          {/* First 3-4 navigation items */}
+          {navigation.slice(0, userRole === 'TEACHER' ? 4 : 3).map((item) => {
             const isActive = pathname === item.href
             const showBadge = item.name === "Leads" && overdueCount > 0
             return (

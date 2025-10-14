@@ -238,21 +238,23 @@ export default function StudentsPage() {
                   </div>
                 </div>
 
-                {/* Payment Info */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Payment Status</span>
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(student.paymentStatus)}`}>
-                      {student.paymentStatus}
-                    </span>
+                {/* Payment Info - Hidden for teachers */}
+                {!isTeacher && (
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Payment Status</span>
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(student.paymentStatus)}`}>
+                        {student.paymentStatus}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Balance Due</span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                        {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Balance Due</span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">
-                      {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
-                    </span>
-                  </div>
-                </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2">
@@ -262,21 +264,25 @@ export default function StudentsPage() {
                   >
                     View Details
                   </Link>
-                  <Link
-                    href={`/dashboard/students/${student.id}/edit`}
-                    className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
-                  >
-                    Edit
-                  </Link>
-                  <div className="inline-block">
-                    <GenerateInvoiceButton
-                      studentId={student.id}
-                      variant="outline"
-                      showPreview={false}
-                    >
-                      📄
-                    </GenerateInvoiceButton>
-                  </div>
+                  {!isTeacher && (
+                    <>
+                      <Link
+                        href={`/dashboard/students/${student.id}/edit`}
+                        className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
+                      >
+                        Edit
+                      </Link>
+                      <div className="inline-block">
+                        <GenerateInvoiceButton
+                          studentId={student.id}
+                          variant="outline"
+                          showPreview={false}
+                        >
+                          📄
+                        </GenerateInvoiceButton>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))
@@ -303,12 +309,16 @@ export default function StudentsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Batch
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
-                  Payment
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
-                  Balance
-                </th>
+                {!isTeacher && (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                      Payment
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                      Balance
+                    </th>
+                  </>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Status
                 </th>
@@ -320,7 +330,7 @@ export default function StudentsPage() {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={isTeacher ? 7 : 9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     No students found. Click &quot;Add Student&quot; to create your first student.
                   </td>
                 </tr>
@@ -356,14 +366,18 @@ export default function StudentsPage() {
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                       {student.batch ? student.batch.batchCode : "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
-                        {student.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
-                    </td>
+                    {!isTeacher && (
+                      <>
+                        <td className="px-6 py-4 text-sm">
+                          <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
+                            {student.paymentStatus}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
+                        </td>
+                      </>
+                    )}
                     <td className="px-6 py-4 text-sm">
                       <span className={`px-2 py-1 rounded text-xs ${getCompletionBadge(student.completionStatus)}`}>
                         {student.completionStatus}
@@ -377,23 +391,27 @@ export default function StudentsPage() {
                         >
                           View
                         </Link>
-                        <span className="text-gray-300">|</span>
-                        <Link
-                          href={`/dashboard/students/${student.id}/edit`}
-                          className="text-info hover:text-info/80"
-                        >
-                          Edit
-                        </Link>
-                        <span className="text-gray-300">|</span>
-                        <div className="inline-block">
-                          <GenerateInvoiceButton
-                            studentId={student.id}
-                            variant="outline"
-                            showPreview={false}
-                          >
-                            📄
-                          </GenerateInvoiceButton>
-                        </div>
+                        {!isTeacher && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <Link
+                              href={`/dashboard/students/${student.id}/edit`}
+                              className="text-info hover:text-info/80"
+                            >
+                              Edit
+                            </Link>
+                            <span className="text-gray-300">|</span>
+                            <div className="inline-block">
+                              <GenerateInvoiceButton
+                                studentId={student.id}
+                                variant="outline"
+                                showPreview={false}
+                              >
+                                📄
+                              </GenerateInvoiceButton>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

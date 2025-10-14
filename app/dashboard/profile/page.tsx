@@ -122,9 +122,6 @@ export default function ProfilePage() {
         specializations: formData.get('specializations') as string,
         languages: formData.get('languages') as string,
         availability: formData.get('availability') as string,
-        hourlyRate: formData.get('hourlyRate')
-          ? parseFloat(formData.get('hourlyRate') as string)
-          : undefined,
         preferredContact: formData.get('preferredContact') as string,
         whatsapp: formData.get('whatsapp') as string,
       }
@@ -252,19 +249,6 @@ export default function ProfilePage() {
                   type="text"
                   defaultValue={profile.preferredContact || ''}
                   placeholder="e.g., Email, Phone, WhatsApp"
-                />
-              </div>
-
-              <div>
-                <label className="form-label" htmlFor="hourlyRate">Hourly Rate (₹/€)</label>
-                <input
-                  className="input mt-1"
-                  id="hourlyRate"
-                  name="hourlyRate"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={profile.hourlyRate || ''}
                 />
               </div>
             </div>

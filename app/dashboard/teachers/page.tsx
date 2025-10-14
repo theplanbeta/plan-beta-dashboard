@@ -143,6 +143,37 @@ export default function TeachersPage() {
     }
   }
 
+  const deleteTeacher = async (teacher: Teacher) => {
+    // Check if teacher has active batches
+    if (teacher._count.batches > 0) {
+      alert(`❌ Cannot delete teacher with ${teacher._count.batches} active batch(es).\n\nPlease reassign or complete batches first.`)
+      return
+    }
+
+    // Double confirmation for safety
+    if (!confirm(`⚠️ WARNING: This will permanently delete ${teacher.name} and all their credentials.\n\nAre you absolutely sure you want to delete this teacher?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/teachers/${teacher.id}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        // Remove teacher from local state
+        setTeachers(teachers.filter(t => t.id !== teacher.id))
+        alert(`✅ Teacher ${teacher.name} deleted successfully`)
+      } else {
+        const error = await res.json()
+        alert(`❌ Failed to delete teacher: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error deleting teacher:", error)
+      alert("❌ Failed to delete teacher")
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -282,6 +313,18 @@ export default function TeachersPage() {
                   >
                     Edit
                   </Link>
+                  <button
+                    onClick={() => deleteTeacher(teacher)}
+                    disabled={teacher._count.batches > 0}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      teacher._count.batches > 0
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-red-600 text-white hover:bg-red-700'
+                    }`}
+                    title={teacher._count.batches > 0 ? `Cannot delete - ${teacher._count.batches} active batches` : "Delete teacher permanently"}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
 

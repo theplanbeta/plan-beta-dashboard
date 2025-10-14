@@ -233,3 +233,95 @@ export async function PATCH(
     )
   }
 }
+
+// DELETE /api/teachers/[id] - Delete teacher (FOUNDER only)
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Apply rate limiting
+    const rateLimitResult = await limiter(req)
+    if (rateLimitResult) return rateLimitResult
+
+    const check = await checkPermission('teachers', 'delete')
+    if (!check.authorized) return check.response
+
+    const { id } = await params
+
+    // Check if teacher exists
+    const teacher = await prisma.user.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        _count: {
+          select: {
+            batches: {
+              where: {
+                status: {
+                  in: ['RUNNING', 'FILLING']
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!teacher) {
+      return NextResponse.json(
+        { error: 'Teacher not found' },
+        { status: 404 }
+      )
+    }
+
+    if (teacher.role !== 'TEACHER') {
+      return NextResponse.json(
+        { error: 'User is not a teacher' },
+        { status: 400 }
+      )
+    }
+
+    // Check if teacher has active batches
+    if (teacher._count.batches > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete teacher with ${teacher._count.batches} active batch(es). Please reassign or complete batches first.` },
+        { status: 400 }
+      )
+    }
+
+    // Delete the teacher (user account)
+    await prisma.user.delete({
+      where: { id: id }
+    })
+
+    // Audit log
+    await logSuccess(
+      AuditAction.TEACHER_DELETED,
+      `Teacher deleted: ${teacher.name} (${teacher.email})`,
+      {
+        entityType: 'User',
+        entityId: teacher.id,
+        metadata: {
+          teacherName: teacher.name,
+          teacherEmail: teacher.email,
+        },
+        request: req,
+      }
+    )
+
+    return NextResponse.json(
+      { message: 'Teacher deleted successfully' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Error deleting teacher:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete teacher' },
+      { status: 500 }
+    )
+  }
+}

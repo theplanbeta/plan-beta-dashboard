@@ -60,6 +60,7 @@ export type EmailTemplate =
   | 'student-welcome'
   | 'teacher-welcome'
   | 'teacher-setup-invite'
+  | 'password-reset'
   | 'payment-received'
   | 'payment-reminder'
   | 'batch-start'
@@ -222,6 +223,53 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           <p style="color: #6b7280; font-size: 14px;">If you have any questions or need assistance, please reach out to our support team.</p>
 
           <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The Plan Beta Team</strong></p>
+          ${emailFooter}
+          </div>
+        </div>
+      `,
+    },
+
+    'password-reset': {
+      subject: `Reset Your Password - Plan Beta`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          ${emailHeader}
+          <div style="padding: 35px 30px;">
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Password Reset Request</h1>
+            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Hi ${data.userName},</p>
+
+            <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0;">
+              We received a request to reset your password for your Plan Beta account. Click the button below to create a new password:
+            </p>
+
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${data.resetUrl}"
+                 style="background: #d2302c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Reset Password
+              </a>
+            </div>
+
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+              <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: bold;">
+                This link expires in 1 hour
+              </p>
+              <p style="margin: 0; color: #92400e; font-size: 13px;">
+                For security reasons, this password reset link will expire in 60 minutes.
+              </p>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0;">
+              If you did not request this password reset, you can safely ignore this email. Your password will not be changed.
+            </p>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                If the button does not work, copy and paste this link into your browser:<br>
+                <a href="${data.resetUrl}" style="color: #d2302c; word-break: break-all;">${data.resetUrl}</a>
+              </p>
+            </div>
+
+            <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The Plan Beta Team</strong></p>
           ${emailFooter}
           </div>
         </div>

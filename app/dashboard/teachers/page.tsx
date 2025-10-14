@@ -119,6 +119,30 @@ export default function TeachersPage() {
     t.email.includes('@planbeta.internal') && t.active
   ).length
 
+  const toggleTeacherActive = async (teacherId: string, currentActive: boolean) => {
+    try {
+      const res = await fetch(`/api/teachers/${teacherId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !currentActive }),
+      })
+
+      if (res.ok) {
+        // Update local state
+        setTeachers(teachers.map(t =>
+          t.id === teacherId ? { ...t, active: !currentActive } : t
+        ))
+        alert(`✅ Teacher ${!currentActive ? 'activated' : 'deactivated'} successfully`)
+      } else {
+        const error = await res.json()
+        alert(`❌ Failed: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error toggling teacher status:", error)
+      alert("❌ Failed to update teacher status")
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -237,6 +261,21 @@ export default function TeachersPage() {
                       {sendingEmailId === teacher.id ? "Sending..." : "📧 Send Email"}
                     </button>
                   )}
+                  <button
+                    onClick={() => {
+                      if (confirm(`Are you sure you want to ${teacher.active ? 'deactivate' : 'activate'} ${teacher.name}?`)) {
+                        toggleTeacherActive(teacher.id, teacher.active)
+                      }
+                    }}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      teacher.active
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    }`}
+                    title={teacher.active ? "Deactivate teacher" : "Activate teacher"}
+                  >
+                    {teacher.active ? '🔒 Deactivate' : '✅ Activate'}
+                  </button>
                   <Link
                     href={`/dashboard/teachers/${teacher.id}/edit`}
                     className="btn-outline text-sm"

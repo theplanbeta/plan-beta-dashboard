@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { GenerateInvoiceButton } from "@/components/GenerateInvoiceButton"
 
@@ -27,11 +28,14 @@ type Student = {
 }
 
 export default function StudentsPage() {
+  const { data: session } = useSession()
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [levelFilter, setLevelFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+
+  const isTeacher = session?.user?.role === 'TEACHER'
 
   useEffect(() => {
     fetchStudents()
@@ -105,12 +109,14 @@ export default function StudentsPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Manage student enrollments and information</p>
         </div>
-        <Link
-          href="/dashboard/students/new"
-          className="btn-primary"
-        >
-          + Add Student
-        </Link>
+        {!isTeacher && (
+          <Link
+            href="/dashboard/students/new"
+            className="btn-primary"
+          >
+            + Add Student
+          </Link>
+        )}
       </div>
 
       {/* Filters */}

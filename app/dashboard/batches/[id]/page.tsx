@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { normalizeCurrency } from "@/lib/currency"
 
@@ -49,9 +50,12 @@ type Batch = {
 export default function BatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { data: session } = useSession()
   const [batch, setBatch] = useState<Batch | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+
+  const isTeacher = session?.user?.role === 'TEACHER'
 
   useEffect(() => {
     fetchBatch()
@@ -158,19 +162,23 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           <p className="mt-2 text-gray-600">Level {batch.level}</p>
         </div>
         <div className="flex space-x-3">
-          <Link
-            href={`/dashboard/batches/${batch.id}/edit`}
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
-          >
-            Edit Batch
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="px-4 py-2 border border-error text-error rounded-md hover:bg-error hover:text-white disabled:opacity-50"
-          >
-            {deleting ? "Deleting..." : "Delete"}
-          </button>
+          {!isTeacher && (
+            <>
+              <Link
+                href={`/dashboard/batches/${batch.id}/edit`}
+                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+              >
+                Edit Batch
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 border border-error text-error rounded-md hover:bg-error hover:text-white disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </>
+          )}
           <Link
             href="/dashboard/batches"
             className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
@@ -230,12 +238,14 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-foreground">Student Roster</h2>
-              <Link
-                href={`/dashboard/students/new?batchId=${batch.id}`}
-                className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark text-sm"
-              >
-                + Add Student
-              </Link>
+              {!isTeacher && (
+                <Link
+                  href={`/dashboard/students/new?batchId=${batch.id}`}
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark text-sm"
+                >
+                  + Add Student
+                </Link>
+              )}
             </div>
 
             {batch.students.length === 0 ? (

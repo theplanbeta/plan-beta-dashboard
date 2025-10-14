@@ -36,6 +36,11 @@ export default function AttendancePage() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0])
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(false)
+  const [viewMode, setViewMode] = useState<"quick" | "table" | "history">("quick")
+  const [quickAttendance, setQuickAttendance] = useState<Map<string, "PRESENT" | "ABSENT" | "EXCUSED" | "LATE">>(new Map())
+  const [savingQuick, setSavingQuick] = useState(false)
+  const [historyRecords, setHistoryRecords] = useState<AttendanceRecord[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
     fetchBatches()
@@ -46,6 +51,12 @@ export default function AttendancePage() {
       fetchAttendance()
     }
   }, [selectedBatch, selectedDate])
+
+  useEffect(() => {
+    if (viewMode === "history" && selectedBatch) {
+      fetchHistory()
+    }
+  }, [viewMode, selectedBatch])
 
   const fetchBatches = async () => {
     try {
@@ -67,10 +78,71 @@ export default function AttendancePage() {
       const res = await fetch(`/api/attendance?${params.toString()}`)
       const data = await res.json()
       setAttendance(data)
+      const map = new Map<string, "PRESENT" | "ABSENT" | "EXCUSED" | "LATE">()
+      data.forEach((record: AttendanceRecord) => {
+        map.set(record.student.id, record.status as "PRESENT" | "ABSENT" | "EXCUSED" | "LATE")
+      })
+      setQuickAttendance(map)
     } catch (error) {
       console.error("Error fetching attendance:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchHistory = async () => {
+    try {
+      setHistoryLoading(true)
+      const params = new URLSearchParams()
+      params.append("batchId", selectedBatch)
+      const res = await fetch(`/api/attendance?${params.toString()}`)
+      const data = await res.json()
+      setHistoryRecords(
+        data.sort(
+          (a: AttendanceRecord, b: AttendanceRecord) =>
+            new Date(b.date).getTime() - new Date(a.date).getTime()
+        )
+      )
+    } catch (error) {
+      console.error("Error fetching attendance history:", error)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  const updateQuickStatus = (studentId: string, status: "PRESENT" | "ABSENT" | "EXCUSED" | "LATE") => {
+    setQuickAttendance((prev) => {
+      const map = new Map(prev)
+      map.set(studentId, status)
+      return map
+    })
+  }
+
+  const handleQuickSave = async () => {
+    if (!selectedBatchDetails) return
+    setSavingQuick(true)
+    try {
+      const payload = selectedBatchDetails.students.map((student) => ({
+        studentId: student.id,
+        date: selectedDate,
+        status: quickAttendance.get(student.id) ?? "PRESENT",
+        notes: null,
+      }))
+
+      const res = await fetch("/api/attendance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) throw new Error("Failed to save attendance")
+
+      await fetchAttendance()
+    } catch (error) {
+      console.error("Error saving attendance:", error)
+      alert("Could not save attendance. Please try again.")
+    } finally {
+      setSavingQuick(false)
     }
   }
 
@@ -84,11 +156,47 @@ export default function AttendancePage() {
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
 
-  // Calculate attendance stats
-  const totalStudents = attendance.length
-  const presentCount = attendance.filter((a) => a.status === "PRESENT").length
-  const absentCount = attendance.filter((a) => a.status === "ABSENT").length
-  const excusedCount = attendance.filter((a) => a.status === "EXCUSED").length
+  const selectedBatchDetails = batches.find((batch) => batch.id === selectedBatch)
+
+  useEffect(() => {
+    if (!selectedBatchDetails) {
+      setQuickAttendance(new Map())
+      return
+    }
+
+    setQuickAttendance((prev) => {
+      const map = new Map(prev)
+      const validIds = new Set(selectedBatchDetails.students.map((student) => student.id))
+
+      selectedBatchDetails.students.forEach((student) => {
+        if (!map.has(student.id)) {
+          map.set(student.id, "PRESENT")
+        }
+      })
+
+      Array.from(map.keys()).forEach((studentId) => {
+        if (!validIds.has(studentId)) {
+          map.delete(studentId)
+        }
+      })
+
+      return map
+    })
+  }, [selectedBatchDetails?.id])
+
+  const totalStudents = selectedBatchDetails?.students.length ?? 0
+  const presentCount = selectedBatchDetails
+    ? selectedBatchDetails.students.filter((student) => (quickAttendance.get(student.id) ?? "PRESENT") === "PRESENT").length
+    : 0
+  const absentCount = selectedBatchDetails
+    ? selectedBatchDetails.students.filter((student) => (quickAttendance.get(student.id) ?? "PRESENT") === "ABSENT").length
+    : 0
+  const excusedCount = selectedBatchDetails
+    ? selectedBatchDetails.students.filter((student) => {
+        const status = quickAttendance.get(student.id) ?? "PRESENT"
+        return status === "EXCUSED" || status === "LATE"
+      }).length
+    : 0
   const attendanceRate = totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : "0"
 
   return (
@@ -105,6 +213,11 @@ export default function AttendancePage() {
         >
           Bulk Mark Attendance
         </Link>
+      </div>
+
+      {/* Helper banner */}
+      <div className="bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded-lg px-4 py-3 text-sm text-blue-900 dark:text-blue-100">
+        <strong>Quick tip:</strong> Switch to <em>Quick Mark</em> for tap-friendly attendance during class, then review <em>History</em> to verify earlier sessions. You can still use the spreadsheet-style view when needed.
       </div>
 
       {/* Filters */}

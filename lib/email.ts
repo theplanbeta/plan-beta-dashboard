@@ -3,8 +3,71 @@ import { gzipSync } from 'zlib'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Professional email header with logo - using actual Plan Beta branding
+const emailHeader = `
+  <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+      <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://planbeta.in'}/blogo.png" alt="plan beta" style="width: 80px; height: 80px; display: block; margin: 0 auto;" />
+      <p style="margin: 12px 0 0 0; color: #121212; font-size: 11px; letter-spacing: 2px; font-weight: 500; text-align: center;">SCHOOL OF GERMAN</p>
+    </div>
+  </div>
+`
+
+// Professional email footer with company details - using actual Plan Beta branding
+const emailFooter = `
+  <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
+    <div style="background: #f9fafb; padding: 25px; border-radius: 8px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://planbeta.in'}/blogo.png" alt="plan beta" style="width: 60px; height: 60px; display: block; margin: 0 auto 10px auto;" />
+        <p style="margin: 0; color: #6b7280; font-size: 12px; letter-spacing: 2px; font-weight: 500;">SCHOOL OF GERMAN</p>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0; padding: 15px; background: white; border-radius: 6px;">
+        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
+          <strong>📧 Email:</strong> <a href="mailto:${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}" style="color: #d2302c; text-decoration: none;">${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}</a>
+        </p>
+        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
+          <strong>📞 Phone:</strong> <a href="tel:+918547081550" style="color: #d2302c; text-decoration: none;">+91 85470 81550</a>
+        </p>
+        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
+          <strong>🌐 Website:</strong> <a href="https://planbeta.in" style="color: #d2302c; text-decoration: none;">planbeta.in</a>
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 13px; font-weight: 600;">Connect With Us</p>
+        <div style="display: inline-block;">
+          <a href="https://facebook.com/theplanbeta" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">Facebook</a>
+          <span style="color: #d1d5db;">|</span>
+          <a href="https://instagram.com/theplanbeta" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">Instagram</a>
+          <span style="color: #d1d5db;">|</span>
+          <a href="https://youtube.com/@planbeta00" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">YouTube</a>
+          <span style="color: #d1d5db;">|</span>
+          <a href="https://www.linkedin.com/company/planbeta/" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">LinkedIn</a>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d2302c 0%, #121212 100%); border-radius: 6px; margin-top: 20px;">
+        <p style="margin: 0; color: white; font-size: 12px; line-height: 1.6;">
+          © ${new Date().getFullYear()} plan beta. All rights reserved.<br>
+          <span style="opacity: 0.9;">School of German</span>
+        </p>
+      </div>
+
+      <div style="text-align: center; margin-top: 15px;">
+        <p style="margin: 0; color: #9ca3af; font-size: 11px; line-height: 1.5;">
+          This email was sent to you as part of your enrollment/employment with plan beta.<br>
+          If you have any questions, please reply to this email or contact our support team.
+        </p>
+      </div>
+    </div>
+  </div>
+`
+
 export type EmailTemplate =
   | 'student-welcome'
+  | 'teacher-welcome'
+  | 'teacher-setup-invite'
   | 'payment-received'
   | 'payment-reminder'
   | 'batch-start'
@@ -22,10 +85,10 @@ interface EmailData {
 export function generateEmail(template: EmailTemplate, data: Record<string, string | number | boolean | null | undefined>): EmailData {
   const templates = {
     'student-welcome': {
-      subject: `Welcome to Plan Beta, ${data.studentName}!`,
+      subject: `Welcome to plan beta, ${data.studentName}!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #3b82f6;">Welcome to Plan Beta! 🎉</h1>
+          <h1 style="color: #3b82f6;">Welcome to plan beta! 🎉</h1>
           <p>Dear ${data.studentName},</p>
           <p>We're excited to have you join us for your German language journey!</p>
 
@@ -48,7 +111,127 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>If you have any questions, feel free to reach out to us at ${process.env.SUPPORT_EMAIL}.</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
+        </div>
+      `,
+    },
+
+    'teacher-welcome': {
+      subject: `Welcome to plan beta - Your Teacher Account`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          ${emailHeader}
+          <div style="padding: 35px 30px;">
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Welcome to plan beta! 👋</h1>
+            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Dear ${data.teacherName},</p>
+            <p style="color: #374151; font-size: 15px;">Your teacher account has been created successfully. We're excited to have you as part of our teaching team!</p>
+
+          <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e;"><strong>⚠️ Important: Save these credentials</strong></p>
+            <p style="margin: 10px 0 0 0; color: #92400e; font-size: 14px;">This is the only time you'll receive your password via email.</p>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Your Login Credentials:</h3>
+            <p><strong>Email:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.email}</code></p>
+            <p><strong>Password:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.password}</code></p>
+          </div>
+
+          <div style="margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/login"
+               style="background: #d2302c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
+              Login to Your Account
+            </a>
+          </div>
+
+          <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px;"><strong>What you can do:</strong></p>
+            <ul style="margin: 10px 0 0 0; font-size: 14px;">
+              <li>View your assigned batches and students</li>
+              <li>Mark attendance for your classes</li>
+              <li>Log your teaching hours</li>
+              <li>Track payment status</li>
+              <li>Update your profile and change password</li>
+            </ul>
+          </div>
+
+          <p style="color: #374151; font-size: 15px; margin-top: 20px;"><strong>Next Steps:</strong></p>
+          <ol style="color: #6b7280; font-size: 14px;">
+            <li>Login using the credentials above</li>
+            <li>Change your password to something memorable</li>
+            <li>Complete your profile information</li>
+            <li>Explore the dashboard and available features</li>
+          </ol>
+
+          <p style="color: #6b7280; font-size: 14px;">If you have any questions or need assistance, please reach out to our support team.</p>
+
+          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The plan beta Team</strong></p>
+          ${emailFooter}
+          </div>
+        </div>
+      `,
+    },
+
+    'teacher-setup-invite': {
+      subject: `Complete Your plan beta Teacher Account Setup`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          ${emailHeader}
+          <div style="padding: 35px 30px;">
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Complete Your Account Setup 🎓</h1>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${data.teacherName},</p>
+          <p>A teacher account has been created for you at plan beta. Please complete your account setup to get started.</p>
+
+          <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+            <h3 style="margin-top: 0; color: #1e40af;">Action Required</h3>
+            <p style="margin: 0; font-size: 14px;">You need to set up your personal email and password to access your account.</p>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0;">Temporary Login Credentials:</h3>
+            <p><strong>Email:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.email}</code></p>
+            <p><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.password}</code></p>
+            <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">Use these credentials for your first login only.</p>
+          </div>
+
+          <div style="margin: 30px 0;">
+            <a href="${process.env.NEXT_PUBLIC_APP_URL}/login"
+               style="background: #d2302c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
+              Complete Setup Now
+            </a>
+          </div>
+
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px;"><strong>📝 Setup Process:</strong></p>
+            <ol style="margin: 10px 0 0 0; font-size: 14px; padding-left: 20px;">
+              <li>Click the button above or login with temporary credentials</li>
+              <li>You'll be automatically redirected to the account setup page</li>
+              <li>Enter your personal email address</li>
+              <li>Create a new secure password</li>
+              <li>Start using your dashboard!</li>
+            </ol>
+          </div>
+
+          <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px;"><strong>What you'll be able to do:</strong></p>
+            <ul style="margin: 10px 0 0 0; font-size: 14px;">
+              <li>View and manage your assigned batches</li>
+              <li>Mark attendance for your classes</li>
+              <li>Log your teaching hours</li>
+              <li>Track payment status</li>
+              <li>Update your profile anytime</li>
+            </ul>
+          </div>
+
+          <p style="font-size: 13px; color: #6b7280; background: #f9fafb; padding: 12px; border-radius: 6px; border-left: 3px solid #d1d5db;">
+            <strong>Note:</strong> This is a system-generated email. After you complete your setup, all future communications will be sent to your personal email address.
+          </p>
+
+          <p style="color: #6b7280; font-size: 14px;">If you have any questions or need assistance, please reach out to our support team.</p>
+
+          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The plan beta Team</strong></p>
+          ${emailFooter}
+          </div>
         </div>
       `,
     },
@@ -78,7 +261,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>You can view your complete payment history in your student portal.</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -110,7 +293,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>For any payment-related queries, contact us at ${process.env.SUPPORT_EMAIL}.</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -149,7 +332,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>We're excited to start this journey with you!</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -180,7 +363,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>Contact us: ${process.env.SUPPORT_EMAIL}</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -217,7 +400,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             </a>
           </div>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -251,7 +434,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>Keep up the excellent work!</p>
 
-          <p>Best regards,<br>The Plan Beta Team</p>
+          <p>Best regards,<br>The plan beta Team</p>
         </div>
       `,
     },
@@ -275,7 +458,7 @@ export async function sendEmail(
     const emailData = generateEmail(template, data)
 
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'Plan Beta <noreply@planbeta.in>',
+      from: process.env.EMAIL_FROM || 'plan beta <noreply@planbeta.in>',
       to: emailData.to,
       subject: emailData.subject,
       html: emailData.html,
@@ -350,7 +533,7 @@ export async function sendBackupEmail({
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1d4ed8;">Plan Beta Database Backup</h2>
+      <h2 style="color: #1d4ed8;">plan beta Database Backup</h2>
       <p><strong>Timestamp:</strong> ${timestamp}</p>
       <p>A compressed JSON backup (.gz) is attached.</p>
       <h3>Record counts</h3>
@@ -372,7 +555,7 @@ export async function sendBackupEmail({
     console.log('📧 Using Resend API key:', process.env.RESEND_API_KEY ? '✓ Configured' : '✗ Missing')
 
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'Plan Beta Backups <noreply@planbeta.in>',
+      from: process.env.EMAIL_FROM || 'plan beta Backups <noreply@planbeta.in>',
       to: recipientList,
       subject: `Database Backup - ${timestamp}`,
       html,

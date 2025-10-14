@@ -29,9 +29,12 @@ export default function NewTeacherPage() {
   const [usePBTarif, setUsePBTarif] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [isDirty, setIsDirty] = useState(false)
+  const [showCredentials, setShowCredentials] = useState(false)
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null)
   const { addToast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
     teacherLevels: [] as string[],
     teacherTimings: [] as string[],
     hourlyRates: {} as Record<string, string>, // {"A1": "600", "B2": "750"}
@@ -64,6 +67,7 @@ export default function NewTeacherPage() {
 
       const payload = {
         name: formData.name,
+        email: formData.email,
         teacherLevels: formData.teacherLevels,
         teacherTimings: formData.teacherTimings,
         teacherTimeSlots: validTimeSlots,
@@ -80,8 +84,15 @@ export default function NewTeacherPage() {
       })
 
       if (res.ok) {
+        const data = await res.json()
+        // Store credentials to show in modal
+        setCreatedCredentials({
+          email: data.email,
+          password: data.password,
+        })
+        setShowCredentials(true)
+        setIsDirty(false)
         addToast('Teacher created successfully', { type: 'success' })
-        router.push("/dashboard/teachers")
         return
       }
       try {
@@ -191,6 +202,11 @@ export default function NewTeacherPage() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty, loading])
 
+  const handleCopyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text)
+    addToast(`${label} copied to clipboard`, { type: 'success' })
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -198,25 +214,135 @@ export default function NewTeacherPage() {
         <p className="text-gray-500">Create a new teacher profile</p>
       </div>
 
+      {/* Credentials Modal */}
+      {showCredentials && createdCredentials && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Teacher Credentials</h2>
+              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                ⚠️ Important: Save these credentials now!
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                The password will not be shown again for security reasons.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={createdCredentials.email}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyToClipboard(createdCredentials.email, 'Email')}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    title="Copy email"
+                  >
+                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Password
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={createdCredentials.password}
+                    readOnly
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyToClipboard(createdCredentials.password, 'Password')}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    title="Copy password"
+                  >
+                    <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/teachers')}
+                className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium"
+              >
+                Go to Teachers List
+              </button>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+                Make sure to save these credentials before closing
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="panel p-6 space-y-6">
         {/* Basic Information */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Basic Information</h2>
-          <div>
-            <label className="form-label">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true) }}
-              className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
-              placeholder="Teacher's full name"
-            />
-            {fieldErrors.name && (
-              <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>
-            )}
+          <div className="space-y-4">
+            <div>
+              <label className="form-label">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true) }}
+                className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="Teacher's full name"
+              />
+              {fieldErrors.name && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="form-label">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setIsDirty(true) }}
+                className={`input ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                placeholder="teacher@example.com"
+              />
+              {fieldErrors.email && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                This email will be used for login credentials
+              </p>
+            </div>
           </div>
         </div>
 

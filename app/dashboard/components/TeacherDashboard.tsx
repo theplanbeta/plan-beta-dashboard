@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 type TeacherData = {
@@ -24,8 +26,17 @@ type TeacherData = {
 }
 
 export default function TeacherDashboard({ userName }: { userName: string }) {
+  const { data: session } = useSession()
+  const router = useRouter()
   const [data, setData] = useState<TeacherData | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Check if teacher needs account setup
+  useEffect(() => {
+    if (session?.user?.email?.includes('@planbeta.internal')) {
+      router.push('/dashboard/account-setup')
+    }
+  }, [session?.user?.email, router])
 
   useEffect(() => {
     fetchData()

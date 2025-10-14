@@ -1,7 +1,9 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/components/Toast"
+import { parseZodIssues } from "@/lib/form-errors"
 
 interface TimeSlot {
   id: string
@@ -21,17 +23,21 @@ const PB_TARIF_RATES = {
   B2: 750,
 }
 
-export default function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
+export default function EditTeacherPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [fetching, setFetching] = useState(true)
+  const [loadingData, setLoadingData] = useState(true)
   const [usePBTarif, setUsePBTarif] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isDirty, setIsDirty] = useState(false)
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     name: "",
+    email: "",
+    active: true,
     teacherLevels: [] as string[],
     teacherTimings: [] as string[],
-    hourlyRates: {} as Record<string, string>, // {"A1": "600", "B2": "750"}
+    hourlyRates: {} as Record<string, string>,
     currency: "EUR" as typeof CURRENCIES[number],
     whatsapp: "",
     remarks: "",
@@ -42,51 +48,57 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     fetchTeacher()
-  }, [id])
+  }, [params.id])
 
   const fetchTeacher = async () => {
     try {
-      const res = await fetch(`/api/teachers/${id}`)
+      const res = await fetch(\`/api/teachers/\${params.id}\`)
       if (!res.ok) throw new Error("Failed to fetch teacher")
 
       const teacher = await res.json()
 
-      // Convert hourlyRate from JSON object to string record
-      const hourlyRatesObj: Record<string, string> = {}
+      // Convert hourly rates object to string values
+      const hourlyRates: Record<string, string> = {}
       if (teacher.hourlyRate && typeof teacher.hourlyRate === 'object') {
         Object.entries(teacher.hourlyRate).forEach(([level, rate]) => {
-          hourlyRatesObj[level] = String(rate)
+          hourlyRates[level] = String(rate)
         })
       }
 
       setFormData({
         name: teacher.name || "",
+        email: teacher.email || "",
+        active: teacher.active ?? true,
         teacherLevels: teacher.teacherLevels || [],
         teacherTimings: teacher.teacherTimings || [],
-        hourlyRates: hourlyRatesObj,
+        hourlyRates,
         currency: teacher.currency || "EUR",
         whatsapp: teacher.whatsapp || "",
         remarks: teacher.remarks || "",
       })
 
+      // Set time slots
       if (teacher.teacherTimeSlots && teacher.teacherTimeSlots.length > 0) {
-        setTimeSlots(teacher.teacherTimeSlots.map((slot: { startTime: string, endTime: string }) => ({
-          id: crypto.randomUUID(),
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-        })))
+        setTimeSlots(
+          teacher.teacherTimeSlots.map((slot: { startTime: string; endTime: string }) => ({
+            id: crypto.randomUUID(),
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+          }))
+        )
       }
     } catch (error) {
       console.error("Error fetching teacher:", error)
-      alert("Failed to load teacher data")
+      addToast("Failed to load teacher data", { type: "error" })
     } finally {
-      setFetching(false)
+      setLoadingData(false)
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setFieldErrors({})
 
     try {
       // Filter out empty time slots
@@ -104,6 +116,8 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
 
       const payload = {
         name: formData.name,
+        email: formData.email,
+        active: formData.active,
         teacherLevels: formData.teacherLevels,
         teacherTimings: formData.teacherTimings,
         teacherTimeSlots: validTimeSlots,
@@ -113,50 +127,35 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         remarks: formData.remarks || undefined,
       }
 
-      const res = await fetch(`/api/teachers/${id}`, {
+      const res = await fetch(\`/api/teachers/\${params.id}\`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
 
       if (res.ok) {
-        router.push("/dashboard/teachers")
-      } else {
-        const error = await res.json()
-        console.error("Validation error:", error)
-        if (error.details) {
-          const fieldErrors = error.details.map((d: any) => `${d.path.join('.')}: ${d.message}`).join('\n')
-          alert(`Validation failed:\n${fieldErrors}`)
+        setIsDirty(false)
+        addToast('Teacher updated successfully', { type: 'success' })
+        router.push('/dashboard/teachers')
+        return
+      }
+
+      try {
+        const data = await res.json()
+        if (Array.isArray(data?.details)) {
+          setFieldErrors(parseZodIssues(data.details))
+          addToast(data?.error || 'Validation failed', { type: 'error' })
         } else {
-          alert(error.error || "Failed to update teacher")
+          addToast(data?.error || 'Failed to update teacher', { type: 'error' })
         }
+      } catch {
+        addToast('Failed to update teacher', { type: 'error' })
       }
     } catch (error) {
       console.error("Error updating teacher:", error)
-      alert("Failed to update teacher")
+      addToast("Failed to update teacher", { type: 'error' })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const calculatePBTarifRates = (levels: string[]): Record<string, string> => {
-    const rates: Record<string, string> = {}
-    levels.forEach(level => {
-      rates[level] = String(PB_TARIF_RATES[level as keyof typeof PB_TARIF_RATES])
-    })
-    return rates
-  }
-
-  const handlePBTarifToggle = (checked: boolean) => {
-    setUsePBTarif(checked)
-    if (checked) {
-      // Auto-fill rates for all selected levels and set currency to INR
-      const rates = calculatePBTarifRates(formData.teacherLevels)
-      setFormData(prev => ({
-        ...prev,
-        hourlyRates: rates,
-        currency: "INR"
-      }))
     }
   }
 
@@ -183,6 +182,28 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
 
       return { ...prev, [field]: newValues }
     })
+    setIsDirty(true)
+  }
+
+  const calculatePBTarifRates = (levels: string[]): Record<string, string> => {
+    const rates: Record<string, string> = {}
+    levels.forEach(level => {
+      rates[level] = String(PB_TARIF_RATES[level as keyof typeof PB_TARIF_RATES])
+    })
+    return rates
+  }
+
+  const handlePBTarifToggle = (checked: boolean) => {
+    setUsePBTarif(checked)
+    if (checked) {
+      // Auto-fill rates for all selected levels and set currency to INR
+      const rates = calculatePBTarifRates(formData.teacherLevels)
+      setFormData(prev => ({
+        ...prev,
+        hourlyRates: rates,
+        currency: "INR"
+      }))
+    }
   }
 
   const handleRateChange = (level: string, value: string) => {
@@ -193,54 +214,43 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         [level]: value
       }
     }))
+    setIsDirty(true)
   }
 
   const addTimeSlot = () => {
     setTimeSlots([...timeSlots, { id: crypto.randomUUID(), startTime: "", endTime: "" }])
+    setIsDirty(true)
   }
 
   const removeTimeSlot = (id: string) => {
     if (timeSlots.length > 1) {
       setTimeSlots(timeSlots.filter(slot => slot.id !== id))
     }
+    setIsDirty(true)
   }
 
   const updateTimeSlot = (id: string, field: 'startTime' | 'endTime', value: string) => {
     setTimeSlots(timeSlots.map(slot =>
       slot.id === id ? { ...slot, [field]: value } : slot
     ))
+    setIsDirty(true)
   }
 
-  const handleDeactivate = async () => {
-    if (!confirm('Are you sure you want to deactivate this teacher? They will no longer appear in active teacher lists.')) {
-      return
-    }
-
-    setLoading(true)
-    try {
-      const res = await fetch(`/api/teachers/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (res.ok) {
-        alert('Teacher deactivated successfully')
-        router.push('/dashboard/teachers')
-      } else {
-        const error = await res.json()
-        alert(error.error || 'Failed to deactivate teacher')
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty && !loading) {
+        e.preventDefault()
+        e.returnValue = ''
       }
-    } catch (error) {
-      console.error('Error deactivating teacher:', error)
-      alert('Failed to deactivate teacher')
-    } finally {
-      setLoading(false)
     }
-  }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty, loading])
 
-  if (fetching) {
+  if (loadingData) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading teacher...</div>
+        <div className="text-gray-500">Loading teacher data...</div>
       </div>
     )
   }
@@ -249,25 +259,65 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Edit Teacher</h1>
-        <p className="text-gray-500">Update teacher profile</p>
+        <p className="text-gray-500">Update teacher profile and credentials</p>
       </div>
 
       <form onSubmit={handleSubmit} className="panel p-6 space-y-6">
         {/* Basic Information */}
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-4">Basic Information</h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Teacher's full name"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="form-label">
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true) }}
+                className={\`input \${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}\`}
+                placeholder="Teacher's full name"
+              />
+              {fieldErrors.name && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="form-label">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setIsDirty(true) }}
+                className={\`input \${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}\`}
+                placeholder="teacher@example.com"
+              />
+              {fieldErrors.email && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                This email is used for login credentials
+              </p>
+            </div>
+
+            <div>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.active}
+                  onChange={(e) => { setFormData({ ...formData, active: e.target.checked }); setIsDirty(true) }}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-sm font-medium text-gray-700">Active</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Inactive teachers cannot log in
+              </p>
+            </div>
           </div>
         </div>
 
@@ -450,11 +500,6 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
                     Rates are auto-calculated from PB Tarif
                   </p>
                 )}
-                {!usePBTarif && formData.teacherLevels.length === 0 && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Select levels above to set hourly rates
-                  </p>
-                )}
               </div>
             )}
           </div>
@@ -493,31 +538,21 @@ export default function EditTeacherPage({ params }: { params: Promise<{ id: stri
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-between pt-4 border-t">
+        <div className="flex gap-3 justify-end pt-4 border-t">
           <button
             type="button"
-            onClick={handleDeactivate}
-            disabled={loading}
-            className="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 disabled:opacity-50"
+            onClick={() => router.back()}
+            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
           >
-            Deactivate Teacher
+            Cancel
           </button>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
-            >
-              {loading ? "Updating..." : "Update Teacher"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50"
+          >
+            {loading ? "Updating..." : "Update Teacher"}
+          </button>
         </div>
       </form>
     </div>

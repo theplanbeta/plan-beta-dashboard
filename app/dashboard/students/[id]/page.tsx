@@ -3,7 +3,9 @@
 import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils"
+import { normalizeCurrency } from "@/lib/currency"
 
 type Student = {
   id: string
@@ -18,6 +20,7 @@ type Student = {
   originalPrice: number
   discountApplied: number
   finalPrice: number
+  currency: string
   paymentStatus: string
   totalPaid: number
   balance: number
@@ -49,15 +52,40 @@ type Student = {
   }>
 }
 
+type TeacherReview = {
+  id: string
+  teacherId: string
+  rating?: number | null
+  category?: string | null
+  comment: string
+  createdAt: string
+  teacher: {
+    id: string
+    name: string | null
+    email: string | null
+  }
+}
+
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { data: session } = useSession()
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [reviews, setReviews] = useState<TeacherReview[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
+  const [reviewError, setReviewError] = useState("")
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    category: "",
+    comment: "",
+  })
 
   useEffect(() => {
     fetchStudent()
+    fetchReviews()
   }, [id])
 
   const fetchStudent = async () => {
@@ -71,6 +99,57 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       console.error("Error fetching student:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchReviews = async () => {
+    try {
+      setReviewsLoading(true)
+      const res = await fetch(`/api/students/${id}/reviews`)
+      if (!res.ok) throw new Error("Failed to fetch reviews")
+      const data = await res.json()
+      setReviews(data)
+      setReviewError("")
+    } catch (error) {
+      console.error("Error fetching reviews:", error)
+      setReviewError("Could not load teacher notes.")
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
+  const handleReviewSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!reviewForm.comment.trim()) {
+      setReviewError("Please add a quick comment before submitting.")
+      return
+    }
+
+    setSubmittingReview(true)
+    setReviewError("")
+
+    try {
+      const res = await fetch(`/api/students/${id}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rating: reviewForm.rating,
+          category: reviewForm.category || undefined,
+          comment: reviewForm.comment,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to submit review")
+      }
+
+      setReviewForm({ rating: 5, category: "", comment: "" })
+      await fetchReviews()
+    } catch (error: any) {
+      setReviewError(error?.message || "Failed to submit review")
+    } finally {
+      setSubmittingReview(false)
     }
   }
 
@@ -127,6 +206,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
 
+  const isTeacher = session?.user?.role === "TEACHER"
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -168,17 +249,17 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Total Paid</div>
           <div className="text-2xl font-bold text-foreground mt-1">
-            {formatCurrency(Number(student.totalPaid))}
+            {formatCurrency(Number(student.totalPaid), normalizeCurrency(student.currency))}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            of {formatCurrency(Number(student.finalPrice))}
+            of {formatCurrency(Number(student.finalPrice), normalizeCurrency(student.currency))}
           </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600">Balance</div>
           <div className="text-2xl font-bold text-warning mt-1">
-            {formatCurrency(Number(student.balance))}
+            {formatCurrency(Number(student.balance), normalizeCurrency(student.currency))}
           </div>
           <div className={`text-xs mt-1 px-2 py-1 rounded inline-block ${getStatusBadge(student.paymentStatus)}`}>
             {student.paymentStatus}
@@ -295,61 +376,166 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Original Price</span>
-                <span className="font-medium">{formatCurrency(Number(student.originalPrice))}</span>
+                <span className="font-medium">{formatCurrency(Number(student.originalPrice), normalizeCurrency(student.currency))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Discount</span>
                 <span className="font-medium text-success">
-                  -{formatCurrency(Number(student.discountApplied))}
+                  -{formatCurrency(Number(student.discountApplied), normalizeCurrency(student.currency))}
                 </span>
               </div>
               <div className="flex justify-between pt-3 border-t">
                 <span className="font-semibold">Final Price</span>
-                <span className="font-semibold">{formatCurrency(Number(student.finalPrice))}</span>
+                <span className="font-semibold">{formatCurrency(Number(student.finalPrice), normalizeCurrency(student.currency))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Paid</span>
                 <span className="font-medium text-success">
-                  {formatCurrency(Number(student.totalPaid))}
+                  {formatCurrency(Number(student.totalPaid), normalizeCurrency(student.currency))}
                 </span>
               </div>
               <div className="flex justify-between pt-3 border-t">
                 <span className="font-semibold">Balance</span>
                 <span className="font-semibold text-warning">
-                  {formatCurrency(Number(student.balance))}
+                  {formatCurrency(Number(student.balance), normalizeCurrency(student.currency))}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Recent Attendance */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-foreground mb-4">Recent Attendance</h3>
-            {student.attendance.length === 0 ? (
-              <div className="text-center py-4 text-gray-500 text-sm">No attendance records</div>
-            ) : (
-              <div className="space-y-2">
-                {student.attendance.slice(0, 10).map((record) => (
-                  <div key={record.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{formatDate(record.date)}</span>
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        record.status === "PRESENT"
-                          ? "bg-success/10 text-success"
-                          : record.status === "ABSENT"
-                          ? "bg-error/10 text-error"
-                          : "bg-warning/10 text-warning"
-                      }`}
-                    >
-                      {record.status}
-                    </span>
-                  </div>
-                ))}
+      {/* Recent Attendance */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="font-semibold text-foreground mb-4">Recent Attendance</h3>
+        {student.attendance.length === 0 ? (
+          <div className="text-center py-4 text-gray-500 text-sm">No attendance records</div>
+        ) : (
+          <div className="space-y-2">
+            {student.attendance.slice(0, 10).map((record) => (
+              <div key={record.id} className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">{formatDate(record.date)}</span>
+                <span
+                  className={`px-2 py-1 rounded text-xs ${
+                    record.status === "PRESENT"
+                      ? "bg-success/10 text-success"
+                      : record.status === "ABSENT"
+                      ? "bg-error/10 text-error"
+                      : "bg-warning/10 text-warning"
+                  }`}
+                >
+                  {record.status}
+                </span>
               </div>
-            )}
+            ))}
           </div>
+        )}
+      </div>
+    </div>
+  </div>
+
+  {/* Teacher Reviews Section */}
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="lg:col-span-2 space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-foreground">Teacher Notes & Reviews</h2>
+          {reviewsLoading && <span className="text-xs text-gray-500">Loading…</span>}
+        </div>
+        {reviewError && <p className="text-sm text-error mt-2">{reviewError}</p>}
+        {!reviewsLoading && reviews.length === 0 && !reviewError && (
+          <p className="text-sm text-gray-500 mt-4">No teacher feedback yet. Encourage teachers to leave a quick note after class.</p>
+        )}
+        <div className="mt-4 space-y-4">
+          {reviews.map((review) => (
+            <div key={review.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {review.teacher.name || "Teacher"}
+                    {review.category && (
+                      <span className="ml-2 text-xs uppercase tracking-wide text-info font-medium bg-info/10 px-2 py-0.5 rounded-full">
+                        {review.category}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-500">{formatDateTime(review.createdAt)}</p>
+                </div>
+                {typeof review.rating === "number" && (
+                  <span className="text-sm font-semibold text-warning">⭐ {review.rating}/5</span>
+                )}
+              </div>
+              <p className="mt-3 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                {review.comment}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
+    </div>
+
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-foreground">Daily Teacher Tips</h3>
+        <p className="text-sm text-gray-600 mt-2">
+          Share brief notes after each class—celebrate progress, highlight blockers, and flag students who need outreach. Admins review these notes daily to coordinate support.
+        </p>
+        <ul className="mt-3 space-y-2 text-sm text-gray-600 list-disc list-inside">
+          <li>Keep feedback constructive and specific.</li>
+          <li>Use categories like “Attendance”, “Homework”, “Behaviour”.</li>
+          <li>Ratings highlight overall engagement but are optional.</li>
+        </ul>
+      </div>
+
+      {isTeacher && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-foreground">Leave a Review</h3>
+          <form onSubmit={handleReviewSubmit} className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Rating</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={reviewForm.rating}
+                  onChange={(e) => setReviewForm((prev) => ({ ...prev, rating: Number(e.target.value) }))}
+                >
+                  {[5, 4, 3, 2, 1].map((score) => (
+                    <option key={score} value={score}>{score}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Category (optional)</label>
+                <input
+                  type="text"
+                  value={reviewForm.category}
+                  onChange={(e) => setReviewForm((prev) => ({ ...prev, category: e.target.value }))}
+                  placeholder="e.g., Attendance"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Comment</label>
+              <textarea
+                value={reviewForm.comment}
+                onChange={(e) => setReviewForm((prev) => ({ ...prev, comment: e.target.value }))}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Share observations, homework reminders, or blockers..."
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={submittingReview}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submittingReview ? "Submitting..." : "Submit review"}
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  </div>
     </div>
   )
 }

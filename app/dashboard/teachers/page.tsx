@@ -12,6 +12,7 @@ type TimeSlot = {
 type Teacher = {
   id: string
   name: string
+  email: string
   active: boolean
   teacherLevels: string[]
   teacherTimings: string[]
@@ -38,6 +39,8 @@ export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [showInactive, setShowInactive] = useState(false)
+  const [sendingEmails, setSendingEmails] = useState(false)
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchTeachers()
@@ -65,6 +68,57 @@ export default function TeachersPage() {
     return `${slot.startTime} - ${slot.endTime}`
   }
 
+  const sendSetupEmails = async (teacherIds: string[]) => {
+    setSendingEmails(true)
+    try {
+      const res = await fetch("/api/teachers/send-setup-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacherIds }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        alert(`✅ Emails sent!\n\nSent: ${data.results.sent}\nFailed: ${data.results.failed}\nSkipped: ${data.results.skipped}`)
+      } else {
+        const error = await res.json()
+        alert(`❌ Failed to send emails: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error sending setup emails:", error)
+      alert("❌ Failed to send setup emails")
+    } finally {
+      setSendingEmails(false)
+      setSendingEmailId(null)
+    }
+  }
+
+  const sendSingleSetupEmail = async (teacherId: string) => {
+    setSendingEmailId(teacherId)
+    await sendSetupEmails([teacherId])
+  }
+
+  const sendAllSetupEmails = async () => {
+    const teachersNeedingSetup = teachers.filter(t =>
+      t.email.includes('@planbeta.internal') && t.active
+    )
+
+    if (teachersNeedingSetup.length === 0) {
+      alert("No teachers need setup emails")
+      return
+    }
+
+    if (!confirm(`Send welcome emails to ${teachersNeedingSetup.length} teacher(s)?`)) {
+      return
+    }
+
+    await sendSetupEmails(teachersNeedingSetup.map(t => t.id))
+  }
+
+  const teachersNeedingSetup = teachers.filter(t =>
+    t.email.includes('@planbeta.internal') && t.active
+  ).length
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -89,8 +143,17 @@ export default function TeachersPage() {
               onChange={(e) => setShowInactive(e.target.checked)}
               className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-2 focus:ring-primary"
             />
-            <span className="text-gray-700">Show inactive</span>
+            <span className="text-gray-700 dark:text-gray-300">Show inactive</span>
           </label>
+          {teachersNeedingSetup > 0 && (
+            <button
+              onClick={sendAllSetupEmails}
+              disabled={sendingEmails}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+            >
+              {sendingEmails ? "Sending..." : `📧 Send Welcome Emails (${teachersNeedingSetup})`}
+            </button>
+          )}
           <Link
             href="/dashboard/teachers/new"
             className="btn-primary"
@@ -130,6 +193,11 @@ export default function TeachersPage() {
                         Inactive
                       </span>
                     )}
+                    {teacher.email.includes('@planbeta.internal') && teacher.active && (
+                      <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-xs rounded">
+                        Needs Setup
+                      </span>
+                    )}
                   </div>
 
                   {/* Quick Info */}
@@ -158,12 +226,24 @@ export default function TeachersPage() {
                     </div>
                   </div>
                 </div>
-                <Link
-                  href={`/dashboard/teachers/${teacher.id}/edit`}
-                  className="btn-outline text-sm"
-                >
-                  Edit
-                </Link>
+                <div className="flex items-center gap-2">
+                  {teacher.email.includes('@planbeta.internal') && teacher.active && (
+                    <button
+                      onClick={() => sendSingleSetupEmail(teacher.id)}
+                      disabled={sendingEmailId === teacher.id}
+                      className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                      title="Send welcome email with setup instructions"
+                    >
+                      {sendingEmailId === teacher.id ? "Sending..." : "📧 Send Email"}
+                    </button>
+                  )}
+                  <Link
+                    href={`/dashboard/teachers/${teacher.id}/edit`}
+                    className="btn-outline text-sm"
+                  >
+                    Edit
+                  </Link>
+                </div>
               </div>
 
               {/* Teaching Details Grid */}

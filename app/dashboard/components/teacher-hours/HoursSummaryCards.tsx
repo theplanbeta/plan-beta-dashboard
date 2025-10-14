@@ -15,42 +15,50 @@ interface HoursSummaryCardsProps {
 }
 
 export default function HoursSummaryCards({ summary, loading }: HoursSummaryCardsProps) {
+  // Provide default values if summary is undefined
+  const safeSummary = summary || {
+    pending: { count: 0, totalHours: 0, totalAmount: 0 },
+    approved: { count: 0, totalHours: 0, totalAmount: 0 },
+    rejected: { count: 0, totalHours: 0, totalAmount: 0 },
+    paid: { count: 0, totalHours: 0, totalAmount: 0 },
+  }
+
   const cards = [
     {
       title: 'Pending',
       icon: ClockIcon,
       iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
       iconColor: 'text-yellow-600 dark:text-yellow-400',
-      count: summary.pending.count,
-      hours: summary.pending.totalHours,
-      amount: summary.pending.totalAmount,
+      count: safeSummary.pending?.count || 0,
+      hours: safeSummary.pending?.totalHours || 0,
+      amount: safeSummary.pending?.totalAmount || 0,
     },
     {
       title: 'Approved',
       icon: CheckCircleIcon,
       iconBg: 'bg-blue-100 dark:bg-blue-900/30',
       iconColor: 'text-blue-600 dark:text-blue-400',
-      count: summary.approved.count,
-      hours: summary.approved.totalHours,
-      amount: summary.approved.totalAmount,
+      count: safeSummary.approved?.count || 0,
+      hours: safeSummary.approved?.totalHours || 0,
+      amount: safeSummary.approved?.totalAmount || 0,
     },
     {
       title: 'Paid',
       icon: BanknotesIcon,
       iconBg: 'bg-green-100 dark:bg-green-900/30',
       iconColor: 'text-green-600 dark:text-green-400',
-      count: summary.paid.count,
-      hours: summary.paid.totalHours,
-      amount: summary.paid.totalAmount,
+      count: safeSummary.paid?.count || 0,
+      hours: safeSummary.paid?.totalHours || 0,
+      amount: safeSummary.paid?.totalAmount || 0,
     },
     {
       title: 'Rejected',
       icon: XCircleIcon,
       iconBg: 'bg-red-100 dark:bg-red-900/30',
       iconColor: 'text-red-600 dark:text-red-400',
-      count: summary.rejected.count,
-      hours: summary.rejected.totalHours,
-      amount: summary.rejected.totalAmount,
+      count: safeSummary.rejected?.count || 0,
+      hours: safeSummary.rejected?.totalHours || 0,
+      amount: safeSummary.rejected?.totalAmount || 0,
     },
   ]
 

@@ -22,12 +22,17 @@ export async function checkPermission(
   const userRole = session.user.role as UserRole
   const userId = session.user.id as string
 
+  console.log(`🔐 Permission check: user=${session.user.email || userId}, role=${userRole}, resource=${resource}, action=${action}`)
+
   if (!hasPermission(userRole, resource, action)) {
+    console.log(`❌ Permission DENIED: ${userRole} cannot ${action} ${resource}`)
     return {
       authorized: false,
       response: NextResponse.json({ error: 'Forbidden' }, { status: 403 }),
     }
   }
+
+  console.log(`✅ Permission GRANTED: ${userRole} can ${action} ${resource}`)
 
   return {
     authorized: true,

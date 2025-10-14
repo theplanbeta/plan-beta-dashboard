@@ -6,12 +6,15 @@ import { z } from 'zod'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
+import { generateSecurePassword } from '@/lib/password-utils'
+import { sendEmail } from '@/lib/email'
 
 const limiter = rateLimit(RATE_LIMITS.STANDARD)
 
 // Validation schema for creating teacher
 const createTeacherSchema = z.object({
   name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email address').min(1, 'Email is required'),
   teacherLevels: z.array(z.enum(['NEW', 'A1', 'A1_HYBRID', 'A1_HYBRID_MALAYALAM', 'A2', 'B1', 'B2', 'SPOKEN_GERMAN'])).optional().default([]),
   teacherTimings: z.array(z.enum(['Morning', 'Evening'])).optional().default([]),
   teacherTimeSlots: z.array(z.object({
@@ -41,6 +44,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        email: true,
         active: true,
         teacherLevels: true,
         teacherTimings: true,
@@ -92,7 +96,11 @@ export async function POST(req: NextRequest) {
     if (rateLimitResult) return rateLimitResult
 
     const check = await checkPermission('teachers', 'create')
-    if (!check.authorized) return check.response
+    if (!check.authorized) {
+      console.log('❌ Permission denied - teachers.create')
+      return check.response
+    }
+    console.log('✅ Permission granted - Role:', check.session.user.role)
 
     const body = await req.json()
 
@@ -107,15 +115,28 @@ export async function POST(req: NextRequest) {
 
     const data = validation.data
 
-    // Generate unique email for teacher (name-based)
-    const emailSuffix = `teacher${Date.now()}@planbeta.internal`
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    })
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Email already exists' },
+        { status: 400 }
+      )
+    }
+
+    // Generate secure password
+    const plainPassword = generateSecurePassword()
+    const hashedPassword = await hash(plainPassword, 10)
 
     // Create teacher
     const teacher = await prisma.user.create({
       data: {
-        email: emailSuffix,
+        email: data.email,
         name: data.name,
-        password: await hash('temporary123', 10), // Temp password
+        password: hashedPassword,
         role: 'TEACHER',
         teacherLevels: data.teacherLevels,
         teacherTimings: data.teacherTimings,
@@ -127,6 +148,7 @@ export async function POST(req: NextRequest) {
       },
       select: {
         id: true,
+        email: true,
         name: true,
         active: true,
         teacherLevels: true,
@@ -143,19 +165,43 @@ export async function POST(req: NextRequest) {
     // Audit log
     await logSuccess(
       AuditAction.TEACHER_CREATED,
-      `Teacher created: ${teacher.name}`,
+      `Teacher created: ${teacher.name} (${teacher.email})`,
       {
         entityType: 'User',
         entityId: teacher.id,
         metadata: {
           teacherName: teacher.name,
+          teacherEmail: teacher.email,
           role: 'TEACHER',
         },
         request: req,
       }
     )
 
-    return NextResponse.json(teacher, { status: 201 })
+    // Send welcome email (non-blocking - don't fail creation if email fails)
+    sendEmail('teacher-welcome', {
+      to: teacher.email,
+      teacherName: teacher.name,
+      email: teacher.email,
+      password: plainPassword,
+    }).then((result) => {
+      if (result.success) {
+        console.log(`✅ Welcome email sent to ${teacher.email}`)
+      } else {
+        console.error(`⚠️ Failed to send welcome email to ${teacher.email}:`, result.error)
+      }
+    }).catch((error) => {
+      console.error(`⚠️ Error sending welcome email to ${teacher.email}:`, error)
+    })
+
+    // Return teacher data with generated password (only returned once)
+    return NextResponse.json(
+      {
+        ...teacher,
+        password: plainPassword, // Send plain password for display to founder
+      },
+      { status: 201 }
+    )
   } catch (error) {
     console.error('Error creating teacher:', error)
     return NextResponse.json({ error: 'Failed to create teacher' }, { status: 500 })

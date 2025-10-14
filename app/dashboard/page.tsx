@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 import TeacherDashboard from "./components/TeacherDashboard"
@@ -52,12 +53,20 @@ type DashboardData = {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Role-based routing
   const userRole = session?.user?.role as UserRole
   const userName = session?.user?.name || 'User'
+
+  // Check if teacher needs account setup
+  useEffect(() => {
+    if (userRole === 'TEACHER' && session?.user?.email?.includes('@planbeta.internal')) {
+      router.push('/dashboard/account-setup')
+    }
+  }, [userRole, session?.user?.email, router])
 
   // Continue with FOUNDER dashboard below
   useEffect(() => {

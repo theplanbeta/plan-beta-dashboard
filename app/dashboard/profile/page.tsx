@@ -29,6 +29,14 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -56,6 +64,38 @@ export default function ProfilePage() {
       setError(err instanceof Error ? err.message : 'Failed to load profile')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setChangingPassword(true)
+    setPasswordError(null)
+    setPasswordSuccess(false)
+
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(passwordData),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to change password')
+      }
+
+      setPasswordSuccess(true)
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: '',
+      })
+      setTimeout(() => setPasswordSuccess(false), 5000)
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
+    } finally {
+      setChangingPassword(false)
     }
   }
 
@@ -315,6 +355,89 @@ export default function ProfilePage() {
             </button>
             <button className="btn-primary" type="submit" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Change Password Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 mt-6">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Change Password</h2>
+
+        {passwordSuccess && (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4">
+            Password changed successfully!
+          </div>
+        )}
+
+        {passwordError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-4">
+            {passwordError}
+          </div>
+        )}
+
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div>
+            <label className="form-label" htmlFor="currentPassword">
+              Current Password *
+            </label>
+            <input
+              className="input mt-1"
+              id="currentPassword"
+              type="password"
+              value={passwordData.currentPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, currentPassword: e.target.value })
+              }
+              required
+              placeholder="Enter your current password"
+            />
+          </div>
+
+          <div>
+            <label className="form-label" htmlFor="newPassword">
+              New Password *
+            </label>
+            <input
+              className="input mt-1"
+              id="newPassword"
+              type="password"
+              value={passwordData.newPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, newPassword: e.target.value })
+              }
+              required
+              placeholder="Enter new password"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Password must be at least 8 characters long and include uppercase, lowercase, and numbers.
+            </p>
+          </div>
+
+          <div>
+            <label className="form-label" htmlFor="confirmPassword">
+              Confirm New Password *
+            </label>
+            <input
+              className="input mt-1"
+              id="confirmPassword"
+              type="password"
+              value={passwordData.confirmPassword}
+              onChange={(e) =>
+                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+              }
+              required
+              placeholder="Confirm new password"
+            />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              className="btn-primary"
+              type="submit"
+              disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+            >
+              {changingPassword ? 'Changing Password...' : 'Change Password'}
             </button>
           </div>
         </form>

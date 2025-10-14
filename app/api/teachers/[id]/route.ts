@@ -1,44 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkPermission } from '@/lib/api-permissions'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { z } from 'zod'
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 
-// Validation schema for updating teacher profile
+const limiter = rateLimit(RATE_LIMITS.STANDARD)
+
+// Validation schema for updating teacher
 const updateTeacherSchema = z.object({
-  name: z.string().min(1).optional(),
+  name: z.string().min(1, 'Name is required').optional(),
+  email: z.string().email('Invalid email address').min(1, 'Email is required').optional(),
+  active: z.boolean().optional(),
   teacherLevels: z.array(z.enum(['NEW', 'A1', 'A1_HYBRID', 'A1_HYBRID_MALAYALAM', 'A2', 'B1', 'B2', 'SPOKEN_GERMAN'])).optional(),
   teacherTimings: z.array(z.enum(['Morning', 'Evening'])).optional(),
   teacherTimeSlots: z.array(z.object({
     startTime: z.string(),
     endTime: z.string(),
   })).optional(),
-  hourlyRate: z.record(z.string(), z.number()).optional(), // {"A1": 600, "B2": 750} - flexible keys
+  hourlyRate: z.record(z.string(), z.number()).optional(),
   currency: z.enum(['EUR', 'INR']).optional(),
   whatsapp: z.string().optional(),
   remarks: z.string().optional(),
-  active: z.boolean().optional(), // Only FOUNDER can change this
 })
 
-// GET /api/teachers/[id] - Get teacher details
+// GET /api/teachers/[id] - Get single teacher by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     const check = await checkPermission('teachers', 'read')
     if (!check.authorized) return check.response
 
-    const { id } = await params
-
     const teacher = await prisma.user.findUnique({
-      where: { id, role: 'TEACHER' },
+      where: {
+        id: params.id,
+        role: 'TEACHER',
+      },
       select: {
         id: true,
         name: true,
+        email: true,
         active: true,
         teacherLevels: true,
         teacherTimings: true,
@@ -73,37 +77,40 @@ export async function GET(
     })
 
     if (!teacher) {
-      return NextResponse.json({ error: 'Teacher not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Teacher not found' },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json(teacher)
   } catch (error) {
     console.error('Error fetching teacher:', error)
-    return NextResponse.json({ error: 'Failed to fetch teacher' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch teacher' },
+      { status: 500 }
+    )
   }
 }
 
-// PATCH /api/teachers/[id] - Update teacher profile
+// PATCH /api/teachers/[id] - Update teacher (FOUNDER only)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // Apply rate limiting
+    const rateLimitResult = await limiter(req)
+    if (rateLimitResult) return rateLimitResult
 
-    const { id } = await params
+    const check = await checkPermission('teachers', 'update')
+    if (!check.authorized) return check.response
+
     const body = await req.json()
-
-    // Log the incoming request for debugging
-    console.log('Update teacher request:', JSON.stringify(body, null, 2))
 
     // Validate request
     const validation = updateTeacherSchema.safeParse(body)
     if (!validation.success) {
-      console.error('Validation failed:', validation.error.issues)
       return NextResponse.json(
         { error: 'Validation failed', details: validation.error.issues },
         { status: 400 }
@@ -112,47 +119,69 @@ export async function PATCH(
 
     const data = validation.data
 
-    // Check permissions
-    // Teachers can only update their own profile
-    // FOUNDER can update any teacher
-    const isOwnProfile = session.user.id === id
-    const isFounder = session.user.role === 'FOUNDER'
-
-    if (!isOwnProfile && !isFounder) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // Only FOUNDER can change active status
-    if (data.active !== undefined && !isFounder) {
-      return NextResponse.json(
-        { error: 'Only admins can change active status' },
-        { status: 403 }
-      )
-    }
-
-    // Get current teacher state for audit comparison
-    const currentTeacher = await prisma.user.findUnique({
-      where: { id },
-      select: { active: true, name: true },
-    })
-
-    // Update teacher
-    const teacher = await prisma.user.update({
-      where: { id },
-      data: {
-        ...(data.name && { name: data.name }),
-        ...(data.teacherLevels !== undefined && { teacherLevels: data.teacherLevels }),
-        ...(data.teacherTimings !== undefined && { teacherTimings: data.teacherTimings }),
-        ...(data.teacherTimeSlots !== undefined && { teacherTimeSlots: data.teacherTimeSlots }),
-        ...(data.hourlyRate !== undefined && { hourlyRate: data.hourlyRate }),
-        ...(data.currency !== undefined && { currency: data.currency }),
-        ...(data.whatsapp !== undefined && { whatsapp: data.whatsapp }),
-        ...(data.remarks !== undefined && { remarks: data.remarks }),
-        ...(data.active !== undefined && isFounder && { active: data.active }),
-      },
+    // Check if teacher exists
+    const existingTeacher = await prisma.user.findUnique({
+      where: { id: params.id },
       select: {
         id: true,
         name: true,
+        email: true,
+        role: true,
+      }
+    })
+
+    if (!existingTeacher) {
+      return NextResponse.json(
+        { error: 'Teacher not found' },
+        { status: 404 }
+      )
+    }
+
+    if (existingTeacher.role !== 'TEACHER') {
+      return NextResponse.json(
+        { error: 'User is not a teacher' },
+        { status: 400 }
+      )
+    }
+
+    // If email is being changed, check if new email already exists
+    if (data.email && data.email !== existingTeacher.email) {
+      const emailExists = await prisma.user.findFirst({
+        where: {
+          email: data.email,
+          NOT: { id: params.id }
+        }
+      })
+
+      if (emailExists) {
+        return NextResponse.json(
+          { error: 'Email already exists' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Build update data object (only include fields that are provided)
+    const updateData: any = {}
+    if (data.name !== undefined) updateData.name = data.name
+    if (data.email !== undefined) updateData.email = data.email
+    if (data.active !== undefined) updateData.active = data.active
+    if (data.teacherLevels !== undefined) updateData.teacherLevels = data.teacherLevels
+    if (data.teacherTimings !== undefined) updateData.teacherTimings = data.teacherTimings
+    if (data.teacherTimeSlots !== undefined) updateData.teacherTimeSlots = data.teacherTimeSlots
+    if (data.hourlyRate !== undefined) updateData.hourlyRate = data.hourlyRate
+    if (data.currency !== undefined) updateData.currency = data.currency
+    if (data.whatsapp !== undefined) updateData.whatsapp = data.whatsapp
+    if (data.remarks !== undefined) updateData.remarks = data.remarks
+
+    // Update teacher
+    const updatedTeacher = await prisma.user.update({
+      where: { id: params.id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
         active: true,
         teacherLevels: true,
         teacherTimings: true,
@@ -161,77 +190,42 @@ export async function PATCH(
         currency: true,
         whatsapp: true,
         remarks: true,
-        updatedAt: true,
+        createdAt: true,
       },
     })
 
-    // Audit logging
-    if (data.active !== undefined && currentTeacher && currentTeacher.active !== data.active) {
-      // Active status changed
-      await logSuccess(
-        data.active ? AuditAction.TEACHER_ACTIVATED : AuditAction.TEACHER_DEACTIVATED,
-        `Teacher ${data.active ? 'activated' : 'deactivated'}: ${teacher.name}`,
-        {
-          entityType: 'User',
-          entityId: teacher.id,
-          metadata: {
-            teacherName: teacher.name,
-            previousStatus: currentTeacher.active,
-            newStatus: data.active,
-          },
-          request: req,
-        }
-      )
-    } else {
-      // Regular update
-      await logSuccess(
-        AuditAction.TEACHER_UPDATED,
-        `Teacher profile updated: ${teacher.name}`,
-        {
-          entityType: 'User',
-          entityId: teacher.id,
-          metadata: {
-            teacherName: teacher.name,
-            updatedBy: isOwnProfile ? 'self' : 'admin',
-          },
-          request: req,
-        }
-      )
+    // Audit log
+    const changes = []
+    if (data.email && data.email !== existingTeacher.email) {
+      changes.push(`Email changed from ${existingTeacher.email} to ${data.email}`)
     }
+    if (data.name && data.name !== existingTeacher.name) {
+      changes.push(`Name changed from ${existingTeacher.name} to ${data.name}`)
+    }
+    
+    await logSuccess(
+      AuditAction.TEACHER_UPDATED,
+      `Teacher updated: ${updatedTeacher.name} (${updatedTeacher.email})${changes.length > 0 ? ' - ' + changes.join(', ') : ''}`,
+      {
+        entityType: 'User',
+        entityId: updatedTeacher.id,
+        metadata: {
+          teacherName: updatedTeacher.name,
+          teacherEmail: updatedTeacher.email,
+          changes: changes,
+          oldEmail: existingTeacher.email,
+          newEmail: data.email,
+        },
+        request: req,
+      }
+    )
 
-    return NextResponse.json(teacher)
+    return NextResponse.json(updatedTeacher, { status: 200 })
   } catch (error) {
     console.error('Error updating teacher:', error)
-    return NextResponse.json({ error: 'Failed to update teacher' }, { status: 500 })
-  }
-}
-
-// DELETE /api/teachers/[id] - Deactivate teacher (soft delete)
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const check = await checkPermission('teachers', 'delete')
-    if (!check.authorized) return check.response
-
-    const { id } = await params
-
-    // Soft delete by setting active = false
-    const teacher = await prisma.user.update({
-      where: { id },
-      data: { active: false },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        active: true,
-      },
-    })
-
-    return NextResponse.json(teacher)
-  } catch (error) {
-    console.error('Error deactivating teacher:', error)
-    return NextResponse.json({ error: 'Failed to deactivate teacher' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to update teacher' },
+      { status: 500 }
+    )
   }
 }

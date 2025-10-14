@@ -8,39 +8,43 @@ datasource db {
 }
 
 model User {
-  id               String         @id @default(cuid())
-  email            String         @unique
-  name             String
-  password         String
-  role             UserRole       @default(TEACHER)
-  active           Boolean        @default(true)
-  phone            String?
-  avatar           String?
-  bio              String?
-  qualifications   String?
-  experience       String?
-  specializations  String?
-  languages        String?
-  availability     String?
-  availableMorning Boolean?       @default(true)
-  availableEvening Boolean?       @default(true)
-  preferredContact String?
-  teacherLevels    String[]
-  teacherTimings   String[]
-  teacherTimeSlots Json?
-  hourlyRate       Json?
-  currency         String?        @default("EUR")
-  whatsapp         String?
-  remarks          String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  batches          Batch[]        @relation("TeacherBatches")
-  leads            Lead[]
-  teacherHours     TeacherHours[] @relation("TeacherHours")
+  id                   String          @id @default(cuid())
+  email                String          @unique
+  name                 String
+  password             String
+  role                 UserRole        @default(TEACHER)
+  active               Boolean         @default(true)
+  phone                String?
+  avatar               String?
+  bio                  String?
+  qualifications       String?
+  experience           String?
+  specializations      String?
+  languages            String?
+  availability         String?
+  availableMorning     Boolean?        @default(true)
+  availableEvening     Boolean?        @default(true)
+  preferredContact     String?
+  teacherLevels        String[]
+  teacherTimings       String[]
+  teacherTimeSlots     Json?
+  hourlyRate           Json?
+  currency             String?         @default("EUR")
+  whatsapp             String?
+  remarks              String?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  batches              Batch[]         @relation("TeacherBatches")
+  leads                Lead[]
+  teacherHours         TeacherHours[]  @relation("TeacherHours")
+  teacherReviews       TeacherReview[] @relation("TeacherReviewer")
 
   @@index([email])
   @@index([role])
   @@index([active])
+  @@index([passwordResetToken])
 }
 
 model Student {
@@ -94,6 +98,7 @@ model Student {
   referredBy         Student?         @relation("StudentReferrals", fields: [referredById], references: [id])
   referrals          Student[]        @relation("StudentReferrals")
   upsells            Upsell[]
+  teacherReviews     TeacherReview[]  @relation("StudentTeacherReviews")
 
   @@index([studentId])
   @@index([whatsapp])
@@ -415,6 +420,24 @@ model TeacherHours {
   @@index([paid])
 }
 
+model TeacherReview {
+  id         String   @id @default(cuid())
+  studentId  String
+  teacherId  String
+  rating     Int?
+  category   String?
+  comment    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  student Student @relation("StudentTeacherReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher User    @relation("TeacherReviewer", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([teacherId])
+  @@index([createdAt])
+}
+
 enum UserRole {
   FOUNDER
   MARKETING
@@ -520,6 +543,9 @@ enum AuditAction {
   LOGIN
   LOGOUT
   LOGIN_FAILED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
   LEAD_CREATED
   LEAD_UPDATED
   LEAD_DELETED

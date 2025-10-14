@@ -3,63 +3,55 @@ import { gzipSync } from 'zlib'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Professional email header with logo - using actual Plan Beta branding
+// Elegant email header with clean typography - Plan Beta branding
 const emailHeader = `
-  <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-    <div style="background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-      <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://planbeta.in'}/blogo.png" alt="plan beta" style="width: 80px; height: 80px; display: block; margin: 0 auto;" />
-      <p style="margin: 12px 0 0 0; color: #121212; font-size: 11px; letter-spacing: 2px; font-weight: 500; text-align: center;">SCHOOL OF GERMAN</p>
-    </div>
+  <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="margin: 0; color: white; font-size: 32px; font-weight: 700; letter-spacing: -0.5px; font-family: 'Segoe UI', Arial, sans-serif;">Plan Beta</h1>
+    <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 13px; letter-spacing: 3px; font-weight: 500; text-transform: uppercase;">School of German</p>
   </div>
 `
 
-// Professional email footer with company details - using actual Plan Beta branding
+// Elegant email footer with clean typography and contact details
 const emailFooter = `
-  <div style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
-    <div style="background: #f9fafb; padding: 25px; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <img src="${process.env.NEXT_PUBLIC_APP_URL || 'https://planbeta.in'}/blogo.png" alt="plan beta" style="width: 60px; height: 60px; display: block; margin: 0 auto 10px auto;" />
-        <p style="margin: 0; color: #6b7280; font-size: 12px; letter-spacing: 2px; font-weight: 500;">SCHOOL OF GERMAN</p>
-      </div>
+  <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+    <div style="text-align: center; margin-bottom: 25px;">
+      <h2 style="margin: 0 0 5px 0; color: #d2302c; font-size: 20px; font-weight: 700; letter-spacing: -0.3px; font-family: 'Segoe UI', Arial, sans-serif;">Plan Beta</h2>
+      <p style="margin: 0; color: #6b7280; font-size: 11px; letter-spacing: 2px; font-weight: 500; text-transform: uppercase;">School of German</p>
+    </div>
 
-      <div style="text-align: center; margin: 20px 0; padding: 15px; background: white; border-radius: 6px;">
-        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
-          <strong>📧 Email:</strong> <a href="mailto:${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}" style="color: #d2302c; text-decoration: none;">${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}</a>
-        </p>
-        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
-          <strong>📞 Phone:</strong> <a href="tel:+918547081550" style="color: #d2302c; text-decoration: none;">+91 85470 81550</a>
-        </p>
-        <p style="margin: 8px 0; color: #374151; font-size: 14px;">
-          <strong>🌐 Website:</strong> <a href="https://planbeta.in" style="color: #d2302c; text-decoration: none;">planbeta.in</a>
-        </p>
-      </div>
+    <div style="text-align: center; margin: 25px 0; padding: 20px; background: #f9fafb; border-radius: 6px;">
+      <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px; line-height: 1.8;">
+        <a href="mailto:${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}" style="color: #d2302c; text-decoration: none; font-weight: 500;">${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}</a>
+      </p>
+      <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px; line-height: 1.8;">
+        <a href="tel:+918547081550" style="color: #d2302c; text-decoration: none; font-weight: 500;">+91 85470 81550</a>
+      </p>
+      <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.8;">
+        <a href="https://planbeta.in" style="color: #d2302c; text-decoration: none; font-weight: 500;">planbeta.in</a>
+      </p>
+    </div>
 
-      <div style="text-align: center; margin: 20px 0;">
-        <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 13px; font-weight: 600;">Connect With Us</p>
-        <div style="display: inline-block;">
-          <a href="https://facebook.com/theplanbeta" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">Facebook</a>
-          <span style="color: #d1d5db;">|</span>
-          <a href="https://instagram.com/theplanbeta" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">Instagram</a>
-          <span style="color: #d1d5db;">|</span>
-          <a href="https://youtube.com/@planbeta00" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">YouTube</a>
-          <span style="color: #d1d5db;">|</span>
-          <a href="https://www.linkedin.com/company/planbeta/" style="display: inline-block; margin: 0 8px; color: #d2302c; text-decoration: none; font-size: 12px;">LinkedIn</a>
-        </div>
+    <div style="text-align: center; margin: 25px 0;">
+      <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 12px; font-weight: 600;">Connect With Us</p>
+      <div style="margin: 0;">
+        <a href="https://facebook.com/theplanbeta" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Facebook</a>
+        <span style="color: #d1d5db;">•</span>
+        <a href="https://instagram.com/theplanbeta" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Instagram</a>
+        <span style="color: #d1d5db;">•</span>
+        <a href="https://youtube.com/@planbeta00" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">YouTube</a>
+        <span style="color: #d1d5db;">•</span>
+        <a href="https://www.linkedin.com/company/planbeta/" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">LinkedIn</a>
       </div>
+    </div>
 
-      <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #d2302c 0%, #121212 100%); border-radius: 6px; margin-top: 20px;">
-        <p style="margin: 0; color: white; font-size: 12px; line-height: 1.6;">
-          © ${new Date().getFullYear()} plan beta. All rights reserved.<br>
-          <span style="opacity: 0.9;">School of German</span>
-        </p>
-      </div>
-
-      <div style="text-align: center; margin-top: 15px;">
-        <p style="margin: 0; color: #9ca3af; font-size: 11px; line-height: 1.5;">
-          This email was sent to you as part of your enrollment/employment with plan beta.<br>
-          If you have any questions, please reply to this email or contact our support team.
-        </p>
-      </div>
+    <div style="text-align: center; margin-top: 25px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0; color: #9ca3af; font-size: 11px; line-height: 1.6;">
+        © ${new Date().getFullYear()} Plan Beta. All rights reserved.
+      </p>
+      <p style="margin: 8px 0 0 0; color: #9ca3af; font-size: 10px; line-height: 1.5;">
+        This email was sent as part of your enrollment/employment with Plan Beta.<br>
+        For questions, reply to this email or contact our support team.
+      </p>
     </div>
   </div>
 `
@@ -85,10 +77,10 @@ interface EmailData {
 export function generateEmail(template: EmailTemplate, data: Record<string, string | number | boolean | null | undefined>): EmailData {
   const templates = {
     'student-welcome': {
-      subject: `Welcome to plan beta, ${data.studentName}!`,
+      subject: `Welcome to Plan Beta, ${data.studentName}!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #3b82f6;">Welcome to plan beta! 🎉</h1>
+          <h1 style="color: #3b82f6;">Welcome to Plan Beta! 🎉</h1>
           <p>Dear ${data.studentName},</p>
           <p>We're excited to have you join us for your German language journey!</p>
 
@@ -111,18 +103,18 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>If you have any questions, feel free to reach out to us at ${process.env.SUPPORT_EMAIL}.</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
 
     'teacher-welcome': {
-      subject: `Welcome to plan beta - Your Teacher Account`,
+      subject: `Welcome to Plan Beta - Your Teacher Account`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           ${emailHeader}
           <div style="padding: 35px 30px;">
-            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Welcome to plan beta! 👋</h1>
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Welcome to Plan Beta! 👋</h1>
             <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Dear ${data.teacherName},</p>
             <p style="color: #374151; font-size: 15px;">Your teacher account has been created successfully. We're excited to have you as part of our teaching team!</p>
 
@@ -165,7 +157,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p style="color: #6b7280; font-size: 14px;">If you have any questions or need assistance, please reach out to our support team.</p>
 
-          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The plan beta Team</strong></p>
+          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The Plan Beta Team</strong></p>
           ${emailFooter}
           </div>
         </div>
@@ -173,14 +165,14 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'teacher-setup-invite': {
-      subject: `Complete Your plan beta Teacher Account Setup`,
+      subject: `Complete Your Plan Beta Teacher Account Setup`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Complete Your Account Setup 🎓</h1>
             <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${data.teacherName},</p>
-          <p>A teacher account has been created for you at plan beta. Please complete your account setup to get started.</p>
+          <p>A teacher account has been created for you at Plan Beta. Please complete your account setup to get started.</p>
 
           <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
             <h3 style="margin-top: 0; color: #1e40af;">Action Required</h3>
@@ -229,7 +221,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p style="color: #6b7280; font-size: 14px;">If you have any questions or need assistance, please reach out to our support team.</p>
 
-          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The plan beta Team</strong></p>
+          <p style="color: #374151; font-size: 15px; margin-top: 25px;">Best regards,<br><strong>The Plan Beta Team</strong></p>
           ${emailFooter}
           </div>
         </div>
@@ -261,7 +253,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>You can view your complete payment history in your student portal.</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -293,7 +285,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>For any payment-related queries, contact us at ${process.env.SUPPORT_EMAIL}.</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -332,7 +324,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>We're excited to start this journey with you!</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -363,7 +355,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>Contact us: ${process.env.SUPPORT_EMAIL}</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -400,7 +392,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             </a>
           </div>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -434,7 +426,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <p>Keep up the excellent work!</p>
 
-          <p>Best regards,<br>The plan beta Team</p>
+          <p>Best regards,<br>The Plan Beta Team</p>
         </div>
       `,
     },
@@ -458,7 +450,7 @@ export async function sendEmail(
     const emailData = generateEmail(template, data)
 
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'plan beta <noreply@planbeta.in>',
+      from: process.env.EMAIL_FROM || 'Plan Beta <noreply@planbeta.in>',
       to: emailData.to,
       subject: emailData.subject,
       html: emailData.html,
@@ -533,7 +525,7 @@ export async function sendBackupEmail({
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1d4ed8;">plan beta Database Backup</h2>
+      <h2 style="color: #1d4ed8;">Plan Beta Database Backup</h2>
       <p><strong>Timestamp:</strong> ${timestamp}</p>
       <p>A compressed JSON backup (.gz) is attached.</p>
       <h3>Record counts</h3>
@@ -555,7 +547,7 @@ export async function sendBackupEmail({
     console.log('📧 Using Resend API key:', process.env.RESEND_API_KEY ? '✓ Configured' : '✗ Missing')
 
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'plan beta Backups <noreply@planbeta.in>',
+      from: process.env.EMAIL_FROM || 'Plan Beta Backups <noreply@planbeta.in>',
       to: recipientList,
       subject: `Database Backup - ${timestamp}`,
       html,

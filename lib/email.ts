@@ -130,7 +130,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           </div>
 
           <div style="margin: 30px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard-fmi5j9n7j-theplanbetas-projects.vercel.app'}/login"
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'}/login"
                style="background: #d2302c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
               Login to Your Account
             </a>
@@ -187,7 +187,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           </div>
 
           <div style="margin: 30px 0;">
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard-fmi5j9n7j-theplanbetas-projects.vercel.app'}/login"
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'}/login"
                style="background: #d2302c; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 500;">
               Complete Setup Now
             </a>

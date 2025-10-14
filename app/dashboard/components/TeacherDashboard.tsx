@@ -145,7 +145,7 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <Link
           href="/dashboard/attendance"
           className="bg-primary text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-primary-dark transition-colors"
@@ -163,6 +163,16 @@ export default function TeacherDashboard({ userName }: { userName: string }) {
           <div className="text-lg font-semibold">View My Students</div>
           <div className="mt-2 text-sm">
             See all students in your batches
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/teacher-hours"
+          className="bg-blue-600 text-white rounded-lg shadow-sm dark:shadow-md p-6 hover:bg-blue-700 transition-colors"
+        >
+          <div className="text-lg font-semibold">Log Hours</div>
+          <div className="mt-2 text-sm opacity-90">
+            Track your working hours and view payment status
           </div>
         </Link>
       </div>

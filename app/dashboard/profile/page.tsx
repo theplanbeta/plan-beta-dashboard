@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -91,7 +91,11 @@ export default function ProfilePage() {
         newPassword: '',
         confirmPassword: '',
       })
-      setTimeout(() => setPasswordSuccess(false), 5000)
+
+      // Sign out the user after 2 seconds to ensure they login with new password
+      setTimeout(async () => {
+        await signOut({ redirect: true, callbackUrl: '/login?message=Password changed successfully. Please login with your new password.' })
+      }, 2000)
     } catch (err) {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
     } finally {
@@ -366,7 +370,8 @@ export default function ProfilePage() {
 
         {passwordSuccess && (
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4">
-            Password changed successfully!
+            <p className="font-semibold">Password changed successfully!</p>
+            <p className="text-sm mt-1">You will be logged out in a moment. Please login again with your new password.</p>
           </div>
         )}
 

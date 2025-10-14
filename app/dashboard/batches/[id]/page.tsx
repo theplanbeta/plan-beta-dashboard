@@ -279,25 +279,25 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
             ) : (
               <div className="space-y-3">
                 {batch.students.map((student) => (
-                  <Link
-                    key={student.id}
-                    href={`/dashboard/students/${student.id}`}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3">
-                        <div>
-                          <div className="font-medium text-foreground">{student.name}</div>
-                          <div className="text-sm text-gray-600">{student.studentId}</div>
+                  !isTeacher ? (
+                    <Link
+                      key={student.id}
+                      href={`/dashboard/students/${student.id}`}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <div className="font-medium text-foreground">{student.name}</div>
+                            <div className="text-sm text-gray-600">{student.studentId}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4 mt-2 text-sm">
+                          <span className="text-gray-600">
+                            Level: <span className="font-medium">{student.currentLevel}</span>
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4 mt-2 text-sm">
-                        <span className="text-gray-600">
-                          Level: <span className="font-medium">{student.currentLevel}</span>
-                        </span>
-                      </div>
-                    </div>
-                    {!isTeacher && (
                       <div className="flex flex-col items-end space-y-2">
                         <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
                           {student.paymentStatus}
@@ -317,8 +317,27 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                           </div>
                         </div>
                       </div>
-                    )}
-                  </Link>
+                    </Link>
+                  ) : (
+                    <div
+                      key={student.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <div className="font-medium text-foreground">{student.name}</div>
+                            <div className="text-sm text-gray-600">{student.studentId}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-4 mt-2 text-sm">
+                          <span className="text-gray-600">
+                            Level: <span className="font-medium">{student.currentLevel}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 ))}
               </div>
             )}

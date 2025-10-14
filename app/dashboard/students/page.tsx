@@ -256,34 +256,32 @@ export default function StudentsPage() {
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex gap-2">
-                  <Link
-                    href={`/dashboard/students/${student.id}`}
-                    className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
-                  >
-                    View Details
-                  </Link>
-                  {!isTeacher && (
-                    <>
-                      <Link
-                        href={`/dashboard/students/${student.id}/edit`}
-                        className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
+                {/* Actions - Hidden for teachers */}
+                {!isTeacher && (
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/dashboard/students/${student.id}`}
+                      className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
+                    >
+                      View Details
+                    </Link>
+                    <Link
+                      href={`/dashboard/students/${student.id}/edit`}
+                      className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
+                    >
+                      Edit
+                    </Link>
+                    <div className="inline-block">
+                      <GenerateInvoiceButton
+                        studentId={student.id}
+                        variant="outline"
+                        showPreview={false}
                       >
-                        Edit
-                      </Link>
-                      <div className="inline-block">
-                        <GenerateInvoiceButton
-                          studentId={student.id}
-                          variant="outline"
-                          showPreview={false}
-                        >
-                          📄
-                        </GenerateInvoiceButton>
-                      </div>
-                    </>
-                  )}
-                </div>
+                        📄
+                      </GenerateInvoiceButton>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -384,35 +382,35 @@ export default function StudentsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Link
-                          href={`/dashboard/students/${student.id}`}
-                          className="text-primary hover:text-primary-dark"
-                        >
-                          View
-                        </Link>
-                        {!isTeacher && (
-                          <>
-                            <span className="text-gray-300">|</span>
-                            <Link
-                              href={`/dashboard/students/${student.id}/edit`}
-                              className="text-info hover:text-info/80"
+                      {!isTeacher ? (
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/dashboard/students/${student.id}`}
+                            className="text-primary hover:text-primary-dark"
+                          >
+                            View
+                          </Link>
+                          <span className="text-gray-300">|</span>
+                          <Link
+                            href={`/dashboard/students/${student.id}/edit`}
+                            className="text-info hover:text-info/80"
+                          >
+                            Edit
+                          </Link>
+                          <span className="text-gray-300">|</span>
+                          <div className="inline-block">
+                            <GenerateInvoiceButton
+                              studentId={student.id}
+                              variant="outline"
+                              showPreview={false}
                             >
-                              Edit
-                            </Link>
-                            <span className="text-gray-300">|</span>
-                            <div className="inline-block">
-                              <GenerateInvoiceButton
-                                studentId={student.id}
-                                variant="outline"
-                                showPreview={false}
-                              >
-                                📄
-                              </GenerateInvoiceButton>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                              📄
+                            </GenerateInvoiceButton>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </td>
                   </tr>
                 ))

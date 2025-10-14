@@ -20,6 +20,8 @@ type Student = {
   balance: number
   currency: string
   completionStatus: string
+  consecutiveAbsences: number
+  attendanceRate: number
   batch: {
     id: string
     batchCode: string
@@ -84,6 +86,25 @@ export default function StudentsPage() {
       ON_HOLD: "bg-warning/10 text-warning",
     }
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
+  }
+
+  const getAbsenceAlert = (consecutiveAbsences: number) => {
+    if (consecutiveAbsences >= 3) {
+      return {
+        show: true,
+        color: "bg-error/10 text-error border-error/20",
+        icon: "⚠️",
+        text: `${consecutiveAbsences} Absences`,
+      }
+    } else if (consecutiveAbsences >= 2) {
+      return {
+        show: true,
+        color: "bg-warning/10 text-warning border-warning/20",
+        icon: "⚠️",
+        text: `${consecutiveAbsences} Absences`,
+      }
+    }
+    return { show: false, color: "", icon: "", text: "" }
   }
 
   const getEnrollmentDisplay = (student: Student) => {
@@ -196,13 +217,21 @@ export default function StudentsPage() {
                 {/* Name & ID */}
                 <div className="space-y-2">
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">{student.name}</h3>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-3 py-1.5 text-xs font-bold rounded-full bg-primary/10 text-primary">
                       {student.studentId}
                     </span>
                     <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getCompletionBadge(student.completionStatus)}`}>
                       {student.completionStatus}
                     </span>
+                    {getAbsenceAlert(student.consecutiveAbsences).show && (
+                      <span
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getAbsenceAlert(student.consecutiveAbsences).color}`}
+                        title={`Student has missed ${student.consecutiveAbsences} consecutive classes`}
+                      >
+                        {getAbsenceAlert(student.consecutiveAbsences).icon} {getAbsenceAlert(student.consecutiveAbsences).text}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -341,7 +370,17 @@ export default function StudentsPage() {
                       {student.studentId}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      {student.name}
+                      <div className="flex items-center gap-2">
+                        <span>{student.name}</span>
+                        {getAbsenceAlert(student.consecutiveAbsences).show && (
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded border ${getAbsenceAlert(student.consecutiveAbsences).color}`}
+                            title={`Student has missed ${student.consecutiveAbsences} consecutive classes`}
+                          >
+                            {getAbsenceAlert(student.consecutiveAbsences).icon} {getAbsenceAlert(student.consecutiveAbsences).text}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
                       <div>{student.whatsapp}</div>

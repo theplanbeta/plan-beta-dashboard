@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/backup",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/consecutive-absence-alerts",
+      "schedule": "0 22 * * *"
     }
   ]
 }

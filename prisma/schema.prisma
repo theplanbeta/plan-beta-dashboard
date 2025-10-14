@@ -72,11 +72,13 @@ model Student {
   referredById       String?
   trialAttended      Boolean          @default(false)
   trialDate          DateTime?
-  classesAttended    Int              @default(0)
-  totalClasses       Int              @default(0)
-  attendanceRate     Decimal          @default(0) @db.Decimal(5, 2)
-  lastClassDate      DateTime?
-  avgQuizScore       Decimal?         @db.Decimal(5, 2)
+  classesAttended      Int              @default(0)
+  totalClasses         Int              @default(0)
+  attendanceRate       Decimal          @default(0) @db.Decimal(5, 2)
+  lastClassDate        DateTime?
+  consecutiveAbsences  Int              @default(0)
+  lastAbsenceDate      DateTime?
+  avgQuizScore         Decimal?         @db.Decimal(5, 2)
   completionStatus   CompletionStatus @default(ACTIVE)
   churnRisk          ChurnRisk        @default(LOW)
   notes              String?

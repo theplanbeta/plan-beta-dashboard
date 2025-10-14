@@ -132,18 +132,51 @@ export async function DELETE(
 async function updateStudentAttendance(studentId: string) {
   const attendanceRecords = await prisma.attendance.findMany({
     where: { studentId },
+    orderBy: { date: 'desc' },
   })
 
   const totalClasses = attendanceRecords.length
   const classesAttended = attendanceRecords.filter(
-    (record) => record.status === "PRESENT"
+    (record) => record.status === "PRESENT" || record.status === "LATE"
   ).length
   const attendanceRate = totalClasses > 0 ? (classesAttended / totalClasses) * 100 : 0
 
   // Get last class date
   const lastClassDate = attendanceRecords.length > 0
-    ? attendanceRecords.sort((a, b) => b.date.getTime() - a.date.getTime())[0].date
+    ? attendanceRecords[0].date
     : null
+
+  // Calculate consecutive absences (from most recent)
+  let consecutiveAbsences = 0
+  let lastAbsenceDate: Date | null = null
+
+  for (const record of attendanceRecords) {
+    if (record.status === "ABSENT") {
+      consecutiveAbsences++
+      if (!lastAbsenceDate) {
+        lastAbsenceDate = record.date
+      }
+    } else {
+      // Stop counting when we hit a non-absent record
+      break
+    }
+  }
+
+  // Calculate churn risk
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: { paymentStatus: true },
+  })
+
+  let churnRisk: "LOW" | "MEDIUM" | "HIGH" = "LOW"
+
+  if (attendanceRate < 50 || consecutiveAbsences >= 3) {
+    churnRisk = "HIGH"
+  } else if (attendanceRate < 75 && student?.paymentStatus === "OVERDUE") {
+    churnRisk = "MEDIUM"
+  } else if (attendanceRate < 75 || consecutiveAbsences >= 2) {
+    churnRisk = "MEDIUM"
+  }
 
   await prisma.student.update({
     where: { id: studentId },
@@ -152,6 +185,9 @@ async function updateStudentAttendance(studentId: string) {
       classesAttended,
       attendanceRate,
       lastClassDate,
+      consecutiveAbsences,
+      lastAbsenceDate,
+      churnRisk,
     },
   })
 }

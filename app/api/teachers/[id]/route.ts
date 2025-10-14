@@ -28,15 +28,17 @@ const updateTeacherSchema = z.object({
 // GET /api/teachers/[id] - Get single teacher by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const check = await checkPermission('teachers', 'read')
     if (!check.authorized) return check.response
 
+    const { id } = await params
+
     const teacher = await prisma.user.findUnique({
       where: {
-        id: params.id,
+        id: id,
         role: 'TEACHER',
       },
       select: {
@@ -96,7 +98,7 @@ export async function GET(
 // PATCH /api/teachers/[id] - Update teacher (FOUNDER only)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Apply rate limiting
@@ -105,6 +107,8 @@ export async function PATCH(
 
     const check = await checkPermission('teachers', 'update')
     if (!check.authorized) return check.response
+
+    const { id } = await params
 
     const body = await req.json()
 
@@ -121,7 +125,7 @@ export async function PATCH(
 
     // Check if teacher exists
     const existingTeacher = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: {
         id: true,
         name: true,
@@ -149,7 +153,7 @@ export async function PATCH(
       const emailExists = await prisma.user.findFirst({
         where: {
           email: data.email,
-          NOT: { id: params.id }
+          NOT: { id: id }
         }
       })
 
@@ -176,7 +180,7 @@ export async function PATCH(
 
     // Update teacher
     const updatedTeacher = await prisma.user.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       select: {
         id: true,

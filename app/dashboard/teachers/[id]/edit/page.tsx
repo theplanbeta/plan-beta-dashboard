@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { use, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/Toast"
 import { parseZodIssues } from "@/lib/form-errors"
@@ -23,7 +23,8 @@ const PB_TARIF_RATES = {
   B2: 750,
 }
 
-export default function EditTeacherPage({ params }: { params: { id: string } }) {
+export default function EditTeacherPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
@@ -48,11 +49,11 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     fetchTeacher()
-  }, [params.id])
+  }, [id])
 
   const fetchTeacher = async () => {
     try {
-      const res = await fetch(\`/api/teachers/\${params.id}\`)
+      const res = await fetch(`/api/teachers/${id}`)
       if (!res.ok) throw new Error("Failed to fetch teacher")
 
       const teacher = await res.json()
@@ -127,7 +128,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
         remarks: formData.remarks || undefined,
       }
 
-      const res = await fetch(\`/api/teachers/\${params.id}\`, {
+      const res = await fetch(`/api/teachers/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -276,7 +277,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
                 required
                 value={formData.name}
                 onChange={(e) => { setFormData({ ...formData, name: e.target.value }); setIsDirty(true) }}
-                className={\`input \${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}\`}
+                className={`input ${fieldErrors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="Teacher's full name"
               />
               {fieldErrors.name && (
@@ -293,7 +294,7 @@ export default function EditTeacherPage({ params }: { params: { id: string } }) 
                 required
                 value={formData.email}
                 onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setIsDirty(true) }}
-                className={\`input \${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}\`}
+                className={`input ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
                 placeholder="teacher@example.com"
               />
               {fieldErrors.email && (

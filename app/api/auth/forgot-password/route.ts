@@ -6,7 +6,7 @@ import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
-const limiter = rateLimit(RATE_LIMITS.AUTH)
+const limiter = rateLimit(RATE_LIMITS.STRICT)
 
 // Validation schema
 const forgotPasswordSchema = z.object({

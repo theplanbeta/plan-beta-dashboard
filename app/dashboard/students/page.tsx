@@ -320,15 +320,17 @@ export default function StudentsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
-                  Actions
-                </th>
+                {!isTeacher && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {students.length === 0 ? (
                 <tr>
-                  <td colSpan={isTeacher ? 7 : 9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={isTeacher ? 6 : 9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     No students found. Click &quot;Add Student&quot; to create your first student.
                   </td>
                 </tr>
@@ -381,8 +383,8 @@ export default function StudentsPage() {
                         {student.completionStatus}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      {!isTeacher ? (
+                    {!isTeacher && (
+                      <td className="px-6 py-4 text-sm">
                         <div className="flex items-center gap-2">
                           <Link
                             href={`/dashboard/students/${student.id}`}
@@ -408,10 +410,8 @@ export default function StudentsPage() {
                             </GenerateInvoiceButton>
                           </div>
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

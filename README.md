@@ -156,6 +156,19 @@ Open [http://localhost:3000](http://localhost:3000)
 - **Location:** `app/api/cron/attendance-alerts/route.ts`
 - **Endpoint:** `POST /api/cron/attendance-alerts` (requires CRON_SECRET)
 
+**4b. Consecutive Absence Alert Emails** 🚨
+- **Trigger:** Automated daily cron for students with 2+ consecutive absences
+- **Recipients:**
+  - Teachers: All students with 2+ absences in their batches
+  - Admins (FOUNDER): High-risk students only (3+ absences)
+  - Students: Currently DISABLED
+- **Templates:** `consecutive-absence-teacher`, `consecutive-absence-admin`
+- **Includes:** Student details, consecutive absence count, attendance rate, risk level
+- **Location:** `app/api/cron/consecutive-absence-alerts/route.ts`
+- **Endpoint:** `POST /api/cron/consecutive-absence-alerts` (requires CRON_SECRET)
+- **Schedule:** Daily at 10 PM UTC (11 PM CET / 12 AM CEST)
+- **Risk Levels:** 2 absences = MEDIUM risk, 3+ absences = HIGH risk
+
 **5. Month Completion Emails** 🎊
 - **Trigger:** Student completes Month 1 (30+ days, ≥50% attendance)
 - **Template:** `month-complete`
@@ -226,6 +239,9 @@ curl -X POST http://localhost:3000/api/cron/payment-reminders \
 curl -X POST http://localhost:3000/api/cron/attendance-alerts \
   -H "Authorization: Bearer your-cron-secret-key-here"
 
+curl -X POST http://localhost:3000/api/cron/consecutive-absence-alerts \
+  -H "Authorization: Bearer your-cron-secret-key-here"
+
 curl -X POST http://localhost:3000/api/cron/month-completion \
   -H "Authorization: Bearer your-cron-secret-key-here"
 ```
@@ -289,6 +305,7 @@ All require `Authorization: Bearer ${CRON_SECRET}` header
 
 - `POST /api/cron/payment-reminders` - Send payment reminders ✉️
 - `POST /api/cron/attendance-alerts` - Send attendance alerts ✉️
+- `POST /api/cron/consecutive-absence-alerts` - Send consecutive absence alerts (teachers & admins) ✉️
 - `POST /api/cron/month-completion` - Process month completions ✉️
 - `POST /api/cron/backup` - Backup database & email ✉️
 
@@ -459,6 +476,7 @@ plan-beta-dashboard/
 │   │   │   ├── backup/           # Database backups
 │   │   │   ├── payment-reminders/
 │   │   │   ├── attendance-alerts/
+│   │   │   ├── consecutive-absence-alerts/  # 2+ absences alerts
 │   │   │   └── month-completion/
 │   │   └── system/               # Health & audit logs
 │   ├── dashboard/                # Protected dashboard pages
@@ -550,10 +568,16 @@ npm run lint             # Run ESLint
 
 ### TEACHER
 - View assigned batches
-- View students in their batches
+- View students in their batches (names, contact info, attendance stats)
 - Mark attendance
 - View class schedules
 - Limited to own batches only
+- **Restrictions:**
+  - Cannot view student financial information (revenue, payments)
+  - Cannot access student detail pages
+  - Cannot edit or delete students
+  - Cannot view invoices or referrals
+- **Alert System:** Receives consecutive absence alerts for their students
 
 ---
 
@@ -669,7 +693,25 @@ npm run lint             # Run ESLint
 
 ## 📋 Recent Updates
 
-### Latest (October 2025) - Backup System Overhaul
+### Latest (December 2024) - Consecutive Absence Alert System 🚨
+✅ **Automated student retention system**
+- New consecutive absence tracking in database (`consecutiveAbsences`, `lastAbsenceDate`)
+- Daily automated alerts at 10 PM UTC for students with 2+ consecutive absences
+- Three-tier notification system:
+  - **Teachers:** Receive alerts for all students with 2+ absences in their batches
+  - **Admins (FOUNDER):** Receive alerts only for high-risk students (3+ absences)
+  - **Students:** Currently disabled (can be re-enabled in future)
+- Enhanced churn risk calculation (2+ absences = MEDIUM, 3+ = HIGH)
+- Visual absence indicators on student dashboard (yellow for 2, red for 3+)
+- Detailed email templates with action recommendations
+
+✅ **Teacher access restrictions for data privacy**
+- Teachers can no longer view student financial information
+- Student detail pages, invoices, and payments hidden from teachers
+- Actions column removed from student list for teachers
+- Focus on teaching-related functions only (attendance, batch info)
+
+### Previous (October 2025) - Backup System Overhaul
 ✅ **Complete backup system rebuild**
 - Fixed EMAIL_FROM format issue (was blocking all emails)
 - Added gzip compression (70-80% file size reduction)
@@ -708,6 +750,8 @@ npm run lint             # Run ESLint
 ## 📈 Roadmap
 
 ### Planned Features
+- [ ] External referrer system (veteran students + external contacts)
+- [ ] Horizontal calendar mode for leads/batches/students
 - [ ] Student portal (login & track progress)
 - [ ] WhatsApp integration (automated messages)
 - [ ] SMS notifications (Twilio integration)
@@ -717,10 +761,12 @@ npm run lint             # Run ESLint
 - [ ] Automated upsell campaigns
 - [ ] Mobile app (React Native)
 
-### In Progress
-- ✅ Email system (COMPLETED)
-- ✅ Backup system (COMPLETED)
-- ✅ Dark mode (COMPLETED)
+### Recently Completed
+- ✅ Consecutive absence alert system (COMPLETED Dec 2024)
+- ✅ Teacher access restrictions (COMPLETED Dec 2024)
+- ✅ Email system (COMPLETED Oct 2024)
+- ✅ Backup system (COMPLETED Oct 2024)
+- ✅ Dark mode (COMPLETED Oct 2024)
 
 ---
 
@@ -736,8 +782,8 @@ npm run lint             # Run ESLint
 - Claude Code (AI-assisted development)
 
 **Developed by:** Plan Beta Team
-**Last Updated:** October 10, 2025
-**Version:** 3.0 (Email System Active)
+**Last Updated:** December 19, 2024
+**Version:** 3.1 (Consecutive Absence Alert System)
 **Status:** 🟢 Production Ready
 
 ---

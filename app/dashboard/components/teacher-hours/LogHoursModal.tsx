@@ -40,7 +40,6 @@ export default function LogHoursModal({
   const [date, setDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'))
   const [hoursWorked, setHoursWorked] = useState<string>('')
   const [description, setDescription] = useState<string>('')
-  const [hourlyRate, setHourlyRate] = useState<string>(teacherHourlyRate?.toString() || '')
   const [loading, setLoading] = useState(false)
 
   // Reset form when modal opens/closes or edit entry changes
@@ -56,10 +55,9 @@ export default function LogHoursModal({
         setDate(format(new Date(), 'yyyy-MM-dd'))
         setHoursWorked('')
         setDescription('')
-        setHourlyRate(teacherHourlyRate?.toString() || '')
       }
     }
-  }, [isOpen, editEntry, teacherHourlyRate])
+  }, [isOpen, editEntry])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -93,7 +91,6 @@ export default function LogHoursModal({
         date,
         hoursWorked: parseFloat(hoursWorked),
         description: description.trim(),
-        hourlyRate: hourlyRate ? parseFloat(hourlyRate) : undefined,
       }
 
       let response
@@ -237,26 +234,6 @@ export default function LogHoursModal({
                     />
                   </div>
 
-                  {/* Hourly Rate */}
-                  <div>
-                    <label
-                      htmlFor="rate"
-                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Hourly Rate (€) {teacherHourlyRate && '(Auto-filled from profile)'}
-                    </label>
-                    <input
-                      type="number"
-                      id="rate"
-                      value={hourlyRate}
-                      onChange={(e) => setHourlyRate(e.target.value)}
-                      min="0"
-                      step="0.01"
-                      placeholder="Optional"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
                   {/* Description */}
                   <div>
                     <label
@@ -279,20 +256,6 @@ export default function LogHoursModal({
                       {description.length}/500 characters
                     </p>
                   </div>
-
-                  {/* Calculated Total */}
-                  {hoursWorked && hourlyRate && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
-                          Total Amount:
-                        </span>
-                        <span className="text-lg font-bold text-blue-900 dark:text-blue-300">
-                          €{(parseFloat(hoursWorked) * parseFloat(hourlyRate)).toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Actions */}
                   <div className="flex justify-end gap-3 pt-4">

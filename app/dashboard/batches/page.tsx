@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { normalizeCurrency } from "@/lib/currency"
 
@@ -31,10 +32,13 @@ type Batch = {
 }
 
 export default function BatchesPage() {
+  const { data: session } = useSession()
   const [batches, setBatches] = useState<Batch[]>([])
   const [loading, setLoading] = useState(true)
   const [levelFilter, setLevelFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+
+  const isTeacher = session?.user?.role === 'TEACHER'
 
   useEffect(() => {
     fetchBatches()
@@ -124,12 +128,14 @@ export default function BatchesPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Batches</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Manage course batches and capacity</p>
         </div>
-        <Link
-          href="/dashboard/batches/new"
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
-        >
-          + Create Batch
-        </Link>
+        {!isTeacher && (
+          <Link
+            href="/dashboard/batches/new"
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+          >
+            + Create Batch
+          </Link>
+        )}
       </div>
 
       {/* Overview Stats */}

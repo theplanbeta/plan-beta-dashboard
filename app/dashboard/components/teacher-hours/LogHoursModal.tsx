@@ -8,7 +8,8 @@ import { format } from 'date-fns'
 
 interface Batch {
   id: string
-  name: string
+  batchCode: string
+  name?: string
 }
 
 interface LogHoursModalProps {
@@ -187,7 +188,7 @@ export default function LogHoursModal({
                       <option value="">No specific batch</option>
                       {batches.map((batch) => (
                         <option key={batch.id} value={batch.id}>
-                          {batch.name}
+                          {batch.batchCode || batch.name}
                         </option>
                       ))}
                     </select>

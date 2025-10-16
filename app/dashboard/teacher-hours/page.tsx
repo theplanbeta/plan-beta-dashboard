@@ -12,7 +12,8 @@ import MarkPaidModal from '../components/teacher-hours/MarkPaidModal'
 
 interface Batch {
   id: string
-  name: string
+  batchCode: string
+  name?: string
 }
 
 interface HoursSummary {

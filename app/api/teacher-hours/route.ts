@@ -50,31 +50,19 @@ export async function POST(req: NextRequest) {
 
     const { batchId, date, hoursWorked, description, hourlyRate } = validation.data
 
-    // Get teacher's default hourly rate if not provided
+    // Get teacher's hourly rate and batch info if needed
     const teacher = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { hourlyRate: true },
     })
 
-    const effectiveRate = hourlyRate || (teacher?.hourlyRate ? Number(teacher.hourlyRate) : 0)
-
-    if (effectiveRate === 0) {
-      return NextResponse.json(
-        { error: 'Hourly rate not set. Please update your profile or provide a rate.' },
-        { status: 400 }
-      )
-    }
-
-    // Calculate total amount
-    const hoursWorkedDecimal = new Decimal(hoursWorked)
-    const hourlyRateDecimal = new Decimal(effectiveRate)
-    const totalAmount = hoursWorkedDecimal.times(hourlyRateDecimal)
+    let batch: { teacherId: string | null; level: string } | null = null
 
     // Verify batch exists and belongs to teacher (if provided)
     if (batchId) {
-      const batch = await prisma.batch.findUnique({
+      batch = await prisma.batch.findUnique({
         where: { id: batchId },
-        select: { teacherId: true },
+        select: { teacherId: true, level: true },
       })
 
       if (!batch) {
@@ -88,6 +76,53 @@ export async function POST(req: NextRequest) {
         )
       }
     }
+
+    // Determine effective hourly rate
+    let effectiveRate = hourlyRate || 0
+
+    if (!effectiveRate && teacher?.hourlyRate) {
+      // Check if hourlyRate is a JSON object (rates per level) or a simple number
+      const teacherRate = teacher.hourlyRate
+
+      if (typeof teacherRate === 'object' && teacherRate !== null && !Array.isArray(teacherRate)) {
+        // hourlyRate is JSON object like { A1: 600, A2: 650 }
+        if (batch?.level) {
+          // Try to get rate for this batch's level
+          const rateForLevel = (teacherRate as any)[batch.level]
+          if (typeof rateForLevel === 'number') {
+            effectiveRate = rateForLevel
+          }
+        }
+
+        // If no rate found for batch level, try to get a default rate
+        if (!effectiveRate) {
+          // Try common level keys
+          const commonLevels = ['A1', 'A2', 'B1', 'B2', 'default']
+          for (const level of commonLevels) {
+            const rate = (teacherRate as any)[level]
+            if (typeof rate === 'number') {
+              effectiveRate = rate
+              break
+            }
+          }
+        }
+      } else if (typeof teacherRate === 'number') {
+        // Simple numeric rate
+        effectiveRate = teacherRate
+      }
+    }
+
+    if (!effectiveRate || effectiveRate === 0) {
+      return NextResponse.json(
+        { error: 'Hourly rate not set. Please update your profile or provide a rate.' },
+        { status: 400 }
+      )
+    }
+
+    // Calculate total amount
+    const hoursWorkedDecimal = new Decimal(hoursWorked)
+    const hourlyRateDecimal = new Decimal(effectiveRate)
+    const totalAmount = hoursWorkedDecimal.times(hourlyRateDecimal)
 
     // Create hour entry
     const hourEntry = await prisma.teacherHours.create({

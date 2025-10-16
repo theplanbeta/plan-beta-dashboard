@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const level = searchParams.get("level")
     const status = searchParams.get("status")
-    const forHourLogging = searchParams.get("forHourLogging") === "true"
 
     const where: Record<string, unknown> = {}
 
@@ -46,8 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // For TEACHER role, filter batches to only show those assigned to the teacher
-    // UNLESS they're selecting a batch for hour logging (they might sub for others)
-    if (user.role === "TEACHER" && !forHourLogging) {
+    if (user.role === "TEACHER") {
       where.teacherId = user.id
     }
 

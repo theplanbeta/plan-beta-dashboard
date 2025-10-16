@@ -41,6 +41,7 @@ export default function TeacherHoursPage() {
   const [batches, setBatches] = useState<Batch[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [selectedTeacher, setSelectedTeacher] = useState<string>('')
+  const [selectedMonth, setSelectedMonth] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(true)
 
@@ -64,6 +65,15 @@ export default function TeacherHoursPage() {
       const params = new URLSearchParams()
       if (selectedTeacher) params.append('teacherId', selectedTeacher)
 
+      // Add date range filter if month is selected
+      if (selectedMonth) {
+        const [year, month] = selectedMonth.split('-')
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1)
+        const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59)
+        params.append('startDate', startDate.toISOString())
+        params.append('endDate', endDate.toISOString())
+      }
+
       const response = await fetch(`/api/teacher-hours?${params.toString()}`)
       if (!response.ok) throw new Error('Failed to fetch hours')
 
@@ -83,6 +93,15 @@ export default function TeacherHoursPage() {
       setSummaryLoading(true)
       const params = new URLSearchParams()
       if (selectedTeacher) params.append('teacherId', selectedTeacher)
+
+      // Add date range filter if month is selected
+      if (selectedMonth) {
+        const [year, month] = selectedMonth.split('-')
+        const startDate = new Date(parseInt(year), parseInt(month) - 1, 1)
+        const endDate = new Date(parseInt(year), parseInt(month), 0, 23, 59, 59)
+        params.append('startDate', startDate.toISOString())
+        params.append('endDate', endDate.toISOString())
+      }
 
       const response = await fetch(`/api/teacher-hours/summary?${params.toString()}`)
       if (!response.ok) throw new Error('Failed to fetch summary')
@@ -137,7 +156,7 @@ export default function TeacherHoursPage() {
       fetchEntries()
       fetchSummary()
     }
-  }, [status, isFounder, isTeacher, selectedTeacher])
+  }, [status, isFounder, isTeacher, selectedTeacher, selectedMonth])
 
   // Handle log hours (create or edit)
   const handleLogHours = () => {
@@ -248,6 +267,15 @@ export default function TeacherHoursPage() {
                 </option>
               ))}
             </select>
+          )}
+          {isFounder && (
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Filter by month"
+            />
           )}
           {isTeacher && (
             <button

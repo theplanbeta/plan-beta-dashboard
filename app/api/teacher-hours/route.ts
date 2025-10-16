@@ -87,16 +87,25 @@ export async function POST(req: NextRequest) {
       if (typeof teacherRate === 'object' && teacherRate !== null && !Array.isArray(teacherRate)) {
         // hourlyRate is JSON object like { A1: 600, A2: 650 }
         if (batch?.level) {
-          // Try to get rate for this batch's level
-          const rateForLevel = (teacherRate as any)[batch.level]
+          // Try exact match first
+          let rateForLevel = (teacherRate as any)[batch.level]
           if (typeof rateForLevel === 'number') {
             effectiveRate = rateForLevel
           }
+
+          // If no exact match, try to extract base level from variations
+          // A1_HYBRID → A1, A1_HYBRID_MALAYALAM → A1, A2_SPOKEN → A2, etc.
+          if (!effectiveRate) {
+            const baseLevel = batch.level.split('_')[0] // Extract first part (A1, A2, B1, B2, etc.)
+            rateForLevel = (teacherRate as any)[baseLevel]
+            if (typeof rateForLevel === 'number') {
+              effectiveRate = rateForLevel
+            }
+          }
         }
 
-        // If no rate found for batch level, try to get a default rate
+        // If still no rate found, try common level keys as fallback
         if (!effectiveRate) {
-          // Try common level keys
           const commonLevels = ['A1', 'A2', 'B1', 'B2', 'default']
           for (const level of commonLevels) {
             const rate = (teacherRate as any)[level]

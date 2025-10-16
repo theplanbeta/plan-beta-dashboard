@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+export const dynamic = 'force-dynamic'
+
+import { useEffect, useState, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
-export default function WelcomeLoginPage() {
+function WelcomeLoginContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing')
@@ -107,5 +109,22 @@ export default function WelcomeLoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function WelcomeLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full space-y-8 p-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-gray-900">Loading...</h2>
+          </div>
+        </div>
+      </div>
+    }>
+      <WelcomeLoginContent />
+    </Suspense>
   )
 }

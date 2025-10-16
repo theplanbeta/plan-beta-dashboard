@@ -114,6 +114,9 @@ export async function POST(req: NextRequest) {
 
         passwordUpdated = true
         results.passwordsReset++
+
+        // Log the password for debugging (only in development)
+        console.log(`🔑 Generated password for ${teacher.name} (${teacher.email}): ${newPassword}`)
       } catch (error) {
         console.error(`⚠️ Failed to reset password for ${teacher.name}:`, error)
         results.failed++

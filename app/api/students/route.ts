@@ -6,6 +6,7 @@ import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
 import { Prisma } from "@prisma/client"
 import { getEurEquivalent, EXCHANGE_RATE } from "@/lib/pricing"
+import { trackEnrollmentFromContent } from "@/lib/attribution-tracking"
 
 const Decimal = Prisma.Decimal
 
@@ -192,6 +193,9 @@ export async function POST(request: NextRequest) {
           status: "CONVERTED",
         },
       })
+
+      // Track attribution: update content performance if lead came from a reel
+      await trackEnrollmentFromContent(leadId, Number(finalPrice))
     }
 
     // Send welcome email if preferences allow

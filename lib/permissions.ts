@@ -22,10 +22,12 @@ export const PERMISSIONS: Record<
     referrals: { read: true, create: true, update: true, delete: true },
     analytics: { read: true, create: true, update: true, delete: true },
     insights: { read: true, create: true, update: true, delete: true },
+    content: { read: true, create: true, update: true, delete: true },
     users: { read: true, create: true, update: true, delete: true },
     leads: { read: true, create: true, update: true, delete: true },
     teachers: { read: true, create: true, update: true, delete: true },
     teacherHours: { read: true, create: true, update: true, delete: true },
+    calendar: { read: true, create: true, update: true, delete: true },
   },
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
@@ -35,10 +37,12 @@ export const PERMISSIONS: Record<
     referrals: { read: true, create: true, update: true, delete: false },
     analytics: { read: true, create: false, update: false, delete: false },
     insights: { read: true, create: false, update: false, delete: false },
+    content: { read: true, create: true, update: true, delete: false },
     users: { read: false, create: false, update: false, delete: false },
     leads: { read: true, create: true, update: true, delete: true },
     teachers: { read: true, create: false, update: false, delete: false },
     teacherHours: { read: false, create: false, update: false, delete: false },
+    calendar: { read: true, create: true, update: true, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -48,10 +52,12 @@ export const PERMISSIONS: Record<
     referrals: { read: false, create: false, update: false, delete: false },
     analytics: { read: false, create: false, update: false, delete: false },
     insights: { read: false, create: false, update: false, delete: false },
+    content: { read: false, create: false, update: false, delete: false },
     users: { read: false, create: false, update: false, delete: false },
     leads: { read: false, create: false, update: false, delete: false },
     teachers: { read: true, create: false, update: false, delete: false },
     teacherHours: { read: true, create: true, update: true, delete: true },
+    calendar: { read: false, create: false, update: false, delete: false },
   },
 }
 
@@ -67,6 +73,11 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Dashboard',
     href: '/dashboard',
+    roles: ['FOUNDER', 'MARKETING'],
+  },
+  {
+    name: 'Calendar',
+    href: '/dashboard/calendar',
     roles: ['FOUNDER', 'MARKETING'],
   },
   {
@@ -122,6 +133,11 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Insights',
     href: '/dashboard/insights',
+    roles: ['FOUNDER', 'MARKETING'],
+  },
+  {
+    name: 'Content',
+    href: '/dashboard/content',
     roles: ['FOUNDER', 'MARKETING'],
   },
   {

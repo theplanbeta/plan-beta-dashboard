@@ -29,9 +29,6 @@ export async function GET(request: NextRequest) {
         consecutiveAbsences: {
           gte: 2, // 2 or more consecutive absences
         },
-        email: {
-          not: null,
-        },
       },
       include: {
         batch: {
@@ -42,6 +39,9 @@ export async function GET(request: NextRequest) {
       },
     })
 
+    // Filter out students without email addresses
+    const studentsWithEmail = atRiskStudents.filter(s => s.email)
+
     if (atRiskStudents.length === 0) {
       return NextResponse.json({
         success: true,
@@ -51,15 +51,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all admin users (FOUNDER role)
-    const admins = await prisma.user.findMany({
+    const allAdmins = await prisma.user.findMany({
       where: {
         role: "FOUNDER",
         active: true,
-        email: {
-          not: null,
-        },
       },
     })
+
+    // Filter admins with email addresses
+    const admins = allAdmins.filter(admin => admin.email)
 
     const results = {
       studentsProcessed: 0,
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       errors: [] as string[],
     }
 
-    for (const student of atRiskStudents) {
+    for (const student of studentsWithEmail) {
       results.studentsProcessed++
 
       const absenceCount = student.consecutiveAbsences

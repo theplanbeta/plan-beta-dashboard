@@ -11,7 +11,10 @@
     "db:seed": "tsx prisma/seed.ts",
     "backup": "tsx scripts/backup-database.ts",
     "restore": "tsx scripts/restore-database.ts",
-    "import": "tsx scripts/bulk-import.ts"
+    "import": "tsx scripts/bulk-import.ts",
+    "setup-instagram": "tsx scripts/setup-instagram.ts",
+    "debug-facebook": "tsx scripts/debug-facebook.ts",
+    "test-instagram": "tsx scripts/test-instagram.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -25,16 +28,19 @@
     "@prisma/client": "^6.16.3",
     "@sentry/nextjs": "^10.17.0",
     "@tanstack/react-query": "^5.90.2",
+    "axios": "^1.7.9",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.3",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.3",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "next-auth": "^4.24.11",
+    "node-cron": "^3.0.3",
     "prisma": "^6.16.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -42,6 +48,7 @@
     "react-hot-toast": "^2.6.0",
     "resend": "^6.1.2",
     "tailwind-merge": "^3.3.1",
+    "twilio": "^5.3.7",
     "workbox-webpack-plugin": "^7.3.0",
     "zod": "^4.1.11",
     "zustand": "^5.0.8"
@@ -51,6 +58,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

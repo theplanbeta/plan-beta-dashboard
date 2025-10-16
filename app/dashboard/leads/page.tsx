@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
 import { GenerateInvoiceButton } from "@/components/GenerateInvoiceButton"
+import { MonthTabs } from "@/components/MonthTabs"
+import { useMonthFilter } from "@/hooks/useMonthFilter"
 
 type Lead = {
   id: string
@@ -49,6 +51,19 @@ export default function LeadsPage() {
   const [sourceFilter, setSourceFilter] = useState("")
   const [convertedFilter, setConvertedFilter] = useState("")
   const [followUpFilter, setFollowUpFilter] = useState("")
+
+  // Month filtering with URL sync
+  const {
+    selectedMonth,
+    setSelectedMonth,
+    filteredItems: monthFilteredLeads,
+    monthCounts,
+    sortedMonths,
+  } = useMonthFilter({
+    items: leads,
+    dateField: 'createdAt',
+    includeUnscheduled: false,
+  })
 
   useEffect(() => {
     fetchLeads()
@@ -135,8 +150,8 @@ export default function LeadsPage() {
     return indicators[urgency as keyof typeof indicators] || indicators.none
   }
 
-  // Filter and sort leads based on follow-up filter
-  const filteredAndSortedLeads = leads
+  // Filter and sort leads based on follow-up filter (apply to month-filtered leads)
+  const filteredAndSortedLeads = monthFilteredLeads
     .filter((lead) => {
       if (!followUpFilter) return true
       const urgency = getFollowUpUrgency(lead.followUpDate)
@@ -150,10 +165,10 @@ export default function LeadsPage() {
       return urgencyOrder[aUrgency as keyof typeof urgencyOrder] - urgencyOrder[bUrgency as keyof typeof urgencyOrder]
     })
 
-  // Calculate follow-up stats
-  const overdueCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "overdue").length
-  const todayCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "today").length
-  const weekCount = leads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "week").length
+  // Calculate follow-up stats (from month-filtered leads)
+  const overdueCount = monthFilteredLeads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "overdue").length
+  const todayCount = monthFilteredLeads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "today").length
+  const weekCount = monthFilteredLeads.filter(l => !l.converted && getFollowUpUrgency(l.followUpDate) === "week").length
 
   if (loading) {
     return (
@@ -315,31 +330,57 @@ export default function LeadsPage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
-          <div className="text-sm text-gray-600 dark:text-gray-300">Total Leads</div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">{leads.length}</div>
+          <div className="text-sm text-gray-600 dark:text-gray-300">
+            {selectedMonth ? 'Leads This Month' : 'Total Leads'}
+          </div>
+          <div className="text-2xl font-bold text-gray-900 dark:text-white">{monthFilteredLeads.length}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Hot Leads</div>
           <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-            {leads.filter((l) => l.quality === "HOT" && !l.converted).length}
+            {monthFilteredLeads.filter((l) => l.quality === "HOT" && !l.converted).length}
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Converted</div>
           <div className="text-2xl font-bold text-success dark:text-green-400">
-            {leads.filter((l) => l.converted).length}
+            {monthFilteredLeads.filter((l) => l.converted).length}
           </div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
           <div className="text-sm text-gray-600 dark:text-gray-300">Conversion Rate</div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {leads.length > 0
-              ? ((leads.filter((l) => l.converted).length / leads.length) * 100).toFixed(1)
+            {monthFilteredLeads.length > 0
+              ? ((monthFilteredLeads.filter((l) => l.converted).length / monthFilteredLeads.length) * 100).toFixed(1)
               : 0}
             %
           </div>
         </div>
       </div>
+
+      {/* Month Tabs */}
+      <MonthTabs
+        selectedMonth={selectedMonth}
+        onMonthSelect={setSelectedMonth}
+        monthCounts={monthCounts}
+        sortedMonths={sortedMonths}
+        includeUnscheduled={false}
+        renderStats={(monthKey, count) => {
+          const monthLeads = leads.filter(l => {
+            if (!l.createdAt) return false
+            const date = new Date(l.createdAt)
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            return key === monthKey
+          })
+          const converted = monthLeads.filter(l => l.converted).length
+          const conversionRate = count > 0 ? Math.round((converted / count) * 100) : 0
+          return (
+            <span className="text-xs">
+              {conversionRate}% conversion
+            </span>
+          )
+        }}
+      />
 
       {/* Leads Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">

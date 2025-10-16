@@ -8,6 +8,8 @@ import { BatchSuggestions } from '@/components/calendar/BatchSuggestions'
 import { DayOverview } from '@/components/calendar/DayOverview'
 import { TeacherStatusModal } from '@/components/calendar/TeacherStatusModal'
 import { LeadDetailModal } from '@/components/calendar/LeadDetailModal'
+import { AddContentModal } from '@/components/calendar/AddContentModal'
+import toast from 'react-hot-toast'
 import {
   getBatchSuggestions,
   getDayOverview,
@@ -74,6 +76,8 @@ export default function CalendarPage() {
   const [showTeacherStatus, setShowTeacherStatus] = useState(false)
   const [showLeadDetail, setShowLeadDetail] = useState(false)
   const [selectedLeads, setSelectedLeads] = useState<Lead[]>([])
+  const [showAddContent, setShowAddContent] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   // Fetch data
   useEffect(() => {
@@ -105,6 +109,41 @@ export default function CalendarPage() {
       console.error('Error fetching calendar data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Handle Instagram sync
+  const handleInstagramSync = async () => {
+    setSyncing(true)
+    const loadingToast = toast.loading('Syncing Instagram content...')
+
+    try {
+      const response = await fetch('/api/instagram/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to sync')
+      }
+
+      const result = await response.json()
+
+      toast.success(
+        `Synced ${result.results.total} items: ${result.results.created} created, ${result.results.updated} updated`,
+        { id: loadingToast, duration: 5000 }
+      )
+
+      // Optionally refresh the calendar data
+      await fetchData()
+
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to sync Instagram content', {
+        id: loadingToast
+      })
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -238,6 +277,38 @@ export default function CalendarPage() {
                 <p className="text-lg font-bold text-foreground">{currentView === 'batches' ? batches.length : leads.length}</p>
               </div>
             </div>
+
+            {/* Add Content Button - Available in both views */}
+            <button
+              onClick={() => setShowAddContent(true)}
+              className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg transition-colors flex items-center gap-2 shadow-md"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Content
+            </button>
+
+            {/* Auto-Sync Instagram Button */}
+            <button
+              onClick={handleInstagramSync}
+              disabled={syncing}
+              className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 rounded-lg transition-colors flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {syncing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Auto-Sync Instagram
+                </>
+              )}
+            </button>
 
             {/* Teacher Status Button - Available in both views */}
             <button
@@ -395,6 +466,15 @@ export default function CalendarPage() {
         suggestionsCount={suggestions.length}
         batchesRunning={dayOverviewData.batchesRunning.length}
         teachersAvailable={dayOverviewData.teachersAvailable.length}
+      />
+
+      <AddContentModal
+        isOpen={showAddContent}
+        onClose={() => setShowAddContent(false)}
+        onSuccess={() => {
+          // Optionally refresh data or show success message
+          fetchData()
+        }}
       />
     </div>
   )

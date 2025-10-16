@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { GenerateInvoiceButton } from "@/components/GenerateInvoiceButton"
+import { MonthTabs } from "@/components/MonthTabs"
+import { useMonthFilter } from "@/hooks/useMonthFilter"
 
 type Student = {
   id: string
@@ -38,6 +40,19 @@ export default function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState("")
 
   const isTeacher = session?.user?.role === 'TEACHER'
+
+  // Month filtering with URL sync
+  const {
+    selectedMonth,
+    setSelectedMonth,
+    filteredItems: monthFilteredStudents,
+    monthCounts,
+    sortedMonths,
+  } = useMonthFilter({
+    items: students,
+    dateField: 'createdAt',
+    includeUnscheduled: false,
+  })
 
   useEffect(() => {
     fetchStudents()
@@ -193,26 +208,54 @@ export default function StudentsPage() {
         </div>
 
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {students.length} student{students.length !== 1 ? "s" : ""}
+          Showing {monthFilteredStudents.length} student{monthFilteredStudents.length !== 1 ? "s" : ""}
         </div>
       </div>
+
+      {/* Month Tabs */}
+      <MonthTabs
+        selectedMonth={selectedMonth}
+        onMonthSelect={setSelectedMonth}
+        monthCounts={monthCounts}
+        sortedMonths={sortedMonths}
+        includeUnscheduled={false}
+        renderStats={(monthKey, count) => {
+          const monthStudents = students.filter(s => {
+            if (!s.createdAt) return false
+            const date = new Date(s.createdAt)
+            const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            return key === monthKey
+          })
+          const activeCount = monthStudents.filter(s => s.completionStatus === 'ACTIVE').length
+          const activeRate = count > 0 ? Math.round((activeCount / count) * 100) : 0
+          return (
+            <span className="text-xs">
+              {activeRate}% active
+            </span>
+          )
+        }}
+      />
 
       {/* Students Table/Cards - Desktop: Table, Mobile: Cards */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3 p-3">
-          {students.length === 0 ? (
+          {monthFilteredStudents.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <p className="text-gray-500 dark:text-gray-400">No students found</p>
-              <Link
-                href="/dashboard/students/new"
-                className="text-primary hover:text-primary-dark mt-2 inline-block"
-              >
-                Add your first student
-              </Link>
+              <p className="text-gray-500 dark:text-gray-400">
+                {students.length === 0 ? 'No students found' : 'No students found for the selected month'}
+              </p>
+              {students.length === 0 && (
+                <Link
+                  href="/dashboard/students/new"
+                  className="text-primary hover:text-primary-dark mt-2 inline-block"
+                >
+                  Add your first student
+                </Link>
+              )}
             </div>
           ) : (
-            students.map((student) => (
+            monthFilteredStudents.map((student) => (
               <div key={student.id} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-5 space-y-4 border border-gray-200 dark:border-gray-600">
                 {/* Name & ID */}
                 <div className="space-y-2">
@@ -357,14 +400,16 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {students.length === 0 ? (
+              {monthFilteredStudents.length === 0 ? (
                 <tr>
                   <td colSpan={isTeacher ? 6 : 9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    No students found. Click &quot;Add Student&quot; to create your first student.
+                    {students.length === 0
+                      ? 'No students found. Click "Add Student" to create your first student.'
+                      : 'No students found for the selected month.'}
                   </td>
                 </tr>
               ) : (
-                students.map((student) => (
+                monthFilteredStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
                       {student.studentId}

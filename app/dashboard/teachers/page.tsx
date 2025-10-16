@@ -104,16 +104,12 @@ export default function TeachersPage() {
 
       if (res.ok) {
         const data = await res.json()
-        let message = `✅ Welcome emails sent!\n\nSent: ${data.results.sent}\nFailed: ${data.results.failed}\nSkipped: ${data.results.skipped}`
+        let message = `✅ Welcome emails with magic login links sent!
 
-        if (data.results.passwordsReset > 0) {
-          message += `\n\n🔑 Passwords reset: ${data.results.passwordsReset}\n\nNew passwords:`
-          data.results.details.forEach((detail: any) => {
-            if (detail.newPassword) {
-              message += `\n${detail.teacherName}: ${detail.newPassword}`
-            }
-          })
-        }
+Sent: ${data.results.sent}
+Failed: ${data.results.failed}
+
+Teachers will receive a secure one-time login link that automatically logs them in and takes them to set up their password.`
 
         alert(message)
       } else {
@@ -174,7 +170,7 @@ export default function TeachersPage() {
       return
     }
 
-    if (!confirm(`Send welcome emails to ${teachersToEmail.length} teacher(s) with real email addresses?\n\nThis will send login credentials to:\n${teachersToEmail.map(t => `- ${t.name} (${t.email})`).join('\n')}`)) {
+    if (!confirm(`Send welcome emails to ${teachersToEmail.length} teacher(s)?\n\nThis will send a magic login link to:\n${teachersToEmail.map(t => `- ${t.name} (${t.email})`).join('\n')}`)) {
       return
     }
 
@@ -366,13 +362,13 @@ export default function TeachersPage() {
                   {!teacher.email.includes('@planbeta.internal') && teacher.active && (
                     <button
                       onClick={() => {
-                        if (confirm(`Send welcome email to ${teacher.name}?\n\nThis will send their login credentials to ${teacher.email}`)) {
+                        if (confirm(`Send welcome email to ${teacher.name}?\n\nThis will send a magic login link to ${teacher.email}`)) {
                           sendSingleWelcomeEmail(teacher.id)
                         }
                       }}
                       disabled={sendingEmailId === teacher.id}
                       className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-                      title="Send welcome email with login credentials"
+                      title="Send welcome email with magic login link"
                     >
                       {sendingEmailId === teacher.id ? "Sending..." : "💌 Welcome Email"}
                     </button>

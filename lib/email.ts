@@ -119,27 +119,34 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Dear ${data.teacherName},</p>
             <p style="color: #374151; font-size: 15px;">Your teacher account has been created successfully. We're excited to have you as part of our teaching team!</p>
 
-          <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-            <p style="margin: 0; color: #92400e;"><strong>⚠️ Important: Save these credentials</strong></p>
-            <p style="margin: 10px 0 0 0; color: #92400e; font-size: 14px;">This is the only time you'll receive your password via email.</p>
-          </div>
-
-          <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="margin-top: 0;">Your Login Credentials:</h3>
-            <p><strong>Email:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.email}</code></p>
-            <p><strong>Password:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.password}</code></p>
+          <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #3b82f6;">
+            <p style="margin: 0 0 8px 0; color: #1e40af; font-size: 14px; font-weight: bold;">
+              🚀 Get Started in One Click
+            </p>
+            <p style="margin: 0; color: #1e40af; font-size: 13px;">
+              Click the button below to automatically log in and set up your password. No manual login required!
+            </p>
           </div>
 
           <div style="margin: 30px 0; text-align: center;">
-            <a href="${data.loginUrl}/login"
-               style="background: #d2302c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(210, 48, 44, 0.3);">
-              🔐 Login to Your Account
+            <a href="${data.welcomeUrl}"
+               style="background: #d2302c; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 18px; box-shadow: 0 4px 8px rgba(210, 48, 44, 0.3);">
+              🔐 Access Your Account
             </a>
           </div>
 
           <div style="margin: 20px 0; text-align: center; padding: 15px; background: #f9fafb; border-radius: 6px;">
             <p style="margin: 0; color: #6b7280; font-size: 13px;">Or copy and paste this link into your browser:</p>
-            <p style="margin: 8px 0 0 0;"><a href="${data.loginUrl}/login" style="color: #d2302c; text-decoration: none; font-size: 14px; word-break: break-all;">${data.loginUrl}/login</a></p>
+            <p style="margin: 8px 0 0 0;"><a href="${data.welcomeUrl}" style="color: #d2302c; text-decoration: none; font-size: 12px; word-break: break-all;">${data.welcomeUrl}</a></p>
+          </div>
+
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: bold;">
+              ⏰ Link Expires in ${data.expiryHours} Hours
+            </p>
+            <p style="margin: 0; color: #92400e; font-size: 13px;">
+              This secure link will automatically log you in and take you to set up your password. The link expires in ${data.expiryHours} hours for your security.
+            </p>
           </div>
 
           <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -149,24 +156,15 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
               <li>Mark attendance for your classes</li>
               <li>Log your teaching hours</li>
               <li>Track payment status</li>
-              <li>Update your profile and change password</li>
+              <li>Update your profile</li>
             </ul>
-          </div>
-
-          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
-            <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: bold;">
-              🔒 Change Your Password
-            </p>
-            <p style="margin: 0; color: #92400e; font-size: 13px;">
-              After logging in, go to your Profile Settings to change this temporary password to something more memorable and secure.
-            </p>
           </div>
 
           <p style="color: #374151; font-size: 15px; margin-top: 20px;"><strong>Next Steps:</strong></p>
           <ol style="color: #6b7280; font-size: 14px; line-height: 1.8;">
-            <li>Click the "Login to Your Account" button above</li>
-            <li>Enter your email and the password provided</li>
-            <li>Go to Profile Settings → Change Password</li>
+            <li>Click the "Access Your Account" button above</li>
+            <li>You'll be automatically logged in</li>
+            <li>Set your own secure password</li>
             <li>Complete your profile information</li>
             <li>Explore the dashboard and available features</li>
           </ol>

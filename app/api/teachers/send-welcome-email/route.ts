@@ -6,7 +6,7 @@ import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { sendEmail } from '@/lib/email'
-import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
 const limiter = rateLimit(RATE_LIMITS.STANDARD)
 
@@ -17,12 +17,13 @@ const sendWelcomeEmailSchema = z.object({
 
 /**
  * POST /api/teachers/send-welcome-email
- * Send welcome emails to teachers with their login credentials
+ * Send welcome emails to teachers with a magic login link
  *
  * Features:
  * - Sends to ALL teachers (not just @planbeta.internal)
- * - Optionally generates and sends new random password
- * - Professional welcome email template with credentials
+ * - Generates secure one-time login token (24-hour expiry)
+ * - Magic link that auto-logs in and redirects to password setup
+ * - No password in email (better security and UX)
  * - Audit logging for all sent emails
  */
 export async function POST(req: NextRequest) {
@@ -72,73 +73,59 @@ export async function POST(req: NextRequest) {
     const results = {
       sent: 0,
       failed: 0,
-      skipped: 0,
-      passwordsReset: 0,
+      tokensGenerated: 0,
       details: [] as Array<{
         teacherId: string
         teacherName: string
         status: string
         reason?: string
-        newPassword?: string
       }>,
-    }
-
-    // Generate random password
-    const generatePassword = () => {
-      const length = 12
-      const charset = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*'
-      let password = ''
-      for (let i = 0; i < length; i++) {
-        password += charset.charAt(Math.floor(Math.random() * charset.length))
-      }
-      return password
     }
 
     // Send emails to each teacher
     for (const teacher of teachers) {
-      // Always generate new password for welcome emails
-      const newPassword = generatePassword()
-      const hashedPassword = await bcrypt.hash(newPassword, 10)
-      let passwordToSend = newPassword
-      let passwordUpdated = false
+      // Generate secure welcome token
+      const welcomeToken = crypto.randomBytes(32).toString('hex')
+      const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-      // Update password in database and set requirePasswordChange flag
+      // Store token in database
       try {
         await prisma.user.update({
           where: { id: teacher.id },
           data: {
-            password: hashedPassword,
+            welcomeToken,
+            welcomeTokenExpiry: tokenExpiry,
             requirePasswordChange: true,
           },
         })
 
-        passwordUpdated = true
-        results.passwordsReset++
-
-        // Log the password for debugging (only in development)
-        console.log(`🔑 Generated password for ${teacher.name} (${teacher.email}): ${newPassword}`)
+        results.tokensGenerated++
+        console.log(`🔑 Generated welcome token for ${teacher.name} (${teacher.email})`)
       } catch (error) {
-        console.error(`⚠️ Failed to reset password for ${teacher.name}:`, error)
+        console.error(`⚠️ Failed to generate token for ${teacher.name}:`, error)
         results.failed++
         results.details.push({
           teacherId: teacher.id,
           teacherName: teacher.name,
           status: 'failed',
-          reason: 'Failed to reset password',
+          reason: 'Failed to generate login link',
         })
         continue
       }
 
       try {
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'
+        const welcomeUrl = `${baseUrl}/auth/welcome-login?token=${welcomeToken}`
+
         const emailData = {
           to: teacher.email,
           teacherName: teacher.name,
           email: teacher.email,
-          password: passwordToSend,
-          loginUrl: process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app',
+          welcomeUrl,
+          expiryHours: '24',
         }
 
-        console.log(`📧 Sending email to ${teacher.email} with login URL: ${emailData.loginUrl}`)
+        console.log(`📧 Sending welcome email to ${teacher.email}`)
 
         const emailResult = await sendEmail('teacher-welcome', emailData)
 
@@ -148,13 +135,12 @@ export async function POST(req: NextRequest) {
             teacherId: teacher.id,
             teacherName: teacher.name,
             status: 'sent',
-            newPassword: passwordUpdated ? passwordToSend : undefined,
           })
 
           // Audit log
           await logSuccess(
             AuditAction.USER_UPDATED,
-            `Welcome email sent to teacher: ${teacher.name} (${teacher.email})${passwordUpdated ? ' with new password' : ''}`,
+            `Welcome email with magic link sent to teacher: ${teacher.name} (${teacher.email})`,
             {
               entityType: 'User',
               entityId: teacher.id,
@@ -162,13 +148,13 @@ export async function POST(req: NextRequest) {
                 teacherName: teacher.name,
                 teacherEmail: teacher.email,
                 action: 'welcome_email_sent',
-                passwordReset: passwordUpdated,
+                tokenExpiry: tokenExpiry.toISOString(),
               },
               request: req,
             }
           )
 
-          console.log(`✅ Welcome email sent to ${teacher.name} (${teacher.email})${passwordUpdated ? ' with new password' : ''}`)
+          console.log(`✅ Welcome email sent to ${teacher.name} (${teacher.email})`)
         } else {
           results.failed++
           results.details.push({

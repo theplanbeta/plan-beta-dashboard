@@ -35,6 +35,8 @@ model User {
   requirePasswordChange Boolean        @default(false)
   passwordResetToken   String?
   passwordResetExpiry  DateTime?
+  welcomeToken         String?
+  welcomeTokenExpiry   DateTime?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
   batches              Batch[]         @relation("TeacherBatches")
@@ -46,6 +48,7 @@ model User {
   @@index([role])
   @@index([active])
   @@index([passwordResetToken])
+  @@index([welcomeToken])
 }
 
 model Student {

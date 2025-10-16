@@ -57,7 +57,7 @@ export default function TeacherHoursPage() {
       if (!response.ok) throw new Error('Failed to fetch hours')
 
       const data = await response.json()
-      setEntries(data.hours || [])
+      setEntries(data || [])
     } catch (error) {
       console.error('Error fetching hours:', error)
       toast.error('Failed to load hours')

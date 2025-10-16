@@ -85,11 +85,12 @@ export default function TeacherHoursPage() {
   // Fetch batches for the form
   const fetchBatches = async () => {
     try {
-      const response = await fetch('/api/batches')
+      // Pass forHourLogging=true to show all batches (not just teacher's assigned batches)
+      const response = await fetch('/api/batches?forHourLogging=true')
       if (!response.ok) throw new Error('Failed to fetch batches')
 
       const data = await response.json()
-      setBatches(data.batches || [])
+      setBatches(data || [])
     } catch (error) {
       console.error('Error fetching batches:', error)
     }

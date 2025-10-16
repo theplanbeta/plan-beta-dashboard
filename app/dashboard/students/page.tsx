@@ -24,6 +24,7 @@ type Student = {
   completionStatus: string
   consecutiveAbsences: number
   attendanceRate: number
+  churnRisk: 'LOW' | 'MEDIUM' | 'HIGH'
   batch: {
     id: string
     batchCode: string
@@ -38,8 +39,18 @@ export default function StudentsPage() {
   const [search, setSearch] = useState("")
   const [levelFilter, setLevelFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState("")
+  const [churnRiskFilter, setChurnRiskFilter] = useState("")
 
   const isTeacher = session?.user?.role === 'TEACHER'
+
+  // Check URL params for churn risk filter (from dashboard link)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const churnRisk = params.get('churnRisk')
+    if (churnRisk) {
+      setChurnRiskFilter(churnRisk)
+    }
+  }, [])
 
   // Month filtering with URL sync
   const {
@@ -56,7 +67,7 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetchStudents()
-  }, [search, levelFilter, statusFilter])
+  }, [search, levelFilter, statusFilter, churnRiskFilter])
 
   const fetchStudents = async () => {
     try {
@@ -64,6 +75,7 @@ export default function StudentsPage() {
       if (search) params.append("search", search)
       if (levelFilter) params.append("level", levelFilter)
       if (statusFilter) params.append("status", statusFilter)
+      if (churnRiskFilter) params.append("churnRisk", churnRiskFilter)
 
       const res = await fetch(`/api/students?${params.toString()}`)
       const data = await res.json()
@@ -101,6 +113,23 @@ export default function StudentsPage() {
       ON_HOLD: "bg-warning/10 text-warning",
     }
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
+  }
+
+  const getChurnRiskBadge = (risk: string) => {
+    const colors = {
+      LOW: "bg-success/10 text-success border-success/20",
+      MEDIUM: "bg-warning/10 text-warning border-warning/20",
+      HIGH: "bg-error/10 text-error border-error/20",
+    }
+    const icons = {
+      LOW: "✓",
+      MEDIUM: "⚠️",
+      HIGH: "⚠️",
+    }
+    return {
+      color: colors[risk as keyof typeof colors] || "bg-gray-100 text-gray-800",
+      icon: icons[risk as keyof typeof icons] || "",
+    }
   }
 
   const getAbsenceAlert = (consecutiveAbsences: number) => {
@@ -157,7 +186,7 @@ export default function StudentsPage() {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Search
@@ -203,6 +232,22 @@ export default function StudentsPage() {
               <option value="COMPLETED">Completed</option>
               <option value="DROPPED">Dropped</option>
               <option value="ON_HOLD">On Hold</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Churn Risk
+            </label>
+            <select
+              value={churnRiskFilter}
+              onChange={(e) => setChurnRiskFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">All Risk Levels</option>
+              <option value="LOW">Low Risk</option>
+              <option value="MEDIUM">Medium Risk</option>
+              <option value="HIGH">High Risk</option>
             </select>
           </div>
         </div>
@@ -267,6 +312,14 @@ export default function StudentsPage() {
                     <span className={`px-3 py-1.5 text-xs font-semibold rounded-full ${getCompletionBadge(student.completionStatus)}`}>
                       {student.completionStatus}
                     </span>
+                    {student.churnRisk !== 'LOW' && (
+                      <span
+                        className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getChurnRiskBadge(student.churnRisk).color}`}
+                        title={`Churn risk: ${student.churnRisk}`}
+                      >
+                        {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk} Risk
+                      </span>
+                    )}
                     {getAbsenceAlert(student.consecutiveAbsences).show && (
                       <span
                         className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getAbsenceAlert(student.consecutiveAbsences).color}`}
@@ -417,6 +470,14 @@ export default function StudentsPage() {
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       <div className="flex items-center gap-2">
                         <span>{student.name}</span>
+                        {student.churnRisk !== 'LOW' && (
+                          <span
+                            className={`px-2 py-1 text-xs font-semibold rounded border ${getChurnRiskBadge(student.churnRisk).color}`}
+                            title={`Churn risk: ${student.churnRisk}`}
+                          >
+                            {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk}
+                          </span>
+                        )}
                         {getAbsenceAlert(student.consecutiveAbsences).show && (
                           <span
                             className={`px-2 py-1 text-xs font-semibold rounded border ${getAbsenceAlert(student.consecutiveAbsences).color}`}

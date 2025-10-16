@@ -334,7 +334,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <Link
-              href="/dashboard/students"
+              href="/dashboard/students?churnRisk=HIGH"
               className="px-4 py-2 bg-error dark:bg-red-500 text-white rounded-md hover:bg-error/90 dark:hover:bg-red-600 transition-colors"
             >
               View Students

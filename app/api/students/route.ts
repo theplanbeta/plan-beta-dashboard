@@ -46,6 +46,7 @@ export async function GET(request: NextRequest) {
     const level = searchParams.get("level")
     const status = searchParams.get("status")
     const batchId = searchParams.get("batchId")
+    const churnRisk = searchParams.get("churnRisk")
 
     const where: Record<string, unknown> = {}
 
@@ -68,6 +69,10 @@ export async function GET(request: NextRequest) {
 
     if (batchId) {
       where.batchId = batchId
+    }
+
+    if (churnRisk) {
+      where.churnRisk = churnRisk
     }
 
     // For TEACHER role, filter students to only show those in batches assigned to the teacher

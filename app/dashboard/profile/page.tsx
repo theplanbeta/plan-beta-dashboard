@@ -190,10 +190,10 @@ function ProfileContent() {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-lg font-semibold text-yellow-900">Password Change Required</h3>
+              <h3 className="text-lg font-semibold text-yellow-900">Welcome! Set Up Your Password</h3>
               <p className="mt-2 text-sm text-yellow-800">
-                For security reasons, you must change your temporary password before accessing the dashboard.
-                Please scroll down to the <strong>"Change Password"</strong> section and set a new secure password.
+                You've successfully logged in! Now please scroll down to the <strong>"Set Your Password"</strong> section
+                to create your secure password. You'll use this password for all future logins.
               </p>
             </div>
           </div>
@@ -373,11 +373,20 @@ function ProfileContent() {
 
       {/* Change Password Section */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 mt-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Change Password</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          {passwordChangeRequired ? 'Set Your Password' : 'Change Password'}
+        </h2>
+        {passwordChangeRequired && (
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Create a secure password for your account. You'll use this password for all future logins.
+          </p>
+        )}
 
         {passwordSuccess && (
           <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4">
-            <p className="font-semibold">Password changed successfully!</p>
+            <p className="font-semibold">
+              {passwordChangeRequired ? 'Password set successfully!' : 'Password changed successfully!'}
+            </p>
             <p className="text-sm mt-1">You will be logged out in a moment. Please login again with your new password.</p>
           </div>
         )}
@@ -389,22 +398,24 @@ function ProfileContent() {
         )}
 
         <form onSubmit={handleChangePassword} className="space-y-4">
-          <div>
-            <label className="form-label" htmlFor="currentPassword">
-              Current Password *
-            </label>
-            <input
-              className="input mt-1"
-              id="currentPassword"
-              type="password"
-              value={passwordData.currentPassword}
-              onChange={(e) =>
-                setPasswordData({ ...passwordData, currentPassword: e.target.value })
-              }
-              required
-              placeholder="Enter your current password"
-            />
-          </div>
+          {!passwordChangeRequired && (
+            <div>
+              <label className="form-label" htmlFor="currentPassword">
+                Current Password *
+              </label>
+              <input
+                className="input mt-1"
+                id="currentPassword"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                }
+                required
+                placeholder="Enter your current password"
+              />
+            </div>
+          )}
 
           <div>
             <label className="form-label" htmlFor="newPassword">
@@ -447,9 +458,17 @@ function ProfileContent() {
             <button
               className="btn-primary"
               type="submit"
-              disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+              disabled={
+                changingPassword ||
+                (!passwordChangeRequired && !passwordData.currentPassword) ||
+                !passwordData.newPassword ||
+                !passwordData.confirmPassword
+              }
             >
-              {changingPassword ? 'Changing Password...' : 'Change Password'}
+              {changingPassword
+                ? (passwordChangeRequired ? 'Setting Password...' : 'Changing Password...')
+                : (passwordChangeRequired ? 'Set Password' : 'Change Password')
+              }
             </button>
           </div>
         </form>

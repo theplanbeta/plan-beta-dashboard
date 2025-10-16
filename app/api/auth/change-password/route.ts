@@ -13,7 +13,7 @@ const limiter = rateLimit(RATE_LIMITS.STRICT)
 
 // Validation schema
 const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
+  currentPassword: z.string().optional(), // Optional for first-time password setup
   newPassword: z.string().min(8, 'New password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {
@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
         email: true,
         name: true,
         password: true,
+        requirePasswordChange: true,
       },
     })
 
@@ -77,22 +78,33 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Verify current password
-    const isCurrentPasswordValid = await compare(currentPassword, user.password)
-    if (!isCurrentPasswordValid) {
-      return NextResponse.json(
-        { error: 'Current password is incorrect' },
-        { status: 400 }
-      )
-    }
+    // If user requires password change (first-time setup), skip current password verification
+    // Otherwise, verify current password is provided and correct
+    if (!user.requirePasswordChange) {
+      // Regular password change - require current password
+      if (!currentPassword) {
+        return NextResponse.json(
+          { error: 'Current password is required' },
+          { status: 400 }
+        )
+      }
 
-    // Check if new password is same as current
-    const isSamePassword = await compare(newPassword, user.password)
-    if (isSamePassword) {
-      return NextResponse.json(
-        { error: 'New password must be different from current password' },
-        { status: 400 }
-      )
+      const isCurrentPasswordValid = await compare(currentPassword, user.password)
+      if (!isCurrentPasswordValid) {
+        return NextResponse.json(
+          { error: 'Current password is incorrect' },
+          { status: 400 }
+        )
+      }
+
+      // Check if new password is same as current
+      const isSamePassword = await compare(newPassword, user.password)
+      if (isSamePassword) {
+        return NextResponse.json(
+          { error: 'New password must be different from current password' },
+          { status: 400 }
+        )
+      }
     }
 
     // Hash new password

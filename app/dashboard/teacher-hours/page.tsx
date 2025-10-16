@@ -16,6 +16,12 @@ interface Batch {
   name?: string
 }
 
+interface Teacher {
+  id: string
+  name: string
+  email: string
+}
+
 interface HoursSummary {
   pending: { count: number; totalHours: number; totalAmount: number }
   approved: { count: number; totalHours: number; totalAmount: number }
@@ -33,6 +39,8 @@ export default function TeacherHoursPage() {
     paid: { count: 0, totalHours: 0, totalAmount: 0 },
   })
   const [batches, setBatches] = useState<Batch[]>([])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(true)
 
@@ -53,7 +61,10 @@ export default function TeacherHoursPage() {
   const fetchEntries = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/teacher-hours')
+      const params = new URLSearchParams()
+      if (selectedTeacher) params.append('teacherId', selectedTeacher)
+
+      const response = await fetch(`/api/teacher-hours?${params.toString()}`)
       if (!response.ok) throw new Error('Failed to fetch hours')
 
       const data = await response.json()
@@ -70,11 +81,14 @@ export default function TeacherHoursPage() {
   const fetchSummary = async () => {
     try {
       setSummaryLoading(true)
-      const response = await fetch('/api/teacher-hours/summary')
+      const params = new URLSearchParams()
+      if (selectedTeacher) params.append('teacherId', selectedTeacher)
+
+      const response = await fetch(`/api/teacher-hours/summary?${params.toString()}`)
       if (!response.ok) throw new Error('Failed to fetch summary')
 
       const data = await response.json()
-      setSummary(data.summary)
+      setSummary(data)
     } catch (error) {
       console.error('Error fetching summary:', error)
       toast.error('Failed to load summary')
@@ -96,13 +110,34 @@ export default function TeacherHoursPage() {
     }
   }
 
+  // Fetch teachers for filter (founders only)
+  const fetchTeachers = async () => {
+    if (!isFounder) return
+
+    try {
+      const response = await fetch('/api/teachers')
+      if (!response.ok) throw new Error('Failed to fetch teachers')
+
+      const data = await response.json()
+      setTeachers(data || [])
+    } catch (error) {
+      console.error('Error fetching teachers:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (status === 'authenticated' && (isFounder || isTeacher)) {
+      fetchBatches()
+      fetchTeachers()
+    }
+  }, [status, isFounder, isTeacher])
+
   useEffect(() => {
     if (status === 'authenticated' && (isFounder || isTeacher)) {
       fetchEntries()
       fetchSummary()
-      fetchBatches()
     }
-  }, [status, isFounder, isTeacher])
+  }, [status, isFounder, isTeacher, selectedTeacher])
 
   // Handle log hours (create or edit)
   const handleLogHours = () => {
@@ -199,15 +234,31 @@ export default function TeacherHoursPage() {
               : 'Track your working hours and view payment status'}
           </p>
         </div>
-        {isTeacher && (
-          <button
-            onClick={handleLogHours}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-          >
-            <PlusIcon className="h-5 w-5" />
-            Log Hours
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {isFounder && teachers.length > 0 && (
+            <select
+              value={selectedTeacher}
+              onChange={(e) => setSelectedTeacher(e.target.value)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">All Teachers</option>
+              {teachers.map((teacher) => (
+                <option key={teacher.id} value={teacher.id}>
+                  {teacher.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {isTeacher && (
+            <button
+              onClick={handleLogHours}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Log Hours
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Summary Cards */}

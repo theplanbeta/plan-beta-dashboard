@@ -28,14 +28,13 @@ export async function GET(req: NextRequest) {
     }
 
     // Determine which teacher to fetch summary for
-    let targetTeacherId: string
+    let targetTeacherId: string | undefined
     if (isTeacher) {
       targetTeacherId = session.user.id
     } else if (teacherId) {
       targetTeacherId = teacherId
-    } else {
-      return NextResponse.json({ error: 'Teacher ID required' }, { status: 400 })
     }
+    // If founder and no teacherId, fetch summary for ALL teachers
 
     // Build date filter
     const dateFilter: any = {}
@@ -48,12 +47,19 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Fetch all hour entries for the teacher
+    // Build where clause
+    const where: any = {
+      ...(Object.keys(dateFilter).length > 0 && { date: dateFilter }),
+    }
+
+    // Only filter by teacherId if specified
+    if (targetTeacherId) {
+      where.teacherId = targetTeacherId
+    }
+
+    // Fetch all hour entries
     const hours = await prisma.teacherHours.findMany({
-      where: {
-        teacherId: targetTeacherId,
-        ...(Object.keys(dateFilter).length > 0 && { date: dateFilter }),
-      },
+      where,
       select: {
         id: true,
         hoursWorked: true,
@@ -104,36 +110,35 @@ export async function GET(req: NextRequest) {
     })
 
     const summary = {
-      teacherId: targetTeacherId,
+      teacherId: targetTeacherId || null,
       period: {
         startDate: startDate || null,
         endDate: endDate || null,
       },
       total: {
-        hours: Number(totalHours),
-        amount: Number(totalAmount),
-        entries: hours.length,
+        count: hours.length,
+        totalHours: Number(totalHours),
+        totalAmount: Number(totalAmount),
       },
       pending: {
-        hours: Number(pendingHours),
-        amount: Number(pendingAmount),
-        entries: hours.filter((h) => h.status === 'PENDING').length,
+        count: hours.filter((h) => h.status === 'PENDING').length,
+        totalHours: Number(pendingHours),
+        totalAmount: Number(pendingAmount),
       },
       approved: {
-        hours: Number(approvedHours),
-        amount: Number(approvedAmount),
-        entries: hours.filter((h) => h.status === 'APPROVED').length,
+        count: hours.filter((h) => h.status === 'APPROVED').length,
+        totalHours: Number(approvedHours),
+        totalAmount: Number(approvedAmount),
       },
       rejected: {
-        hours: Number(rejectedHours),
-        amount: Number(rejectedAmount),
-        entries: hours.filter((h) => h.status === 'REJECTED').length,
+        count: hours.filter((h) => h.status === 'REJECTED').length,
+        totalHours: Number(rejectedHours),
+        totalAmount: Number(rejectedAmount),
       },
-      payment: {
-        paid: Number(paidAmount),
-        unpaid: Number(unpaidAmount),
-        paidEntries: hours.filter((h) => h.paid).length,
-        unpaidEntries: hours.filter((h) => h.status === 'APPROVED' && !h.paid).length,
+      paid: {
+        count: hours.filter((h) => h.paid).length,
+        totalHours: Number(hours.filter((h) => h.paid).reduce((sum, h) => sum + Number(h.hoursWorked), 0)),
+        totalAmount: Number(paidAmount),
       },
     }
 

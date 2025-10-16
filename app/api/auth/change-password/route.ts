@@ -98,10 +98,13 @@ export async function POST(req: NextRequest) {
     // Hash new password
     const hashedPassword = await hash(newPassword, 10)
 
-    // Update password
+    // Update password and clear requirePasswordChange flag
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: hashedPassword },
+      data: {
+        password: hashedPassword,
+        requirePasswordChange: false,
+      },
     })
 
     // Audit log

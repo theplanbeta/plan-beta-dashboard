@@ -93,6 +93,47 @@ export default function TeachersPage() {
     }
   }
 
+  const sendWelcomeEmails = async (teacherIds: string[]) => {
+    setSendingEmails(true)
+    try {
+      const res = await fetch("/api/teachers/send-welcome-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teacherIds }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        let message = `✅ Welcome emails sent!\n\nSent: ${data.results.sent}\nFailed: ${data.results.failed}\nSkipped: ${data.results.skipped}`
+
+        if (data.results.passwordsReset > 0) {
+          message += `\n\n🔑 Passwords reset: ${data.results.passwordsReset}\n\nNew passwords:`
+          data.results.details.forEach((detail: any) => {
+            if (detail.newPassword) {
+              message += `\n${detail.teacherName}: ${detail.newPassword}`
+            }
+          })
+        }
+
+        alert(message)
+      } else {
+        const error = await res.json()
+        alert(`❌ Failed to send welcome emails: ${error.error}`)
+      }
+    } catch (error) {
+      console.error("Error sending welcome emails:", error)
+      alert("❌ Failed to send welcome emails")
+    } finally {
+      setSendingEmails(false)
+      setSendingEmailId(null)
+    }
+  }
+
+  const sendSingleWelcomeEmail = async (teacherId: string) => {
+    setSendingEmailId(teacherId)
+    await sendWelcomeEmails([teacherId])
+  }
+
   const sendSingleSetupEmail = async (teacherId: string) => {
     setSendingEmailId(teacherId)
     await sendSetupEmails([teacherId])
@@ -118,6 +159,27 @@ export default function TeachersPage() {
   const teachersNeedingSetup = teachers.filter(t =>
     t.email.includes('@planbeta.internal') && t.active
   ).length
+
+  const teachersWithRealEmail = teachers.filter(t =>
+    !t.email.includes('@planbeta.internal') && t.active
+  ).length
+
+  const sendAllWelcomeEmails = async () => {
+    const teachersToEmail = teachers.filter(t =>
+      !t.email.includes('@planbeta.internal') && t.active
+    )
+
+    if (teachersToEmail.length === 0) {
+      alert("No teachers with real email addresses found")
+      return
+    }
+
+    if (!confirm(`Send welcome emails to ${teachersToEmail.length} teacher(s) with real email addresses?\n\nThis will send login credentials to:\n${teachersToEmail.map(t => `- ${t.name} (${t.email})`).join('\n')}`)) {
+      return
+    }
+
+    await sendWelcomeEmails(teachersToEmail.map(t => t.id))
+  }
 
   const toggleTeacherActive = async (teacherId: string, currentActive: boolean) => {
     try {
@@ -206,7 +268,16 @@ export default function TeachersPage() {
               disabled={sendingEmails}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
             >
-              {sendingEmails ? "Sending..." : `📧 Send Welcome Emails (${teachersNeedingSetup})`}
+              {sendingEmails ? "Sending..." : `📧 Setup Emails (${teachersNeedingSetup})`}
+            </button>
+          )}
+          {teachersWithRealEmail > 0 && (
+            <button
+              onClick={sendAllWelcomeEmails}
+              disabled={sendingEmails}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+            >
+              {sendingEmails ? "Sending..." : `💌 Welcome Emails (${teachersWithRealEmail})`}
             </button>
           )}
           <Link
@@ -287,9 +358,23 @@ export default function TeachersPage() {
                       onClick={() => sendSingleSetupEmail(teacher.id)}
                       disabled={sendingEmailId === teacher.id}
                       className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-                      title="Send welcome email with setup instructions"
+                      title="Send setup email with temporary credentials"
                     >
-                      {sendingEmailId === teacher.id ? "Sending..." : "📧 Send Email"}
+                      {sendingEmailId === teacher.id ? "Sending..." : "📧 Setup Email"}
+                    </button>
+                  )}
+                  {!teacher.email.includes('@planbeta.internal') && teacher.active && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`Send welcome email to ${teacher.name}?\n\nThis will send their login credentials to ${teacher.email}`)) {
+                          sendSingleWelcomeEmail(teacher.id)
+                        }
+                      }}
+                      disabled={sendingEmailId === teacher.id}
+                      className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                      title="Send welcome email with login credentials"
+                    >
+                      {sendingEmailId === teacher.id ? "Sending..." : "💌 Welcome Email"}
                     </button>
                   )}
                   <button

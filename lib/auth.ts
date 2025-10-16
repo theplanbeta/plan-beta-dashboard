@@ -27,6 +27,15 @@ export const authOptions: NextAuthOptions = {
           where: {
             email: credentials.email,
           },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            password: true,
+            active: true,
+            requirePasswordChange: true,
+          },
         })
 
         if (!user || !user.active) {
@@ -74,6 +83,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          requirePasswordChange: user.requirePasswordChange,
         }
       },
     }),
@@ -83,6 +93,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.requirePasswordChange = (user as any).requirePasswordChange
       }
       return token
     },

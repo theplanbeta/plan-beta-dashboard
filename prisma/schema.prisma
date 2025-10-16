@@ -32,6 +32,7 @@ model User {
   currency             String?         @default("EUR")
   whatsapp             String?
   remarks              String?
+  requirePasswordChange Boolean        @default(false)
   passwordResetToken   String?
   passwordResetExpiry  DateTime?
   createdAt            DateTime        @default(now())
@@ -295,12 +296,20 @@ model Lead {
   contactAttempts     Int            @default(0)
   notes               String?
   assignedToId        String?
+  instagramHandle     String?
+  sourceReelId        String?
+  sourceReelUrl       String?
+  firstTouchpoint     String?
+  contentInteractions Json?
+  leadScore           Int            @default(0)
+  socialEngagement    Json?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   invoices            Invoice[]
   assignedTo          User?          @relation(fields: [assignedToId], references: [id])
   interestedBatch     Batch?         @relation(fields: [batchId], references: [id])
   convertedToStudent  Student?       @relation(fields: [studentId], references: [id])
+  sourceContent       ContentPerformance? @relation("ContentLeads", fields: [sourceReelId], references: [contentId])
 
   @@index([status])
   @@index([quality])
@@ -308,6 +317,9 @@ model Lead {
   @@index([converted])
   @@index([assignedToId])
   @@index([batchId])
+  @@index([instagramHandle])
+  @@index([sourceReelId])
+  @@index([leadScore])
 }
 
 model AuditLog {
@@ -438,6 +450,59 @@ model TeacherReview {
   @@index([studentId])
   @@index([teacherId])
   @@index([createdAt])
+}
+
+model ContentPerformance {
+  id              String   @id @default(cuid())
+  platform        String
+  contentType     String
+  contentId       String   @unique
+  contentUrl      String
+  publishedAt     DateTime
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  saves           Int      @default(0)
+  leadsGenerated  Int      @default(0)
+  enrollments     Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(10, 2)
+  caption         String?
+  hashtags        String[]
+  topic           String?
+  engagementRate  Decimal? @db.Decimal(5, 2)
+  conversionRate  Decimal? @db.Decimal(5, 2)
+  roi             Decimal? @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  leads           Lead[]   @relation("ContentLeads")
+
+  @@index([platform])
+  @@index([contentType])
+  @@index([publishedAt])
+  @@index([topic])
+  @@index([engagementRate])
+  @@index([conversionRate])
+}
+
+model InstagramMessage {
+  id              String   @id @default(cuid())
+  messageId       String   @unique
+  conversationId  String
+  instagramHandle String
+  direction       String
+  content         String
+  sentAt          DateTime
+  isRead          Boolean  @default(false)
+  leadCreated     Boolean  @default(false)
+  leadId          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([instagramHandle])
+  @@index([conversationId])
+  @@index([leadCreated])
+  @@index([sentAt])
 }
 
 enum UserRole {

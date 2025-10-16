@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 interface TeacherProfile {
@@ -24,6 +24,8 @@ interface TeacherProfile {
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const passwordChangeRequired = searchParams.get('passwordChangeRequired') === 'true'
   const [profile, setProfile] = useState<TeacherProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -176,6 +178,25 @@ export default function ProfilePage() {
         <h1 className="text-3xl font-bold text-gray-900">Teacher Profile</h1>
         <p className="text-gray-600 mt-2">Manage your professional information</p>
       </div>
+
+      {passwordChangeRequired && (
+        <div className="bg-yellow-50 border-2 border-yellow-400 text-yellow-900 px-6 py-4 rounded-lg mb-6 shadow-md">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold text-yellow-900">Password Change Required</h3>
+              <p className="mt-2 text-sm text-yellow-800">
+                For security reasons, you must change your temporary password before accessing the dashboard.
+                Please scroll down to the <strong>"Change Password"</strong> section and set a new secure password.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-6">

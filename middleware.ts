@@ -16,6 +16,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
+  // Check if user needs to change password (after authentication)
+  if (token && path.startsWith("/dashboard") && path !== "/dashboard/profile") {
+    const requirePasswordChange = (token as any).requirePasswordChange
+
+    if (requirePasswordChange === true) {
+      console.log(`🔐 Redirecting user ${(token as any).email} to change password`)
+      return NextResponse.redirect(new URL("/dashboard/profile?passwordChangeRequired=true", request.url))
+    }
+  }
+
   // Founder-only routes
   if (path.startsWith("/dashboard/activity")) {
     if (!token || (token as any).role !== "FOUNDER") {

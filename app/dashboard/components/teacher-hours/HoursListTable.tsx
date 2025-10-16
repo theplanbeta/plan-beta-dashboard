@@ -25,7 +25,7 @@ export interface TeacherHourEntry {
   createdAt: Date
   updatedAt: Date
   teacher?: { name: string; email: string }
-  batch?: { name: string }
+  batch?: { batchCode: string; name?: string }
 }
 
 interface HoursListTableProps {
@@ -173,7 +173,7 @@ export default function HoursListTable({
                     </td>
                   )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                    {entry.batch?.name || '-'}
+                    {entry.batch?.batchCode || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {Number(entry.hoursWorked).toFixed(1)}h

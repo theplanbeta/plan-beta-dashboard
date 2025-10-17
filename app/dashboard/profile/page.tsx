@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, Suspense } from 'react'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 interface TeacherProfile {
   id: string
@@ -38,6 +39,9 @@ function ProfileContent() {
     newPassword: '',
     confirmPassword: '',
   })
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -403,17 +407,32 @@ function ProfileContent() {
               <label className="form-label" htmlFor="currentPassword">
                 Current Password *
               </label>
-              <input
-                className="input mt-1"
-                id="currentPassword"
-                type="password"
-                value={passwordData.currentPassword}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, currentPassword: e.target.value })
-                }
-                required
-                placeholder="Enter your current password"
-              />
+              <div className="relative">
+                <input
+                  className="input mt-1 pr-10"
+                  id="currentPassword"
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={passwordData.currentPassword}
+                  onChange={(e) =>
+                    setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                  }
+                  required
+                  placeholder="Enter your current password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  style={{ top: '4px' }}
+                  tabIndex={-1}
+                >
+                  {showCurrentPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
           )}
 
@@ -421,17 +440,32 @@ function ProfileContent() {
             <label className="form-label" htmlFor="newPassword">
               New Password *
             </label>
-            <input
-              className="input mt-1"
-              id="newPassword"
-              type="password"
-              value={passwordData.newPassword}
-              onChange={(e) =>
-                setPasswordData({ ...passwordData, newPassword: e.target.value })
-              }
-              required
-              placeholder="Enter new password"
-            />
+            <div className="relative">
+              <input
+                className="input mt-1 pr-10"
+                id="newPassword"
+                type={showNewPassword ? "text" : "password"}
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, newPassword: e.target.value })
+                }
+                required
+                placeholder="Enter new password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                style={{ top: '4px' }}
+                tabIndex={-1}
+              >
+                {showNewPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
             <p className="text-xs text-gray-500 mt-1">
               Password must be at least 8 characters long and include uppercase, lowercase, and numbers.
             </p>
@@ -441,17 +475,32 @@ function ProfileContent() {
             <label className="form-label" htmlFor="confirmPassword">
               Confirm New Password *
             </label>
-            <input
-              className="input mt-1"
-              id="confirmPassword"
-              type="password"
-              value={passwordData.confirmPassword}
-              onChange={(e) =>
-                setPasswordData({ ...passwordData, confirmPassword: e.target.value })
-              }
-              required
-              placeholder="Confirm new password"
-            />
+            <div className="relative">
+              <input
+                className="input mt-1 pr-10"
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                value={passwordData.confirmPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                }
+                required
+                placeholder="Confirm new password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                style={{ top: '4px' }}
+                tabIndex={-1}
+              >
+                {showConfirmPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end pt-2">

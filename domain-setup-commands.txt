@@ -1,0 +1,79 @@
+QUICK DOMAIN SETUP COMMANDS FOR: planbeta.app
+================================================
+
+STEP 1: Go to Vercel Dashboard
+-------------------------------
+URL: https://vercel.com/theplanbetas-projects/plan-beta-dashboard/settings/environment-variables
+
+Update these variables (click Edit → Change value → Save):
+- NEXTAUTH_URL → https://planbeta.app
+- NEXT_PUBLIC_APP_URL → https://planbeta.app
+
+
+STEP 2: Add Domain in Vercel
+-----------------------------
+URL: https://vercel.com/theplanbetas-projects/plan-beta-dashboard/settings/domains
+
+Click "Add" and enter:
+1. planbeta.app
+2. www.planbeta.app
+
+
+STEP 3: Configure DNS (at your domain registrar)
+-------------------------------------------------
+Add these records:
+
+A Record:
+  Name: @
+  Value: 76.76.21.21
+  TTL: 3600
+
+CNAME Record:
+  Name: www
+  Value: cname.vercel-dns.com
+  TTL: 3600
+
+
+STEP 4: Wait & Verify
+---------------------
+# Check DNS propagation (run in terminal):
+dig planbeta.app
+dig www.planbeta.app
+
+# Or visit:
+https://www.whatsmydns.net/#A/planbeta.app
+
+
+STEP 5: Redeploy
+----------------
+# Option A: Push empty commit
+git commit --allow-empty -m "Configure new domain: planbeta.app"
+git push
+
+# Option B: Vercel CLI
+vercel --prod
+
+
+STEP 6: Test
+------------
+Visit: https://planbeta.app
+Try:
+  - Login
+  - Password reset (check email links)
+  - Navigation
+
+
+EXPECTED TIMELINE
+-----------------
+- DNS propagation: 5-30 minutes (can take up to 48h)
+- Deployment: 2-5 minutes
+- SSL certificate: Automatic (issued by Vercel)
+
+
+VERIFICATION
+------------
+✓ Can access https://planbeta.app
+✓ Login works
+✓ Email links use planbeta.app
+✓ No NEXTAUTH_URL errors
+✓ SSL certificate is valid (green padlock)

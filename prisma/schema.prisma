@@ -181,12 +181,49 @@ model Payment {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  receipts      Receipt[]
 
   @@index([studentId])
   @@index([paymentDate])
   @@index([status])
   @@index([invoiceNumber])
   @@index([transactionId])
+}
+
+model Receipt {
+  id                String   @id @default(cuid())
+  receiptNumber     String   @unique
+  paymentId         String
+  studentId         String
+  date              DateTime @default(now())
+  currency          String   @default("EUR")
+  amountPaid        Decimal  @db.Decimal(10, 2)
+  totalAmount       Decimal  @db.Decimal(10, 2)
+  balanceRemaining  Decimal  @db.Decimal(10, 2)
+  paymentMethod     String
+  transactionRef    String?
+  invoiceNumber     String?
+  courseItems       Json
+  pdfPath           String?
+  jpgPath           String?
+  pdfSize           Int?
+  jpgSize           Int?
+  downloadCount     Int      @default(0)
+  lastAccessedAt    DateTime?
+  sentToEmail       String?
+  emailSentAt       DateTime?
+  whatsappSent      Boolean  @default(false)
+  whatsappSentAt    DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  payment           Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([receiptNumber])
+  @@index([paymentId])
+  @@index([studentId])
+  @@index([date])
+  @@index([lastAccessedAt])
 }
 
 model Referral {
@@ -625,6 +662,9 @@ enum AuditAction {
   INVOICE_UPDATED
   INVOICE_CANCELLED
   PAYMENT_RECEIVED
+  RECEIPT_GENERATED
+  RECEIPT_DOWNLOADED
+  RECEIPT_SENT
   STUDENT_CREATED
   LEAD_TO_STUDENT_CONVERSION
   STUDENT_UPDATED

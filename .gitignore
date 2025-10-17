@@ -47,3 +47,6 @@ next-env.d.ts
 import-data.json
 production-backup.json
 .env.production
+
+# Receipt storage
+/storage

@@ -407,7 +407,14 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                       type="number"
                       step="0.01"
                       value={receiptFormData.amountPaid}
-                      onChange={(e) => setReceiptFormData({ ...receiptFormData, amountPaid: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const amountPaid = parseFloat(e.target.value) || 0
+                        setReceiptFormData({
+                          ...receiptFormData,
+                          amountPaid,
+                          balanceRemaining: receiptFormData.totalAmount - amountPaid
+                        })
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground"
                     />
                   </div>
@@ -419,20 +426,27 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                       type="number"
                       step="0.01"
                       value={receiptFormData.totalAmount}
-                      onChange={(e) => setReceiptFormData({ ...receiptFormData, totalAmount: parseFloat(e.target.value) || 0 })}
+                      onChange={(e) => {
+                        const totalAmount = parseFloat(e.target.value) || 0
+                        setReceiptFormData({
+                          ...receiptFormData,
+                          totalAmount,
+                          balanceRemaining: totalAmount - receiptFormData.amountPaid
+                        })
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Balance Remaining *
+                      Balance Remaining * (Auto-calculated)
                     </label>
                     <input
                       type="number"
                       step="0.01"
                       value={receiptFormData.balanceRemaining}
-                      onChange={(e) => setReceiptFormData({ ...receiptFormData, balanceRemaining: parseFloat(e.target.value) || 0 })}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground"
+                      readOnly
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-900 text-foreground cursor-not-allowed"
                     />
                   </div>
                   <div>

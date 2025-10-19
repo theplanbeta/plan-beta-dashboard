@@ -3,6 +3,7 @@ import path from 'path'
 import { createWriteStream, createReadStream } from 'fs'
 import { pipeline } from 'stream/promises'
 import { createGzip, createGunzip } from 'zlib'
+import { Readable } from 'stream'
 
 // Storage directory for receipts (outside of public for security)
 const RECEIPTS_DIR = path.join(process.cwd(), 'storage', 'receipts')
@@ -54,7 +55,7 @@ export async function saveReceiptFile(
 
   // Compress and save
   await pipeline(
-    buffer,
+    Readable.from(buffer),
     createGzip({ level: 9 }), // Maximum compression
     createWriteStream(filePath)
   )

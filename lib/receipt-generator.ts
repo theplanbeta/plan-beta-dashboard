@@ -391,8 +391,8 @@ export async function previewReceipt(data: ReceiptData): Promise<string> {
   return doc.output('dataurlstring')
 }
 
-// JPG Generation using html2canvas
-export async function generateReceiptJPG(data: ReceiptData): Promise<void> {
+// JPG Generation using html2canvas - returns Blob for upload
+export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
   const currencySymbol = CURRENCY_SYMBOLS[data.currency]
   const total = data.totalAmount.toFixed(2)
   const paid = data.amountPaid.toFixed(2)
@@ -568,19 +568,29 @@ export async function generateReceiptJPG(data: ReceiptData): Promise<void> {
 
     document.body.removeChild(receiptPreview)
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.download = `PlanBeta_Receipt_${data.receiptNumber}_${data.studentName.replace(/\s+/g, '_')}.jpg`
-        link.href = url
-        link.click()
-        URL.revokeObjectURL(url)
-      }
-    }, 'image/jpeg', 0.92)
+    return new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob)
+        } else {
+          reject(new Error('Failed to create JPG blob'))
+        }
+      }, 'image/jpeg', 0.92)
+    })
   } catch (error) {
     document.body.removeChild(receiptPreview)
     console.error('Error generating JPG:', error)
     throw new Error('Failed to generate JPG receipt')
   }
+}
+
+// JPG Generation using html2canvas - directly downloads file
+export async function generateReceiptJPG(data: ReceiptData): Promise<void> {
+  const blob = await generateReceiptJPGBlob(data)
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.download = `PlanBeta_Receipt_${data.receiptNumber}_${data.studentName.replace(/\s+/g, '_')}.jpg`
+  link.href = url
+  link.click()
+  URL.revokeObjectURL(url)
 }

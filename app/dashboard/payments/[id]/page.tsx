@@ -4,7 +4,7 @@ import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { generateReceiptPDF, generateReceiptJPG } from "@/lib/receipt-generator"
+import { generateReceiptPDF, generateReceiptJPGBlob } from "@/lib/receipt-generator"
 import type { ReceiptData } from "@/lib/receipt-types"
 
 type Payment = {
@@ -161,8 +161,9 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       const pdfBlob = pdfDoc.output('blob')
       const pdfBase64 = await blobToBase64(pdfBlob)
 
-      // Generate JPG (create a temporary canvas rendering)
-      // For now, we'll just send PDF. JPG can be added later if needed
+      // Generate JPG
+      const jpgBlob = await generateReceiptJPGBlob(receiptData)
+      const jpgBase64 = await blobToBase64(jpgBlob)
 
       // Send to server
       const res = await fetch('/api/receipts', {
@@ -170,7 +171,8 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paymentId: payment.id,
-          pdfBase64: pdfBase64.split(',')[1] // Remove data:application/pdf;base64, prefix
+          pdfBase64: pdfBase64.split(',')[1], // Remove data:application/pdf;base64, prefix
+          jpgBase64: jpgBase64.split(',')[1]  // Remove data:image/jpeg;base64, prefix
         })
       })
 
@@ -527,8 +529,6 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={() => handleDownloadReceipt('jpg')}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                disabled
-                title="JPG download coming soon"
               >
                 Download JPG
               </button>

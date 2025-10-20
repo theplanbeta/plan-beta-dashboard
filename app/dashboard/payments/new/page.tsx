@@ -117,8 +117,15 @@ function NewPaymentForm() {
         }
       }
 
-      addToast('Payment recorded successfully', { type: 'success' })
-      router.push("/dashboard/payments")
+      const data = await res.json()
+      addToast('Payment recorded successfully! You can now generate a receipt.', { type: 'success' })
+
+      // Redirect to the payment detail page where they can generate receipt
+      if (data?.id) {
+        router.push(`/dashboard/payments/${data.id}`)
+      } else {
+        router.push("/dashboard/payments")
+      }
       router.refresh()
     } catch (err) {
       setError("Failed to record payment. Please try again.")

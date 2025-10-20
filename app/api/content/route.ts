@@ -14,6 +14,7 @@ const createContentSchema = z.object({
   publishedAt: z.string().datetime(),
   caption: z.string().optional(),
   views: z.number().int().min(0).optional(),
+  reach: z.number().int().min(0).optional(),
   likes: z.number().int().min(0).optional(),
   comments: z.number().int().min(0).optional(),
   shares: z.number().int().min(0).optional(),
@@ -80,7 +81,8 @@ export async function GET(request: NextRequest) {
     const stats = {
       totalContent: allContent.length,
       totalViews: allContent.reduce((sum, c) => sum + c.views, 0),
-      totalEngagements: allContent.reduce((sum, c) => sum + c.likes + c.comments + c.shares, 0),
+      totalReach: allContent.reduce((sum, c) => sum + (c.reach || 0), 0),
+      totalEngagements: allContent.reduce((sum, c) => sum + c.likes + c.comments + c.shares + c.saves, 0),
       totalLeads: allContent.reduce((sum, c) => sum + c.leadsGenerated, 0),
       totalEnrollments: allContent.reduce((sum, c) => sum + c.enrollments, 0),
       totalRevenue: allContent.reduce((sum, c) => sum + Number(c.revenue), 0),
@@ -128,13 +130,16 @@ export async function POST(request: NextRequest) {
 
     // Calculate engagement rate if metrics are provided
     const views = validatedData.views || 0
+    const reach = validatedData.reach || 0
     const likes = validatedData.likes || 0
     const comments = validatedData.comments || 0
     const shares = validatedData.shares || 0
     const saves = validatedData.saves || 0
 
-    const engagementRate = views > 0
-      ? calculateEngagementRate(likes, comments, shares, views)
+    const engagementDenominator = reach > 0 ? reach : views
+
+    const engagementRate = engagementDenominator > 0
+      ? calculateEngagementRate(likes, comments, shares, engagementDenominator, saves)
       : null
 
     // Check if content already exists
@@ -161,6 +166,7 @@ export async function POST(request: NextRequest) {
         hashtags,
         topic,
         views,
+        reach,
         likes,
         comments,
         shares,
@@ -199,20 +205,24 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Recalculate engagement rate if metrics are updated
-    if (updates.views || updates.likes || updates.comments || updates.shares) {
+    if (updates.views || updates.reach || updates.likes || updates.comments || updates.shares || updates.saves) {
       const content = await prisma.contentPerformance.findUnique({
         where: { contentId },
       })
 
       if (content) {
         const views = updates.views ?? content.views
+        const reach = updates.reach ?? content.reach
         const likes = updates.likes ?? content.likes
         const comments = updates.comments ?? content.comments
         const shares = updates.shares ?? content.shares
+        const saves = updates.saves ?? content.saves
 
-        if (views > 0) {
+        const denominator = reach > 0 ? reach : views
+
+        if (denominator > 0) {
           updates.engagementRate = parseFloat(
-            calculateEngagementRate(likes, comments, shares, views).toFixed(2)
+            calculateEngagementRate(likes, comments, shares, denominator, saves).toFixed(2)
           )
         }
       }

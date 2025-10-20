@@ -3,7 +3,7 @@
  * Provides types and utilities for Instagram Business Account API
  */
 
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance } from 'axios'
 
 // Environment variables for Instagram API
 export const INSTAGRAM_CONFIG = {
@@ -16,26 +16,32 @@ export const INSTAGRAM_CONFIG = {
 }
 
 // Instagram API Types
+export type InstagramMediaType = 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS'
+
 export interface InstagramMedia {
   id: string
   caption?: string
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM' | 'REELS'
+  media_type: InstagramMediaType
   media_url: string
   permalink: string
   timestamp: string
   thumbnail_url?: string
+  media_product_type?: string
+  like_count?: number
+  comments_count?: number
 }
 
 export interface InstagramMediaInsights {
   id: string
-  impressions: number
-  reach: number
-  engagement: number
-  saved: number
+  impressions?: number
+  reach?: number
+  engagement?: number
+  saved?: number
+  plays?: number
   video_views?: number
-  likes: number
-  comments: number
-  shares: number
+  shares?: number
+  total_interactions?: number
+  profile_activity?: number
 }
 
 export interface InstagramConversation {
@@ -100,25 +106,66 @@ export class InstagramAPI {
     try {
       const response = await this.client.get(`/${INSTAGRAM_CONFIG.BUSINESS_ACCOUNT_ID}/media`, {
         params: {
-          fields: 'id,caption,media_type,media_url,permalink,timestamp,thumbnail_url,like_count,comments_count',
+          fields: [
+            'id',
+            'caption',
+            'media_type',
+            'media_product_type',
+            'media_url',
+            'permalink',
+            'timestamp',
+            'thumbnail_url',
+            'like_count',
+            'comments_count',
+          ].join(','),
           limit,
         },
       })
       return response.data.data || []
     } catch (error) {
-      console.error('Error fetching Instagram media:', error)
+      const axiosError = error as AxiosError<any>
+      console.error('Error fetching Instagram media:', {
+        status: axiosError?.response?.status,
+        statusText: axiosError?.response?.statusText,
+        data: axiosError?.response?.data,
+        config: {
+          url: axiosError?.config?.url,
+          params: axiosError?.config?.params
+        }
+      })
       throw error
     }
   }
 
+  private static readonly MEDIA_INSIGHT_METRICS: Record<InstagramMediaType, readonly string[]> = {
+    IMAGE: ['impressions', 'reach', 'saved'],
+    VIDEO: ['impressions', 'reach', 'saved', 'video_views'],
+    CAROUSEL_ALBUM: ['impressions', 'reach', 'saved'],
+    REELS: ['plays', 'reach', 'saved', 'total_interactions'],
+  }
+
+  private static readonly FALLBACK_METRICS: readonly string[] = ['impressions', 'reach', 'saved']
+
   /**
    * Get insights for a specific media item
    */
-  async getMediaInsights(mediaId: string): Promise<InstagramMediaInsights> {
+  async getMediaInsights(mediaId: string, mediaType: InstagramMediaType): Promise<InstagramMediaInsights> {
+    const metrics = Array.from(
+      new Set(
+        InstagramAPI.MEDIA_INSIGHT_METRICS[mediaType]?.length
+          ? InstagramAPI.MEDIA_INSIGHT_METRICS[mediaType]
+          : InstagramAPI.FALLBACK_METRICS
+      )
+    )
+
+    if (metrics.length === 0) {
+      return { id: mediaId }
+    }
+
     try {
       const response = await this.client.get(`/${mediaId}/insights`, {
         params: {
-          metric: 'impressions,reach,engagement,saved,video_views,likes,comments,shares',
+          metric: metrics.join(','),
         },
       })
 
@@ -127,19 +174,50 @@ export class InstagramAPI {
         return acc
       }, {})
 
+      const engagement = insights.engagement ?? insights.total_interactions ?? 0
+
       return {
         id: mediaId,
         impressions: insights.impressions || 0,
         reach: insights.reach || 0,
-        engagement: insights.engagement || 0,
+        engagement,
         saved: insights.saved || 0,
+        plays: insights.plays || 0,
         video_views: insights.video_views,
-        likes: insights.likes || 0,
-        comments: insights.comments || 0,
         shares: insights.shares || 0,
+        total_interactions: insights.total_interactions || engagement || 0,
+        profile_activity: insights.profile_activity || 0,
       }
     } catch (error) {
-      console.error(`Error fetching insights for media ${mediaId}:`, error)
+      const axiosError = error as AxiosError<any>
+      console.error(`Error fetching insights for media ${mediaId}:`, axiosError?.response?.data || error)
+
+      // Retry once with fallback metrics if the selected metrics are invalid
+      if (
+        axiosError?.response?.status === 400 &&
+        axiosError.response?.data?.error?.code === 100 &&
+        metrics.join(',') !== InstagramAPI.FALLBACK_METRICS.join(',')
+      ) {
+        console.warn(`Retrying Instagram insights for ${mediaId} with fallback metric set`)
+        const fallbackMetrics = InstagramAPI.FALLBACK_METRICS.join(',')
+        const retryResponse = await this.client.get(`/${mediaId}/insights`, {
+          params: { metric: fallbackMetrics },
+        })
+
+        const fallbackData = retryResponse.data.data.reduce((acc: any, metric: any) => {
+          acc[metric.name] = metric.values[0].value
+          return acc
+        }, {})
+
+        return {
+          id: mediaId,
+          impressions: fallbackData.impressions || 0,
+          reach: fallbackData.reach || 0,
+          engagement: fallbackData.engagement || fallbackData.total_interactions || 0,
+          saved: fallbackData.saved || 0,
+        }
+      }
+
       throw error
     }
   }
@@ -173,6 +251,20 @@ export class InstagramAPI {
       })
     } catch (error) {
       console.error('Error sending Instagram message:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Reply to a comment on Instagram
+   */
+  async replyToComment(commentId: string, message: string): Promise<void> {
+    try {
+      await this.client.post(`/${commentId}/replies`, {
+        message,
+      })
+    } catch (error) {
+      console.error('Error replying to Instagram comment:', error)
       throw error
     }
   }
@@ -214,9 +306,15 @@ export function detectTopic(caption?: string): string | null {
   return 'general'
 }
 
-export function calculateEngagementRate(likes: number, comments: number, shares: number, views: number): number {
+export function calculateEngagementRate(
+  likes: number,
+  comments: number,
+  shares: number,
+  views: number,
+  saves: number = 0
+): number {
   if (views === 0) return 0
-  const totalEngagement = likes + comments + shares
+  const totalEngagement = likes + comments + shares + saves
   return (totalEngagement / views) * 100
 }
 

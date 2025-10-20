@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import InstagramAPI, { extractHashtags, detectTopic, calculateEngagementRate } from '@/lib/instagram-api'
+import InstagramAPI, {
+  extractHashtags,
+  detectTopic,
+  calculateEngagementRate,
+  type InstagramMediaInsights,
+} from '@/lib/instagram-api'
 
 /**
  * POST /api/instagram/sync
@@ -35,33 +40,68 @@ export async function POST(request: NextRequest) {
         const topic = detectTopic(item.caption)
 
         // Try to get insights, but don't fail if unavailable
-        let insights = {
-          impressions: 0,
-          likes: 0,
-          comments: 0,
-          shares: 0,
-          saved: 0,
-        }
-
+        let insights: InstagramMediaInsights | null = null
         try {
-          insights = await instagramAPI.getMediaInsights(item.id)
+          insights = await instagramAPI.getMediaInsights(item.id, item.media_type)
         } catch (insightError: any) {
           // Insights not available - use basic metrics if available
           console.log(`⚠️ Insights unavailable for ${item.id}, using basic metrics`)
-          // Instagram Graph API returns like_count and comments_count with media
-          insights.likes = (item as any).like_count || 0
-          insights.comments = (item as any).comments_count || 0
         }
 
+        const toNumber = (value: unknown): number => {
+          if (typeof value === 'number') return value
+          if (typeof value === 'string') {
+            const parsed = Number(value)
+            return Number.isFinite(parsed) ? parsed : 0
+          }
+          return 0
+        }
+
+        const impressions = toNumber(insights?.impressions)
+        const plays = toNumber(insights?.plays ?? insights?.video_views)
+        const reach = toNumber(insights?.reach)
+        const saves = toNumber(insights?.saved)
+        const shares = toNumber(insights?.shares)
+
+        // Baseline metrics from media payload (always available)
+        const baseLikes = toNumber(item.like_count)
+        const baseComments = toNumber(item.comments_count)
+
+        const primaryViews = plays || impressions || reach
+        const engagementDenominator = reach || impressions || plays || 0
+
+        const normalizedViews = Math.max(0, Math.round(primaryViews))
+        const normalizedReach = Math.max(0, Math.round(reach))
+        const normalizedLikes = Math.max(0, Math.round(baseLikes))
+        const normalizedComments = Math.max(0, Math.round(baseComments))
+        const normalizedShares = Math.max(0, Math.round(shares))
+        const normalizedSaves = Math.max(0, Math.round(saves))
+
         // Calculate engagement rate
-        const engagementRate = insights.impressions > 0
+        const engagementRate = engagementDenominator > 0
           ? calculateEngagementRate(
-              insights.likes,
-              insights.comments,
-              insights.shares,
-              insights.impressions
+              normalizedLikes,
+              normalizedComments,
+              normalizedShares,
+              engagementDenominator,
+              normalizedSaves
             )
           : 0
+
+        const contentType =
+          item.media_type === 'REELS' || item.media_product_type === 'REELS'
+            ? 'REEL'
+            : 'POST'
+
+        const baseData = {
+          views: normalizedViews,
+          reach: normalizedReach,
+          likes: normalizedLikes,
+          comments: normalizedComments,
+          shares: normalizedShares,
+          saves: normalizedSaves,
+          engagementRate: engagementRate ? parseFloat(engagementRate.toFixed(2)) : null,
+        }
 
         // Check if content already exists
         const existingContent = await prisma.contentPerformance.findUnique({
@@ -73,12 +113,8 @@ export async function POST(request: NextRequest) {
           await prisma.contentPerformance.update({
             where: { contentId: item.id },
             data: {
-              views: insights.impressions,
-              likes: insights.likes,
-              comments: insights.comments,
-              shares: insights.shares,
-              saves: insights.saved,
-              engagementRate: engagementRate ? parseFloat(engagementRate.toFixed(2)) : null,
+              ...baseData,
+              contentType,
             },
           })
           results.updated++
@@ -87,19 +123,14 @@ export async function POST(request: NextRequest) {
           await prisma.contentPerformance.create({
             data: {
               platform: 'INSTAGRAM',
-              contentType: item.media_type === 'VIDEO' ? 'REEL' : 'POST',
+              contentType,
               contentId: item.id,
               contentUrl: item.permalink,
               publishedAt: new Date(item.timestamp),
               caption: item.caption,
               hashtags,
               topic,
-              views: insights.impressions,
-              likes: insights.likes,
-              comments: insights.comments,
-              shares: insights.shares,
-              saves: insights.saved,
-              engagementRate: engagementRate ? parseFloat(engagementRate.toFixed(2)) : null,
+              ...baseData,
             },
           })
           results.created++
@@ -109,7 +140,9 @@ export async function POST(request: NextRequest) {
           id: item.id,
           type: item.media_type,
           caption: item.caption?.substring(0, 50) + '...',
-          views: insights.impressions,
+          views: normalizedViews,
+          reach: normalizedReach,
+          plays: Math.max(0, Math.round(plays)),
           engagement: engagementRate ? parseFloat(engagementRate.toFixed(2)) + '%' : 'N/A',
           status: existingContent ? 'updated' : 'created',
         })

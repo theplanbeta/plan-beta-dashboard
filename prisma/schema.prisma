@@ -500,6 +500,7 @@ model ContentPerformance {
   contentUrl      String
   publishedAt     DateTime
   views           Int      @default(0)
+  reach           Int      @default(0)
   likes           Int      @default(0)
   comments        Int      @default(0)
   shares          Int      @default(0)
@@ -543,6 +544,36 @@ model InstagramMessage {
   @@index([conversationId])
   @@index([leadCreated])
   @@index([sentAt])
+}
+
+model InstagramComment {
+  id              String   @id @default(cuid())
+  commentId       String   @unique
+  mediaId         String
+  mediaUrl        String?
+  username        String
+  text            String
+  commentedAt     DateTime
+  replied         Boolean  @default(false)
+  replyText       String?
+  repliedAt       DateTime?
+  triggerWords    String[]
+  leadIntent      Boolean  @default(false)
+  leadCreated     Boolean  @default(false)
+  leadId          String?
+  priority        String   @default("low")
+  processed       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([mediaId])
+  @@index([username])
+  @@index([leadIntent])
+  @@index([leadCreated])
+  @@index([replied])
+  @@index([priority])
+  @@index([processed])
+  @@index([commentedAt])
 }
 
 enum UserRole {

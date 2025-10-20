@@ -47,6 +47,7 @@ export async function trackEnrollmentFromContent(
             enrollments: true,
             revenue: true,
             views: true,
+            reach: true,
           },
         },
       },
@@ -76,13 +77,14 @@ export async function trackEnrollmentFromContent(
     // Assuming organic content (no ad spend), ROI is based purely on revenue generated
     // ROI formula: (Revenue / Estimated Cost) * 100
     // For organic content, we can use a nominal cost per view (e.g., ₹0.01 per view for content creation)
-    const estimatedCost = content.views * 0.01 // ₹0.01 per view
+    const exposure = content.reach && content.reach > 0 ? content.reach : content.views
+    const estimatedCost = exposure * 0.01 // ₹0.01 per view
     const totalRevenue = Number(updatedContent.revenue)
     const roi = estimatedCost > 0 ? ((totalRevenue - estimatedCost) / estimatedCost) * 100 : 0
 
     // Calculate conversion rate
-    const conversionRate = content.views > 0
-      ? (updatedContent.enrollments / content.views) * 100
+    const conversionRate = exposure > 0
+      ? (updatedContent.enrollments / exposure) * 100
       : 0
 
     // Update ROI and conversion rate
@@ -156,6 +158,7 @@ export async function getContentAttribution(contentId: string) {
       },
       metrics: {
         views: content.views,
+        reach: content.reach,
         likes: content.likes,
         comments: content.comments,
         shares: content.shares,

@@ -38,7 +38,7 @@ export default function StudentsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [levelFilter, setLevelFilter] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("")
   const [churnRiskFilter, setChurnRiskFilter] = useState("")
 
   const isTeacher = session?.user?.role === 'TEACHER'
@@ -67,14 +67,14 @@ export default function StudentsPage() {
 
   useEffect(() => {
     fetchStudents()
-  }, [search, levelFilter, statusFilter, churnRiskFilter])
+  }, [search, levelFilter, paymentStatusFilter, churnRiskFilter])
 
   const fetchStudents = async () => {
     try {
       const params = new URLSearchParams()
       if (search) params.append("search", search)
       if (levelFilter) params.append("level", levelFilter)
-      if (statusFilter) params.append("status", statusFilter)
+      if (paymentStatusFilter) params.append("paymentStatus", paymentStatusFilter)
       if (churnRiskFilter) params.append("churnRisk", churnRiskFilter)
 
       const res = await fetch(`/api/students?${params.toString()}`)
@@ -220,18 +220,18 @@ export default function StudentsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Status
+              Payment Status
             </label>
             <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              value={paymentStatusFilter}
+              onChange={(e) => setPaymentStatusFilter(e.target.value)}
               className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="DROPPED">Dropped</option>
-              <option value="ON_HOLD">On Hold</option>
+              <option value="">All Payment Status</option>
+              <option value="PAID">Paid</option>
+              <option value="PARTIAL">Partial</option>
+              <option value="PENDING">Pending</option>
+              <option value="OVERDUE">Overdue</option>
             </select>
           </div>
 

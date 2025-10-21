@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get("search") || ""
     const level = searchParams.get("level")
-    const status = searchParams.get("status")
+    const paymentStatus = searchParams.get("paymentStatus")
     const batchId = searchParams.get("batchId")
     const churnRisk = searchParams.get("churnRisk")
 
@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
       where.currentLevel = level
     }
 
-    if (status) {
-      where.completionStatus = status
+    if (paymentStatus) {
+      where.paymentStatus = paymentStatus
     }
 
     if (batchId) {

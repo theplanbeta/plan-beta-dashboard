@@ -171,7 +171,7 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students <span className="text-xs text-gray-400">[v2.0]</span></h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Manage student enrollments and information</p>
         </div>
         {!isTeacher && (

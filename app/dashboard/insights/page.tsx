@@ -17,6 +17,23 @@ type InsightsData = {
     outstanding: number
     overdue: number
   }
+  costs: {
+    teachers: {
+      total: number
+      paid: number
+      unpaid: number
+      daily: Array<{ date: string; cost: number }>
+      avgDaily: number
+      projected: number
+    }
+    total: number
+  }
+  profitability: {
+    gross: number
+    margin: number
+    projected: number
+    projectedMargin: number
+  }
   students: {
     total: number
     active: number
@@ -72,6 +89,8 @@ type InsightsData = {
     nextMonthEnrollments: number
     expectedChurn: number
     projectedProfit: number
+    projectedTeacherCosts: number
+    projectedProfitMargin: number
   }
   recommendations: Array<{
     type: string
@@ -200,6 +219,41 @@ export default function InsightsPage() {
           ))}
         </div>
       )}
+
+      {/* Profitability Overview */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profitability Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
+            <div className="text-2xl font-bold text-success mt-1">
+              {formatCurrency(data.revenue.total)}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Period total</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Teacher Costs</div>
+            <div className="text-2xl font-bold text-error mt-1">
+              {formatCurrency(data.costs.teachers.total)}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Approved hours</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Gross Profit</div>
+            <div className={`text-2xl font-bold mt-1 ${data.profitability.gross >= 0 ? "text-success" : "text-error"}`}>
+              {formatCurrency(data.profitability.gross)}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - costs</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Profit Margin</div>
+            <div className={`text-2xl font-bold mt-1 ${data.profitability.margin >= 0 ? "text-success" : "text-error"}`}>
+              {data.profitability.margin.toFixed(1)}%
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Actual margin</div>
+          </div>
+        </div>
+      </div>
 
       {/* Revenue Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -419,11 +473,26 @@ export default function InsightsPage() {
       {/* Forecasts */}
       <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold mb-4 text-white">Next Month Forecast</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
             <div className="text-sm opacity-90 text-white">Revenue</div>
             <div className="text-2xl font-bold mt-1 text-white">
               {formatCurrency(data.forecasts.nextMonthRevenue)}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm opacity-90 text-white">Teacher Costs</div>
+            <div className="text-2xl font-bold mt-1 text-white">
+              {formatCurrency(data.forecasts.projectedTeacherCosts)}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm opacity-90 text-white">Projected Profit</div>
+            <div className="text-2xl font-bold mt-1 text-white">
+              {formatCurrency(data.forecasts.projectedProfit)}
+            </div>
+            <div className="text-xs opacity-75 text-white mt-1">
+              {data.forecasts.projectedProfitMargin.toFixed(1)}% margin
             </div>
           </div>
           <div>
@@ -433,12 +502,6 @@ export default function InsightsPage() {
           <div>
             <div className="text-sm opacity-90 text-white">Expected Churn</div>
             <div className="text-2xl font-bold mt-1 text-white">{data.forecasts.expectedChurn}</div>
-          </div>
-          <div>
-            <div className="text-sm opacity-90 text-white">Projected Profit</div>
-            <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedProfit)}
-            </div>
           </div>
         </div>
       </div>

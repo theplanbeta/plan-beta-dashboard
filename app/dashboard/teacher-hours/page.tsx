@@ -9,6 +9,8 @@ import HoursListTable, { TeacherHourEntry } from '../components/teacher-hours/Ho
 import LogHoursModal from '../components/teacher-hours/LogHoursModal'
 import ApproveRejectModal from '../components/teacher-hours/ApproveRejectModal'
 import MarkPaidModal from '../components/teacher-hours/MarkPaidModal'
+import MonthlyPayrollTable from '../components/teacher-hours/MonthlyPayrollTable'
+import { TeacherPayrollSummary } from '@/app/api/teacher-hours/monthly-payroll/route'
 
 interface Batch {
   id: string
@@ -44,6 +46,31 @@ export default function TeacherHoursPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [summaryLoading, setSummaryLoading] = useState(true)
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'hours' | 'payroll'>('hours')
+
+  // Monthly payroll state
+  const [payrollMonth, setPayrollMonth] = useState<string>(
+    new Date().toISOString().slice(0, 7) // Current month in YYYY-MM format
+  )
+  const [payrollData, setPayrollData] = useState<{
+    teachers: TeacherPayrollSummary[]
+    grandTotal: {
+      totalTeachers: number
+      totalHours: number
+      totalApproved: number
+      totalPaid: number
+      totalUnpaid: number
+    }
+    period: {
+      month?: string
+      year?: string
+      startDate: string
+      endDate: string
+    }
+  } | null>(null)
+  const [payrollLoading, setPayrollLoading] = useState(false)
 
   // Modal states
   const [logHoursModalOpen, setLogHoursModalOpen] = useState(false)
@@ -144,6 +171,25 @@ export default function TeacherHoursPage() {
     }
   }
 
+  // Fetch monthly payroll (founders only)
+  const fetchPayroll = async () => {
+    if (!isFounder) return
+
+    try {
+      setPayrollLoading(true)
+      const response = await fetch(`/api/teacher-hours/monthly-payroll?month=${payrollMonth}`)
+      if (!response.ok) throw new Error('Failed to fetch payroll')
+
+      const data = await response.json()
+      setPayrollData(data)
+    } catch (error) {
+      console.error('Error fetching payroll:', error)
+      toast.error('Failed to load payroll data')
+    } finally {
+      setPayrollLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (status === 'authenticated' && (isFounder || isTeacher)) {
       fetchBatches()
@@ -157,6 +203,12 @@ export default function TeacherHoursPage() {
       fetchSummary()
     }
   }, [status, isFounder, isTeacher, selectedTeacher, selectedMonth])
+
+  useEffect(() => {
+    if (status === 'authenticated' && isFounder && activeTab === 'payroll') {
+      fetchPayroll()
+    }
+  }, [status, isFounder, activeTab, payrollMonth])
 
   // Handle log hours (create or edit)
   const handleLogHours = () => {
@@ -254,55 +306,110 @@ export default function TeacherHoursPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {isFounder && teachers.length > 0 && (
-            <select
-              value={selectedTeacher}
-              onChange={(e) => setSelectedTeacher(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Teachers</option>
-              {teachers.map((teacher) => (
-                <option key={teacher.id} value={teacher.id}>
-                  {teacher.name}
-                </option>
-              ))}
-            </select>
+          {activeTab === 'hours' && (
+            <>
+              {isFounder && teachers.length > 0 && (
+                <select
+                  value={selectedTeacher}
+                  onChange={(e) => setSelectedTeacher(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">All Teachers</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id}>
+                      {teacher.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {isFounder && (
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Filter by month"
+                />
+              )}
+              {isTeacher && (
+                <button
+                  onClick={handleLogHours}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  Log Hours
+                </button>
+              )}
+            </>
           )}
-          {isFounder && (
+          {activeTab === 'payroll' && isFounder && (
             <input
               type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
+              value={payrollMonth}
+              onChange={(e) => setPayrollMonth(e.target.value)}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Filter by month"
             />
-          )}
-          {isTeacher && (
-            <button
-              onClick={handleLogHours}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              <PlusIcon className="h-5 w-5" />
-              Log Hours
-            </button>
           )}
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <HoursSummaryCards summary={summary} loading={summaryLoading} />
+      {/* Tabs (only for founders) */}
+      {isFounder && (
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('hours')}
+              className={`${
+                activeTab === 'hours'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Hours Log
+            </button>
+            <button
+              onClick={() => setActiveTab('payroll')}
+              className={`${
+                activeTab === 'payroll'
+                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Monthly Payroll
+            </button>
+          </nav>
+        </div>
+      )}
 
-      {/* Hours List */}
-      <HoursListTable
-        entries={entries}
-        loading={loading}
-        isFounder={isFounder}
-        onEdit={isTeacher ? handleEdit : undefined}
-        onDelete={isTeacher ? handleDelete : undefined}
-        onApprove={isFounder ? handleApprove : undefined}
-        onReject={isFounder ? handleReject : undefined}
-        onMarkPaid={isFounder ? handleMarkPaid : undefined}
-      />
+      {/* Hours Log Tab */}
+      {activeTab === 'hours' && (
+        <>
+          {/* Summary Cards */}
+          <HoursSummaryCards summary={summary} loading={summaryLoading} />
+
+          {/* Hours List */}
+          <HoursListTable
+            entries={entries}
+            loading={loading}
+            isFounder={isFounder}
+            onEdit={isTeacher ? handleEdit : undefined}
+            onDelete={isTeacher ? handleDelete : undefined}
+            onApprove={isFounder ? handleApprove : undefined}
+            onReject={isFounder ? handleReject : undefined}
+            onMarkPaid={isFounder ? handleMarkPaid : undefined}
+          />
+        </>
+      )}
+
+      {/* Monthly Payroll Tab */}
+      {activeTab === 'payroll' && isFounder && payrollData && (
+        <MonthlyPayrollTable
+          teachers={payrollData.teachers}
+          grandTotal={payrollData.grandTotal}
+          period={payrollData.period}
+          loading={payrollLoading}
+        />
+      )}
 
       {/* Modals */}
       {isTeacher && (

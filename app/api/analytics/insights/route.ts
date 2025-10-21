@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - daysAgo)
 
     // Get all data for the period
-    const [students, payments, attendance, referrals, batches] = await Promise.all([
+    const [students, payments, attendance, referrals, batches, teacherHours] = await Promise.all([
       prisma.student.findMany({
         include: {
           payments: {
@@ -111,6 +111,19 @@ export async function GET(request: NextRequest) {
           students: true,
         },
       }),
+      prisma.teacherHours.findMany({
+        where: {
+          date: { gte: startDate },
+          status: "APPROVED", // Only count approved hours
+        },
+        select: {
+          date: true,
+          hoursWorked: true,
+          totalAmount: true,
+          paid: true,
+          paidAmount: true,
+        },
+      }),
     ])
 
     // === REVENUE INSIGHTS ===
@@ -129,6 +142,26 @@ export async function GET(request: NextRequest) {
       acc[enrollmentKey] = (acc[enrollmentKey] || 0) + studentRevenue
       return acc
     }, {} as Record<string, number>)
+
+    // === COST INSIGHTS ===
+    const totalTeacherCosts = teacherHours.reduce(
+      (sum, h) => sum + Number(h.totalAmount),
+      0
+    )
+    const totalTeacherCostsPaid = teacherHours
+      .filter((h) => h.paid)
+      .reduce((sum, h) => sum + Number(h.paidAmount || h.totalAmount), 0)
+    const totalTeacherCostsUnpaid = totalTeacherCosts - totalTeacherCostsPaid
+
+    // Daily teacher costs for trend
+    const teacherCostsByDay = generateDailyTeacherCosts(teacherHours, daysAgo)
+    const avgDailyTeacherCosts = totalTeacherCosts / daysAgo
+
+    // === PROFITABILITY ===
+    const grossProfit = totalRevenue - totalTeacherCosts
+    const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
+    const projectedMonthlyTeacherCosts = avgDailyTeacherCosts * 30
+    const projectedMonthlyProfit = projectedMonthlyRevenue - projectedMonthlyTeacherCosts
 
     // === STUDENT LIFECYCLE INSIGHTS ===
     const avgStudentLifetime = calculateAvgLifetime(students as unknown as StudentRecord[])
@@ -266,7 +299,11 @@ export async function GET(request: NextRequest) {
       nextMonthRevenue: projectedMonthlyRevenue,
       nextMonthEnrollments: Math.round(avgDailyEnrollments * 30),
       expectedChurn: Math.round(students.length * (churnRate / 100)),
-      projectedProfit: projectedMonthlyRevenue * 0.4, // Assuming 40% margin
+      projectedProfit: projectedMonthlyProfit,
+      projectedTeacherCosts: projectedMonthlyTeacherCosts,
+      projectedProfitMargin: projectedMonthlyRevenue > 0
+        ? ((projectedMonthlyProfit / projectedMonthlyRevenue) * 100)
+        : 0,
     }
 
     // === RECOMMENDATIONS ===
@@ -288,6 +325,25 @@ export async function GET(request: NextRequest) {
         byType: revenueByType,
         outstanding: totalOutstanding,
         overdue: overdueAmount,
+      },
+      costs: {
+        teachers: {
+          total: totalTeacherCosts,
+          paid: totalTeacherCostsPaid,
+          unpaid: totalTeacherCostsUnpaid,
+          daily: teacherCostsByDay,
+          avgDaily: avgDailyTeacherCosts,
+          projected: projectedMonthlyTeacherCosts,
+        },
+        total: totalTeacherCosts, // Can add other costs later
+      },
+      profitability: {
+        gross: grossProfit,
+        margin: profitMargin,
+        projected: projectedMonthlyProfit,
+        projectedMargin: projectedMonthlyRevenue > 0
+          ? ((projectedMonthlyProfit / projectedMonthlyRevenue) * 100)
+          : 0,
       },
       students: {
         total: students.length,
@@ -358,6 +414,32 @@ function generateDailyRevenue(payments: PaymentRecord[], days: number) {
   return Object.entries(dailyRevenue)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([date, revenue]) => ({ date, revenue }))
+}
+
+function generateDailyTeacherCosts(
+  teacherHours: Array<{ date: Date; totalAmount: any }>,
+  days: number
+) {
+  const dailyCosts: Record<string, number> = {}
+  const today = new Date()
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today)
+    date.setDate(date.getDate() - i)
+    const dateKey = date.toISOString().split("T")[0]
+    dailyCosts[dateKey] = 0
+  }
+
+  teacherHours.forEach((entry) => {
+    const dateKey = new Date(entry.date).toISOString().split("T")[0]
+    if (dailyCosts[dateKey] !== undefined) {
+      dailyCosts[dateKey] += Number(entry.totalAmount)
+    }
+  })
+
+  return Object.entries(dailyCosts)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, cost]) => ({ date, cost }))
 }
 
 function generateDailyEnrollments(students: StudentRecord[], days: number) {

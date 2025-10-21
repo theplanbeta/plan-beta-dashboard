@@ -64,6 +64,11 @@ export default function LogHoursModal({
     e.preventDefault()
 
     // Validation
+    if (!batchId) {
+      toast.error('Please select a batch')
+      return
+    }
+
     if (!hoursWorked || parseFloat(hoursWorked) <= 0) {
       toast.error('Please enter valid hours worked')
       return
@@ -177,7 +182,7 @@ export default function LogHoursModal({
                       htmlFor="batch"
                       className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                     >
-                      Batch (Optional)
+                      Batch *
                     </label>
                     <select
                       id="batch"

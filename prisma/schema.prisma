@@ -85,6 +85,7 @@ model Student {
   avgQuizScore         Decimal?         @db.Decimal(5, 2)
   completionStatus   CompletionStatus @default(ACTIVE)
   churnRisk          ChurnRisk        @default(LOW)
+  churnMitigatedAt   DateTime?
   notes              String?
   emailNotifications Boolean          @default(true)
   emailWelcome       Boolean          @default(true)

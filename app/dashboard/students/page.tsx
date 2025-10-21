@@ -95,6 +95,28 @@ export default function StudentsPage() {
     }
   }
 
+  const handleAcknowledgeChurn = async (studentId: string, studentName: string) => {
+    if (!confirm(`Mark churn risk as resolved for ${studentName}?\n\nThis will reset their consecutive absences and churn risk to LOW.`)) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/students/${studentId}/acknowledge-churn`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to acknowledge churn')
+      }
+
+      // Refresh the student list
+      await fetchStudents()
+    } catch (error) {
+      console.error('Error acknowledging churn:', error)
+      alert('Failed to acknowledge churn risk. Please try again.')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const colors = {
       PAID: "bg-success/10 text-success",
@@ -171,7 +193,7 @@ export default function StudentsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students <span className="text-xs text-gray-400">[v2.0]</span></h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">Manage student enrollments and information</p>
         </div>
         {!isTeacher && (
@@ -313,12 +335,23 @@ export default function StudentsPage() {
                       {student.completionStatus}
                     </span>
                     {student.churnRisk !== 'LOW' && (
-                      <span
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getChurnRiskBadge(student.churnRisk).color}`}
-                        title={`Churn risk: ${student.churnRisk}`}
-                      >
-                        {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk} Risk
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getChurnRiskBadge(student.churnRisk).color}`}
+                          title={`Churn risk: ${student.churnRisk}`}
+                        >
+                          {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk} Risk
+                        </span>
+                        {!isTeacher && (
+                          <button
+                            onClick={() => handleAcknowledgeChurn(student.id, student.name)}
+                            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 text-success"
+                            title="Mark churn risk as resolved"
+                          >
+                            ✓
+                          </button>
+                        )}
+                      </div>
                     )}
                     {getAbsenceAlert(student.consecutiveAbsences).show && (
                       <span
@@ -471,12 +504,23 @@ export default function StudentsPage() {
                       <div className="flex items-center gap-2">
                         <span>{student.name}</span>
                         {student.churnRisk !== 'LOW' && (
-                          <span
-                            className={`px-2 py-1 text-xs font-semibold rounded border ${getChurnRiskBadge(student.churnRisk).color}`}
-                            title={`Churn risk: ${student.churnRisk}`}
-                          >
-                            {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk}
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span
+                              className={`px-2 py-1 text-xs font-semibold rounded border ${getChurnRiskBadge(student.churnRisk).color}`}
+                              title={`Churn risk: ${student.churnRisk}`}
+                            >
+                              {getChurnRiskBadge(student.churnRisk).icon} {student.churnRisk}
+                            </span>
+                            {!isTeacher && (
+                              <button
+                                onClick={() => handleAcknowledgeChurn(student.id, student.name)}
+                                className="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 text-success text-sm"
+                                title="Mark churn risk as resolved"
+                              >
+                                ✓
+                              </button>
+                            )}
+                          </div>
                         )}
                         {getAbsenceAlert(student.consecutiveAbsences).show && (
                           <span

@@ -227,21 +227,21 @@ export default function InsightsPage() {
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
             <div className="text-2xl font-bold text-success mt-1">
-              {formatCurrency(data.revenue.total)}
+              {formatCurrency(data.revenue.total, 'INR')}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Period total</div>
           </div>
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Teacher Costs</div>
             <div className="text-2xl font-bold text-error mt-1">
-              {formatCurrency(data.costs.teachers.total)}
+              {formatCurrency(data.costs.teachers.total, 'INR')}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Approved hours</div>
           </div>
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Gross Profit</div>
             <div className={`text-2xl font-bold mt-1 ${data.profitability.gross >= 0 ? "text-success" : "text-error"}`}>
-              {formatCurrency(data.profitability.gross)}
+              {formatCurrency(data.profitability.gross, 'INR')}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - costs</div>
           </div>
@@ -477,19 +477,19 @@ export default function InsightsPage() {
           <div>
             <div className="text-sm opacity-90 text-white">Revenue</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.nextMonthRevenue)}
+              {formatCurrency(data.forecasts.nextMonthRevenue, 'INR')}
             </div>
           </div>
           <div>
             <div className="text-sm opacity-90 text-white">Teacher Costs</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedTeacherCosts)}
+              {formatCurrency(data.forecasts.projectedTeacherCosts, 'INR')}
             </div>
           </div>
           <div>
             <div className="text-sm opacity-90 text-white">Projected Profit</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedProfit)}
+              {formatCurrency(data.forecasts.projectedProfit, 'INR')}
             </div>
             <div className="text-xs opacity-75 text-white mt-1">
               {data.forecasts.projectedProfitMargin.toFixed(1)}% margin

@@ -42,7 +42,7 @@ export default function MonthlyPayrollTable({
   }
 
   const exportToCSV = () => {
-    const headers = ['Teacher', 'Email', 'Hourly Rate (EUR)', 'Total Hours', 'Total Approved (EUR)', 'Paid (EUR)', 'Unpaid (EUR)']
+    const headers = ['Teacher', 'Email', 'Hourly Rate (INR)', 'Total Hours', 'Total Approved (INR)', 'Paid (INR)', 'Unpaid (INR)']
     const rows = teachers.map((t) => [
       t.teacherName,
       t.teacherEmail,
@@ -166,19 +166,19 @@ export default function MonthlyPayrollTable({
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                      {formatCurrency(teacher.hourlyRate)}
+                      {formatCurrency(teacher.hourlyRate, 'INR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
                       {teacher.totalHours.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900 dark:text-white">
-                      {formatCurrency(teacher.totalApproved)}
+                      {formatCurrency(teacher.totalApproved, 'INR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-success">
-                      {formatCurrency(teacher.totalPaid)}
+                      {formatCurrency(teacher.totalPaid, 'INR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-warning">
-                      {formatCurrency(teacher.totalUnpaid)}
+                      {formatCurrency(teacher.totalUnpaid, 'INR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       {teacher.totalUnpaid > 0 ? (
@@ -237,7 +237,7 @@ export default function MonthlyPayrollTable({
                                   <div className="text-right">
                                     <div className="text-xs text-gray-500 dark:text-gray-400">Amount</div>
                                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {formatCurrency(batch.amount)}
+                                      {formatCurrency(batch.amount, 'INR')}
                                     </div>
                                   </div>
                                 </div>
@@ -261,13 +261,13 @@ export default function MonthlyPayrollTable({
                   {grandTotal.totalHours.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
-                  {formatCurrency(grandTotal.totalApproved)}
+                  {formatCurrency(grandTotal.totalApproved, 'INR')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-success">
-                  {formatCurrency(grandTotal.totalPaid)}
+                  {formatCurrency(grandTotal.totalPaid, 'INR')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-warning">
-                  {formatCurrency(grandTotal.totalUnpaid)}
+                  {formatCurrency(grandTotal.totalUnpaid, 'INR')}
                 </td>
                 <td colSpan={2}></td>
               </tr>

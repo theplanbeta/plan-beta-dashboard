@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, BanknotesIcon } from '@heroicons/react/24/outline'
+import { formatCurrency } from '@/lib/utils'
 import HoursStatusBadge from './HoursStatusBadge'
 
 export interface TeacherHourEntry {
@@ -179,10 +180,10 @@ export default function HoursListTable({
                     {Number(entry.hoursWorked).toFixed(1)}h
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                    {entry.hourlyRate ? `€${Number(entry.hourlyRate).toFixed(2)}` : '-'}
+                    {entry.hourlyRate ? formatCurrency(entry.hourlyRate, 'INR') : '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    €{Number(entry.totalAmount).toFixed(2)}
+                    {formatCurrency(entry.totalAmount, 'INR')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <HoursStatusBadge status={entry.status} paid={entry.paid} />

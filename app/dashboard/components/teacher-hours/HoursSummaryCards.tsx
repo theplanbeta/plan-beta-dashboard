@@ -1,6 +1,7 @@
 'use client'
 
 import { ClockIcon, CheckCircleIcon, XCircleIcon, BanknotesIcon } from '@heroicons/react/24/outline'
+import { formatCurrency } from '@/lib/utils'
 
 interface HoursSummary {
   pending: { count: number; totalHours: number; totalAmount: number }
@@ -103,7 +104,7 @@ export default function HoursSummaryCards({ summary, loading }: HoursSummaryCard
             <div className="flex flex-col gap-0.5 text-xs text-gray-500 dark:text-gray-400">
               <span>{Number(card.hours).toFixed(1)} hours</span>
               <span className="font-medium">
-                €{Number(card.amount).toLocaleString('en-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatCurrency(card.amount, 'INR')}
               </span>
             </div>
           </div>

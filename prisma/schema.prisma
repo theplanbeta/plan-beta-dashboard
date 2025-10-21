@@ -86,6 +86,9 @@ model Student {
   completionStatus   CompletionStatus @default(ACTIVE)
   churnRisk          ChurnRisk        @default(LOW)
   churnMitigatedAt   DateTime?
+  suspendedAt        DateTime?
+  suspensionReason   String?
+  previousBatchId    String?
   notes              String?
   emailNotifications Boolean          @default(true)
   emailWelcome       Boolean          @default(true)
@@ -653,6 +656,7 @@ enum CompletionStatus {
   COMPLETED
   DROPPED
   ON_HOLD
+  SUSPENDED
 }
 
 enum LeadStatus {

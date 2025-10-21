@@ -117,6 +117,51 @@ export default function StudentsPage() {
     }
   }
 
+  const handleSuspend = async (studentId: string, studentName: string) => {
+    const reason = prompt(`Suspend ${studentName}?\n\nPlease provide a reason (optional):`)
+    if (reason === null) return // User clicked cancel
+
+    try {
+      const res = await fetch(`/api/students/${studentId}/suspend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason.trim() || null }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to suspend student')
+      }
+
+      // Refresh the student list
+      await fetchStudents()
+    } catch (error) {
+      console.error('Error suspending student:', error)
+      alert('Failed to suspend student. Please try again.')
+    }
+  }
+
+  const handleReactivate = async (studentId: string, studentName: string) => {
+    if (!confirm(`Reactivate ${studentName}?\n\nThey will be marked as ACTIVE and can be added to a new batch.`)) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/students/${studentId}/reactivate`, {
+        method: 'POST',
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to reactivate student')
+      }
+
+      // Refresh the student list
+      await fetchStudents()
+    } catch (error) {
+      console.error('Error reactivating student:', error)
+      alert('Failed to reactivate student. Please try again.')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const colors = {
       PAID: "bg-success/10 text-success",
@@ -133,6 +178,7 @@ export default function StudentsPage() {
       COMPLETED: "bg-info/10 text-info",
       DROPPED: "bg-error/10 text-error",
       ON_HOLD: "bg-warning/10 text-warning",
+      SUSPENDED: "bg-gray-400/10 text-gray-600 dark:text-gray-400",
     }
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
@@ -416,28 +462,45 @@ export default function StudentsPage() {
 
                 {/* Actions - Hidden for teachers */}
                 {!isTeacher && (
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/dashboard/students/${student.id}`}
-                      className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
-                    >
-                      View Details
-                    </Link>
-                    <Link
-                      href={`/dashboard/students/${student.id}/edit`}
-                      className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
-                    >
-                      Edit
-                    </Link>
-                    <div className="inline-block">
-                      <GenerateInvoiceButton
-                        studentId={student.id}
-                        variant="outline"
-                        showPreview={false}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/dashboard/students/${student.id}`}
+                        className="flex-1 py-3 px-4 text-center bg-primary text-white rounded-xl text-sm font-semibold shadow-sm"
                       >
-                        📄
-                      </GenerateInvoiceButton>
+                        View Details
+                      </Link>
+                      <Link
+                        href={`/dashboard/students/${student.id}/edit`}
+                        className="py-3 px-4 bg-info/10 text-info rounded-xl text-sm font-semibold"
+                      >
+                        Edit
+                      </Link>
+                      <div className="inline-block">
+                        <GenerateInvoiceButton
+                          studentId={student.id}
+                          variant="outline"
+                          showPreview={false}
+                        >
+                          📄
+                        </GenerateInvoiceButton>
+                      </div>
                     </div>
+                    {student.completionStatus === 'SUSPENDED' ? (
+                      <button
+                        onClick={() => handleReactivate(student.id, student.name)}
+                        className="w-full py-2 px-4 bg-success/10 text-success rounded-xl text-sm font-semibold"
+                      >
+                        Reactivate Student
+                      </button>
+                    ) : student.completionStatus === 'ACTIVE' ? (
+                      <button
+                        onClick={() => handleSuspend(student.id, student.name)}
+                        className="w-full py-2 px-4 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded-xl text-sm font-semibold"
+                      >
+                        Suspend Student
+                      </button>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -574,7 +637,7 @@ export default function StudentsPage() {
                     </td>
                     {!isTeacher && (
                       <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Link
                             href={`/dashboard/students/${student.id}`}
                             className="text-primary hover:text-primary-dark"
@@ -598,6 +661,27 @@ export default function StudentsPage() {
                               📄
                             </GenerateInvoiceButton>
                           </div>
+                          {student.completionStatus === 'SUSPENDED' ? (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <button
+                                onClick={() => handleReactivate(student.id, student.name)}
+                                className="text-success hover:text-success/80"
+                              >
+                                Reactivate
+                              </button>
+                            </>
+                          ) : student.completionStatus === 'ACTIVE' ? (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <button
+                                onClick={() => handleSuspend(student.id, student.name)}
+                                className="text-orange-600 hover:text-orange-700"
+                              >
+                                Suspend
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       </td>
                     )}

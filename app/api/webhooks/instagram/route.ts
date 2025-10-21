@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
     }
 
     const data = JSON.parse(body)
-    console.log('📨 Instagram webhook received:', JSON.stringify(data, null, 2))
+    console.log('📨 Webhook received:', JSON.stringify(data, null, 2))
 
-    // Process webhook events
+    // Process Instagram webhook events
     if (data.object === 'instagram') {
       for (const entry of data.entry || []) {
         // Handle messaging events
@@ -63,11 +63,27 @@ export async function POST(request: NextRequest) {
         // Handle changes (for other event types including comments)
         if (entry.changes) {
           for (const change of entry.changes) {
-            console.log('📝 Change event:', change.field, change.value)
+            console.log('📝 Instagram change event:', change.field, change.value)
 
             // Handle comment events
             if (change.field === 'comments') {
               await handleCommentEvent(change.value)
+            }
+          }
+        }
+      }
+    }
+
+    // Process Facebook Page webhook events
+    if (data.object === 'page') {
+      for (const entry of data.entry || []) {
+        if (entry.changes) {
+          for (const change of entry.changes) {
+            console.log('📝 Facebook Page change event:', change.field, change.value)
+
+            // Handle Facebook Page feed comments
+            if (change.field === 'feed' && change.value?.item === 'comment') {
+              await handleFacebookCommentEvent(change.value)
             }
           }
         }
@@ -548,6 +564,164 @@ async function handleCommentEvent(commentData: any) {
 
   } catch (error: any) {
     console.error('❌ Error handling comment event:', error)
+    throw error
+  }
+}
+
+/**
+ * Handle Facebook Page comment events
+ */
+async function handleFacebookCommentEvent(commentData: any) {
+  try {
+    const commentId = commentData.comment_id
+    const postId = commentData.post_id
+    const commentText = commentData.message
+    const username = commentData.from?.name || commentData.from?.id
+    const userId = commentData.from?.id
+    const commentedAt = new Date(commentData.created_time * 1000)
+
+    if (!commentId || !commentText || !username) {
+      console.log('⏭️ Skipping Facebook comment (missing data)')
+      return
+    }
+
+    console.log('💬 Processing Facebook Page comment from:', username)
+    console.log('   Comment:', commentText.substring(0, 100))
+
+    // Check if this comment already exists
+    const existingComment = await prisma.instagramComment.findUnique({
+      where: { commentId },
+    })
+
+    if (existingComment) {
+      console.log('⏭️ Comment already processed')
+      return
+    }
+
+    // Detect trigger words and intent
+    const triggerResult = detectTriggers(commentText)
+    console.log('🔍 Trigger analysis:', {
+      priority: triggerResult.priority,
+      intent: triggerResult.intent,
+      leadIntent: triggerResult.leadIntent,
+      score: triggerResult.score,
+      triggers: triggerResult.triggerWords,
+    })
+
+    // Extract contact information if present
+    const contactInfo = extractContactFromComment(commentText)
+
+    // Create or update lead if high intent detected
+    let leadId: string | undefined
+    let leadCreated = false
+
+    if (triggerResult.leadIntent) {
+      console.log('🎯 Creating lead from Facebook comment...')
+
+      try {
+        // Use userId as identifier for Facebook comments
+        const existingLead = await prisma.lead.findFirst({
+          where: {
+            OR: [
+              { instagramHandle: username },
+              { notes: { contains: userId } }
+            ]
+          },
+        })
+
+        if (existingLead) {
+          console.log('📝 Lead already exists, updating...')
+
+          const updatedLead = await prisma.lead.update({
+            where: { id: existingLead.id },
+            data: {
+              leadScore: Math.max(existingLead.leadScore, triggerResult.score),
+              socialEngagement: {
+                ...((existingLead.socialEngagement as any) || {}),
+                comments_count: ((existingLead.socialEngagement as any)?.comments_count || 0) + 1,
+                last_comment_at: commentedAt.toISOString(),
+              },
+              notes: existingLead.notes
+                ? `${existingLead.notes}\n\n[${commentedAt.toLocaleString()}] Facebook comment: ${commentText.substring(0, 100)}...`
+                : `[${commentedAt.toLocaleString()}] Facebook comment from ${username}: ${commentText}`,
+              lastContactDate: commentedAt.toISOString(),
+              ...(contactInfo.phone && !existingLead.phone
+                ? { phone: contactInfo.phone, whatsapp: contactInfo.phone }
+                : {}),
+              ...(contactInfo.email && !existingLead.email
+                ? { email: contactInfo.email }
+                : {}),
+            },
+          })
+
+          leadId = updatedLead.id
+          leadCreated = false
+        } else {
+          console.log('✨ Creating new lead from Facebook comment...')
+
+          const newLead = await prisma.lead.create({
+            data: {
+              name: username,
+              whatsapp: contactInfo.phone || '',
+              email: contactInfo.email || '',
+              phone: contactInfo.phone || '',
+              status: 'NEW',
+              interestedLevel: 'A1',
+              source: 'INSTAGRAM', // Using INSTAGRAM source for Facebook comments too
+              instagramHandle: username,
+              firstTouchpoint: 'facebook_comment',
+              leadScore: triggerResult.score,
+              socialEngagement: {
+                comments_count: 1,
+                first_comment_at: commentedAt.toISOString(),
+                last_comment_at: commentedAt.toISOString(),
+              },
+              notes: `[${commentedAt.toLocaleString()}] Facebook comment from ${username} (ID: ${userId}):\n${commentText}`,
+              lastContactDate: commentedAt.toISOString(),
+            },
+          })
+
+          leadId = newLead.id
+          leadCreated = true
+
+          console.log('✅ Lead created from Facebook comment:', {
+            id: newLead.id,
+            name: newLead.name,
+            score: newLead.leadScore,
+            priority: triggerResult.priority,
+          })
+        }
+      } catch (error: any) {
+        console.error('❌ Error creating/updating lead from Facebook comment:', error)
+      }
+    }
+
+    // Store comment in database
+    await prisma.instagramComment.create({
+      data: {
+        commentId,
+        mediaId: postId || '',
+        mediaUrl: `https://facebook.com/${postId}`,
+        username,
+        text: commentText,
+        commentedAt,
+        triggerWords: triggerResult.triggerWords,
+        leadIntent: triggerResult.leadIntent,
+        leadCreated,
+        leadId,
+        priority: triggerResult.priority,
+        processed: false,
+      },
+    })
+
+    console.log('✅ Facebook comment stored:', {
+      from: username,
+      priority: triggerResult.priority,
+      leadCreated,
+    })
+
+  } catch (error: any) {
+    console.error('❌ Error handling Facebook comment event:', error)
     throw error
   }
 }

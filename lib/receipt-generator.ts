@@ -342,7 +342,7 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<jsPDF> {
     doc.setTextColor(...brandRed)
     doc.setFont('helvetica', 'bold')
     doc.text(
-      `Remaining balance of ${formatAmount(data.balanceRemaining)} must be paid within 7 days from the first class date.`,
+      `Remaining balance of ${formatAmount(data.balanceRemaining)} is due immediately.`,
       20,
       yPos + 19
     )
@@ -531,7 +531,7 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
         <div style="color: #16a34a; font-size: 13px; font-weight: bold; margin-bottom: 8px;">✓ Payment Received - Thank You!</div>
         <div style="color: #374151; font-size: 10px;">
           This receipt confirms that the payment has been received and processed successfully.
-          ${parseFloat(balance) > 0 ? `<br/><span style="color: #dc2626; font-weight: bold;">Remaining balance of ${currencySymbol}${balance} must be paid within 7 days from the first class date.</span>` : ''}
+          ${parseFloat(balance) > 0 ? `<br/><span style="color: #dc2626; font-weight: bold;">Remaining balance of ${currencySymbol}${balance} is due immediately.</span>` : ''}
         </div>
       </div>
 

@@ -331,13 +331,11 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   doc.setTextColor(...textGray)
 
   const policyLines = [
-    '• Payment is due today. By making this payment, you acknowledge and accept our refund policy.',
+    '• Full payment is due today. By making this payment, you acknowledge and accept our refund policy.',
     '• Once the first class of the batch has commenced, all fees are non-refundable regardless of attendance.',
     '• This policy exists because our small group batches begin with committed class sizes and instructor',
     '  compensation is allocated accordingly from the course fees.',
     '• This term is binding and non-negotiable upon payment.',
-    '• The remaining balance, if any, must be paid within 7 days from the first class date, irrespective',
-    '  of attendance.',
   ]
 
   policyLines.forEach(line => {
@@ -510,7 +508,7 @@ export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
       <div style="border-left: 4px solid #d2302c; padding-left: 15px; margin-top: 15px; margin-bottom: 15px;">
         <h3 style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #d2302c;">PAYMENT TERMS & REFUND POLICY</h3>
         <p style="margin: 0; font-size: 9px; line-height: 1.6; color: #323232;">
-          Payment due today. By making this payment, you acknowledge and accept our refund policy: Once the first class of the batch has commenced, all fees are <strong style="color: #d2302c;">non-refundable</strong> <strong style="color: #d2302c;">regardless of attendance</strong>. This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees. This term is <strong style="color: #d2302c;">binding and non-negotiable</strong> upon payment. The remaining balance, if any, must be paid within 7 days from the first class date, irrespective of attendance.
+          Full payment is due today. By making this payment, you acknowledge and accept our refund policy: Once the first class of the batch has commenced, all fees are <strong style="color: #d2302c;">non-refundable</strong> <strong style="color: #d2302c;">regardless of attendance</strong>. This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees. This term is <strong style="color: #d2302c;">binding and non-negotiable</strong> upon payment.
         </p>
       </div>
 

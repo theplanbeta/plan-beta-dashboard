@@ -239,4 +239,4 @@ export const SCHOOL_INFO = {
 
 // Refund policy text (for invoices)
 export const REFUND_POLICY =
-  'Payment due today. By making this payment, you acknowledge and accept our refund policy: Once the first class of the batch has commenced, all fees are non-refundable regardless of attendance. This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees. This term is binding and non-negotiable upon payment. The remaining balance, if any, must be paid within 7 days from the first class date, irrespective of attendance.'
+  'Full payment is due on the date of issue. By making this payment, you acknowledge and accept our refund policy: Once the first class of the batch has commenced, all fees are non-refundable regardless of attendance. This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees. This term is binding and non-negotiable upon payment.'

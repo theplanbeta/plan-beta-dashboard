@@ -73,6 +73,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [suspending, setSuspending] = useState(false)
   const [reviews, setReviews] = useState<TeacherReview[]>([])
   const [reviewsLoading, setReviewsLoading] = useState(true)
   const [reviewError, setReviewError] = useState("")
@@ -176,6 +177,53 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
+  const handleSuspend = async () => {
+    const reason = prompt("Please enter the reason for suspending this student:")
+    if (reason === null) return // User cancelled
+
+    setSuspending(true)
+    try {
+      const res = await fetch(`/api/students/${id}/suspend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || undefined }),
+      })
+
+      if (!res.ok) throw new Error("Failed to suspend student")
+
+      await fetchStudent()
+      alert("Student suspended successfully")
+    } catch (error) {
+      console.error("Error suspending student:", error)
+      alert("Failed to suspend student")
+    } finally {
+      setSuspending(false)
+    }
+  }
+
+  const handleReactivate = async () => {
+    if (!confirm("Are you sure you want to reactivate this student?")) {
+      return
+    }
+
+    setSuspending(true)
+    try {
+      const res = await fetch(`/api/students/${id}/reactivate`, {
+        method: "POST",
+      })
+
+      if (!res.ok) throw new Error("Failed to reactivate student")
+
+      await fetchStudent()
+      alert("Student reactivated successfully")
+    } catch (error) {
+      console.error("Error reactivating student:", error)
+      alert("Failed to reactivate student")
+    } finally {
+      setSuspending(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -202,6 +250,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       COMPLETED: "bg-info/10 text-info",
       DROPPED: "bg-error/10 text-error",
       ON_HOLD: "bg-warning/10 text-warning",
+      SUSPENDED: "bg-gray-500/10 text-gray-700 dark:text-gray-300",
     }
     return colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"
   }
@@ -235,6 +284,23 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           >
             Edit Student
           </Link>
+          {student.completionStatus === "SUSPENDED" ? (
+            <button
+              onClick={handleReactivate}
+              disabled={suspending}
+              className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-600 hover:text-white disabled:opacity-50"
+            >
+              {suspending ? "Reactivating..." : "Reactivate Student"}
+            </button>
+          ) : (
+            <button
+              onClick={handleSuspend}
+              disabled={suspending}
+              className="px-4 py-2 border border-orange-600 text-orange-600 rounded-md hover:bg-orange-600 hover:text-white disabled:opacity-50"
+            >
+              {suspending ? "Suspending..." : "Suspend Student"}
+            </button>
+          )}
           <button
             onClick={handleDelete}
             disabled={deleting}

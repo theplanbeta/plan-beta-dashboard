@@ -53,12 +53,17 @@ export async function GET(request: NextRequest) {
       (s) => s.completionStatus === "DROPPED"
     ).length
 
-    // Calculate financial metrics
-    // Use totalPaidEur (EUR equivalent) from students for accurate revenue
-    const totalRevenue = students.reduce(
-      (sum, s) => sum + Number(s.totalPaidEur),
-      0
-    )
+    // Calculate financial metrics from actual payments
+    // Separate by currency to avoid mixing EUR and INR
+    const eurPayments = payments.filter(p => p.currency === 'EUR')
+    const inrPayments = payments.filter(p => p.currency === 'INR')
+
+    const totalRevenueEur = eurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    const totalRevenueInr = inrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+
+    // For backward compatibility, use EUR total as default totalRevenue
+    const totalRevenue = totalRevenueEur
+
     const totalPending = students.reduce(
       (sum, s) => sum + Number(s.balance),
       0
@@ -129,10 +134,15 @@ export async function GET(request: NextRequest) {
       (s) => new Date(s.enrollmentDate) >= thirtyDaysAgo
     ).length
 
-    // Recent revenue (last 30 days) - sum totalPaidEur from recently enrolled students
-    const recentRevenue = students
-      .filter((s) => new Date(s.enrollmentDate) >= thirtyDaysAgo)
-      .reduce((sum, s) => sum + Number(s.totalPaidEur), 0)
+    // Recent revenue (last 30 days) - sum from actual payments made in last 30 days
+    const recentEurPayments = eurPayments.filter(p => new Date(p.paymentDate) >= thirtyDaysAgo)
+    const recentInrPayments = inrPayments.filter(p => new Date(p.paymentDate) >= thirtyDaysAgo)
+
+    const recentRevenueEur = recentEurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    const recentRevenueInr = recentInrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+
+    // For backward compatibility, use EUR total as default recentRevenue
+    const recentRevenue = recentRevenueEur
 
     // Level distribution
     const levelDistribution = {
@@ -157,9 +167,13 @@ export async function GET(request: NextRequest) {
       },
       financial: {
         totalRevenue,
+        totalRevenueEur,
+        totalRevenueInr,
         totalPending,
         avgRevPerStudent,
         recentRevenue,
+        recentRevenueEur,
+        recentRevenueInr,
         paymentBreakdown,
         enrollmentBreakdown,
       },

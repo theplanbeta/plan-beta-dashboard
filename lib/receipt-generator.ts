@@ -466,13 +466,13 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
         </div>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed;">
         <thead>
           <tr style="background: #d2302c; color: white;">
-            <th style="padding: 10px; text-align: left; font-size: 10px;">DESCRIPTION</th>
-            <th style="padding: 10px; text-align: left; font-size: 10px;">LEVEL</th>
-            <th style="padding: 10px; text-align: left; font-size: 10px;">MONTH</th>
-            <th style="padding: 10px; text-align: right; font-size: 10px;">AMOUNT</th>
+            <th style="padding: 12px 10px; text-align: left; font-size: 10px; font-weight: bold; width: 45%;">DESCRIPTION</th>
+            <th style="padding: 12px 10px; text-align: center; font-size: 10px; font-weight: bold; width: 20%;">LEVEL</th>
+            <th style="padding: 12px 10px; text-align: center; font-size: 10px; font-weight: bold; width: 15%;">MONTH</th>
+            <th style="padding: 12px 10px; text-align: right; font-size: 10px; font-weight: bold; width: 20%;">AMOUNT</th>
           </tr>
         </thead>
         <tbody>
@@ -480,12 +480,12 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
             const levelColor = COURSE_INFO[item.level as keyof typeof COURSE_INFO]?.color || '#6b7280'
             return `
               <tr style="background: ${idx % 2 === 0 ? '#fafcfe' : '#fff'}; border-bottom: 1px solid #eee;">
-                <td style="padding: 12px 10px; font-size: 11px;">${item.description}</td>
-                <td style="padding: 12px 10px;">
-                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; min-width: 50px; text-align: center;">${item.level}</span>
+                <td style="padding: 14px 10px; font-size: 11px; vertical-align: middle;">${item.description}</td>
+                <td style="padding: 14px 10px; text-align: center; vertical-align: middle;">
+                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; white-space: nowrap;">${item.level}</span>
                 </td>
-                <td style="padding: 12px 10px; font-size: 11px;">${item.month}</td>
-                <td style="padding: 12px 10px; text-align: right; font-weight: bold; font-size: 12px;">${currencySymbol}${parseFloat(item.amount.toString()).toFixed(2)}</td>
+                <td style="padding: 14px 10px; font-size: 11px; text-align: center; vertical-align: middle;">${item.month}</td>
+                <td style="padding: 14px 10px; text-align: right; font-weight: bold; font-size: 12px; vertical-align: middle;">${currencySymbol}${parseFloat(item.amount.toString()).toFixed(2)}</td>
               </tr>
             `
           }).join('')}

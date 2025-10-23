@@ -5,8 +5,12 @@ import { pipeline } from 'stream/promises'
 import { createGzip, createGunzip } from 'zlib'
 import { Readable } from 'stream'
 
-// Storage directory for receipts (outside of public for security)
-const RECEIPTS_DIR = path.join(process.cwd(), 'storage', 'receipts')
+// Storage directory for receipts
+// Use /tmp on Vercel (serverless), local storage otherwise
+const isVercel = process.env.VERCEL === '1'
+const RECEIPTS_DIR = isVercel
+  ? path.join('/tmp', 'receipts')
+  : path.join(process.cwd(), 'storage', 'receipts')
 
 // Ensure storage directory exists
 export async function ensureStorageDir() {

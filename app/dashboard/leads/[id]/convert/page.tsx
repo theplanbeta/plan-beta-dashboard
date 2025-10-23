@@ -90,10 +90,10 @@ export default function ConvertLeadPage({
         return
       }
 
-      // Fetch batches
+      // Fetch batches - show all batches (including full ones)
       const batchRes = await fetch("/api/batches")
       const batchData = await batchRes.json()
-      setBatches(batchData.filter((b: Batch) => b.enrolledCount < b.totalSeats))
+      setBatches(batchData)
     } catch (error) {
       console.error("Error fetching data:", error)
     } finally {

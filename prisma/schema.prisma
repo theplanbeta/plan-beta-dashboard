@@ -742,3 +742,64 @@ enum InvoiceStatus {
   PAID
   CANCELLED
 }
+
+model Subreddit {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  description String?
+  category    String?
+  active      Boolean      @default(true)
+  lastFetched DateTime?
+  postCount   Int          @default(0)
+  posts       RedditPost[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([active])
+  @@index([name])
+}
+
+model RedditPost {
+  id            String        @id @default(cuid())
+  redditId      String        @unique
+  subredditId   String
+  subredditName String
+  title         String
+  selftext      String?
+  author        String
+  url           String
+  permalink     String
+  upvotes       Int           @default(0)
+  numComments   Int           @default(0)
+  postedAt      DateTime
+  fetchedAt     DateTime      @default(now())
+  saved         Boolean       @default(false)
+  analyzed      Boolean       @default(false)
+  subreddit     Subreddit     @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+  contentIdeas  ContentIdea[]
+  createdAt     DateTime      @default(now())
+
+  @@index([subredditId])
+  @@index([saved])
+  @@index([postedAt])
+  @@index([upvotes])
+}
+
+model ContentIdea {
+  id                String     @id @default(cuid())
+  redditPostId      String
+  hook              String
+  script            String
+  visualSuggestions String
+  caption           String
+  hashtags          String[]
+  topic             String
+  status            String     @default("DRAFT")
+  notes             String?
+  redditPost        RedditPost @relation(fields: [redditPostId], references: [id], onDelete: Cascade)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}

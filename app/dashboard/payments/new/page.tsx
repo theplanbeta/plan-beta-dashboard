@@ -18,6 +18,7 @@ type Student = {
   totalPaid: number
   balance: number
   paymentStatus: string
+  currency: string
 }
 
 function NewPaymentForm() {
@@ -36,6 +37,7 @@ function NewPaymentForm() {
     studentId: studentIdParam || "",
     amount: 0,
     method: "CASH",
+    currency: "EUR",
     paymentDate: new Date().toISOString().split("T")[0],
     status: "COMPLETED",
     transactionId: "",
@@ -154,6 +156,7 @@ function NewPaymentForm() {
       setFormData((prev) => ({
         ...prev,
         amount: Number(student.balance),
+        currency: student.currency || "EUR",
       }))
     }
   }
@@ -246,7 +249,26 @@ function NewPaymentForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="form-label">
-                Amount (€) <span className="text-error">*</span>
+                Currency <span className="text-error">*</span>
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                required
+                className={`select ${fieldErrors.currency ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="INR">INR (₹)</option>
+              </select>
+              {fieldErrors.currency && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.currency}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="form-label">
+                Amount ({formData.currency === 'EUR' ? '€' : '₹'}) <span className="text-error">*</span>
               </label>
               <input
                 type="number"

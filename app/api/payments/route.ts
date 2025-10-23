@@ -14,7 +14,8 @@ const createPaymentSchema = z.object({
   studentId: z.string().min(1, 'Student ID required'),
   amount: z.number().positive('Amount must be positive').max(100000, 'Amount exceeds maximum'),
   method: z.enum(['CASH', 'BANK_TRANSFER', 'UPI', 'CARD', 'OTHER']),
-  paymentDate: z.string().datetime().optional(),
+  currency: z.enum(['EUR', 'INR']).optional(),
+  paymentDate: z.string().optional(), // Accept date string in YYYY-MM-DD format
   status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED']).optional(),
   transactionId: z.string().optional(),
   notes: z.string().max(1000, 'Notes too long').optional(),
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
         studentId: validData.studentId,
         amount,
         method: validData.method,
+        currency: validData.currency || "EUR",
         paymentDate: validData.paymentDate ? new Date(validData.paymentDate) : new Date(),
         status: validData.status || "COMPLETED",
         transactionId: validData.transactionId || null,

@@ -201,7 +201,7 @@ function NewPaymentForm() {
               <option value="">Choose a student...</option>
               {students.map((student) => (
                 <option key={student.id} value={student.id}>
-                  {student.name} ({student.studentId}) - Balance: {formatCurrency(Number(student.balance))}
+                  {student.name} ({student.studentId}) - Balance: {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
                 </option>
               ))}
             </select>
@@ -216,19 +216,19 @@ function NewPaymentForm() {
                 <div>
                   <span className="text-gray-600">Total Amount:</span>
                   <span className="font-semibold ml-2">
-                    {formatCurrency(Number(selectedStudent.finalPrice))}
+                    {formatCurrency(Number(selectedStudent.finalPrice), selectedStudent.currency as 'EUR' | 'INR')}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Paid:</span>
                   <span className="font-semibold ml-2 text-success">
-                    {formatCurrency(Number(selectedStudent.totalPaid))}
+                    {formatCurrency(Number(selectedStudent.totalPaid), selectedStudent.currency as 'EUR' | 'INR')}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Balance:</span>
                   <span className="font-semibold ml-2 text-warning">
-                    {formatCurrency(Number(selectedStudent.balance))}
+                    {formatCurrency(Number(selectedStudent.balance), selectedStudent.currency as 'EUR' | 'INR')}
                   </span>
                 </div>
                 <div>
@@ -377,7 +377,7 @@ function NewPaymentForm() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-700">Remaining Balance After Payment:</span>
               <span className="font-semibold text-foreground">
-                {formatCurrency(Number(selectedStudent.balance) - formData.amount)}
+                {formatCurrency(Number(selectedStudent.balance) - formData.amount, selectedStudent.currency as 'EUR' | 'INR')}
               </span>
             </div>
           </div>

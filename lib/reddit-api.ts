@@ -16,6 +16,8 @@ export interface RedditPost {
   num_comments: number
   created_utc: number
   thumbnail?: string
+  stickied: boolean
+  promoted: boolean
 }
 
 export interface RedditAPIResponse {
@@ -219,7 +221,7 @@ export async function fetchPostComments(
         comment.body.length > 50 && // Filter out short comments
         comment.upvotes >= 2 // Minimum engagement threshold
       )
-      .sort((a, b) => b.upvotes - a.upvotes) // Sort by upvotes (gems first!)
+      .sort((a: RedditComment, b: RedditComment) => b.upvotes - a.upvotes) // Sort by upvotes (gems first!)
       .slice(0, 50) // Top 50 most valuable comments
 
     return comments

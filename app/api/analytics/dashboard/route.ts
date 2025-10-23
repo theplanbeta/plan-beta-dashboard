@@ -80,12 +80,16 @@ export async function GET(request: NextRequest) {
     const activeBatches = batches.filter(
       (b) => b.status === "RUNNING" || b.status === "FILLING"
     ).length
+    // Calculate fill rate based on actual enrolled students vs total seats
     const avgFillRate =
       batches.length > 0
-        ? batches.reduce((sum, b) => sum + Number(b.fillRate), 0) / batches.length
+        ? batches.reduce((sum, b) => {
+            const fillRate = b.totalSeats > 0 ? (b.students.length / b.totalSeats) * 100 : 0
+            return sum + fillRate
+          }, 0) / batches.length
         : 0
     const totalSeatsAvailable = batches.reduce((sum, b) => sum + b.totalSeats, 0)
-    const totalSeatsOccupied = batches.reduce((sum, b) => sum + b.enrolledCount, 0)
+    const totalSeatsOccupied = batches.reduce((sum, b) => sum + b.students.length, 0)
 
     // Calculate referral metrics
     const totalReferrals = referrals.length

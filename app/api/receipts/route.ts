@@ -6,7 +6,7 @@ import { generateReceiptNumber } from '@/lib/receipt-storage'
 import { createAuditLog } from '@/lib/audit'
 import { gzipSync } from 'zlib'
 
-// POST /api/receipts - Generate and store receipt
+// POST /api/receipts - Generate and store receipt (or initialize receipt number)
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -16,10 +16,34 @@ export async function POST(req: NextRequest) {
 
     // Parse request body
     const body = await req.json()
-    const { paymentId, pdfBase64, jpgBase64 } = body
+    const { paymentId, pdfBase64, jpgBase64, initializeOnly } = body
 
     if (!paymentId) {
       return NextResponse.json({ error: 'Payment ID is required' }, { status: 400 })
+    }
+
+    // If initializeOnly is true, just generate and return the receipt number
+    // without saving files (client will regenerate with real number and call again)
+    if (initializeOnly) {
+      // Check if receipt already exists
+      const existingReceipt = await prisma.receipt.findFirst({
+        where: { paymentId },
+      })
+
+      if (existingReceipt) {
+        return NextResponse.json({
+          receiptNumber: existingReceipt.receiptNumber,
+          receiptId: existingReceipt.id,
+          alreadyExists: true
+        })
+      }
+
+      // Just generate and return the receipt number
+      const receiptNumber = generateReceiptNumber()
+      return NextResponse.json({
+        receiptNumber,
+        alreadyExists: false
+      })
     }
 
     if (!pdfBase64 && !jpgBase64) {

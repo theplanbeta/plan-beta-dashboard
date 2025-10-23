@@ -103,6 +103,10 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       return
     }
 
+    // Extract level from batch code (e.g., "A2-OCT-MOR-01" -> "A2")
+    const batchCode = payment.student.batch?.batchCode || ''
+    const level = batchCode ? batchCode.split('-')[0] : payment.student.currentLevel || 'N/A'
+
     // Prepare receipt data with auto-populated values
     const initialData = {
       date: formatDate(payment.paymentDate),
@@ -110,10 +114,10 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       studentName: payment.student.name,
       studentEmail: payment.student.email || '',
       studentPhone: payment.student.whatsapp,
-      level: payment.student.batch?.batchCode || 'N/A',
-      description: `German Language Course - ${payment.student.batch?.batchCode || 'Course'}`,
+      level: level,
+      description: `German Language Course - ${batchCode || 'Course'}`,
       month: new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'long' }),
-      batch: payment.student.batch?.batchCode || 'N/A',
+      batch: batchCode || 'N/A',
       amount: Number(payment.student.finalPrice),
       amountPaid: Number(payment.amount),
       totalAmount: Number(payment.student.finalPrice),

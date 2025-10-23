@@ -30,6 +30,13 @@ export async function GET(
         },
         payments: {
           orderBy: { paymentDate: "desc" },
+          include: {
+            receipts: {
+              select: {
+                id: true,
+              },
+            },
+          },
         },
         referralsGiven: true,
       },
@@ -39,7 +46,17 @@ export async function GET(
       return NextResponse.json({ error: "Student not found" }, { status: 404 })
     }
 
-    return NextResponse.json(student)
+    // Add hasReceipt field to each payment
+    const studentWithReceiptStatus = {
+      ...student,
+      payments: student.payments.map((payment) => ({
+        ...payment,
+        hasReceipt: payment.receipts && payment.receipts.length > 0,
+        receipts: undefined, // Remove the receipts array from the response
+      })),
+    }
+
+    return NextResponse.json(studentWithReceiptStatus)
   } catch (error) {
     console.error("Error fetching student:", error)
     return NextResponse.json(

@@ -44,6 +44,7 @@ type Student = {
     paymentDate: string
     method: string
     status: string
+    hasReceipt?: boolean
   }>
   attendance: Array<{
     id: string
@@ -274,9 +275,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           <Link
             href={`/dashboard/payments/new?studentId=${student.id}`}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            title="Record a payment to generate receipt"
+            title="Record a new payment"
           >
-            Record Payment & Generate Receipt
+            Record New Payment
           </Link>
           <Link
             href={`/dashboard/students/${student.id}/edit`}
@@ -426,10 +427,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                   href={`/dashboard/payments/new?studentId=${student.id}`}
                   className="inline-block px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                 >
-                  Record Payment & Generate Receipt
+                  Record New Payment
                 </Link>
                 <p className="text-xs text-gray-500 mt-3">
-                  For offline/cash payments that weren't recorded in the system
+                  Record a payment to generate receipts
                 </p>
               </div>
             ) : (
@@ -440,18 +441,25 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     href={`/dashboard/payments/${payment.id}`}
                     className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium">{formatCurrency(Number(payment.amount))}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         {formatDate(payment.paymentDate)} • {payment.method}
                       </div>
                       <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                        View details & generate receipt →
+                        {payment.hasReceipt ? 'View receipt & details →' : 'Generate receipt →'}
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(payment.status)}`}>
-                      {payment.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {payment.hasReceipt && (
+                        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          Has Receipt
+                        </span>
+                      )}
+                      <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(payment.status)}`}>
+                        {payment.status}
+                      </span>
+                    </div>
                   </Link>
                 ))}
               </div>

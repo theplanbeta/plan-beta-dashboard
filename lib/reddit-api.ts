@@ -27,14 +27,19 @@ export interface RedditAPIResponse {
 }
 
 /**
- * Fetch hot posts from a subreddit
+ * Fetch top posts from a subreddit (best quality content)
+ * @param subreddit - Subreddit name
+ * @param limit - Number of posts to fetch
+ * @param timeframe - Time period: hour, day, week, month, year, all
  */
 export async function fetchSubredditPosts(
   subreddit: string,
-  limit: number = 25
+  limit: number = 25,
+  timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'week'
 ): Promise<RedditPost[]> {
   try {
-    const url = `https://www.reddit.com/r/${subreddit}/hot.json?limit=${limit}`
+    // Fetch top posts for better quality content
+    const url = `https://www.reddit.com/r/${subreddit}/top.json?limit=${limit}&t=${timeframe}`
 
     const response = await fetch(url, {
       headers: {
@@ -48,10 +53,15 @@ export async function fetchSubredditPosts(
 
     const data: RedditAPIResponse = await response.json()
 
-    // Filter out stickied posts and ads
+    // Filter for quality: exclude stickied, ads, and low engagement
     const posts = data.data.children
       .map((child) => child.data)
-      .filter((post) => !post.stickied && !post.promoted)
+      .filter((post) =>
+        !post.stickied &&
+        !post.promoted &&
+        post.ups >= 50 && // Minimum 50 upvotes for quality
+        post.num_comments >= 5 // Has some discussion
+      )
 
     return posts
   } catch (error) {
@@ -152,5 +162,69 @@ export async function getSubredditInfo(subreddit: string) {
   } catch (error) {
     console.error(`Error getting info for r/${subreddit}:`, error)
     throw error
+  }
+}
+
+export interface RedditComment {
+  body: string
+  upvotes: number
+  author: string
+  isTopLevel: boolean
+}
+
+/**
+ * Fetch complete discussion with upvote data to identify gems
+ * @param subreddit - Subreddit name
+ * @param postId - Reddit post ID
+ * @param limit - Number of comments to fetch (default: 100 for full discussion)
+ */
+export async function fetchPostComments(
+  subreddit: string,
+  postId: string,
+  limit: number = 100
+): Promise<RedditComment[]> {
+  try {
+    const url = `https://www.reddit.com/r/${subreddit}/comments/${postId}.json?limit=${limit}&sort=top&depth=2`
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'PlanBeta Content Lab v1.0',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch comments: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    // Reddit returns [post, comments] array
+    const commentsData = data[1]?.data?.children || []
+
+    // Extract comments with metadata, filter out deleted/removed/bot
+    const comments: RedditComment[] = commentsData
+      .map((child: any) => {
+        const commentData = child.data
+        return {
+          body: commentData?.body || '',
+          upvotes: commentData?.ups || 0,
+          author: commentData?.author || '',
+          isTopLevel: true, // All top-level comments for now
+        }
+      })
+      .filter((comment: RedditComment) =>
+        comment.body &&
+        comment.body !== '[deleted]' &&
+        comment.body !== '[removed]' &&
+        comment.body.length > 50 && // Filter out short comments
+        comment.upvotes >= 2 // Minimum engagement threshold
+      )
+      .sort((a, b) => b.upvotes - a.upvotes) // Sort by upvotes (gems first!)
+      .slice(0, 50) // Top 50 most valuable comments
+
+    return comments
+  } catch (error) {
+    console.error(`Error fetching comments for post ${postId}:`, error)
+    return [] // Return empty array on error to not block content generation
   }
 }

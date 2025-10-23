@@ -65,15 +65,32 @@ export async function POST(request: NextRequest) {
 
     for (const subreddit of subreddits) {
       try {
-        const posts = await fetchSubredditPosts(subreddit.name, limit)
+        // Smart Multi-Timeframe Fetching
+        const timeframes: Array<'week' | 'month' | 'year' | 'all'> = ['week', 'month', 'year', 'all']
+        let currentTimeframeIndex = timeframes.indexOf(subreddit.currentTimeframe as any) || 0
+        let posts: any[] = []
+        let timeframeUsed = subreddit.currentTimeframe
+
+        // Try current timeframe first
+        posts = await fetchSubredditPosts(subreddit.name, limit, timeframeUsed as any)
+
+        // If no posts found and not at final timeframe, escalate
+        if (posts.length === 0 && currentTimeframeIndex < timeframes.length - 1) {
+          currentTimeframeIndex++
+          timeframeUsed = timeframes[currentTimeframeIndex]
+          console.log(`📊 r/${subreddit.name}: No posts in ${subreddit.currentTimeframe}, escalating to ${timeframeUsed}`)
+          posts = await fetchSubredditPosts(subreddit.name, limit, timeframeUsed as any)
+        }
+
         const savedCount = await savePostsToDatabase(subreddit.id, subreddit.name, posts)
 
-        // Update last fetched timestamp
+        // Update subreddit with new timeframe and timestamp
         await prisma.subreddit.update({
           where: { id: subreddit.id },
           data: {
             lastFetched: new Date(),
             postCount: savedCount,
+            currentTimeframe: timeframeUsed,
           },
         })
 
@@ -81,6 +98,7 @@ export async function POST(request: NextRequest) {
           subreddit: subreddit.name,
           fetched: posts.length,
           saved: savedCount,
+          timeframe: timeframeUsed,
         })
 
         // Small delay to avoid rate limiting

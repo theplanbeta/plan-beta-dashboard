@@ -103,6 +103,11 @@ export const NAVIGATION: NavItem[] = [
     roles: ['FOUNDER', 'MARKETING'],
   },
   {
+    name: 'Content Lab',
+    href: '/dashboard/content-lab',
+    roles: ['FOUNDER', 'MARKETING'],
+  },
+  {
     name: 'Students',
     href: '/dashboard/students',
     roles: ['FOUNDER', 'MARKETING', 'TEACHER'],

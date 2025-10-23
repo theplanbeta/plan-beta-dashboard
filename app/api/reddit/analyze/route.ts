@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { generateContentIdea } from '@/lib/gemini-content-analyzer'
+import { fetchPostComments } from '@/lib/reddit-api'
 
 // POST /api/reddit/analyze - Generate content idea from a Reddit post
 export async function POST(request: NextRequest) {
@@ -34,12 +35,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate content idea using Gemini
+    // Fetch complete discussion with upvote data to find gems
+    const comments = await fetchPostComments(
+      post.subredditName,
+      post.redditId,
+      100 // Fetch up to 100 comments
+    )
+
+    // Transform to format expected by AI (with upvotes)
+    const commentsWithVotes = comments.map(c => ({
+      body: c.body,
+      upvotes: c.upvotes
+    }))
+
+    // Generate content idea using Gemini - mine the discussion for gems!
     const idea = await generateContentIdea(
       post.title,
       post.selftext,
       post.upvotes,
-      post.subredditName
+      post.subredditName,
+      commentsWithVotes
     )
 
     // Save the content idea

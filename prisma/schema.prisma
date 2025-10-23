@@ -744,16 +744,17 @@ enum InvoiceStatus {
 }
 
 model Subreddit {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  description String?
-  category    String?
-  active      Boolean      @default(true)
-  lastFetched DateTime?
-  postCount   Int          @default(0)
-  posts       RedditPost[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  name             String       @unique
+  description      String?
+  category         String?
+  active           Boolean      @default(true)
+  lastFetched      DateTime?
+  postCount        Int          @default(0)
+  currentTimeframe String       @default("week") // week, month, year, all
+  posts            RedditPost[]
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   @@index([active])
   @@index([name])

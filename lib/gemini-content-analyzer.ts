@@ -16,39 +16,119 @@ export interface ContentIdeaOutput {
   topic: string
 }
 
+export interface RedditCommentWithVotes {
+  body: string
+  upvotes: number
+}
+
 /**
- * Generate Instagram Reel content idea from Reddit post
+ * Generate Instagram Reel content idea by mining discussion gems
  */
 export async function generateContentIdea(
   title: string,
   content: string | null,
   upvotes: number,
-  subreddit: string
+  subreddit: string,
+  comments: RedditCommentWithVotes[] = []
 ): Promise<ContentIdeaOutput> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  // Use model that works with our API
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' })
 
-  const prompt = `You are a content strategist for a German language school targeting Indians who want to learn German and move to Germany.
+  // Format comments with upvote data (gems first!)
+  const commentsSection = comments.length > 0
+    ? `\n\n📊 COMMUNITY DISCUSSION (${comments.length} comments, sorted by upvotes):\n${comments.map((c, i) =>
+        `\n💎 Comment #${i + 1} (${c.upvotes} upvotes):\n"${c.body}"`
+      ).join('\n')}`
+    : '\n\n(No significant comments available)'
 
-Analyze this Reddit post from r/${subreddit} and create an engaging Instagram Reel idea:
+  const prompt = `You are a CONTENT GEM MINER - an expert at finding golden insights from Reddit discussions and transforming them into viral Instagram Reels for Indians wanting to move to Germany.
 
-Title: "${title}"
-Content: "${content || 'No additional content'}"
-Upvotes: ${upvotes}
+🎯 YOUR MISSION: Mine this Reddit discussion for GEMS - surprising insights, counterintuitive truths, specific examples, emotional stories that Indians NEED to know about Germany.
 
-Generate a content idea that will:
-1. Capture attention of Indians interested in Germany
-2. Provide valuable information about life in Germany or learning German
-3. Be authentic and relatable
-4. Drive engagement and potentially generate leads
+📊 REDDIT DISCUSSION TO MINE:
+Subreddit: r/${subreddit}
+Post Title: "${title}"
+Post Content: "${content || 'See comments for details'}"
+Post Engagement: ${upvotes} upvotes${commentsSection}
 
-Return ONLY a valid JSON object with this exact structure (no markdown, no code blocks, just pure JSON):
+🔍 STEP 1: RELEVANCE CHECK
+FIRST, determine if this post is HELPFUL for Indians wanting to move to Germany:
+✅ YES: Visa tips, job market, culture, language, education, bureaucracy, expat experiences, living costs, integration challenges
+❌ NO: Local crime news, German politics, irrelevant local events, fear-mongering
+If NO → SKIP this post (return null or throw error)
+
+🔍 STEP 2: IDENTIFY THE GEMS
+Read through the ENTIRE discussion above. Look for:
+- 💎 HIGH-UPVOTE insights (community validated truths)
+- 💎 Specific numbers, examples, anecdotes (concrete facts)
+- 💎 Counterintuitive or surprising information
+- 💎 Emotional stories that resonate
+- 💎 Practical advice that people actually used
+- 💎 Common misconceptions being corrected
+
+🎬 STEP 3: CREATE A REEL THAT SHARES THESE GEMS
+
+Your reel must:
+
+1. **HOOK** (First 3 seconds) - Use the MOST surprising gem:
+   - Direct, specific, shocking or relatable
+   - Examples: "Germans earn €50K but feel poor - here's why" / "Moving to Germany? This mistake cost me €10,000"
+   - Must make Indians stop scrolling
+
+2. **SCRIPT** (30-45 seconds) - CLEAR STRUCTURE REQUIRED:
+
+   **Part 1: CONTEXT (5-10 seconds)** - Explain what the post is about:
+   - What situation, question, or topic is being discussed?
+   - Give enough context so viewer understands the scenario
+   - Example: "A Reddit user asked about rent prices in Berlin, and the responses were eye-opening..."
+
+   **Part 2: GEMS (20-30 seconds)** - Share 2-3 specific insights from comments:
+   - Use specific details, numbers, examples from comments
+   - Cite upvotes: "One comment with 500 upvotes revealed..."
+   - Connect each gem to why it matters for Indians moving to Germany
+
+   **Part 3: TAKEAWAY (5-10 seconds)** - End with actionable insight:
+   - What should viewers do with this information?
+   - How does this help their Germany journey?
+
+   ⚠️ CRITICAL: Viewer must understand WHAT happened/was discussed AND WHY it matters
+
+3. **VISUAL SUGGESTIONS** - How to show the gems:
+   - When to show comment text on screen
+   - When to use numbers/stats as overlays
+   - Specific b-roll that matches the gems
+   - Keep it simple and filmable
+
+4. **CAPTION** - Expand on gems not covered in video:
+   - Share 1-2 additional insights from comments
+   - Cite upvote counts for credibility ("Top comment with 300 upvotes...")
+   - Ask question that continues the discussion
+   - 50-80 words
+
+5. **HASHTAGS** - 6-8 relevant tags
+
+6. **TOPIC** - Choose ONE: CultureShock, Bureaucracy, LanguageTips, JobMarket, Education, DailyLife, Immigration, StudentLife, General
+
+🎯 QUALITY REQUIREMENTS:
+✅ MUST explain what the post is about FIRST (context before gems!)
+✅ MUST use specific gems from comments (cite upvotes!)
+✅ MUST connect gems to Indians moving to Germany (why does this matter?)
+✅ MUST be educational with concrete takeaways
+✅ MUST feel authentic, not promotional
+❌ NO jumping straight to comments without explaining the topic
+❌ NO generic advice that could apply anywhere
+❌ NO sales pitch for German classes
+❌ NO making up information
+❌ NO creating content from crime news or fear-based posts
+
+Return ONLY valid JSON:
 {
-  "hook": "An 8-10 word attention-grabbing opening line",
-  "script": "A complete 30-45 second reel script in conversational tone, broken into clear segments",
-  "visualSuggestions": "Detailed description of what to show on screen during the reel",
-  "caption": "A 50-80 word caption with call-to-action to learn German",
-  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5", "hashtag6", "hashtag7", "hashtag8"],
-  "topic": "One of: CultureShock, Bureaucracy, LanguageTips, JobMarket, Education, DailyLife, Immigration, StudentLife, General"
+  "hook": "Specific, shocking hook using a gem from the discussion",
+  "script": "30-45 second script telling the story of the gems you found. Use specific details, numbers, quotes. Cite upvotes for credibility.",
+  "visualSuggestions": "How to visually present the gems - when to show comments, stats, examples",
+  "caption": "Share additional gems not in video. Cite upvotes. Ask engaging question.",
+  "hashtags": ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8"],
+  "topic": "Choose one topic"
 }`
 
   try {
@@ -71,10 +151,14 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no code 
       throw new Error('Missing required fields in Gemini response')
     }
 
+    // Convert arrays to strings if needed (Gemini sometimes returns arrays)
+    const scriptText = Array.isArray(parsed.script) ? parsed.script.join('\n\n') : parsed.script
+    const visualText = Array.isArray(parsed.visualSuggestions) ? parsed.visualSuggestions.join('\n\n') : parsed.visualSuggestions
+
     return {
       hook: parsed.hook,
-      script: parsed.script,
-      visualSuggestions: parsed.visualSuggestions,
+      script: scriptText,
+      visualSuggestions: visualText,
       caption: parsed.caption,
       hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : [],
       topic: parsed.topic,

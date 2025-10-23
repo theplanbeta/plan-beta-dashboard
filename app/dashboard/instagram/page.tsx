@@ -31,6 +31,11 @@ export default function InstagramPage() {
   const [messages, setMessages] = useState<InstagramMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'comments' | 'messages'>('comments')
+  const [fetchingLabeled, setFetchingLabeled] = useState(false)
+  const [fetchResult, setFetchResult] = useState<{
+    success: boolean
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -52,6 +57,41 @@ export default function InstagramPage() {
       console.error('Error fetching Instagram data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleFetchLabeledLeads = async () => {
+    setFetchingLabeled(true)
+    setFetchResult(null)
+
+    try {
+      const response = await fetch('/api/instagram/fetch-labeled-leads', {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setFetchResult({
+          success: true,
+          message: `Successfully processed ${data.processed} labeled conversations! Created ${data.created} new leads, updated ${data.updated} existing leads.`,
+        })
+
+        // Refresh the data
+        fetchData()
+      } else {
+        setFetchResult({
+          success: false,
+          message: `Error: ${data.error || 'Failed to fetch labeled leads'}`,
+        })
+      }
+    } catch (error: any) {
+      setFetchResult({
+        success: false,
+        message: `Error: ${error.message}`,
+      })
+    } finally {
+      setFetchingLabeled(false)
     }
   }
 
@@ -105,6 +145,49 @@ export default function InstagramPage() {
         <p className="text-gray-600 dark:text-gray-300 mt-1">
           Track comments and messages from your Instagram business account
         </p>
+      </div>
+
+      {/* Fetch Labeled Leads Button */}
+      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+              🏷️ Capture Leads from Instagram Labels
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+              Label conversations as "Lead" in Instagram, then click here to automatically fetch them,
+              parse the messages with AI, and create lead records with quality scores.
+            </p>
+            <button
+              onClick={handleFetchLabeledLeads}
+              disabled={fetchingLabeled}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {fetchingLabeled ? '⏳ Fetching labeled conversations...' : '🔄 Fetch Labeled Leads'}
+            </button>
+          </div>
+        </div>
+
+        {/* Result Message */}
+        {fetchResult && (
+          <div
+            className={`mt-4 p-3 rounded-lg ${
+              fetchResult.success
+                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
+                : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+            }`}
+          >
+            <p
+              className={`text-sm ${
+                fetchResult.success
+                  ? 'text-green-800 dark:text-green-200'
+                  : 'text-red-800 dark:text-red-200'
+              }`}
+            >
+              {fetchResult.success ? '✅' : '❌'} {fetchResult.message}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}

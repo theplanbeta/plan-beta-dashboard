@@ -1,0 +1,720 @@
+[2025-10-23T10:25:28.687Z] ================================================================================
+[2025-10-23T10:25:28.687Z] 🔧 Payment Record Fixer Started
+[2025-10-23T10:25:28.687Z] Mode: 🔍 DRY RUN (no changes will be made)
+[2025-10-23T10:25:28.687Z] ================================================================================
+[2025-10-23T10:25:28.687Z] 
+[2025-10-23T10:25:28.687Z] ⚠️  Running in DRY-RUN mode. No changes will be made to the database.
+[2025-10-23T10:25:28.687Z] ⚠️  Review the output, then run with --execute flag to apply changes.
+[2025-10-23T10:25:28.687Z] 
+[2025-10-23T10:25:28.933Z] 📊 Found 30 students with totalPaid > 0
+[2025-10-23T10:25:28.933Z] 
+[2025-10-23T10:25:28.933Z] ⚠️  30 students need payment records created
+[2025-10-23T10:25:28.933Z] 
+[2025-10-23T10:25:28.933Z] 📋 STUDENTS TO BE FIXED:
+[2025-10-23T10:25:28.933Z] --------------------------------------------------------------------------------
+[2025-10-23T10:25:28.933Z] 
+Student: Ansi (2025-10-478)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-22
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:25:28.933Z] 
+Student: Krishnendhu (2025-10-503)
+  Batch: A1-NOV-EVE-01
+  Enrolled: 2025-10-20
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Bijin (2025-10-521)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-18
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: blesson yohannankutty (2025-10-408)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 80.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 80.00
+  Action: Create payment record for EUR 80.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: nikhil krishnan (2025-10-658)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Chithira Joseph   (2025-10-167)
+  Batch: B1-NOV-EVE-01
+  Enrolled: 2025-10-16
+  Currency: EUR
+  Total Paid in record: EUR 172.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 172.00
+  Action: Create payment record for EUR 172.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Kavin (2025-10-848)
+  Batch: B1-NOV-EVE-01
+  Enrolled: 2025-10-16
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Tinoy (2025-10-173)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-13
+  Currency: EUR
+  Total Paid in record: EUR 99.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 99.00
+  Action: Create payment record for EUR 99.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: noyal (2025-10-207)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: cyrild mon (2025-10-990)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Athira unni (2025-10-625)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: jithya susan (2025-10-799)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Dino Antony (2025-10-663)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: emi anna (2025-10-903)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Sofiaya Biju (2025-10-135)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 90.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 90.00
+  Action: Create payment record for INR 90.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: santhosh kumar (2025-10-463)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Vivek AS (2025-10-042)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Satish Babu (2025-10-859)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: laijesh (2025-10-993)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: aswin (2025-10-839)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 70.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 70.00
+  Action: Create payment record for EUR 70.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: devika (2025-10-969)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 70.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 70.00
+  Action: Create payment record for EUR 70.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Jinu John (2025-10-138)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Ranjith Rajan (2025-10-964)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Neethu Ninan (2025-10-393)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 80.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 80.00
+  Action: Create payment record for EUR 80.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: jismi (2025-10-171)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Saneekh Nedumattummal Santhikumar (2025-10-274)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: varghese simon (2025-10-225)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Navya Babu (2025-10-764)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 6000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 6000.00
+  Action: Create payment record for INR 6000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Sreeranjini (2025-10-751)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 6000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 6000.00
+  Action: Create payment record for INR 6000.00
+
+[2025-10-23T10:25:28.934Z] 
+Student: Deepak (2025-10-631)
+  Batch: No batch
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 65.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 65.00
+  Action: Create payment record for EUR 65.00
+
+[2025-10-23T10:25:28.934Z] --------------------------------------------------------------------------------
+[2025-10-23T10:25:28.934Z] 
+[2025-10-23T10:25:28.934Z] 📝 SUMMARY:
+[2025-10-23T10:25:28.935Z]   - Total students to fix: 30
+[2025-10-23T10:25:28.935Z]   - Total payment records to create: 30
+[2025-10-23T10:25:28.935Z] 
+[2025-10-23T10:25:28.935Z] ℹ️  DRY-RUN complete. No changes were made.
+[2025-10-23T10:25:28.935Z] 
+[2025-10-23T10:25:28.935Z] To apply these changes, run:
+[2025-10-23T10:25:28.935Z]   npx tsx scripts/fix-missing-payments.ts --execute
+[2025-10-23T10:25:28.935Z] 
+[2025-10-23T10:25:28.935Z] ================================================================================
+[2025-10-23T10:25:28.935Z] Log saved to: /Users/deepak/plan-beta-dashboard/logs/payment-fix-2025-10-23.log
+[2025-10-23T10:25:28.935Z] ================================================================================
+[2025-10-23T10:28:24.640Z] ================================================================================
+[2025-10-23T10:28:24.640Z] 🔧 Payment Record Fixer Started
+[2025-10-23T10:28:24.640Z] Mode: ⚡ EXECUTE MODE (changes WILL be made)
+[2025-10-23T10:28:24.640Z] ================================================================================
+[2025-10-23T10:28:24.640Z] 
+[2025-10-23T10:28:24.640Z] 🚨 EXECUTE MODE - Changes will be made to the database!
+[2025-10-23T10:28:24.640Z] 
+[2025-10-23T10:28:25.091Z] 📊 Found 30 students with totalPaid > 0
+[2025-10-23T10:28:25.091Z] 
+[2025-10-23T10:28:25.091Z] ⚠️  30 students need payment records created
+[2025-10-23T10:28:25.091Z] 
+[2025-10-23T10:28:25.091Z] 📋 STUDENTS TO BE FIXED:
+[2025-10-23T10:28:25.091Z] --------------------------------------------------------------------------------
+[2025-10-23T10:28:25.091Z] 
+Student: Ansi (2025-10-478)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-22
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:28:25.091Z] 
+Student: Krishnendhu (2025-10-503)
+  Batch: A1-NOV-EVE-01
+  Enrolled: 2025-10-20
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:28:25.091Z] 
+Student: Bijin (2025-10-521)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-18
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:28:25.091Z] 
+Student: blesson yohannankutty (2025-10-408)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 80.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 80.00
+  Action: Create payment record for EUR 80.00
+
+[2025-10-23T10:28:25.091Z] 
+Student: nikhil krishnan (2025-10-658)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Chithira Joseph   (2025-10-167)
+  Batch: B1-NOV-EVE-01
+  Enrolled: 2025-10-16
+  Currency: EUR
+  Total Paid in record: EUR 172.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 172.00
+  Action: Create payment record for EUR 172.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Kavin (2025-10-848)
+  Batch: B1-NOV-EVE-01
+  Enrolled: 2025-10-16
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Tinoy (2025-10-173)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-13
+  Currency: EUR
+  Total Paid in record: EUR 99.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 99.00
+  Action: Create payment record for EUR 99.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: noyal (2025-10-207)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: cyrild mon (2025-10-990)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Athira unni (2025-10-625)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 95.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 95.00
+  Action: Create payment record for EUR 95.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: jithya susan (2025-10-799)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Dino Antony (2025-10-663)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: emi anna (2025-10-903)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Sofiaya Biju (2025-10-135)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 90.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 90.00
+  Action: Create payment record for INR 90.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: santhosh kumar (2025-10-463)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Vivek AS (2025-10-042)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Satish Babu (2025-10-859)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-12
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: laijesh (2025-10-993)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 9000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 9000.00
+  Action: Create payment record for INR 9000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: aswin (2025-10-839)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 70.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 70.00
+  Action: Create payment record for EUR 70.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: devika (2025-10-969)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 70.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 70.00
+  Action: Create payment record for EUR 70.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Jinu John (2025-10-138)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Ranjith Rajan (2025-10-964)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 112.00
+  Action: Create payment record for EUR 112.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Neethu Ninan (2025-10-393)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 80.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 80.00
+  Action: Create payment record for EUR 80.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: jismi (2025-10-171)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Saneekh Nedumattummal Santhikumar (2025-10-274)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: varghese simon (2025-10-225)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Navya Babu (2025-10-764)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 6000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 6000.00
+  Action: Create payment record for INR 6000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Sreeranjini (2025-10-751)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: INR
+  Total Paid in record: INR 6000.00
+  Sum of payment transactions: INR 0.00
+  Discrepancy: INR 6000.00
+  Action: Create payment record for INR 6000.00
+
+[2025-10-23T10:28:25.092Z] 
+Student: Deepak (2025-10-631)
+  Batch: No batch
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 65.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 65.00
+  Action: Create payment record for EUR 65.00
+
+[2025-10-23T10:28:25.092Z] --------------------------------------------------------------------------------
+[2025-10-23T10:28:25.092Z] 
+[2025-10-23T10:28:25.092Z] 📝 SUMMARY:
+[2025-10-23T10:28:25.092Z]   - Total students to fix: 30
+[2025-10-23T10:28:25.092Z]   - Total payment records to create: 30
+[2025-10-23T10:28:25.092Z] 
+[2025-10-23T10:28:25.092Z] 🔄 Starting transaction to create payment records...
+[2025-10-23T10:28:25.093Z] 
+[2025-10-23T10:28:25.148Z]   ✅ Created payment record for Ansi (EUR 156.00)
+[2025-10-23T10:28:25.162Z]   ✅ Created payment record for Krishnendhu (EUR 134.00)
+[2025-10-23T10:28:25.175Z]   ✅ Created payment record for Bijin (EUR 134.00)
+[2025-10-23T10:28:25.188Z]   ✅ Created payment record for blesson yohannankutty (EUR 80.00)
+[2025-10-23T10:28:25.201Z]   ✅ Created payment record for nikhil krishnan (EUR 112.00)
+[2025-10-23T10:28:25.217Z]   ✅ Created payment record for Chithira Joseph   (EUR 172.00)
+[2025-10-23T10:28:25.229Z]   ✅ Created payment record for Kavin (EUR 156.00)
+[2025-10-23T10:28:25.242Z]   ✅ Created payment record for Tinoy (EUR 99.00)
+[2025-10-23T10:28:25.254Z]   ✅ Created payment record for noyal (EUR 95.00)
+[2025-10-23T10:28:25.266Z]   ✅ Created payment record for cyrild mon (EUR 95.00)
+[2025-10-23T10:28:25.278Z]   ✅ Created payment record for Athira unni (EUR 95.00)
+[2025-10-23T10:28:25.290Z]   ✅ Created payment record for jithya susan (EUR 100.00)
+[2025-10-23T10:28:25.303Z]   ✅ Created payment record for Dino Antony (EUR 100.00)
+[2025-10-23T10:28:25.317Z]   ✅ Created payment record for emi anna (EUR 100.00)
+[2025-10-23T10:28:25.329Z]   ✅ Created payment record for Sofiaya Biju (INR 90.00)
+[2025-10-23T10:28:25.341Z]   ✅ Created payment record for santhosh kumar (INR 9000.00)
+[2025-10-23T10:28:25.353Z]   ✅ Created payment record for Vivek AS (INR 9000.00)
+[2025-10-23T10:28:25.368Z]   ✅ Created payment record for Satish Babu (INR 9000.00)
+[2025-10-23T10:28:25.383Z]   ✅ Created payment record for laijesh (INR 9000.00)
+[2025-10-23T10:28:25.395Z]   ✅ Created payment record for aswin (EUR 70.00)
+[2025-10-23T10:28:25.410Z]   ✅ Created payment record for devika (EUR 70.00)
+[2025-10-23T10:28:25.423Z]   ✅ Created payment record for Jinu John (EUR 112.00)
+[2025-10-23T10:28:25.436Z]   ✅ Created payment record for Ranjith Rajan (EUR 112.00)
+[2025-10-23T10:28:25.451Z]   ✅ Created payment record for Neethu Ninan (EUR 80.00)
+[2025-10-23T10:28:25.466Z]   ✅ Created payment record for jismi (EUR 156.00)
+[2025-10-23T10:28:25.479Z]   ✅ Created payment record for Saneekh Nedumattummal Santhikumar (EUR 156.00)
+[2025-10-23T10:28:25.500Z]   ✅ Created payment record for varghese simon (EUR 134.00)
+[2025-10-23T10:28:25.513Z]   ✅ Created payment record for Navya Babu (INR 6000.00)
+[2025-10-23T10:28:25.544Z]   ✅ Created payment record for Sreeranjini (INR 6000.00)
+[2025-10-23T10:28:25.588Z]   ✅ Created payment record for Deepak (EUR 65.00)
+[2025-10-23T10:28:25.588Z] 
+[2025-10-23T10:28:25.589Z] ✅ Transaction complete! Created 30 payment records.
+[2025-10-23T10:28:25.634Z] 
+[2025-10-23T10:28:25.635Z] 🔍 Verifying the fix...
+[2025-10-23T10:28:25.635Z] 
+[2025-10-23T10:28:25.817Z]   ✅ Kavin: Verified (EUR 156.00 = 156.00)
+[2025-10-23T10:28:25.817Z]   ✅ Satish Babu: Verified (INR 9000.00 = 9000.00)
+[2025-10-23T10:28:25.817Z]   ✅ santhosh kumar: Verified (INR 9000.00 = 9000.00)
+[2025-10-23T10:28:25.817Z]   ✅ Sofiaya Biju: Verified (INR 90.00 = 90.00)
+[2025-10-23T10:28:25.818Z]   ✅ Dino Antony: Verified (EUR 100.00 = 100.00)
+[2025-10-23T10:28:25.818Z]   ✅ jithya susan: Verified (EUR 100.00 = 100.00)
+[2025-10-23T10:28:25.818Z]   ✅ Athira unni: Verified (EUR 95.00 = 95.00)
+[2025-10-23T10:28:25.818Z]   ✅ noyal: Verified (EUR 95.00 = 95.00)
+[2025-10-23T10:28:25.818Z]   ✅ Tinoy: Verified (EUR 99.00 = 99.00)
+[2025-10-23T10:28:25.818Z]   ✅ Chithira Joseph  : Verified (EUR 172.00 = 172.00)
+[2025-10-23T10:28:25.818Z]   ✅ jismi: Verified (EUR 156.00 = 156.00)
+[2025-10-23T10:28:25.818Z]   ✅ blesson yohannankutty: Verified (EUR 80.00 = 80.00)
+[2025-10-23T10:28:25.818Z]   ✅ Deepak: Verified (EUR 65.00 = 65.00)
+[2025-10-23T10:28:25.818Z]   ✅ cyrild mon: Verified (EUR 95.00 = 95.00)
+[2025-10-23T10:28:25.818Z]   ✅ Navya Babu: Verified (INR 6000.00 = 6000.00)
+[2025-10-23T10:28:25.819Z]   ✅ emi anna: Verified (EUR 100.00 = 100.00)
+[2025-10-23T10:28:25.819Z]   ✅ Vivek AS: Verified (INR 9000.00 = 9000.00)
+[2025-10-23T10:28:25.819Z]   ✅ varghese simon: Verified (EUR 134.00 = 134.00)
+[2025-10-23T10:28:25.819Z]   ✅ Neethu Ninan: Verified (EUR 80.00 = 80.00)
+[2025-10-23T10:28:25.819Z]   ✅ Sreeranjini: Verified (INR 6000.00 = 6000.00)
+[2025-10-23T10:28:25.819Z]   ✅ devika: Verified (EUR 70.00 = 70.00)
+[2025-10-23T10:28:25.819Z]   ✅ aswin: Verified (EUR 70.00 = 70.00)
+[2025-10-23T10:28:25.819Z]   ✅ Ranjith Rajan: Verified (EUR 112.00 = 112.00)
+[2025-10-23T10:28:25.819Z]   ✅ nikhil krishnan: Verified (EUR 112.00 = 112.00)
+[2025-10-23T10:28:25.819Z]   ✅ Jinu John: Verified (EUR 112.00 = 112.00)
+[2025-10-23T10:28:25.819Z]   ✅ laijesh: Verified (INR 9000.00 = 9000.00)
+[2025-10-23T10:28:25.819Z]   ✅ Krishnendhu: Verified (EUR 134.00 = 134.00)
+[2025-10-23T10:28:25.819Z]   ✅ Saneekh Nedumattummal Santhikumar: Verified (EUR 156.00 = 156.00)
+[2025-10-23T10:28:25.819Z]   ✅ Bijin: Verified (EUR 134.00 = 134.00)
+[2025-10-23T10:28:25.819Z]   ✅ Ansi: Verified (EUR 156.00 = 156.00)
+[2025-10-23T10:28:25.819Z] 
+[2025-10-23T10:28:25.819Z] 🎉 SUCCESS! All payment records have been created and verified.
+[2025-10-23T10:28:25.820Z] 
+[2025-10-23T10:28:25.820Z] ================================================================================
+[2025-10-23T10:28:25.820Z] Log saved to: /Users/deepak/plan-beta-dashboard/logs/payment-fix-2025-10-23.log
+[2025-10-23T10:28:25.820Z] ================================================================================

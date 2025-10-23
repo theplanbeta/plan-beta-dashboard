@@ -442,7 +442,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{formatCurrency(Number(payment.amount))}</div>
+                      <div className="font-medium">{formatCurrency(Number(payment.amount), normalizeCurrency(student.currency))}</div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
                         {formatDate(payment.paymentDate)} • {payment.method}
                       </div>

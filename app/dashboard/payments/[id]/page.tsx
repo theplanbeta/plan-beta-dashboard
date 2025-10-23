@@ -43,6 +43,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
   const [existingReceipt, setExistingReceipt] = useState<any>(null)
   const [showReceiptForm, setShowReceiptForm] = useState(false)
   const [receiptFormData, setReceiptFormData] = useState<any>(null)
+  const [deletingReceipt, setDeletingReceipt] = useState(false)
 
   useEffect(() => {
     fetchPayment()
@@ -204,6 +205,35 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
     } catch (error) {
       console.error('Error downloading receipt:', error)
       alert('Failed to download receipt')
+    }
+  }
+
+  const handleDeleteReceipt = async () => {
+    if (!existingReceipt) return
+
+    if (!confirm(`Are you sure you want to delete receipt ${existingReceipt.receiptNumber}? This action cannot be undone.`)) {
+      return
+    }
+
+    setDeletingReceipt(true)
+    try {
+      const res = await fetch(`/api/receipts/${existingReceipt.id}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to delete receipt')
+      }
+
+      alert('Receipt deleted successfully')
+      setExistingReceipt(null)
+      fetchPayment()
+    } catch (error) {
+      console.error('Error deleting receipt:', error)
+      alert('Failed to delete receipt: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    } finally {
+      setDeletingReceipt(false)
     }
   }
 
@@ -564,6 +594,13 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                 Created: {formatDate(existingReceipt.createdAt)} • Downloaded: {existingReceipt.downloadCount} times
               </div>
             </div>
+            <button
+              onClick={handleDeleteReceipt}
+              disabled={deletingReceipt}
+              className="px-3 py-1 border border-red-300 text-red-600 rounded-md hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            >
+              {deletingReceipt ? "Deleting..." : "Delete Receipt"}
+            </button>
           </div>
         </div>
       )}

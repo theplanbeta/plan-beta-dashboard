@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     const courseItems = {
       level: payment.student.currentLevel,
       description: `German Language Course - ${payment.student.currentLevel} Level`,
-      month: payment.student.batch?.batchCode.split('-')[0] || 'N/A',
+      month: payment.student.batch?.batchCode?.split('-')[0] || 'N/A',
       batch: payment.student.batch?.batchCode || 'N/A',
       amount: Number(payment.student.finalPrice),
     }

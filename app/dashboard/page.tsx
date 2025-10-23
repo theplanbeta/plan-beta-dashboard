@@ -22,11 +22,15 @@ type DashboardData = {
     totalRevenue: number
     totalRevenueEur: number
     totalRevenueInr: number
+    totalRevenueInrEurEquivalent: number
+    totalRevenueCombined: number
     totalPending: number
     avgRevPerStudent: number
     recentRevenue: number
     recentRevenueEur: number
     recentRevenueInr: number
+    recentRevenueInrEurEquivalent: number
+    recentRevenueCombined: number
     paymentBreakdown: Record<string, number>
     enrollmentBreakdown: Record<string, number>
   }
@@ -184,29 +188,21 @@ export default function DashboardPage() {
           <div className="flex items-center">
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
-              {data.financial.totalRevenueEur > 0 && (
-                <p className="mt-2 text-2xl font-semibold text-success dark:text-green-400">
-                  {formatCurrency(data.financial.totalRevenueEur, 'EUR')}
-                </p>
+              <p className="mt-2 text-3xl font-semibold text-success dark:text-green-400">
+                {formatCurrency(data.financial.totalRevenueCombined, 'EUR')}
+              </p>
+              {(data.financial.totalRevenueEur > 0 || data.financial.totalRevenueInr > 0) && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-0.5">
+                  {data.financial.totalRevenueEur > 0 && (
+                    <div>EUR: {formatCurrency(data.financial.totalRevenueEur, 'EUR')}</div>
+                  )}
+                  {data.financial.totalRevenueInr > 0 && (
+                    <div>INR: {formatCurrency(data.financial.totalRevenueInr, 'INR')} (€{data.financial.totalRevenueInrEurEquivalent.toFixed(2)} equiv)</div>
+                  )}
+                </div>
               )}
-              {data.financial.totalRevenueInr > 0 && (
-                <p className="text-2xl font-semibold text-success dark:text-green-400">
-                  {formatCurrency(data.financial.totalRevenueInr, 'INR')}
-                </p>
-              )}
-              {data.financial.totalRevenueEur === 0 && data.financial.totalRevenueInr === 0 && (
-                <p className="mt-2 text-3xl font-semibold text-gray-400">€0.00</p>
-              )}
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {data.financial.recentRevenueEur > 0 && (
-                  <div>+{formatCurrency(data.financial.recentRevenueEur, 'EUR')} this month</div>
-                )}
-                {data.financial.recentRevenueInr > 0 && (
-                  <div>+{formatCurrency(data.financial.recentRevenueInr, 'INR')} this month</div>
-                )}
-                {data.financial.recentRevenueEur === 0 && data.financial.recentRevenueInr === 0 && (
-                  <div>+€0.00 this month</div>
-                )}
+              <div className="text-xs text-success dark:text-green-400 mt-2">
+                +{formatCurrency(data.financial.recentRevenueCombined, 'EUR')} this month
               </div>
             </div>
             <div className="p-3 bg-warning/10 dark:bg-warning/20 rounded-full">

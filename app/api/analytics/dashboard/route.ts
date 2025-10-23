@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getEurEquivalent } from "@/lib/pricing"
 
 // GET /api/analytics/dashboard - Get dashboard analytics
 export async function GET(request: NextRequest) {
@@ -61,8 +62,12 @@ export async function GET(request: NextRequest) {
     const totalRevenueEur = eurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
     const totalRevenueInr = inrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
 
-    // For backward compatibility, use EUR total as default totalRevenue
-    const totalRevenue = totalRevenueEur
+    // Convert INR to EUR and calculate combined total
+    const totalRevenueInrEurEquivalent = getEurEquivalent(totalRevenueInr, 'INR')
+    const totalRevenueCombined = totalRevenueEur + totalRevenueInrEurEquivalent
+
+    // For backward compatibility, use combined total as default totalRevenue
+    const totalRevenue = totalRevenueCombined
 
     const totalPending = students.reduce(
       (sum, s) => sum + Number(s.balance),
@@ -141,8 +146,12 @@ export async function GET(request: NextRequest) {
     const recentRevenueEur = recentEurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
     const recentRevenueInr = recentInrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
 
-    // For backward compatibility, use EUR total as default recentRevenue
-    const recentRevenue = recentRevenueEur
+    // Convert INR to EUR and calculate combined recent revenue
+    const recentRevenueInrEurEquivalent = getEurEquivalent(recentRevenueInr, 'INR')
+    const recentRevenueCombined = recentRevenueEur + recentRevenueInrEurEquivalent
+
+    // For backward compatibility, use combined total as default recentRevenue
+    const recentRevenue = recentRevenueCombined
 
     // Level distribution
     const levelDistribution = {
@@ -169,11 +178,15 @@ export async function GET(request: NextRequest) {
         totalRevenue,
         totalRevenueEur,
         totalRevenueInr,
+        totalRevenueInrEurEquivalent,
+        totalRevenueCombined,
         totalPending,
         avgRevPerStudent,
         recentRevenue,
         recentRevenueEur,
         recentRevenueInr,
+        recentRevenueInrEurEquivalent,
+        recentRevenueCombined,
         paymentBreakdown,
         enrollmentBreakdown,
       },

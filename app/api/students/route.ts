@@ -187,6 +187,21 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Create initial payment record if totalPaid > 0
+    if (totalPaid.greaterThan(0)) {
+      await prisma.payment.create({
+        data: {
+          studentId: student.id,
+          amount: totalPaid,
+          currency,
+          paymentDate: student.enrollmentDate,
+          method: "OTHER", // Default method for initial payments during enrollment
+          status: "COMPLETED",
+          notes: "Initial payment recorded during student enrollment",
+        },
+      })
+    }
+
     // Mark lead as converted if this was a lead conversion
     if (leadId) {
       await prisma.lead.update({

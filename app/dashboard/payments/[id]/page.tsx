@@ -105,7 +105,7 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
 
     // Extract level from batch code (e.g., "A2-OCT-MOR-01" -> "A2")
     const batchCode = payment.student.batch?.batchCode || ''
-    const level = batchCode ? batchCode.split('-')[0] : payment.student.currentLevel || 'N/A'
+    const level = batchCode ? batchCode.split('-')[0] : 'N/A'
 
     // Prepare receipt data with auto-populated values
     const initialData = {

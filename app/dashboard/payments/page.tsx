@@ -8,6 +8,7 @@ type Payment = {
   id: string
   amount: number
   method: string
+  currency: string
   paymentDate: string
   status: string
   transactionId: string | null
@@ -82,14 +83,19 @@ export default function PaymentsPage() {
     )
   })
 
-  // Calculate stats
-  const totalRevenue = filteredPayments
-    .filter((p) => p.status === "COMPLETED")
-    .reduce((sum, p) => sum + Number(p.amount), 0)
+  // Calculate stats - separate by currency
+  const completedPayments = filteredPayments.filter((p) => p.status === "COMPLETED")
+
+  const eurPayments = completedPayments.filter(p => p.currency === 'EUR')
+  const inrPayments = completedPayments.filter(p => p.currency === 'INR')
+
+  const eurTotal = eurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+  const inrTotal = inrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+
+  const eurAvg = eurPayments.length > 0 ? eurTotal / eurPayments.length : 0
+  const inrAvg = inrPayments.length > 0 ? inrTotal / inrPayments.length : 0
+
   const pendingPayments = filteredPayments.filter((p) => p.status === "PENDING").length
-  const completedPayments = filteredPayments.filter((p) => p.status === "COMPLETED").length
-  const avgPayment =
-    completedPayments > 0 ? totalRevenue / completedPayments : 0
 
   if (loading) {
     return (
@@ -119,13 +125,26 @@ export default function PaymentsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Total Revenue</div>
-          <div className="text-2xl font-bold text-success dark:text-green-400 mt-1">
-            {formatCurrency(totalRevenue)}
-          </div>
+          {eurTotal > 0 && (
+            <div className="text-xl font-bold text-success dark:text-green-400 mt-1">
+              {formatCurrency(eurTotal, 'EUR')}
+            </div>
+          )}
+          {inrTotal > 0 && (
+            <div className="text-xl font-bold text-success dark:text-green-400 mt-1">
+              {formatCurrency(inrTotal, 'INR')}
+            </div>
+          )}
+          {eurTotal === 0 && inrTotal === 0 && (
+            <div className="text-2xl font-bold text-gray-400 mt-1">€0.00</div>
+          )}
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Completed</div>
-          <div className="text-2xl font-bold text-foreground dark:text-white mt-1">{completedPayments}</div>
+          <div className="text-2xl font-bold text-foreground dark:text-white mt-1">{completedPayments.length}</div>
+          {eurPayments.length > 0 && inrPayments.length > 0 && (
+            <div className="text-xs text-gray-500 mt-1">EUR: {eurPayments.length} • INR: {inrPayments.length}</div>
+          )}
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Pending</div>
@@ -133,9 +152,19 @@ export default function PaymentsPage() {
         </div>
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-sm text-gray-600 dark:text-gray-300">Avg Payment</div>
-          <div className="text-2xl font-bold text-info dark:text-blue-400 mt-1">
-            {formatCurrency(avgPayment)}
-          </div>
+          {eurAvg > 0 && (
+            <div className="text-lg font-bold text-info dark:text-blue-400 mt-1">
+              {formatCurrency(eurAvg, 'EUR')}
+            </div>
+          )}
+          {inrAvg > 0 && (
+            <div className="text-lg font-bold text-info dark:text-blue-400 mt-1">
+              {formatCurrency(inrAvg, 'INR')}
+            </div>
+          )}
+          {eurAvg === 0 && inrAvg === 0 && (
+            <div className="text-2xl font-bold text-gray-400 mt-1">€0.00</div>
+          )}
         </div>
       </div>
 
@@ -244,7 +273,7 @@ export default function PaymentsPage() {
                       <div className="text-xs text-gray-500 dark:text-gray-400">{payment.student.studentId}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900 dark:text-white">
-                      {formatCurrency(Number(payment.amount))}
+                      {formatCurrency(Number(payment.amount), payment.currency as 'EUR' | 'INR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded text-xs ${getMethodBadge(payment.method)}`}>

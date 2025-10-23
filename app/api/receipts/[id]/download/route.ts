@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { readReceiptFile } from '@/lib/receipt-storage'
 import { createAuditLog } from '@/lib/audit'
+import { gunzipSync } from 'zlib'
 
 // GET /api/receipts/[id]/download?format=pdf|jpg
 export async function GET(
@@ -47,18 +47,18 @@ export async function GET(
       return NextResponse.json({ error: 'Receipt not found' }, { status: 404 })
     }
 
-    // Get the appropriate file path
-    const filePath = format === 'pdf' ? receipt.pdfPath : receipt.jpgPath
+    // Get the appropriate compressed data from database
+    const compressedData = format === 'pdf' ? receipt.pdfData : receipt.jpgData
 
-    if (!filePath) {
+    if (!compressedData) {
       return NextResponse.json(
         { error: `${format.toUpperCase()} file not available for this receipt` },
         { status: 404 }
       )
     }
 
-    // Read and decompress file
-    const fileBuffer = await readReceiptFile(filePath)
+    // Decompress the file data
+    const fileBuffer = gunzipSync(Buffer.from(compressedData))
 
     // Update download count and last accessed time
     await prisma.receipt.update({

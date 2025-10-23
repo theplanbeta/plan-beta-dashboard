@@ -210,6 +210,8 @@ model Receipt {
   courseItems       Json
   pdfPath           String?
   jpgPath           String?
+  pdfData           Bytes?
+  jpgData           Bytes?
   pdfSize           Int?
   jpgSize           Int?
   downloadCount     Int      @default(0)

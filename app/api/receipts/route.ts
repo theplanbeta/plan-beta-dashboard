@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { generateReceiptNumber, saveReceiptFile } from '@/lib/receipt-storage'
+import { generateReceiptNumber } from '@/lib/receipt-storage'
 import { createAuditLog } from '@/lib/audit'
+import { gzipSync } from 'zlib'
 
 // POST /api/receipts - Generate and store receipt
 export async function POST(req: NextRequest) {
@@ -63,24 +64,26 @@ export async function POST(req: NextRequest) {
     // Generate unique receipt number
     const receiptNumber = generateReceiptNumber()
 
-    // Save PDF file if provided
-    let pdfPath: string | null = null
+    // Process PDF file if provided - store compressed data in database
+    let pdfData: Buffer | null = null
     let pdfSize: number | null = null
     if (pdfBase64) {
       const pdfBuffer = Buffer.from(pdfBase64, 'base64')
-      const pdfResult = await saveReceiptFile(pdfBuffer, receiptNumber, 'pdf')
-      pdfPath = pdfResult.filePath
-      pdfSize = pdfResult.compressedSize
+      // Compress the PDF data
+      pdfData = gzipSync(pdfBuffer, { level: 9 })
+      pdfSize = pdfData.length
+      console.log(`PDF: Original ${(pdfBuffer.length / 1024).toFixed(2)} KB, Compressed ${(pdfSize / 1024).toFixed(2)} KB`)
     }
 
-    // Save JPG file if provided
-    let jpgPath: string | null = null
+    // Process JPG file if provided - store compressed data in database
+    let jpgData: Buffer | null = null
     let jpgSize: number | null = null
     if (jpgBase64) {
       const jpgBuffer = Buffer.from(jpgBase64, 'base64')
-      const jpgResult = await saveReceiptFile(jpgBuffer, receiptNumber, 'jpg')
-      jpgPath = jpgResult.filePath
-      jpgSize = jpgResult.compressedSize
+      // Compress the JPG data
+      jpgData = gzipSync(jpgBuffer, { level: 9 })
+      jpgSize = jpgData.length
+      console.log(`JPG: Original ${(jpgBuffer.length / 1024).toFixed(2)} KB, Compressed ${(jpgSize / 1024).toFixed(2)} KB`)
     }
 
     // Prepare course items for storage
@@ -92,7 +95,7 @@ export async function POST(req: NextRequest) {
       amount: Number(payment.student.finalPrice),
     }
 
-    // Create receipt record in database
+    // Create receipt record in database with compressed file data
     const receipt = await prisma.receipt.create({
       data: {
         receiptNumber,
@@ -107,8 +110,8 @@ export async function POST(req: NextRequest) {
         transactionRef: payment.transactionId,
         invoiceNumber: payment.invoiceNumber,
         courseItems,
-        pdfPath,
-        jpgPath,
+        pdfData,
+        jpgData,
         pdfSize,
         jpgSize,
       },
@@ -125,8 +128,8 @@ export async function POST(req: NextRequest) {
         paymentId: payment.id,
         studentId: payment.studentId,
         amountPaid: Number(payment.amount),
-        hasPdf: !!pdfPath,
-        hasJpg: !!jpgPath,
+        hasPdf: !!pdfData,
+        hasJpg: !!jpgData,
       },
       request: req,
     })
@@ -138,8 +141,8 @@ export async function POST(req: NextRequest) {
         receiptNumber: receipt.receiptNumber,
         date: receipt.date,
         amountPaid: receipt.amountPaid,
-        hasPdf: !!pdfPath,
-        hasJpg: !!jpgPath,
+        hasPdf: !!pdfData,
+        hasJpg: !!jpgData,
       },
     })
   } catch (error) {

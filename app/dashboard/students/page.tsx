@@ -514,9 +514,6 @@ export default function StudentsPage() {
             <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
-                  Student ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Name
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
@@ -551,7 +548,7 @@ export default function StudentsPage() {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {monthFilteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={isTeacher ? 6 : 9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={isTeacher ? 5 : 8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     {students.length === 0
                       ? 'No students found. Click "Add Student" to create your first student.'
                       : 'No students found for the selected month.'}
@@ -560,9 +557,6 @@ export default function StudentsPage() {
               ) : (
                 monthFilteredStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                      {student.studentId}
-                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       <div className="flex items-center gap-2">
                         <Link
@@ -571,6 +565,7 @@ export default function StudentsPage() {
                         >
                           {student.name}
                         </Link>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">({student.studentId})</span>
                         {student.churnRisk !== 'LOW' && (
                           <div className="flex items-center gap-1">
                             <span

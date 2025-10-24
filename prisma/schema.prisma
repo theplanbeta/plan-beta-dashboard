@@ -102,6 +102,7 @@ model Student {
   invoices           Invoice[]
   convertedFromLead  Lead?
   payments           Payment[]
+  refunds            Refund[]
   referralsReceived  Referral[]       @relation("RefereeStudent")
   referralsGiven     Referral[]       @relation("ReferrerStudent")
   batch              Batch?           @relation(fields: [batchId], references: [id])
@@ -211,6 +212,7 @@ model Payment {
   updatedAt     DateTime          @updatedAt
   student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   receipts      Receipt[]
+  refunds       Refund[]
 
   @@index([studentId])
   @@index([paymentDate])
@@ -255,6 +257,32 @@ model Receipt {
   @@index([studentId])
   @@index([date])
   @@index([lastAccessedAt])
+}
+
+model Refund {
+  id                   String       @id @default(cuid())
+  studentId            String
+  paymentId            String?
+  refundAmount         Decimal      @db.Decimal(10, 2)
+  currency             String       @default("EUR")
+  refundDate           DateTime     @default(now())
+  refundMethod         PaymentMethod
+  refundReason         RefundReason
+  processedByUserId    String
+  processedByUserName  String
+  transactionId        String?
+  status               RefundStatus @default(PENDING)
+  notes                String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  student              Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payment              Payment?     @relation(fields: [paymentId], references: [id])
+
+  @@index([studentId])
+  @@index([paymentId])
+  @@index([refundDate])
+  @@index([status])
+  @@index([processedByUserId])
 }
 
 model Referral {
@@ -725,6 +753,7 @@ enum AuditAction {
   INVOICE_UPDATED
   INVOICE_CANCELLED
   PAYMENT_RECEIVED
+  REFUND_PROCESSED
   RECEIPT_GENERATED
   RECEIPT_DOWNLOADED
   RECEIPT_SENT
@@ -848,5 +877,20 @@ enum InteractionCategory {
   COURSE_INQUIRY
   FEEDBACK_REQUEST
   REFERRAL_DISCUSSION
+  OTHER
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  CANCELLED
+}
+
+enum RefundReason {
+  STUDENT_WITHDRAWAL
+  OVERPAYMENT
+  SERVICE_ISSUE
+  DUPLICATE_PAYMENT
+  BATCH_CANCELLED
   OTHER
 }

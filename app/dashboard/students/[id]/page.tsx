@@ -82,6 +82,20 @@ type StudentInteraction = {
   createdAt: string
 }
 
+type Refund = {
+  id: string
+  refundAmount: number
+  currency: string
+  refundDate: string
+  refundMethod: string
+  refundReason: string
+  processedByUserName: string
+  transactionId: string | null
+  status: string
+  notes: string | null
+  createdAt: string
+}
+
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -115,11 +129,23 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     followUpNeeded: false,
     followUpDate: "",
   })
+  const [refunds, setRefunds] = useState<Refund[]>([])
+  const [refundsLoading, setRefundsLoading] = useState(true)
+  const [refundError, setRefundError] = useState("")
+  const [submittingRefund, setSubmittingRefund] = useState(false)
+  const [refundForm, setRefundForm] = useState({
+    refundAmount: "",
+    refundMethod: "BANK_TRANSFER",
+    refundReason: "STUDENT_WITHDRAWAL",
+    transactionId: "",
+    notes: "",
+  })
 
   useEffect(() => {
     fetchStudent()
     fetchReviews()
     fetchInteractions()
+    fetchRefunds()
   }, [id])
 
   const fetchStudent = async () => {
@@ -245,6 +271,75 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       setInteractionError(error?.message || "Failed to submit interaction")
     } finally {
       setSubmittingInteraction(false)
+    }
+  }
+
+  const fetchRefunds = async () => {
+    try {
+      setRefundsLoading(true)
+      const res = await fetch(`/api/students/${id}/refunds`)
+      if (!res.ok) throw new Error("Failed to fetch refunds")
+      const data = await res.json()
+      setRefunds(data)
+      setRefundError("")
+    } catch (error) {
+      console.error("Error fetching refunds:", error)
+      setRefundError("Could not load refund history.")
+    } finally {
+      setRefundsLoading(false)
+    }
+  }
+
+  const handleRefundSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!refundForm.refundAmount || Number(refundForm.refundAmount) <= 0) {
+      setRefundError("Please enter a valid refund amount.")
+      return
+    }
+
+    if (!student) return
+
+    const refundAmount = Number(refundForm.refundAmount)
+    if (refundAmount > Number(student.totalPaid)) {
+      setRefundError(`Refund amount cannot exceed total paid (${formatCurrency(Number(student.totalPaid), normalizeCurrency(student.currency))})`)
+      return
+    }
+
+    setSubmittingRefund(true)
+    setRefundError("")
+
+    try {
+      const res = await fetch(`/api/students/${id}/refunds`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          refundAmount,
+          refundMethod: refundForm.refundMethod,
+          refundReason: refundForm.refundReason,
+          transactionId: refundForm.transactionId || undefined,
+          notes: refundForm.notes || undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to process refund")
+      }
+
+      setRefundForm({
+        refundAmount: "",
+        refundMethod: "BANK_TRANSFER",
+        refundReason: "STUDENT_WITHDRAWAL",
+        transactionId: "",
+        notes: "",
+      })
+      await fetchRefunds()
+      await fetchStudent()  // Refresh student data to show updated balances
+      alert("Refund processed successfully")
+    } catch (error: any) {
+      setRefundError(error?.message || "Failed to process refund")
+    } finally {
+      setSubmittingRefund(false)
     }
   }
 
@@ -1016,6 +1111,171 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submittingInteraction ? "Logging..." : "Log Interaction"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* Refunds Section */}
+  {!isTeacher && (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Refund History</h2>
+            {refundsLoading && <span className="text-xs text-gray-500">Loading…</span>}
+          </div>
+          {refundError && <p className="text-sm text-error mt-2">{refundError}</p>}
+          {!refundsLoading && refunds.length === 0 && !refundError && (
+            <p className="text-sm text-gray-500 mt-4">No refunds processed yet.</p>
+          )}
+          <div className="mt-4 space-y-4">
+            {refunds.map((refund) => (
+              <div key={refund.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-red-50/50 dark:bg-red-900/10">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-lg text-error">
+                        -{formatCurrency(Number(refund.refundAmount), normalizeCurrency(refund.currency))}
+                      </p>
+                      <span className="text-xs uppercase tracking-wide text-red-600 font-medium bg-red-100 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded-full">
+                        Refund
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{formatDateTime(refund.createdAt)}</p>
+                  </div>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    refund.status === "PROCESSED"
+                      ? "bg-success/10 text-success"
+                      : refund.status === "PENDING"
+                      ? "bg-warning/10 text-warning"
+                      : "bg-gray-100 text-gray-700"
+                  }`}>
+                    {refund.status}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400">Method:</p>
+                    <p className="font-medium">{formatEnumLabel(refund.refundMethod)}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400">Reason:</p>
+                    <p className="font-medium">{formatEnumLabel(refund.refundReason)}</p>
+                  </div>
+                  {refund.transactionId && (
+                    <div>
+                      <p className="text-gray-600 dark:text-gray-400">Transaction ID:</p>
+                      <p className="font-medium">{refund.transactionId}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400">Processed By:</p>
+                    <p className="font-medium">{refund.processedByUserName}</p>
+                  </div>
+                </div>
+                {refund.notes && (
+                  <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Notes:</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line mt-1">
+                      {refund.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-foreground">Process Refund</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            Issue a refund for this student. This will reduce their total paid amount and update their balance accordingly.
+          </p>
+          {student && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-xs text-gray-600 dark:text-gray-400">Maximum Refundable:</p>
+              <p className="text-lg font-bold text-blue-700 dark:text-blue-400">
+                {formatCurrency(Number(student.totalPaid), normalizeCurrency(student.currency))}
+              </p>
+            </div>
+          )}
+          <form onSubmit={handleRefundSubmit} className="mt-4 space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Refund Amount *</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={refundForm.refundAmount}
+                onChange={(e) => setRefundForm((prev) => ({ ...prev, refundAmount: e.target.value }))}
+                placeholder={`Max: ${student?.totalPaid || 0}`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Method</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={refundForm.refundMethod}
+                  onChange={(e) => setRefundForm((prev) => ({ ...prev, refundMethod: e.target.value }))}
+                >
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="UPI">UPI</option>
+                  <option value="CASH">Cash</option>
+                  <option value="CARD">Card</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Reason</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={refundForm.refundReason}
+                  onChange={(e) => setRefundForm((prev) => ({ ...prev, refundReason: e.target.value }))}
+                >
+                  <option value="STUDENT_WITHDRAWAL">Student Withdrawal</option>
+                  <option value="OVERPAYMENT">Overpayment</option>
+                  <option value="SERVICE_ISSUE">Service Issue</option>
+                  <option value="DUPLICATE_PAYMENT">Duplicate Payment</option>
+                  <option value="BATCH_CANCELLED">Batch Cancelled</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Transaction ID (optional)</label>
+              <input
+                type="text"
+                value={refundForm.transactionId}
+                onChange={(e) => setRefundForm((prev) => ({ ...prev, transactionId: e.target.value }))}
+                placeholder="Bank reference number"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Notes (optional)</label>
+              <textarea
+                value={refundForm.notes}
+                onChange={(e) => setRefundForm((prev) => ({ ...prev, notes: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Additional details about the refund..."
+              />
+            </div>
+            {refundError && <p className="text-sm text-error">{refundError}</p>}
+            <button
+              type="submit"
+              disabled={submittingRefund}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {submittingRefund ? "Processing..." : "Process Refund"}
             </button>
           </form>
         </div>

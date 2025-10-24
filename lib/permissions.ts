@@ -28,7 +28,6 @@ export const PERMISSIONS: Record<
     teachers: { read: true, create: true, update: true, delete: true },
     teacherHours: { read: true, create: true, update: true, delete: true },
     calendar: { read: true, create: true, update: true, delete: true },
-    instagram: { read: true, create: true, update: true, delete: true },
   },
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
@@ -44,7 +43,6 @@ export const PERMISSIONS: Record<
     teachers: { read: true, create: false, update: false, delete: false },
     teacherHours: { read: false, create: false, update: false, delete: false },
     calendar: { read: true, create: true, update: true, delete: false },
-    instagram: { read: true, create: true, update: true, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -98,11 +96,6 @@ export const NAVIGATION: NavItem[] = [
     roles: ['FOUNDER', 'MARKETING'],
   },
   {
-    name: 'Instagram',
-    href: '/dashboard/instagram',
-    roles: ['FOUNDER', 'MARKETING'],
-  },
-  {
     name: 'Content Lab',
     href: '/dashboard/content-lab',
     roles: ['FOUNDER', 'MARKETING'],
@@ -145,11 +138,6 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Insights',
     href: '/dashboard/insights',
-    roles: ['FOUNDER', 'MARKETING'],
-  },
-  {
-    name: 'Content',
-    href: '/dashboard/content',
     roles: ['FOUNDER', 'MARKETING'],
   },
   {

@@ -144,14 +144,20 @@ export async function GET(request: NextRequest) {
     }, {} as Record<string, number>)
 
     // === COST INSIGHTS ===
-    const totalTeacherCosts = teacherHours.reduce(
+    // Teacher costs are in INR, need to convert to EUR for profit calculations
+    const totalTeacherCostsINR = teacherHours.reduce(
       (sum, h) => sum + Number(h.totalAmount),
       0
     )
-    const totalTeacherCostsPaid = teacherHours
+    const totalTeacherCostsPaidINR = teacherHours
       .filter((h) => h.paid)
       .reduce((sum, h) => sum + Number(h.paidAmount || h.totalAmount), 0)
-    const totalTeacherCostsUnpaid = totalTeacherCosts - totalTeacherCostsPaid
+    const totalTeacherCostsUnpaidINR = totalTeacherCostsINR - totalTeacherCostsPaidINR
+
+    // Convert INR to EUR for profitability calculations
+    const totalTeacherCosts = totalTeacherCostsINR / EXCHANGE_RATE
+    const totalTeacherCostsPaid = totalTeacherCostsPaidINR / EXCHANGE_RATE
+    const totalTeacherCostsUnpaid = totalTeacherCostsUnpaidINR / EXCHANGE_RATE
 
     // Daily teacher costs for trend
     const teacherCostsByDay = generateDailyTeacherCosts(teacherHours, daysAgo)
@@ -328,14 +334,19 @@ export async function GET(request: NextRequest) {
       },
       costs: {
         teachers: {
-          total: totalTeacherCosts,
-          paid: totalTeacherCostsPaid,
-          unpaid: totalTeacherCostsUnpaid,
+          total: totalTeacherCostsINR, // Display in INR
+          totalEUR: totalTeacherCosts, // EUR for calculations
+          paid: totalTeacherCostsPaidINR,
+          paidEUR: totalTeacherCostsPaid,
+          unpaid: totalTeacherCostsUnpaidINR,
+          unpaidEUR: totalTeacherCostsUnpaid,
           daily: teacherCostsByDay,
-          avgDaily: avgDailyTeacherCosts,
-          projected: projectedMonthlyTeacherCosts,
+          avgDaily: avgDailyTeacherCosts * EXCHANGE_RATE, // Convert back to INR for display
+          avgDailyEUR: avgDailyTeacherCosts,
+          projected: projectedMonthlyTeacherCosts * EXCHANGE_RATE, // Convert back to INR for display
+          projectedEUR: projectedMonthlyTeacherCosts,
         },
-        total: totalTeacherCosts, // Can add other costs later
+        total: totalTeacherCosts, // EUR value for profit calculations
       },
       profitability: {
         gross: grossProfit,

@@ -565,7 +565,12 @@ export default function StudentsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       <div className="flex items-center gap-2">
-                        <span>{student.name}</span>
+                        <Link
+                          href={`/dashboard/students/${student.id}`}
+                          className="font-medium text-primary hover:text-primary-dark hover:underline"
+                        >
+                          {student.name}
+                        </Link>
                         {student.churnRisk !== 'LOW' && (
                           <div className="flex items-center gap-1">
                             <span
@@ -636,22 +641,15 @@ export default function StudentsPage() {
                       </span>
                     </td>
                     {!isTeacher && (
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Link
-                            href={`/dashboard/students/${student.id}`}
-                            className="text-primary hover:text-primary-dark"
-                          >
-                            View
-                          </Link>
-                          <span className="text-gray-300">|</span>
+                      <td className="px-6 py-4 text-sm pr-8">
+                        <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
                           <Link
                             href={`/dashboard/students/${student.id}/edit`}
                             className="text-info hover:text-info/80"
                           >
                             Edit
                           </Link>
-                          <span className="text-gray-300">|</span>
+                          <span className="text-gray-300 dark:text-gray-600">|</span>
                           <div className="inline-block">
                             <GenerateInvoiceButton
                               studentId={student.id}
@@ -663,7 +661,7 @@ export default function StudentsPage() {
                           </div>
                           {student.completionStatus === 'SUSPENDED' ? (
                             <>
-                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-300 dark:text-gray-600">|</span>
                               <button
                                 onClick={() => handleReactivate(student.id, student.name)}
                                 className="text-success hover:text-success/80"
@@ -673,7 +671,7 @@ export default function StudentsPage() {
                             </>
                           ) : student.completionStatus === 'ACTIVE' ? (
                             <>
-                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-300 dark:text-gray-600">|</span>
                               <button
                                 onClick={() => handleSuspend(student.id, student.name)}
                                 className="text-orange-600 hover:text-orange-700"

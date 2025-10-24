@@ -514,33 +514,33 @@ export default function StudentsPage() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Contact
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Level
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Batch
                 </th>
                 {!isTeacher && (
                   <>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                       Payment
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                       Balance
                     </th>
                   </>
                 )}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                   Status
                 </th>
                 {!isTeacher && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
+                  <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
                     Actions
                   </th>
                 )}
@@ -558,15 +558,15 @@ export default function StudentsPage() {
               ) : (
                 monthFilteredStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 py-3 text-sm text-gray-900 dark:text-white">
+                      <div className="flex items-center gap-1">
                         <Link
                           href={`/dashboard/students/${student.id}`}
                           className="font-medium text-primary hover:text-primary-dark hover:underline"
                         >
                           {student.name}
                         </Link>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">({student.studentId})</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">({student.studentId})</span>
                         {student.churnRisk !== 'LOW' && (
                           <div className="flex items-center gap-1">
                             <span
@@ -596,49 +596,39 @@ export default function StudentsPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div>{student.whatsapp}</div>
-                      {student.email && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{student.email}</div>
-                      )}
+                    <td className="px-3 py-3 text-sm text-gray-600 dark:text-gray-300">
+                      <div className="text-xs">{student.whatsapp}</div>
                     </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex flex-col gap-1">
-                        <span className={`px-2 py-1 rounded text-xs inline-block ${
-                          student.isCombo ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                        }`}>
-                          {student.isCombo ? 'Combo' : student.currentLevel}
-                        </span>
-                        {student.isCombo && student.comboLevels.length > 0 && (
-                          <span className="text-xs text-gray-600 dark:text-gray-400">
-                            {student.comboLevels.join(', ')}
-                          </span>
-                        )}
-                      </div>
+                    <td className="px-3 py-3 text-sm">
+                      <span className={`px-1.5 py-0.5 rounded text-xs ${
+                        student.isCombo ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                      }`}>
+                        {student.isCombo ? 'Combo' : student.currentLevel}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
+                    <td className="px-3 py-3 text-xs text-gray-600 dark:text-gray-300">
                       {student.batch ? student.batch.batchCode : "-"}
                     </td>
                     {!isTeacher && (
                       <>
-                        <td className="px-6 py-4 text-sm">
-                          <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
+                        <td className="px-3 py-3 text-sm">
+                          <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
                             {student.paymentStatus}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        <td className="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white">
                           {formatCurrency(Number(student.balance), student.currency as 'EUR' | 'INR')}
                         </td>
                       </>
                     )}
-                    <td className={`px-6 py-4 text-sm ${!isTeacher ? '' : 'pr-8'}`}>
-                      <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getCompletionBadge(student.completionStatus)}`}>
+                    <td className="px-3 py-3 text-sm">
+                      <span className={`px-1.5 py-0.5 rounded text-xs whitespace-nowrap ${getCompletionBadge(student.completionStatus)}`}>
                         {student.completionStatus}
                       </span>
                     </td>
                     {!isTeacher && (
-                      <td className="px-6 py-4 text-sm pr-8">
-                        <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+                      <td className="px-3 py-3 text-sm">
+                        <div className="flex items-center gap-1 flex-nowrap whitespace-nowrap">
                           <Link
                             href={`/dashboard/students/${student.id}`}
                             className="text-primary hover:text-primary-dark"

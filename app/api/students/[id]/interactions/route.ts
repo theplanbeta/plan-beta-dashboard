@@ -76,11 +76,17 @@ export async function POST(
 
     const { user } = check.session
 
+    // Fetch the user's name from the database
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { name: true, email: true },
+    })
+
     const interaction = await prisma.studentInteraction.create({
       data: {
         studentId: id,
         userId: user.id,
-        userName: user.name || user.email,
+        userName: dbUser?.name || dbUser?.email || "Unknown User",
         interactionType: validation.data.interactionType,
         category: validation.data.category,
         notes: validation.data.notes,

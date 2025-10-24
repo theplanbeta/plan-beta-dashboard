@@ -350,6 +350,74 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<jsPDF> {
 
   yPos += 28
 
+  // === REFUND POLICY - Warning Box ===
+  const darkRed: [number, number, number] = [139, 0, 0] // #8b0000
+
+  doc.setDrawColor(...brandRed)
+  doc.setLineWidth(1)
+  doc.setFillColor(254, 226, 226) // light red background
+  doc.roundedRect(15, yPos, 180, 12, 2, 2, 'FD')
+
+  doc.setTextColor(...brandRed)
+  doc.setFontSize(10)
+  doc.setFont('helvetica', 'bold')
+  doc.text('⚠ IMPORTANT: NO REFUND POLICY', 20, yPos + 6)
+
+  doc.setTextColor(...darkRed)
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Once classes begin, ALL FEES ARE 100% NON-REFUNDABLE regardless of attendance', 20, yPos + 10)
+
+  yPos += 16
+
+  // === REFUND POLICY - Detailed ===
+  doc.setFontSize(8.5)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(...textDark)
+  doc.text('Refund Policy:', 15, yPos)
+
+  yPos += 5
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(...textGray)
+
+  const policyLines = [
+    '• Full payment is due today. By making this payment, you acknowledge and accept our refund policy.',
+    '• Once the first class of the batch has commenced, all fees are non-refundable regardless of attendance.',
+    '• This policy exists because our small group batches begin with committed class sizes and instructor',
+    '  compensation is allocated accordingly from the course fees.',
+    '• This term is binding and non-negotiable upon payment.',
+  ]
+
+  policyLines.forEach((line) => {
+    doc.text(line, 15, yPos)
+    yPos += 4
+  })
+
+  yPos += 5
+
+  // === CONFIRMATION BOX ===
+  doc.setDrawColor(200, 200, 200)
+  doc.setFillColor(245, 245, 245)
+  doc.setLineWidth(0.5)
+  doc.roundedRect(15, yPos, 180, 15, 1, 1, 'FD')
+
+  doc.setFontSize(7.5)
+  doc.setFont('helvetica', 'italic')
+  doc.setTextColor(...textGray)
+  doc.text(
+    'By accepting this receipt, I confirm that I have read, understood, and agree to abide by the refund policy stated above.',
+    20,
+    yPos + 6
+  )
+  doc.text(
+    'I acknowledge that this policy is clear, fair, and legally binding.',
+    20,
+    yPos + 11
+  )
+
+  yPos += 20
+
   // === ADDITIONAL NOTES (if any) ===
   if (data.additionalNotes) {
     doc.setFillColor(250, 250, 250)
@@ -533,6 +601,25 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
           This receipt confirms that the payment has been received and processed successfully.
           ${parseFloat(balance) > 0 ? `<br/><span style="color: #dc2626; font-weight: bold;">Remaining balance of ${currencySymbol}${balance} is due immediately.</span>` : ''}
         </div>
+      </div>
+
+      <div style="background: #fee2e2; border: 2px solid #d2302c; border-radius: 4px; padding: 15px; margin-top: 20px;">
+        <div style="color: #d2302c; font-size: 13px; font-weight: bold; margin-bottom: 8px;">⚠ IMPORTANT: NO REFUND POLICY</div>
+        <div style="color: #8b0000; font-size: 10px; font-weight: bold; margin-bottom: 8px;">Once classes begin, ALL FEES ARE 100% NON-REFUNDABLE regardless of attendance</div>
+      </div>
+
+      <div style="border-left: 4px solid #d2302c; padding-left: 15px; margin-top: 15px; margin-bottom: 15px;">
+        <h3 style="margin: 0 0 8px 0; font-size: 11px; font-weight: bold; color: #d2302c;">REFUND POLICY</h3>
+        <p style="margin: 0; font-size: 9px; line-height: 1.6; color: #323232;">
+          • Full payment is due today. By making this payment, you acknowledge and accept our refund policy.<br/>
+          • Once the first class of the batch has commenced, all fees are <strong style="color: #d2302c;">non-refundable</strong> <strong style="color: #d2302c;">regardless of attendance</strong>.<br/>
+          • This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees.<br/>
+          • This term is <strong style="color: #d2302c;">binding and non-negotiable</strong> upon payment.
+        </p>
+      </div>
+
+      <div style="background: #f5f5f5; border: 1px solid #c8c8c8; border-radius: 4px; padding: 10px; font-size: 9px; font-style: italic; color: #505050;">
+        By accepting this receipt, I confirm that I have read and understood the refund policy stated above.
       </div>
 
       ${data.additionalNotes ? `

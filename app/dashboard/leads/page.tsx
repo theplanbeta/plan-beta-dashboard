@@ -538,7 +538,12 @@ export default function LeadsPage() {
               {filteredAndSortedLeads.map((lead) => (
                 <tr key={lead.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">{lead.name}</div>
+                    <Link
+                      href={`/dashboard/leads/${lead.id}`}
+                      className="text-sm font-medium text-primary hover:text-primary-dark hover:underline cursor-pointer"
+                    >
+                      {lead.name}
+                    </Link>
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       Added {formatDate(lead.createdAt)}
                     </div>

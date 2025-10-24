@@ -148,69 +148,78 @@ export async function POST(request: NextRequest) {
 
     // If converting from lead, update the lead record
     const leadId = data.leadId
+    const enrollmentDate = data.enrollmentDate ? new Date(data.enrollmentDate) : new Date()
 
-    const student = await prisma.student.create({
-      data: {
-        studentId,
-        name: data.name,
-        whatsapp: data.whatsapp,
-        email: data.email || null,
-        batchId: data.batchId || null,
-        enrollmentDate: data.enrollmentDate ? new Date(data.enrollmentDate) : new Date(),
-        currentLevel: data.currentLevel || "NEW",
-        isCombo: data.isCombo || false,
-        comboLevels: data.comboLevels || [],
-        originalPrice,
-        discountApplied,
-        finalPrice,
-        currency,
-        eurEquivalent,
-        exchangeRateUsed,
-        paymentStatus: data.paymentStatus || "PENDING",
-        totalPaid,
-        totalPaidEur,
-        balance,
-        referralSource: data.referralSource || "OTHER",
-        referredById: data.referredById || null,
-        trialAttended: data.trialAttended || false,
-        trialDate: data.trialDate ? new Date(data.trialDate) : null,
-        notes: data.notes || null,
-      },
-      include: {
-        batch: {
-          select: {
-            id: true,
-            batchCode: true,
-            level: true,
+    // Use transaction to ensure student and payment are created atomically
+    console.log(`[Student Creation] Starting transaction for student creation`)
+    console.log(`[Student Creation] totalPaid: ${totalPaid.toString()} ${currency}`)
+
+    const student = await prisma.$transaction(async (tx) => {
+      // Create student
+      const newStudent = await tx.student.create({
+        data: {
+          studentId,
+          name: data.name,
+          whatsapp: data.whatsapp,
+          email: data.email || null,
+          batchId: data.batchId || null,
+          enrollmentDate,
+          currentLevel: data.currentLevel || "NEW",
+          isCombo: data.isCombo || false,
+          comboLevels: data.comboLevels || [],
+          originalPrice,
+          discountApplied,
+          finalPrice,
+          currency,
+          eurEquivalent,
+          exchangeRateUsed,
+          paymentStatus: data.paymentStatus || "PENDING",
+          totalPaid,
+          totalPaidEur,
+          balance,
+          referralSource: data.referralSource || "OTHER",
+          referredById: data.referredById || null,
+          trialAttended: data.trialAttended || false,
+          trialDate: data.trialDate ? new Date(data.trialDate) : null,
+          notes: data.notes || null,
+        },
+        include: {
+          batch: {
+            select: {
+              id: true,
+              batchCode: true,
+              level: true,
+            },
           },
         },
-      },
-    })
+      })
 
-    // Create initial payment record if totalPaid > 0
-    if (totalPaid.greaterThan(0)) {
-      console.log(`[Student Creation] Creating payment record for student ${student.id} with amount ${totalPaid.toString()} ${currency}`)
-      try {
-        await prisma.payment.create({
+      // Create initial payment record if totalPaid > 0
+      // This MUST succeed if student creation succeeded
+      if (totalPaid.greaterThan(0)) {
+        console.log(`[Student Creation] Creating payment record for student ${newStudent.id} with amount ${totalPaid.toString()} ${currency}`)
+
+        await tx.payment.create({
           data: {
-            studentId: student.id,
+            studentId: newStudent.id,
             amount: totalPaid,
             currency,
-            paymentDate: student.enrollmentDate,
+            paymentDate: enrollmentDate,
             method: "OTHER", // Default method for initial payments during enrollment
             status: "COMPLETED",
             notes: "Initial payment recorded during student enrollment",
           },
         })
-        console.log(`[Student Creation] Payment record created successfully for student ${student.id}`)
-      } catch (paymentError) {
-        console.error(`[Student Creation] Failed to create payment record for student ${student.id}:`, paymentError)
-        // Don't fail the student creation if payment recording fails
-        // but log it clearly for debugging
+
+        console.log(`[Student Creation] Payment record created successfully for student ${newStudent.id}`)
+      } else {
+        console.log(`[Student Creation] Skipping payment record creation - totalPaid is ${totalPaid.toString()}`)
       }
-    } else {
-      console.log(`[Student Creation] Skipping payment record creation for student ${student.id} - totalPaid is ${totalPaid.toString()}`)
-    }
+
+      return newStudent
+    })
+
+    console.log(`[Student Creation] Transaction completed successfully for student ${student.id}`)
 
     // Mark lead as converted if this was a lead conversion
     if (leadId) {

@@ -109,6 +109,7 @@ model Student {
   referrals          Student[]        @relation("StudentReferrals")
   upsells            Upsell[]
   teacherReviews     TeacherReview[]  @relation("StudentTeacherReviews")
+  interactions       StudentInteraction[] @relation("StudentInteractions")
 
   @@index([studentId])
   @@index([whatsapp])
@@ -118,6 +119,30 @@ model Student {
   @@index([paymentStatus])
   @@index([churnRisk])
   @@index([currentLevel])
+}
+
+model StudentInteraction {
+  id              String              @id @default(cuid())
+  studentId       String
+  userId          String
+  userName        String
+  interactionType InteractionType
+  category        InteractionCategory
+  notes           String
+  outcome         String?
+  followUpDate    DateTime?
+  followUpNeeded  Boolean             @default(false)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  student         Student             @relation("StudentInteractions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([userId])
+  @@index([interactionType])
+  @@index([category])
+  @@index([followUpNeeded])
+  @@index([followUpDate])
+  @@index([createdAt])
 }
 
 model Batch {
@@ -803,4 +828,25 @@ model ContentIdea {
 
   @@index([status])
   @@index([createdAt])
+}
+
+enum InteractionType {
+  PHONE_CALL
+  WHATSAPP
+  EMAIL
+  IN_PERSON
+  SMS
+  OTHER
+}
+
+enum InteractionCategory {
+  CHURN_OUTREACH
+  PAYMENT_REMINDER
+  ATTENDANCE_FOLLOW_UP
+  GENERAL_CHECK_IN
+  COMPLAINT_RESOLUTION
+  COURSE_INQUIRY
+  FEEDBACK_REQUEST
+  REFERRAL_DISCUSSION
+  OTHER
 }

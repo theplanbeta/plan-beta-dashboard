@@ -69,6 +69,19 @@ type TeacherReview = {
   }
 }
 
+type StudentInteraction = {
+  id: string
+  userId: string
+  userName: string
+  interactionType: string
+  category: string
+  notes: string
+  outcome: string | null
+  followUpNeeded: boolean
+  followUpDate: string | null
+  createdAt: string
+}
+
 export default function StudentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -90,10 +103,23 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const [showReceiptForm, setShowReceiptForm] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<any>(null)
   const [receiptFormData, setReceiptFormData] = useState<any>(null)
+  const [interactions, setInteractions] = useState<StudentInteraction[]>([])
+  const [interactionsLoading, setInteractionsLoading] = useState(true)
+  const [interactionError, setInteractionError] = useState("")
+  const [submittingInteraction, setSubmittingInteraction] = useState(false)
+  const [interactionForm, setInteractionForm] = useState({
+    interactionType: "PHONE_CALL",
+    category: "GENERAL_CHECK_IN",
+    notes: "",
+    outcome: "",
+    followUpNeeded: false,
+    followUpDate: "",
+  })
 
   useEffect(() => {
     fetchStudent()
     fetchReviews()
+    fetchInteractions()
   }, [id])
 
   const fetchStudent = async () => {
@@ -123,6 +149,22 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       setReviewError("Could not load teacher notes.")
     } finally {
       setReviewsLoading(false)
+    }
+  }
+
+  const fetchInteractions = async () => {
+    try {
+      setInteractionsLoading(true)
+      const res = await fetch(`/api/students/${id}/interactions`)
+      if (!res.ok) throw new Error("Failed to fetch interactions")
+      const data = await res.json()
+      setInteractions(data)
+      setInteractionError("")
+    } catch (error) {
+      console.error("Error fetching interactions:", error)
+      setInteractionError("Could not load interaction history.")
+    } finally {
+      setInteractionsLoading(false)
     }
   }
 
@@ -158,6 +200,51 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       setReviewError(error?.message || "Failed to submit review")
     } finally {
       setSubmittingReview(false)
+    }
+  }
+
+  const handleInteractionSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!interactionForm.notes.trim()) {
+      setInteractionError("Please add details about the interaction.")
+      return
+    }
+
+    setSubmittingInteraction(true)
+    setInteractionError("")
+
+    try {
+      const res = await fetch(`/api/students/${id}/interactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interactionType: interactionForm.interactionType,
+          category: interactionForm.category,
+          notes: interactionForm.notes,
+          outcome: interactionForm.outcome || undefined,
+          followUpNeeded: interactionForm.followUpNeeded,
+          followUpDate: interactionForm.followUpDate || undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || "Failed to submit interaction")
+      }
+
+      setInteractionForm({
+        interactionType: "PHONE_CALL",
+        category: "GENERAL_CHECK_IN",
+        notes: "",
+        outcome: "",
+        followUpNeeded: false,
+        followUpDate: "",
+      })
+      await fetchInteractions()
+    } catch (error: any) {
+      setInteractionError(error?.message || "Failed to submit interaction")
+    } finally {
+      setSubmittingInteraction(false)
     }
   }
 
@@ -381,6 +468,13 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const isTeacher = session?.user?.role === "TEACHER"
+
+  const formatEnumLabel = (value: string) => {
+    return value
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ")
+  }
 
   return (
     <div className="space-y-6">
@@ -774,6 +868,160 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
       )}
     </div>
   </div>
+
+  {/* Admin Notes & Interactions Section */}
+  {!isTeacher && (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-foreground">Admin Notes & Interactions</h2>
+            {interactionsLoading && <span className="text-xs text-gray-500">Loading…</span>}
+          </div>
+          {interactionError && <p className="text-sm text-error mt-2">{interactionError}</p>}
+          {!interactionsLoading && interactions.length === 0 && !interactionError && (
+            <p className="text-sm text-gray-500 mt-4">No interactions logged yet. Log your first contact with this student below.</p>
+          )}
+          <div className="mt-4 space-y-4">
+            {interactions.map((interaction) => (
+              <div key={interaction.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-foreground">{interaction.userName}</p>
+                      <span className="text-xs uppercase tracking-wide text-blue-600 font-medium bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                        {formatEnumLabel(interaction.interactionType)}
+                      </span>
+                      <span className="text-xs uppercase tracking-wide text-purple-600 font-medium bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-0.5 rounded-full">
+                        {formatEnumLabel(interaction.category)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">{formatDateTime(interaction.createdAt)}</p>
+                  </div>
+                  {interaction.followUpNeeded && (
+                    <span className="text-xs font-semibold bg-warning/10 text-warning px-2 py-1 rounded">
+                      Follow-up needed{interaction.followUpDate ? `: ${formatDate(interaction.followUpDate)}` : ""}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-3">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Notes:</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line mt-1">
+                    {interaction.notes}
+                  </p>
+                </div>
+                {interaction.outcome && (
+                  <div className="mt-2">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Outcome:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line mt-1">
+                      {interaction.outcome}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-foreground">Log New Interaction</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            Document outreach, follow-ups, and conversations with students. This helps track engagement and ensure nothing falls through the cracks.
+          </p>
+          <form onSubmit={handleInteractionSubmit} className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={interactionForm.interactionType}
+                  onChange={(e) => setInteractionForm((prev) => ({ ...prev, interactionType: e.target.value }))}
+                >
+                  <option value="PHONE_CALL">Phone Call</option>
+                  <option value="WHATSAPP">WhatsApp</option>
+                  <option value="EMAIL">Email</option>
+                  <option value="IN_PERSON">In Person</option>
+                  <option value="SMS">SMS</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Category</label>
+                <select
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={interactionForm.category}
+                  onChange={(e) => setInteractionForm((prev) => ({ ...prev, category: e.target.value }))}
+                >
+                  <option value="GENERAL_CHECK_IN">General Check-in</option>
+                  <option value="CHURN_OUTREACH">Churn Outreach</option>
+                  <option value="PAYMENT_REMINDER">Payment Reminder</option>
+                  <option value="ATTENDANCE_FOLLOW_UP">Attendance Follow-up</option>
+                  <option value="COMPLAINT_RESOLUTION">Complaint Resolution</option>
+                  <option value="COURSE_INQUIRY">Course Inquiry</option>
+                  <option value="FEEDBACK_REQUEST">Feedback Request</option>
+                  <option value="REFERRAL_DISCUSSION">Referral Discussion</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Notes *</label>
+              <textarea
+                value={interactionForm.notes}
+                onChange={(e) => setInteractionForm((prev) => ({ ...prev, notes: e.target.value }))}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="What did you discuss? What was the student's response?"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Outcome (optional)</label>
+              <input
+                type="text"
+                value={interactionForm.outcome}
+                onChange={(e) => setInteractionForm((prev) => ({ ...prev, outcome: e.target.value }))}
+                placeholder="e.g., Student committed to attending next class"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="followUpNeeded"
+                checked={interactionForm.followUpNeeded}
+                onChange={(e) => setInteractionForm((prev) => ({ ...prev, followUpNeeded: e.target.checked }))}
+                className="rounded border-gray-300 focus:ring-2 focus:ring-primary"
+              />
+              <label htmlFor="followUpNeeded" className="text-sm text-gray-600">
+                Follow-up needed
+              </label>
+            </div>
+            {interactionForm.followUpNeeded && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Follow-up Date</label>
+                <input
+                  type="date"
+                  value={interactionForm.followUpDate}
+                  onChange={(e) => setInteractionForm((prev) => ({ ...prev, followUpDate: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={submittingInteraction}
+              className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {submittingInteraction ? "Logging..." : "Log Interaction"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  )}
     </div>
   )
 }

@@ -510,7 +510,7 @@ export default function StudentsPage() {
 
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full w-full">
             <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
@@ -635,8 +635,8 @@ export default function StudentsPage() {
                         </td>
                       </>
                     )}
-                    <td className="px-6 py-4 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs ${getCompletionBadge(student.completionStatus)}`}>
+                    <td className={`px-6 py-4 text-sm ${!isTeacher ? '' : 'pr-8'}`}>
+                      <span className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getCompletionBadge(student.completionStatus)}`}>
                         {student.completionStatus}
                       </span>
                     </td>

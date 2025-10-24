@@ -189,17 +189,27 @@ export async function POST(request: NextRequest) {
 
     // Create initial payment record if totalPaid > 0
     if (totalPaid.greaterThan(0)) {
-      await prisma.payment.create({
-        data: {
-          studentId: student.id,
-          amount: totalPaid,
-          currency,
-          paymentDate: student.enrollmentDate,
-          method: "OTHER", // Default method for initial payments during enrollment
-          status: "COMPLETED",
-          notes: "Initial payment recorded during student enrollment",
-        },
-      })
+      console.log(`[Student Creation] Creating payment record for student ${student.id} with amount ${totalPaid.toString()} ${currency}`)
+      try {
+        await prisma.payment.create({
+          data: {
+            studentId: student.id,
+            amount: totalPaid,
+            currency,
+            paymentDate: student.enrollmentDate,
+            method: "OTHER", // Default method for initial payments during enrollment
+            status: "COMPLETED",
+            notes: "Initial payment recorded during student enrollment",
+          },
+        })
+        console.log(`[Student Creation] Payment record created successfully for student ${student.id}`)
+      } catch (paymentError) {
+        console.error(`[Student Creation] Failed to create payment record for student ${student.id}:`, paymentError)
+        // Don't fail the student creation if payment recording fails
+        // but log it clearly for debugging
+      }
+    } else {
+      console.log(`[Student Creation] Skipping payment record creation for student ${student.id} - totalPaid is ${totalPaid.toString()}`)
     }
 
     // Mark lead as converted if this was a lead conversion

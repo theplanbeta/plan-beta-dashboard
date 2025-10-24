@@ -510,7 +510,8 @@ export default function StudentsPage() {
 
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="min-w-full w-full">
+          <div className="inline-block min-w-full align-middle">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">
@@ -690,6 +691,7 @@ export default function StudentsPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

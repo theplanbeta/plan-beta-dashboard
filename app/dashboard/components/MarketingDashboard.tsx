@@ -159,7 +159,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all">
           <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Lead Growth</div>
           <div className="mt-2 text-3xl font-bold text-purple-600 dark:text-purple-400">
@@ -175,16 +175,6 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
           </div>
           <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {data.overview.recentConversions} conversions
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all">
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Trial Show-Up</div>
-          <div className={`mt-2 text-3xl font-bold ${data.kpis.trialAttendanceRate >= 60 ? "text-success" : "text-error"}`}>
-            {data.kpis.trialAttendanceRate.toFixed(0)}%
-          </div>
-          <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {data.trials.attended}/{data.trials.scheduled} attended
           </div>
         </div>
 
@@ -255,21 +245,6 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
 
           <div className="relative">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Trial Attended</span>
-              <span className="text-lg font-bold text-gray-900 dark:text-white">{data.funnel.data.trialAttended}</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-              <div className={`h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold ${data.trials.attendanceRate >= 60 ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${(data.funnel.data.trialAttended / data.funnel.data.leads) * 100}%` }}>
-                {((data.funnel.data.trialAttended / data.funnel.data.leads) * 100).toFixed(0)}%
-              </div>
-            </div>
-            {data.trials.attendanceRate < 60 && (
-              <p className="text-xs text-error mt-1">⚠️ Low trial attendance - {(100 - data.trials.attendanceRate).toFixed(0)}% no-show rate</p>
-            )}
-          </div>
-
-          <div className="relative">
-            <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Converted to Student</span>
               <span className="text-lg font-bold text-success">{data.funnel.data.converted}</span>
             </div>
@@ -331,95 +306,52 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
         )}
       </div>
 
-      {/* Trial Conversion */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Trial Performance</h2>
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600 dark:text-gray-300">Show-Up Rate</span>
-                <span className={`font-bold ${data.trials.attendanceRate >= 60 ? 'text-success' : 'text-error'}`}>
-                  {data.trials.attendanceRate.toFixed(0)}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+      {/* Lead Quality */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Quality Distribution</h2>
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 dark:text-gray-300">🔥 HOT</span>
+            <div className="flex items-center gap-3">
+              <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
                 <div
-                  className={`h-3 rounded-full ${data.trials.attendanceRate >= 60 ? 'bg-success' : 'bg-error'}`}
-                  style={{ width: `${data.trials.attendanceRate}%` }}
+                  className="bg-error h-3 rounded-full"
+                  style={{ width: `${(data.leads.byQuality.HOT / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {data.trials.attended} attended / {data.trials.scheduled} scheduled
-              </p>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600 dark:text-gray-300">Trial → Conversion</span>
-                <span className={`font-bold ${data.trials.conversionRate >= 60 ? 'text-success' : 'text-warning'}`}>
-                  {data.trials.conversionRate.toFixed(0)}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                <div
-                  className={`h-3 rounded-full ${data.trials.conversionRate >= 60 ? 'bg-success' : 'bg-warning'}`}
-                  style={{ width: `${data.trials.conversionRate}%` }}
-                />
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {data.trials.converted} enrolled / {data.trials.attended} attended
-              </p>
+              <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
+                {data.leads.byQuality.HOT}
+              </span>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Quality</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">🔥 HOT</span>
-              <div className="flex items-center gap-3">
-                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-error h-2 rounded-full"
-                    style={{ width: `${(data.leads.byQuality.HOT / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
-                  />
-                </div>
-                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
-                  {data.leads.byQuality.HOT}
-                </span>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 dark:text-gray-300">🌡️ WARM</span>
+            <div className="flex items-center gap-3">
+              <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div
+                  className="bg-warning h-3 rounded-full"
+                  style={{ width: `${(data.leads.byQuality.WARM / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
+                />
               </div>
+              <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
+                {data.leads.byQuality.WARM}
+              </span>
             </div>
+          </div>
 
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">🌡️ WARM</span>
-              <div className="flex items-center gap-3">
-                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-warning h-2 rounded-full"
-                    style={{ width: `${(data.leads.byQuality.WARM / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
-                  />
-                </div>
-                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
-                  {data.leads.byQuality.WARM}
-                </span>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-600 dark:text-gray-300">❄️ COLD</span>
+            <div className="flex items-center gap-3">
+              <div className="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div
+                  className="bg-info h-3 rounded-full"
+                  style={{ width: `${(data.leads.byQuality.COLD / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
+                />
               </div>
-            </div>
-
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">❄️ COLD</span>
-              <div className="flex items-center gap-3">
-                <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-info h-2 rounded-full"
-                    style={{ width: `${(data.leads.byQuality.COLD / (data.leads.byQuality.HOT + data.leads.byQuality.WARM + data.leads.byQuality.COLD)) * 100}%` }}
-                  />
-                </div>
-                <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
-                  {data.leads.byQuality.COLD}
-                </span>
-              </div>
+              <span className="font-semibold text-gray-900 dark:text-white w-12 text-right">
+                {data.leads.byQuality.COLD}
+              </span>
             </div>
           </div>
         </div>
@@ -459,7 +391,7 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Link
           href="/dashboard/leads/new"
           className="bg-purple-600 dark:bg-purple-500 text-white rounded-lg shadow-sm p-6 hover:bg-purple-700 hover:scale-105 transition-all"
@@ -482,6 +414,14 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
         >
           <div className="text-lg font-semibold">View Students</div>
           <div className="mt-2 text-sm opacity-90">{data.students.recentEnrollments} recent</div>
+        </Link>
+
+        <Link
+          href="/dashboard/payments/new"
+          className="bg-warning dark:bg-yellow-500 text-white rounded-lg shadow-sm p-6 hover:bg-yellow-600 hover:scale-105 transition-all"
+        >
+          <div className="text-lg font-semibold">Record Payment</div>
+          <div className="mt-2 text-sm opacity-90">Log a new payment</div>
         </Link>
 
         <Link

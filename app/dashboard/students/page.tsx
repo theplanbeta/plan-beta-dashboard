@@ -566,7 +566,6 @@ export default function StudentsPage() {
                         >
                           {student.name}
                         </Link>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">({student.studentId})</span>
                         {student.churnRisk !== 'LOW' && (
                           <div className="flex items-center gap-1">
                             <span

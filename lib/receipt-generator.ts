@@ -560,26 +560,28 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
         </tbody>
       </table>
 
-      <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 6px; padding: 15px; margin-left: auto; width: 280px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span style="color: #6b7280; font-size: 11px;">Total Course Fee</span>
-          <span style="color: #374151; font-weight: bold; font-size: 12px;">${currencySymbol}${total}</span>
+      <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 6px; padding: 0; margin-left: auto; width: 280px; overflow: hidden;">
+        <div style="padding: 15px 15px 10px 15px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #6b7280; font-size: 11px;">Total Course Fee</span>
+            <span style="color: #374151; font-weight: bold; font-size: 12px;">${currencySymbol}${total}</span>
+          </div>
         </div>
 
-        <div style="background: #16a34a; color: white; padding: 10px; margin: -15px -15px 12px -15px; border-radius: 4px 4px 0 0;">
+        <div style="background: #16a34a; color: white; padding: 12px 15px;">
           <div style="font-size: 11px; font-weight: bold;">AMOUNT PAID</div>
           <div style="font-size: 18px; font-weight: bold; margin-top: 3px;">${currencySymbol}${paid}</div>
         </div>
 
         ${parseFloat(balance) > 0 ? `
-          <div style="border-top: 2px solid #16a34a; padding-top: 8px; margin-top: 8px;">
+          <div style="padding: 12px 15px;">
             <div style="display: flex; justify-content: space-between;">
               <span style="font-weight: bold; color: #dc2626; font-size: 11px;">Balance Due</span>
               <span style="font-weight: bold; color: #dc2626; font-size: 14px;">${currencySymbol}${balance}</span>
             </div>
           </div>
         ` : `
-          <div style="border-top: 2px solid #16a34a; padding-top: 8px; margin-top: 8px; text-align: center;">
+          <div style="padding: 12px 15px; text-align: center;">
             <div style="color: #16a34a; font-weight: bold; font-size: 12px;">✓ PAID IN FULL</div>
           </div>
         `}

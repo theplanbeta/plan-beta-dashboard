@@ -644,6 +644,13 @@ export default function StudentsPage() {
                       <td className="px-6 py-4 text-sm pr-8">
                         <div className="flex items-center gap-2 flex-nowrap whitespace-nowrap">
                           <Link
+                            href={`/dashboard/students/${student.id}`}
+                            className="text-primary hover:text-primary-dark"
+                          >
+                            View
+                          </Link>
+                          <span className="text-gray-300 dark:text-gray-600">|</span>
+                          <Link
                             href={`/dashboard/students/${student.id}/edit`}
                             className="text-info hover:text-info/80"
                           >

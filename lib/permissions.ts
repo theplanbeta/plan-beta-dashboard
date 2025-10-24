@@ -32,7 +32,7 @@ export const PERMISSIONS: Record<
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
     batches: { read: true, create: true, update: true, delete: false },
-    payments: { read: false, create: false, update: false, delete: false },
+    payments: { read: true, create: false, update: false, delete: false },
     attendance: { read: false, create: false, update: false, delete: false },
     referrals: { read: true, create: true, update: true, delete: false },
     analytics: { read: true, create: false, update: false, delete: false },
@@ -128,7 +128,7 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Payments',
     href: '/dashboard/payments',
-    roles: ['FOUNDER'],
+    roles: ['FOUNDER', 'MARKETING'],
   },
   {
     name: 'Referrals',

@@ -436,32 +436,46 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             ) : (
               <div className="space-y-3">
                 {student.payments.slice(0, 5).map((payment) => (
-                  <Link
+                  <div
                     key={payment.id}
-                    href={`/dashboard/payments/${payment.id}`}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{formatCurrency(Number(payment.amount), normalizeCurrency(student.currency))}</div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                      <div className="font-semibold text-lg">{formatCurrency(Number(payment.amount), normalizeCurrency(student.currency))}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {formatDate(payment.paymentDate)} • {payment.method}
                       </div>
-                      <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                        {payment.hasReceipt ? 'View receipt & details →' : 'Generate receipt →'}
-                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {payment.hasReceipt && (
-                        <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                          Has Receipt
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col gap-1 items-end">
+                        {payment.hasReceipt && (
+                          <span className="px-2 py-1 rounded text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                            Has Receipt
+                          </span>
+                        )}
+                        <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(payment.status)}`}>
+                          {payment.status}
                         </span>
-                      )}
-                      <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(payment.status)}`}>
-                        {payment.status}
-                      </span>
+                      </div>
+                      <Link
+                        href={`/dashboard/payments/${payment.id}`}
+                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark text-sm font-medium whitespace-nowrap"
+                      >
+                        {payment.hasReceipt ? 'View Receipt' : 'Generate Receipt'}
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 ))}
+                {student.payments.length > 5 && (
+                  <div className="text-center pt-2">
+                    <Link
+                      href={`/dashboard/payments?studentId=${student.id}`}
+                      className="text-sm text-primary hover:text-primary-dark hover:underline"
+                    >
+                      View all {student.payments.length} payments →
+                    </Link>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils"
 import { normalizeCurrency } from "@/lib/currency"
+import { generateReceiptPDF, generateReceiptJPGBlob } from "@/lib/receipt-generator"
+import type { ReceiptData } from "@/lib/receipt-types"
 
 type Student = {
   id: string
@@ -84,6 +86,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     category: "",
     comment: "",
   })
+  const [generatingReceipt, setGeneratingReceipt] = useState<string | null>(null)
+  const [showReceiptForm, setShowReceiptForm] = useState(false)
+  const [selectedPayment, setSelectedPayment] = useState<any>(null)
+  const [receiptFormData, setReceiptFormData] = useState<any>(null)
 
   useEffect(() => {
     fetchStudent()
@@ -223,6 +229,124 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     } finally {
       setSuspending(false)
     }
+  }
+
+  const handleGenerateReceipt = async (payment: any) => {
+    if (!student) return
+
+    if (payment.hasReceipt) {
+      // Navigate to payment detail page to view existing receipt
+      router.push(`/dashboard/payments/${payment.id}`)
+      return
+    }
+
+    setGeneratingReceipt(payment.id)
+
+    try {
+      // Fetch full payment details
+      const paymentRes = await fetch(`/api/payments/${payment.id}`)
+      if (!paymentRes.ok) throw new Error('Failed to fetch payment details')
+      const paymentData = await paymentRes.json()
+
+      // Extract level from batch code
+      const batchCode = student.batch?.batchCode || ''
+      const level = batchCode ? batchCode.split('-')[0] : 'N/A'
+
+      // STEP 1: Get the real receipt number from server
+      const initRes = await fetch('/api/receipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: payment.id,
+          initializeOnly: true
+        })
+      })
+
+      if (!initRes.ok) {
+        const error = await initRes.json()
+        throw new Error(error.error || 'Failed to initialize receipt')
+      }
+
+      const initResult = await initRes.json()
+
+      if (initResult.alreadyExists) {
+        alert(`Receipt already exists: ${initResult.receiptNumber}`)
+        await fetchStudent()
+        return
+      }
+
+      const realReceiptNumber = initResult.receiptNumber
+
+      // STEP 2: Generate PDF/JPG with the REAL receipt number
+      const receiptData: ReceiptData = {
+        receiptNumber: realReceiptNumber,
+        date: formatDate(payment.paymentDate),
+        currency: normalizeCurrency(student.currency) as 'EUR' | 'INR',
+        studentName: student.name,
+        studentEmail: student.email || undefined,
+        studentPhone: student.whatsapp,
+        items: [{
+          level: level,
+          description: `German Language Course - ${batchCode || 'Course'}`,
+          month: new Date(payment.paymentDate).toLocaleDateString('en-US', { month: 'long' }),
+          batch: batchCode || 'N/A',
+          amount: Number(student.finalPrice)
+        }],
+        amountPaid: Number(payment.amount),
+        totalAmount: Number(student.finalPrice),
+        balanceRemaining: Number(student.balance),
+        paymentMethod: payment.method.replace(/_/g, ' ') as any,
+        transactionReference: paymentData.transactionId || undefined,
+        paymentStatus: student.balance > 0 ? 'PARTIAL_PAYMENT' : 'PAID_IN_FULL',
+        invoiceNumber: paymentData.invoiceNumber || undefined
+      }
+
+      // Generate PDF
+      const pdfDoc = await generateReceiptPDF(receiptData)
+      const pdfBlob = pdfDoc.output('blob')
+      const pdfBase64 = await blobToBase64(pdfBlob)
+
+      // Generate JPG
+      const jpgBlob = await generateReceiptJPGBlob(receiptData)
+      const jpgBase64 = await blobToBase64(jpgBlob)
+
+      // STEP 3: Send files to server to complete the receipt
+      const res = await fetch('/api/receipts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: payment.id,
+          pdfBase64: pdfBase64.split(',')[1],
+          jpgBase64: jpgBase64.split(',')[1]
+        })
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || 'Failed to generate receipt')
+      }
+
+      const result = await res.json()
+      alert(`Receipt generated successfully!\nReceipt Number: ${result.receipt.receiptNumber}`)
+
+      // Refresh student data
+      await fetchStudent()
+    } catch (error) {
+      console.error('Error generating receipt:', error)
+      alert('Failed to generate receipt: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    } finally {
+      setGeneratingReceipt(null)
+    }
+  }
+
+  // Helper function to convert Blob to base64
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
   }
 
   if (loading) {
@@ -457,12 +581,13 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                           {payment.status}
                         </span>
                       </div>
-                      <Link
-                        href={`/dashboard/payments/${payment.id}`}
-                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark text-sm font-medium whitespace-nowrap"
+                      <button
+                        onClick={() => handleGenerateReceipt(payment)}
+                        disabled={generatingReceipt === payment.id}
+                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark text-sm font-medium whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {payment.hasReceipt ? 'View Receipt' : 'Generate Receipt'}
-                      </Link>
+                        {generatingReceipt === payment.id ? 'Generating...' : payment.hasReceipt ? 'View Receipt' : 'Generate Receipt'}
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -93,12 +93,15 @@ export async function POST(request: NextRequest) {
     // Create Instagram message record for tracking
     await prisma.instagramMessage.create({
       data: {
+        messageId: `tasker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         conversationId: `tasker_${data.senderName.toLowerCase().replace(/\s/g, "_")}`,
-        senderId: "unknown",
-        senderUsername: data.senderName,
-        message: data.messagePreview || `[${data.notificationType}] No preview available`,
-        timestamp: data.timestamp ? new Date(data.timestamp) : new Date(),
-        isFromPage: false,
+        instagramHandle: data.senderName,
+        direction: "INCOMING",
+        content: data.messagePreview || `[${data.notificationType}] No preview available`,
+        sentAt: data.timestamp ? new Date(data.timestamp) : new Date(),
+        isRead: false,
+        leadCreated: true,
+        leadId: lead.id,
       },
     })
 

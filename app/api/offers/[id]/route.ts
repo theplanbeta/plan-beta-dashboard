@@ -23,13 +23,15 @@ const updateOfferLetterSchema = z.object({
 })
 
 // GET /api/offers/[id] - Get specific offer letter
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const check = await checkPermission('offers', 'read')
     if (!check.authorized) return check.response
 
+    const { id } = await params
+
     const offerLetter = await prisma.offerLetter.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacher: {
           select: {
@@ -54,11 +56,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 }
 
 // PATCH /api/offers/[id] - Update offer letter
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const check = await checkPermission('offers', 'update')
     if (!check.authorized) return check.response
 
+    const { id } = await params
     const body = await req.json()
 
     // Validate request
@@ -74,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // Check if offer exists
     const existingOffer = await prisma.offerLetter.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacher: {
           select: {
@@ -91,7 +94,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // Update offer letter
     const updatedOffer = await prisma.offerLetter.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(data.teacherAddress && { teacherAddress: data.teacherAddress }),
         ...(data.offerDate && { offerDate: new Date(data.offerDate) }),
@@ -136,14 +139,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 // DELETE /api/offers/[id] - Delete offer letter
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const check = await checkPermission('offers', 'delete')
     if (!check.authorized) return check.response
 
+    const { id } = await params
+
     // Check if offer exists
     const existingOffer = await prisma.offerLetter.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacher: {
           select: {
@@ -170,7 +175,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     // Delete offer letter
     await prisma.offerLetter.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
     // Audit log

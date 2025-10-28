@@ -5,14 +5,16 @@ import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 
 // POST /api/offers/[id]/generate - Generate PDF for offer letter
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const check = await checkPermission('offers', 'update')
     if (!check.authorized) return check.response
 
+    const { id } = await params
+
     // Get offer letter
     const offerLetter = await prisma.offerLetter.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         teacher: {
           select: {
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Update status to GENERATED (will generate PDF on client side)
     const updatedOffer = await prisma.offerLetter.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: 'GENERATED',
         sentAt: new Date(), // Mark as generated/sent

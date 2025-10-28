@@ -43,6 +43,7 @@ model User {
   leads                Lead[]
   teacherHours         TeacherHours[]  @relation("TeacherHours")
   teacherReviews       TeacherReview[] @relation("TeacherReviewer")
+  offerLetters         OfferLetter[]   @relation("TeacherOffers")
 
   @@index([email])
   @@index([role])
@@ -893,4 +894,55 @@ enum RefundReason {
   DUPLICATE_PAYMENT
   BATCH_CANCELLED
   OTHER
+}
+
+model OfferLetter {
+  id                  String      @id @default(cuid())
+  offerNumber         String      @unique
+
+  // Teacher info
+  teacherId           String
+  teacher             User        @relation("TeacherOffers", fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherAddress      String
+
+  // Dates
+  offerDate           DateTime
+  acceptanceDeadline  DateTime
+
+  // Position
+  positionType        String      @default("PART_TIME")
+
+  // Batch rates (historical snapshot)
+  batchAssignments    Json
+
+  // Status tracking
+  status              OfferStatus @default(DRAFT)
+  sentAt              DateTime?
+  viewedAt            DateTime?
+
+  // Generated PDF
+  pdfUrl              String?
+  pdfData             Bytes?
+
+  // Audit
+  createdBy           String
+  createdByEmail      String
+  notes               String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([offerDate])
+  @@index([offerNumber])
+}
+
+enum OfferStatus {
+  DRAFT
+  GENERATED
+  SENT
+  VIEWED
+  ACCEPTED
+  REJECTED
+  EXPIRED
 }

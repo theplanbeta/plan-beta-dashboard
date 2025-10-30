@@ -45,6 +45,7 @@ export default function OfferLettersPage() {
   const [offers, setOffers] = useState<OfferLetter[]>([])
   const [loading, setLoading] = useState(true)
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>("ALL")
 
   useEffect(() => {
@@ -95,6 +96,34 @@ export default function OfferLettersPage() {
       alert("Failed to generate PDF. Please try again.")
     } finally {
       setGeneratingPDF(null)
+    }
+  }
+
+  const handleSendEmail = async (offer: OfferLetter) => {
+    if (!confirm(`Send offer letter ${offer.offerNumber} to ${offer.teacher.name} (${offer.teacher.email})?`)) {
+      return
+    }
+
+    setSendingEmail(offer.id)
+    try {
+      const res = await fetch(`/api/offers/${offer.id}/send-email`, {
+        method: "POST",
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        alert(`✅ Offer letter sent successfully to ${offer.teacher.email}`)
+        // Refresh offers list to show updated status
+        await fetchOffers()
+      } else {
+        const error = await res.json()
+        alert(`❌ Failed to send email: ${error.error || error.details}`)
+      }
+    } catch (error) {
+      console.error("Error sending email:", error)
+      alert("❌ Failed to send email. Please try again.")
+    } finally {
+      setSendingEmail(null)
     }
   }
 
@@ -250,6 +279,13 @@ export default function OfferLettersPage() {
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
                   >
                     {generatingPDF === offer.id ? "Generating..." : "📄 Download PDF"}
+                  </button>
+                  <button
+                    onClick={() => handleSendEmail(offer)}
+                    disabled={sendingEmail === offer.id}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                  >
+                    {sendingEmail === offer.id ? "Sending..." : "📧 Send Email"}
                   </button>
                   <Link
                     href={`/dashboard/offers/${offer.id}/edit`}

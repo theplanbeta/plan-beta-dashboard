@@ -25,6 +25,8 @@ type Student = {
   consecutiveAbsences: number
   attendanceRate: number
   churnRisk: 'LOW' | 'MEDIUM' | 'HIGH'
+  hasRefunds: boolean
+  totalRefunded: number
   batch: {
     id: string
     batchCode: string
@@ -162,7 +164,12 @@ export default function StudentsPage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, hasRefunds: boolean) => {
+    // If student has refunds, show REFUNDED badge instead
+    if (hasRefunds) {
+      return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
+    }
+
     const colors = {
       PAID: "bg-success/10 text-success",
       PENDING: "bg-warning/10 text-warning",
@@ -447,8 +454,8 @@ export default function StudentsPage() {
                   <div className="bg-white dark:bg-gray-800 rounded-lg p-4 space-y-3 border border-gray-200 dark:border-gray-600">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-500 dark:text-gray-400">Payment Status</span>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(student.paymentStatus)}`}>
-                        {student.paymentStatus}
+                      <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${getStatusBadge(student.paymentStatus, student.hasRefunds)}`}>
+                        {student.hasRefunds ? 'REFUNDED' : student.paymentStatus}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600">
@@ -611,8 +618,8 @@ export default function StudentsPage() {
                     {!isTeacher && (
                       <>
                         <td className="px-3 py-3 text-sm">
-                          <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
-                            {student.paymentStatus}
+                          <span className={`px-1.5 py-0.5 rounded text-xs ${getStatusBadge(student.paymentStatus, student.hasRefunds)}`}>
+                            {student.hasRefunds ? 'REFUNDED' : student.paymentStatus}
                           </span>
                         </td>
                         <td className="px-3 py-3 text-xs font-medium text-gray-900 dark:text-white">

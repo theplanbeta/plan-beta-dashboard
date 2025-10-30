@@ -90,13 +90,29 @@ export async function GET(request: NextRequest) {
             level: true,
           },
         },
+        refunds: {
+          select: {
+            id: true,
+            refundAmount: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     })
 
-    return NextResponse.json(students)
+    // Calculate total refunded amount for each student
+    const studentsWithRefunds = students.map(student => ({
+      ...student,
+      totalRefunded: student.refunds.reduce(
+        (sum, refund) => sum + Number(refund.refundAmount),
+        0
+      ),
+      hasRefunds: student.refunds.length > 0,
+    }))
+
+    return NextResponse.json(studentsWithRefunds)
   } catch (error) {
     console.error("Error fetching students:", error)
     return NextResponse.json(

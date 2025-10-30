@@ -186,7 +186,7 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<jsP
 
   doc.setFont('helvetica', 'normal')
   data.batchAssignments.forEach(batch => {
-    doc.text(`• ${batch.level}: ₹${batch.rate} per hour`, 20, yPos)
+    doc.text(`• ${batch.level}: INR ${batch.rate} per hour`, 20, yPos)
     yPos += 6
   })
 
@@ -258,7 +258,7 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<jsP
   })
 
   data.batchAssignments.forEach(batch => {
-    doc.text(`• ${batch.level}: ₹${batch.rate} per hour`, 20, yPos)
+    doc.text(`• ${batch.level}: INR ${batch.rate} per hour`, 20, yPos)
     yPos += 4
   })
 

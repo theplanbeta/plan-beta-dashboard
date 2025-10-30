@@ -486,7 +486,7 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<jsP
     '',
     '• Plan Beta may modify hourly rates and batch assignments with 15 days notice.',
     '',
-    '• All disputes arising from this agreement will be subject to the jurisdiction of courts in Bangalore, India.',
+    '• All disputes arising from this agreement will be subject to the jurisdiction of courts in Kerala, India.',
     '',
     '• This offer letter supersedes any prior verbal or written agreements.',
   ]

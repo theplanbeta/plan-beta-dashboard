@@ -514,16 +514,22 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<jsP
   doc.text('Sincerely,', 15, yPos)
   yPos += 15
 
-  // Founder signature section
+  // Digital authorization section
   doc.setFont('helvetica', 'bold')
-  doc.text('________________________', 15, yPos)
-  yPos += 5
+  doc.text('Digitally Authorized By:', 15, yPos)
+  yPos += 6
   doc.setFont('helvetica', 'normal')
   doc.text('Aparna Bose', 15, yPos)
   yPos += 4
   doc.text('Founder and Director, Plan Beta School of German', 15, yPos)
   yPos += 4
   doc.text(`Date: ${data.offerDate}`, 15, yPos)
+  yPos += 6
+  doc.setFontSize(9)
+  doc.setTextColor(100, 100, 100)
+  doc.text('This offer letter is digitally authorized and does not require a physical signature.', 15, yPos)
+  doc.setTextColor(0, 0, 0)
+  doc.setFontSize(10)
 
   yPos += 20
 

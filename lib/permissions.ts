@@ -44,7 +44,7 @@ export const PERMISSIONS: Record<
     teachers: { read: true, create: false, update: false, delete: false },
     teacherHours: { read: false, create: false, update: false, delete: false },
     calendar: { read: true, create: true, update: true, delete: false },
-    offers: { read: true, create: true, update: true, delete: false },
+    offers: { read: false, create: false, update: false, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -120,7 +120,7 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Offer Letters',
     href: '/dashboard/offers',
-    roles: ['FOUNDER', 'MARKETING'],
+    roles: ['FOUNDER'],
   },
   {
     name: 'Teacher Hours',

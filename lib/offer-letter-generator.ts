@@ -519,9 +519,9 @@ export async function generateOfferLetterPDF(data: OfferLetterData): Promise<jsP
   doc.text('________________________', 15, yPos)
   yPos += 5
   doc.setFont('helvetica', 'normal')
-  doc.text('Deepak Singh', 15, yPos)
+  doc.text('Aparna Bose', 15, yPos)
   yPos += 4
-  doc.text('Founder, Plan Beta School of German', 15, yPos)
+  doc.text('Founder and Director, Plan Beta School of German', 15, yPos)
   yPos += 4
   doc.text(`Date: ${data.offerDate}`, 15, yPos)
 

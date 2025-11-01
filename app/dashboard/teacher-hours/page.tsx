@@ -408,6 +408,7 @@ export default function TeacherHoursPage() {
           grandTotal={payrollData.grandTotal}
           period={payrollData.period}
           loading={payrollLoading}
+          onRefresh={fetchPayroll}
         />
       )}
 

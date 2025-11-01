@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDownIcon, ChevronRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, ArrowDownTrayIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { formatCurrency } from '@/lib/utils'
 import { TeacherPayrollSummary } from '@/app/api/teacher-hours/monthly-payroll/route'
+import BulkMarkPaidModal from './BulkMarkPaidModal'
 
 interface MonthlyPayrollTableProps {
   teachers: TeacherPayrollSummary[]
@@ -21,6 +22,7 @@ interface MonthlyPayrollTableProps {
     endDate: string
   }
   loading: boolean
+  onRefresh?: () => void
 }
 
 export default function MonthlyPayrollTable({
@@ -28,8 +30,11 @@ export default function MonthlyPayrollTable({
   grandTotal,
   period,
   loading,
+  onRefresh,
 }: MonthlyPayrollTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+  const [bulkMarkPaidModalOpen, setBulkMarkPaidModalOpen] = useState(false)
+  const [selectedTeacher, setSelectedTeacher] = useState<TeacherPayrollSummary | null>(null)
 
   const toggleRow = (teacherId: string) => {
     const newExpanded = new Set(expandedRows)
@@ -39,6 +44,19 @@ export default function MonthlyPayrollTable({
       newExpanded.add(teacherId)
     }
     setExpandedRows(newExpanded)
+  }
+
+  const handleMarkAsPaid = (teacher: TeacherPayrollSummary) => {
+    setSelectedTeacher(teacher)
+    setBulkMarkPaidModalOpen(true)
+  }
+
+  const handleMarkPaidSuccess = () => {
+    setBulkMarkPaidModalOpen(false)
+    setSelectedTeacher(null)
+    if (onRefresh) {
+      onRefresh()
+    }
   }
 
   const exportToCSV = () => {
@@ -144,6 +162,9 @@ export default function MonthlyPayrollTable({
                 <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Status
                 </th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
                 <th className="px-6 py-3"></th>
               </tr>
             </thead>
@@ -192,6 +213,18 @@ export default function MonthlyPayrollTable({
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {teacher.totalUnpaid > 0 && (
+                        <button
+                          onClick={() => handleMarkAsPaid(teacher)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+                          title="Mark all unpaid hours as paid"
+                        >
+                          <BanknotesIcon className="h-4 w-4" />
+                          Mark as Paid
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <button
                         onClick={() => toggleRow(teacher.teacherId)}
                         className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
@@ -208,7 +241,7 @@ export default function MonthlyPayrollTable({
                   {/* Expanded Row - Batch Breakdown */}
                   {expandedRows.has(teacher.teacherId) && (
                     <tr>
-                      <td colSpan={8} className="px-6 py-4 bg-gray-50 dark:bg-gray-700/30">
+                      <td colSpan={9} className="px-6 py-4 bg-gray-50 dark:bg-gray-700/30">
                         <div className="space-y-2">
                           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                             Batch Breakdown
@@ -275,6 +308,23 @@ export default function MonthlyPayrollTable({
           </table>
         </div>
       </div>
+
+      {/* Bulk Mark Paid Modal */}
+      {selectedTeacher && (
+        <BulkMarkPaidModal
+          isOpen={bulkMarkPaidModalOpen}
+          onClose={() => {
+            setBulkMarkPaidModalOpen(false)
+            setSelectedTeacher(null)
+          }}
+          onSuccess={handleMarkPaidSuccess}
+          teacherId={selectedTeacher.teacherId}
+          teacherName={selectedTeacher.teacherName}
+          unpaidAmount={selectedTeacher.totalUnpaid}
+          unpaidHours={selectedTeacher.totalHours - (selectedTeacher.totalPaid / selectedTeacher.hourlyRate)}
+          period={period}
+        />
+      )}
     </div>
   )
 }

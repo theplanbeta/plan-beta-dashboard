@@ -24,22 +24,40 @@ type Payment = {
   }
 }
 
+// Helper function to get current month start and end dates
+function getCurrentMonthDates() {
+  const now = new Date()
+  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+
+  return {
+    start: firstDay.toISOString().split('T')[0],
+    end: lastDay.toISOString().split('T')[0]
+  }
+}
+
 export default function PaymentsPage() {
+  const currentMonth = getCurrentMonthDates()
+
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState("")
   const [methodFilter, setMethodFilter] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
+  const [startDate, setStartDate] = useState(currentMonth.start)
+  const [endDate, setEndDate] = useState(currentMonth.end)
 
   useEffect(() => {
     fetchPayments()
-  }, [statusFilter, methodFilter])
+  }, [statusFilter, methodFilter, startDate, endDate])
 
   const fetchPayments = async () => {
     try {
       const params = new URLSearchParams()
       if (statusFilter) params.append("status", statusFilter)
       if (methodFilter) params.append("method", methodFilter)
+      if (startDate) params.append("startDate", startDate)
+      if (endDate) params.append("endDate", endDate)
 
       const res = await fetch(`/api/payments?${params.toString()}`)
       const data = await res.json()
@@ -48,6 +66,33 @@ export default function PaymentsPage() {
       console.error("Error fetching payments:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Helper to set quick date ranges
+  const setQuickDate = (range: 'today' | 'week' | 'month' | 'all') => {
+    const now = new Date()
+
+    switch(range) {
+      case 'today':
+        const today = now.toISOString().split('T')[0]
+        setStartDate(today)
+        setEndDate(today)
+        break
+      case 'week':
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        setStartDate(weekAgo.toISOString().split('T')[0])
+        setEndDate(now.toISOString().split('T')[0])
+        break
+      case 'month':
+        const monthDates = getCurrentMonthDates()
+        setStartDate(monthDates.start)
+        setEndDate(monthDates.end)
+        break
+      case 'all':
+        setStartDate('')
+        setEndDate('')
+        break
     }
   }
 
@@ -170,53 +215,108 @@ export default function PaymentsPage() {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Search
-            </label>
-            <input
-              type="text"
-              placeholder="Student name, ID, or transaction ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            />
+        <div className="space-y-4">
+          {/* Quick Date Filters */}
+          <div className="flex items-center gap-2 pb-3 border-b border-gray-200 dark:border-gray-700">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">Quick Filter:</span>
+            <button
+              onClick={() => setQuickDate('today')}
+              className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setQuickDate('week')}
+              className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              Last 7 Days
+            </button>
+            <button
+              onClick={() => setQuickDate('month')}
+              className="px-3 py-1.5 text-xs font-medium bg-primary/10 text-primary rounded border border-primary/30"
+            >
+              This Month ✓
+            </button>
+            <button
+              onClick={() => setQuickDate('all')}
+              className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              All Time
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Status
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            >
-              <option value="">All Status</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="PENDING">Pending</option>
-              <option value="FAILED">Failed</option>
-              <option value="REFUNDED">Refunded</option>
-            </select>
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Payment Method
-            </label>
-            <select
-              value={methodFilter}
-              onChange={(e) => setMethodFilter(e.target.value)}
-              className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            >
-              <option value="">All Methods</option>
-              <option value="CASH">Cash</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
-              <option value="UPI">UPI</option>
-              <option value="CARD">Card</option>
-              <option value="OTHER">Other</option>
-            </select>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Search
+              </label>
+              <input
+                type="text"
+                placeholder="Student name, ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+              >
+                <option value="">All Status</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="PENDING">Pending</option>
+                <option value="FAILED">Failed</option>
+                <option value="REFUNDED">Refunded</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Method
+              </label>
+              <select
+                value={methodFilter}
+                onChange={(e) => setMethodFilter(e.target.value)}
+                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 dark:text-white"
+              >
+                <option value="">All Methods</option>
+                <option value="CASH">Cash</option>
+                <option value="BANK_TRANSFER">Bank Transfer</option>
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

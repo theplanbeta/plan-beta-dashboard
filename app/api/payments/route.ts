@@ -243,10 +243,17 @@ async function updateStudentPaymentStatus(studentId: string) {
     churnRisk = "LOW"
   }
 
+  // Calculate EUR equivalent for totalPaid
+  const EXCHANGE_RATE = 104.5 // INR to EUR rate
+  const totalPaidEur = student.currency === 'EUR'
+    ? totalPaid
+    : totalPaid.dividedBy(new Decimal(EXCHANGE_RATE))
+
   await prisma.student.update({
     where: { id: studentId },
     data: {
       totalPaid: totalPaid,
+      totalPaidEur: totalPaidEur,
       balance: balance,
       paymentStatus,
       churnRisk,

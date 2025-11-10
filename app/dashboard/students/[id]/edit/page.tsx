@@ -442,11 +442,14 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
                 type="number"
                 name="totalPaid"
                 value={formData.totalPaid}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                readOnly
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-500"
+                title="Total paid is calculated from payment records. Use 'Record New Payment' to add payments."
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Calculated from payment records. <Link href={`/dashboard/payments/new?studentId=${id}`} className="text-primary hover:underline">Record new payment →</Link>
+              </p>
             </div>
           </div>
 
@@ -477,14 +480,18 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
             <select
               name="paymentStatus"
               value={formData.paymentStatus}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-500"
+              title="Payment status is auto-calculated from payment records"
             >
               <option value="PENDING">Pending</option>
               <option value="PARTIAL">Partial</option>
               <option value="PAID">Paid</option>
               <option value="OVERDUE">Overdue</option>
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Auto-calculated from payment records and due dates
+            </p>
           </div>
         </div>
 

@@ -110,10 +110,30 @@ export async function PUT(
 
     const body = await request.json()
 
+    // IMPORTANT: totalPaid and paymentStatus should NOT be manually updated
+    // They are managed through the payment recording flow
+    // We allow updating originalPrice and discountApplied, but totalPaid comes from payment records
+
+    // Get current student data to preserve payment fields
+    const currentStudent = await prisma.student.findUnique({
+      where: { id },
+      select: {
+        totalPaid: true,
+        totalPaidEur: true,
+        balance: true,
+        paymentStatus: true,
+      },
+    })
+
+    if (!currentStudent) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    }
+
     // Calculate final price and balance using Decimal for precision
     const originalPrice = new Decimal(body.originalPrice.toString())
     const discountApplied = new Decimal((body.discountApplied || 0).toString())
-    const totalPaid = new Decimal((body.totalPaid || 0).toString())
+    // Use EXISTING totalPaid from database (ignore any value sent in request)
+    const totalPaid = new Decimal(currentStudent.totalPaid.toString())
 
     const finalPrice = originalPrice.minus(discountApplied)
     const balance = finalPrice.minus(totalPaid)
@@ -131,8 +151,9 @@ export async function PUT(
         originalPrice,
         discountApplied,
         finalPrice,
-        paymentStatus: body.paymentStatus,
-        totalPaid,
+        // DO NOT update paymentStatus - it's managed by payment recording system
+        // paymentStatus is preserved from current state
+        totalPaid, // Preserved from current state (recalculated balance only)
         balance,
         referralSource: body.referralSource,
         referredById: body.referredById || null,

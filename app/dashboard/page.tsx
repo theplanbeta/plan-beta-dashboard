@@ -33,6 +33,14 @@ type DashboardData = {
     recentRevenueCombined: number
     paymentBreakdown: Record<string, number>
     enrollmentBreakdown: Record<string, number>
+    monthlyRevenue: Array<{
+      month: string
+      year: number
+      revenueEur: number
+      revenueInr: number
+      revenueInrEurEquivalent: number
+      revenueCombined: number
+    }>
   }
   batches: {
     total: number
@@ -338,6 +346,84 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Monthly Revenue Breakdown */}
+      <div className="panel p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Monthly Revenue (Last 6 Months)</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead>
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Month
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  EUR
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  INR
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  Total (EUR)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {data.financial.monthlyRevenue.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    {item.month} {item.year}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
+                    {formatCurrency(item.revenueEur, 'EUR')}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
+                    {item.revenueInr > 0 ? (
+                      <span>
+                        {formatCurrency(item.revenueInr, 'INR')}
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                          (€{item.revenueInrEurEquivalent.toFixed(2)})
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-right font-semibold text-success dark:text-green-400">
+                    {formatCurrency(item.revenueCombined, 'EUR')}
+                  </td>
+                </tr>
+              ))}
+              <tr className="bg-gray-50 dark:bg-gray-800 font-semibold">
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                  Total (All Time)
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
+                  {formatCurrency(data.financial.totalRevenueEur, 'EUR')}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900 dark:text-white">
+                  {data.financial.totalRevenueInr > 0 ? (
+                    <span>
+                      {formatCurrency(data.financial.totalRevenueInr, 'INR')}
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+                        (€{data.financial.totalRevenueInrEurEquivalent.toFixed(2)})
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-success dark:text-green-400">
+                  {formatCurrency(data.financial.totalRevenueCombined, 'EUR')}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+          Monthly breakdown based on actual payment dates. INR amounts converted to EUR at 104.5 rate.
+        </p>
       </div>
 
       {/* Churn Risk Alert */}

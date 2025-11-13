@@ -169,6 +169,51 @@ export async function GET(request: NextRequest) {
       SPOKEN_GERMAN: students.filter((s) => s.currentLevel === "SPOKEN_GERMAN").length,
     }
 
+    // Monthly revenue breakdown (last 6 months)
+    const monthlyRevenue: Array<{
+      month: string
+      year: number
+      revenueEur: number
+      revenueInr: number
+      revenueInrEurEquivalent: number
+      revenueCombined: number
+    }> = []
+
+    const now = new Date()
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const month = date.toLocaleString('en-US', { month: 'long' })
+      const year = date.getFullYear()
+
+      // Get start and end of month
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59)
+
+      // Filter payments for this month
+      const monthEurPayments = eurPayments.filter(p => {
+        const paymentDate = new Date(p.paymentDate)
+        return paymentDate >= startOfMonth && paymentDate <= endOfMonth
+      })
+      const monthInrPayments = inrPayments.filter(p => {
+        const paymentDate = new Date(p.paymentDate)
+        return paymentDate >= startOfMonth && paymentDate <= endOfMonth
+      })
+
+      const monthRevenueEur = monthEurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+      const monthRevenueInr = monthInrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+      const monthRevenueInrEurEquivalent = getEurEquivalent(monthRevenueInr, 'INR')
+      const monthRevenueCombined = monthRevenueEur + monthRevenueInrEurEquivalent
+
+      monthlyRevenue.push({
+        month,
+        year,
+        revenueEur: monthRevenueEur,
+        revenueInr: monthRevenueInr,
+        revenueInrEurEquivalent: monthRevenueInrEurEquivalent,
+        revenueCombined: monthRevenueCombined,
+      })
+    }
+
     return NextResponse.json({
       students: {
         total: totalStudents,
@@ -193,6 +238,7 @@ export async function GET(request: NextRequest) {
         recentRevenueCombined,
         paymentBreakdown,
         enrollmentBreakdown,
+        monthlyRevenue,
       },
       batches: {
         total: totalBatches,

@@ -10,6 +10,9 @@ type InsightsData = {
   period: number
   revenue: {
     total: number
+    totalEur: number
+    totalInr: number
+    totalInrEurEquivalent: number
     daily: Array<{ date: string; revenue: number }>
     avgDaily: number
     projected: number
@@ -20,6 +23,7 @@ type InsightsData = {
   costs: {
     teachers: {
       total: number
+      totalEUR: number
       paid: number
       unpaid: number
       daily: Array<{ date: string; cost: number }>
@@ -227,23 +231,27 @@ export default function InsightsPage() {
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
             <div className="text-2xl font-bold text-success mt-1">
-              {formatCurrency(data.revenue.total, 'INR')}
+              {formatCurrency(data.revenue.total, 'EUR')}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Period total</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {data.revenue.totalEur > 0 && `EUR: €${data.revenue.totalEur.toFixed(2)}`}
+              {data.revenue.totalEur > 0 && data.revenue.totalInr > 0 && ' | '}
+              {data.revenue.totalInr > 0 && `INR: ₹${data.revenue.totalInr.toFixed(2)}`}
+            </div>
           </div>
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Teacher Costs</div>
             <div className="text-2xl font-bold text-error mt-1">
-              {formatCurrency(data.costs.teachers.total, 'INR')}
+              {formatCurrency(data.costs.teachers.totalEUR, 'EUR')}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Approved hours</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">INR: ₹{data.costs.teachers.total.toFixed(2)}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Gross Profit</div>
             <div className={`text-2xl font-bold mt-1 ${data.profitability.gross >= 0 ? "text-success" : "text-error"}`}>
-              {formatCurrency(data.profitability.gross, 'INR')}
+              {formatCurrency(data.profitability.gross, 'EUR')}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - costs</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - costs (EUR)</div>
           </div>
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Profit Margin</div>
@@ -258,11 +266,11 @@ export default function InsightsPage() {
       {/* Revenue Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend (EUR)</h2>
           <LineChart
             data={data.revenue.daily.map((d) => ({ date: d.date, value: d.revenue }))}
             color="#10b981"
-            valuePrefix="₹"
+            valuePrefix="€"
           />
           <div className="mt-4 grid grid-cols-2 gap-4">
             <div>
@@ -281,14 +289,14 @@ export default function InsightsPage() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Type</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Revenue by Type (EUR)</h2>
           <BarChart
             data={Object.entries(data.revenue.byType).map(([label, value]) => ({
               label: label.replace(/_/g, " "),
               value,
               color: "#3b82f6",
             }))}
-            valuePrefix="₹"
+            valuePrefix="€"
           />
         </div>
       </div>
@@ -477,19 +485,21 @@ export default function InsightsPage() {
           <div>
             <div className="text-sm opacity-90 text-white">Revenue</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.nextMonthRevenue, 'INR')}
+              {formatCurrency(data.forecasts.nextMonthRevenue, 'EUR')}
             </div>
+            <div className="text-xs opacity-75 text-white mt-1">Combined EUR</div>
           </div>
           <div>
             <div className="text-sm opacity-90 text-white">Teacher Costs</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedTeacherCosts, 'INR')}
+              {formatCurrency(data.forecasts.projectedTeacherCosts, 'EUR')}
             </div>
+            <div className="text-xs opacity-75 text-white mt-1">Converted from INR</div>
           </div>
           <div>
             <div className="text-sm opacity-90 text-white">Projected Profit</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedProfit, 'INR')}
+              {formatCurrency(data.forecasts.projectedProfit, 'EUR')}
             </div>
             <div className="text-xs opacity-75 text-white mt-1">
               {data.forecasts.projectedProfitMargin.toFixed(1)}% margin

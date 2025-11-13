@@ -127,17 +127,23 @@ export async function GET(request: NextRequest) {
     ])
 
     // === REVENUE INSIGHTS ===
+    // Separate EUR and INR payments, convert to EUR for unified calculations
+    const eurPayments = payments.filter(p => p.currency === 'EUR')
+    const inrPayments = payments.filter(p => p.currency === 'INR')
+
+    const totalRevenueEur = eurPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    const totalRevenueInr = inrPayments.reduce((sum, p) => sum + Number(p.amount), 0)
+    const totalRevenueInrEurEquivalent = totalRevenueInr / EXCHANGE_RATE
+    const totalRevenue = totalRevenueEur + totalRevenueInrEurEquivalent // Combined in EUR
+
     const revenueByDay = generateDailyRevenue(payments, daysAgo)
-    const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0)
     const avgDailyRevenue = totalRevenue / daysAgo
     const projectedMonthlyRevenue = avgDailyRevenue * 30
 
-    // Revenue by enrollment type - now using combo system
+    // Revenue by enrollment type - now using combo system, in EUR
     const revenueByType = students.reduce((acc, student) => {
-      const studentRevenue = student.payments.reduce(
-        (sum, p) => sum + Number(p.amount),
-        0
-      )
+      // Use totalPaidEur which already has currency conversion
+      const studentRevenue = Number(student.totalPaidEur || 0)
       const enrollmentKey = student.isCombo ? 'COMBO' : student.currentLevel
       acc[enrollmentKey] = (acc[enrollmentKey] || 0) + studentRevenue
       return acc
@@ -268,8 +274,13 @@ export async function GET(request: NextRequest) {
     }, {} as Record<string, number>)
 
     const avgPaymentSize = totalRevenue / payments.length || 0
+    // Calculate collection efficiency using EUR equivalents to avoid currency mismatch
     const collectionEfficiency = students.reduce(
-      (sum, s) => sum + (Number(s.totalPaid) / Number(s.finalPrice)) * 100,
+      (sum, s) => {
+        const paidEur = Number(s.totalPaidEur || 0)
+        const totalEur = Number(s.eurEquivalent || s.finalPrice || 0)
+        return sum + (totalEur > 0 ? (paidEur / totalEur) * 100 : 0)
+      },
       0
     ) / students.length || 0
 
@@ -324,7 +335,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       period: daysAgo,
       revenue: {
-        total: totalRevenue,
+        total: totalRevenue, // Combined in EUR
+        totalEur: totalRevenueEur,
+        totalInr: totalRevenueInr,
+        totalInrEurEquivalent: totalRevenueInrEurEquivalent,
         daily: revenueByDay,
         avgDaily: avgDailyRevenue,
         projected: projectedMonthlyRevenue,
@@ -404,7 +418,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper functions
-function generateDailyRevenue(payments: PaymentRecord[], days: number) {
+function generateDailyRevenue(payments: Array<PaymentRecord & { currency?: string }>, days: number) {
   const dailyRevenue: Record<string, number> = {}
   const today = new Date()
 
@@ -418,7 +432,10 @@ function generateDailyRevenue(payments: PaymentRecord[], days: number) {
   payments.forEach((payment) => {
     const dateKey = new Date(payment.paymentDate).toISOString().split("T")[0]
     if (dailyRevenue[dateKey] !== undefined) {
-      dailyRevenue[dateKey] += Number(payment.amount)
+      // Convert INR to EUR for unified daily revenue
+      const amount = Number(payment.amount)
+      const amountEur = payment.currency === 'INR' ? amount / EXCHANGE_RATE : amount
+      dailyRevenue[dateKey] += amountEur
     }
   })
 

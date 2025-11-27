@@ -1,0 +1,1 @@
+- let us pause this a bit and work on something else . currently we are facing a problem. the students attend the online classes via google meet and the admin should log in to each online class (A1, A2, B1, and B2) to trigger the class recording in google meet when the class starts at 7:00 AM in the morning and 5 PM in the evening(CET). is there a way to automate this ?

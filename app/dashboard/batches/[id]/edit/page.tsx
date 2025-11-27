@@ -77,6 +77,9 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     startDate: "",
     endDate: "",
     schedule: "",
+    timing: "",
+    meetLink: "",
+    autoRecord: false,
     status: "PLANNING",
     notes: "",
   })
@@ -140,6 +143,9 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
         startDate: data.startDate ? new Date(data.startDate).toISOString().split("T")[0] : "",
         endDate: data.endDate ? new Date(data.endDate).toISOString().split("T")[0] : "",
         schedule: data.schedule || "",
+        timing: data.timing || "",
+        meetLink: data.meetLink || "",
+        autoRecord: data.autoRecord || false,
         status: data.status,
         notes: data.notes || "",
       })
@@ -223,6 +229,8 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
     const newValue =
       type === "number"
         ? parseFloat(value) || 0
+        : type === "checkbox"
+        ? (e.target as HTMLInputElement).checked
         : name === "currency"
         ? (value as SupportedCurrency)
         : value
@@ -492,6 +500,106 @@ export default function EditBatchPage({ params }: { params: Promise<{ id: string
               <p className="text-red-600 text-xs mt-1">{fieldErrors.schedule}</p>
             )}
           </div>
+        </div>
+
+        {/* Google Meet Recording */}
+        <div className="space-y-4 border-t pt-6">
+          <h2 className="text-lg font-semibold text-foreground">Google Meet Recording</h2>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-900">
+                  Automated Recording
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Enable auto-recording to automatically join Google Meet and start recording at scheduled class times (7 AM or 5 PM CET).
+                  Recordings will be saved to Google Drive.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">
+                Class Timing
+              </label>
+              <select
+                name="timing"
+                value={formData.timing}
+                onChange={handleChange}
+                className={`select ${fieldErrors.timing ? 'border-red-500 focus:ring-red-500' : ''}`}
+              >
+                <option value="">-- Select timing --</option>
+                <option value="MORNING">Morning (7:00 AM CET)</option>
+                <option value="EVENING">Evening (5:00 PM CET)</option>
+              </select>
+              {fieldErrors.timing && (
+                <p className="text-red-600 text-xs mt-1">{fieldErrors.timing}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Recording will be triggered 5 minutes before class time
+              </p>
+            </div>
+
+            <div className="flex items-center pt-6">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="autoRecord"
+                  checked={formData.autoRecord}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                />
+                <span className="ml-2 text-sm font-medium text-gray-700">
+                  Enable Auto-Recording
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="form-label">
+              Google Meet Link
+            </label>
+            <input
+              type="url"
+              name="meetLink"
+              value={formData.meetLink}
+              onChange={handleChange}
+              placeholder="https://meet.google.com/abc-defg-hij"
+              className={`input ${fieldErrors.meetLink ? 'border-red-500 focus:ring-red-500' : ''}`}
+            />
+            {fieldErrors.meetLink && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.meetLink}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              Full Google Meet URL for this batch. Required for auto-recording.
+            </p>
+          </div>
+
+          {formData.autoRecord && formData.timing && formData.meetLink && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-green-900">
+                    Auto-Recording Enabled ✓
+                  </p>
+                  <p className="text-xs text-green-700 mt-1">
+                    This batch will be automatically recorded every {formData.timing === 'MORNING' ? 'morning at 7:00 AM' : 'evening at 5:00 PM'} CET (Monday-Friday).
+                    Status: {formData.status === 'ACTIVE' || formData.status === 'RUNNING' ? '🟢 Active' : '⚠️ Set status to ACTIVE to enable'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Financial */}

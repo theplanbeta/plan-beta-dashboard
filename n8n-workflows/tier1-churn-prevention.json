@@ -1,0 +1,397 @@
+{
+  "name": "Tier 1: Churn Prevention (2 Absences)",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "id": "workflow-trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-intervention",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "studentId",
+              "value": "={{$json.id}}"
+            },
+            {
+              "name": "consecutiveAbsences",
+              "value": "={{$json.consecutiveAbsences}}"
+            },
+            {
+              "name": "tier",
+              "value": 1
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Create Intervention Record",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "id": "create-intervention"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "url": "=https://graph.facebook.com/v18.0/{{$env.WHATSAPP_PHONE_NUMBER_ID}}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.WHATSAPP_ACCESS_TOKEN}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{$node[\"Workflow Trigger\"].json.whatsapp.replace('+', '')}}\",\n  \"type\": \"template\",\n  \"template\": {\n    \"name\": \"{{$env.WHATSAPP_TEMPLATE_TIER1}}\",\n    \"language\": {\n      \"code\": \"en\"\n    },\n    \"components\": [\n      {\n        \"type\": \"body\",\n        \"parameters\": [\n          {\n            \"type\": \"text\",\n            \"text\": \"{{$node[\"Workflow Trigger\"].json.name}}\"\n          },\n          {\n            \"type\": \"text\",\n            \"text\": \"{{$node[\"Workflow Trigger\"].json.consecutiveAbsences}}\"\n          }\n        ]\n      }\n    ]\n  }\n}",
+        "options": {}
+      },
+      "name": "Send WhatsApp to Student",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 200],
+      "id": "send-whatsapp",
+      "notes": "Uses WhatsApp Business Cloud API template"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{$env.EMAIL_FROM}}",
+        "toEmail": "={{$node[\"Workflow Trigger\"].json.teacherEmail}}",
+        "subject": "=📊 Student Attendance Alert: {{$node[\"Workflow Trigger\"].json.name}}",
+        "emailType": "html",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 600px;\">\n  <h2 style=\"color: #f59e0b;\">📊 Student Attendance Notice</h2>\n  <p>Hi {{$node[\"Workflow Trigger\"].json.teacherName}},</p>\n  <p>Your student <strong>{{$node[\"Workflow Trigger\"].json.name}}</strong> from batch <strong>{{$node[\"Workflow Trigger\"].json.batchCode}}</strong> has missed <strong>{{$node[\"Workflow Trigger\"].json.consecutiveAbsences}} consecutive classes</strong>.</p>\n  <div style=\"background: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0;\">\n    <p style=\"margin: 0; color: #92400e;\"><strong>Recommended:</strong> Consider reaching out to check if they're facing any challenges.</p>\n  </div>\n  <div style=\"background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;\">\n    <h3 style=\"margin-top: 0;\">Student Details</h3>\n    <p><strong>Name:</strong> {{$node[\"Workflow Trigger\"].json.name}}</p>\n    <p><strong>Contact:</strong> {{$node[\"Workflow Trigger\"].json.whatsapp}}</p>\n    <p><strong>Attendance Rate:</strong> {{$node[\"Workflow Trigger\"].json.attendanceRate}}%</p>\n    <p><strong>Classes Attended:</strong> {{$node[\"Workflow Trigger\"].json.classesAttended}} / {{$node[\"Workflow Trigger\"].json.totalClasses}}</p>\n  </div>\n  <p>A WhatsApp message has been sent to the student automatically.</p>\n  <p>Best regards,<br/><strong>Plan Beta Team</strong></p>\n</div>",
+        "options": {}
+      },
+      "name": "Email Teacher",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "id": "email-teacher",
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-intervention",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"interventionId\": \"{{$node[\"Create Intervention Record\"].json.intervention.id}}\",\n  \"whatsappSent\": true,\n  \"emailSent\": true,\n  \"status\": \"AWAITING_RESPONSE\"\n}",
+        "options": {}
+      },
+      "name": "Update Intervention - Messages Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 250],
+      "id": "update-sent"
+    },
+    {
+      "parameters": {
+        "unit": "hours",
+        "amount": 24
+      },
+      "name": "Wait 24 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1050, 250],
+      "id": "wait-24h",
+      "webhookId": "tier1-followup"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-intervention?id={{$node[\"Create Intervention Record\"].json.intervention.id}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Check Response Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1250, 250],
+      "id": "check-response"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.intervention.whatsappReplied}}",
+              "value2": false
+            },
+            {
+              "value1": "={{$json.intervention.resolved}}",
+              "value2": false
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "name": "No Response?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1450, 250],
+      "id": "check-no-response"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/student-interactions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"studentId\": \"{{$node[\"Workflow Trigger\"].json.id}}\",\n  \"userId\": \"system\",\n  \"userName\": \"n8n Automation\",\n  \"interactionType\": \"PHONE_CALL\",\n  \"category\": \"CHURN_OUTREACH\",\n  \"notes\": \"Auto-scheduled follow-up call - Student has {{$node[\"Workflow Trigger\"].json.consecutiveAbsences}} consecutive absences and did not respond to WhatsApp within 24 hours.\",\n  \"followUpNeeded\": true,\n  \"followUpDate\": \"{{$now.plus({hours: 4}).toISO()}}\"\n}",
+        "options": {}
+      },
+      "name": "Schedule Follow-up Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1650, 200],
+      "id": "schedule-call",
+      "notes": "Creates task for admin to call student"
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-intervention",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"interventionId\": \"{{$node[\"Create Intervention Record\"].json.intervention.id}}\",\n  \"followUpScheduled\": true,\n  \"status\": \"ESCALATED\"\n}",
+        "options": {}
+      },
+      "name": "Update Intervention - Escalated",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1850, 200],
+      "id": "update-escalated"
+    },
+    {
+      "parameters": {
+        "message": "=✅ Tier 1 intervention completed for {{$node[\"Workflow Trigger\"].json.name}}\n- WhatsApp sent: ✓\n- Teacher notified: ✓\n- Follow-up scheduled: ✓"
+      },
+      "name": "Success",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2050, 200],
+      "id": "success"
+    },
+    {
+      "parameters": {
+        "message": "=✅ Student {{$node[\"Workflow Trigger\"].json.name}} responded - no further action needed"
+      },
+      "name": "Student Responded",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1650, 350],
+      "id": "responded"
+    }
+  ],
+  "connections": {
+    "Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Create Intervention Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Intervention Record": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp to Student",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Teacher",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp to Student": {
+      "main": [
+        [
+          {
+            "node": "Update Intervention - Messages Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Teacher": {
+      "main": [
+        [
+          {
+            "node": "Update Intervention - Messages Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Intervention - Messages Sent": {
+      "main": [
+        [
+          {
+            "node": "Wait 24 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Check Response Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response Status": {
+      "main": [
+        [
+          {
+            "node": "No Response?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Response?": {
+      "main": [
+        [
+          {
+            "node": "Schedule Follow-up Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Student Responded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Follow-up Call": {
+      "main": [
+        [
+          {
+            "node": "Update Intervention - Escalated",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Intervention - Escalated": {
+      "main": [
+        [
+          {
+            "node": "Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["churn-prevention", "tier1"],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

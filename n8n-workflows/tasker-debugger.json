@@ -1,0 +1,196 @@
+{
+  "name": "Tasker Debugger (Instagram Leads)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tasker-debug",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Tasker Webhook (n8n)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "tasker-debug",
+      "id": "tasker-webhook",
+      "notes": "This captures what Tasker sends"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=📱 TASKER DATA RECEIVED:\n{{ JSON.stringify($json, null, 2) }}\n\n🕐 Timestamp: {{ $now }}\n\n🔍 Fields received:\n- senderName: {{ $json.senderName }}\n- messagePreview: {{ $json.messagePreview }}\n- notificationType: {{ $json.notificationType }}\n- secret: {{ $json.secret ? '✅ Present' : '❌ Missing' }}\n- timestamp: {{ $json.timestamp }}",
+        "options": {}
+      },
+      "name": "Log Tasker Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [450, 300],
+      "id": "log-data"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/webhooks/tasker-instagram",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "name": "Forward to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [650, 300],
+      "id": "forward-to-dashboard",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.statusCode}}",
+              "operation": "equals",
+              "value2": 200
+            }
+          ]
+        }
+      },
+      "name": "Success?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "id": "check-success"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=✅ SUCCESS!\n\nDashboard Response:\n{{ JSON.stringify($json, null, 2) }}\n\n✅ Lead created/updated successfully!\n- Lead ID: {{ $json.leadId }}\n- Lead Name: {{ $json.leadName }}\n- Action: {{ $json.action }}",
+        "options": {}
+      },
+      "name": "Log Success",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1050, 200],
+      "id": "log-success"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "=❌ FAILED!\n\nError Details:\n{{ JSON.stringify($json, null, 2) }}\n\n🔍 Common Issues:\n1. Wrong secret token in Tasker\n2. Missing required fields\n3. Dashboard app not running\n4. Database connection issue\n\nExpected secret: {{ $env.TASKER_WEBHOOK_SECRET }}\nReceived: {{ $node['Tasker Webhook (n8n)'].json.secret }}",
+        "options": {}
+      },
+      "name": "Log Error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [1050, 400],
+      "id": "log-error"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"message\": \"Received by n8n debugger\",\n  \"forwarded\": true,\n  \"dashboardResponse\": {{ JSON.stringify($json) }}\n}",
+        "options": {}
+      },
+      "name": "Response to Tasker",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "id": "response"
+    }
+  ],
+  "connections": {
+    "Tasker Webhook (n8n)": {
+      "main": [
+        [
+          {
+            "node": "Log Tasker Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Tasker Data": {
+      "main": [
+        [
+          {
+            "node": "Forward to Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward to Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success?": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Success": {
+      "main": [
+        [
+          {
+            "node": "Response to Tasker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Response to Tasker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["tasker", "debug"],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

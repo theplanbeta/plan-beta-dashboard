@@ -1,0 +1,306 @@
+{
+  "name": "Instagram Lead Capture (Replace Tasker)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Instagram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "instagram-lead-capture",
+      "id": "instagram-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.object}}",
+              "operation": "equals",
+              "value2": "instagram"
+            }
+          ]
+        }
+      },
+      "name": "Is Instagram Event?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "id": "check-instagram"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Instagram webhook payload\nconst entry = $input.item.json.entry?.[0];\nconst messaging = entry?.messaging?.[0];\n\nif (!messaging) {\n  return { json: { skip: true, reason: 'No messaging data' } };\n}\n\nconst senderId = messaging.sender?.id;\nconst message = messaging.message?.text || '';\nconst timestamp = messaging.timestamp;\n\n// Extract sender info\nlet instagramHandle = senderId;\n\n// Parse message for lead info\nconst nameMatch = message.match(/(?:my name is|i am|i'm)\\s+([a-z\\s]+)/i);\nconst phoneMatch = message.match(/(?:\\+?\\d{1,3}[\\s-]?)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}/);\nconst emailMatch = message.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}/i);\n\n// Determine lead quality based on intent keywords\nconst intentKeywords = [\n  'course', 'learn', 'german', 'classes', 'interested',\n  'join', 'enroll', 'register', 'price', 'cost', 'fee'\n];\nconst hasIntent = intentKeywords.some(keyword => \n  message.toLowerCase().includes(keyword)\n);\n\nconst quality = hasIntent ? 'WARM' : 'COLD';\nconst leadScore = hasIntent ? 60 : 30;\n\nreturn {\n  json: {\n    instagramHandle,\n    senderId,\n    message,\n    timestamp: new Date(timestamp),\n    extractedName: nameMatch?.[1]?.trim(),\n    extractedPhone: phoneMatch?.[0],\n    extractedEmail: emailMatch?.[0],\n    quality,\n    leadScore,\n    source: 'INSTAGRAM',\n    firstTouchpoint: 'instagram_dm'\n  }\n};"
+      },
+      "name": "Parse Instagram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 250],
+      "id": "parse-message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.skip}}",
+              "operation": "notEqual",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Should Process?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [850, 250],
+      "id": "should-process"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/leads",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "instagramHandle",
+              "value": "={{$json.instagramHandle}}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Check if Lead Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1050, 200],
+      "id": "check-lead-exists",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.leads?.length || 0}}",
+              "operation": "equals",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Lead Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 200],
+      "id": "lead-exists-check"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"{{$node['Parse Instagram Message'].json.extractedName || 'Instagram User (@' + $node['Parse Instagram Message'].json.instagramHandle + ')'}}\",\n  \"whatsapp\": \"{{$node['Parse Instagram Message'].json.extractedPhone || ''}}\",\n  \"email\": \"{{$node['Parse Instagram Message'].json.extractedEmail || ''}}\",\n  \"phone\": \"{{$node['Parse Instagram Message'].json.extractedPhone || ''}}\",\n  \"source\": \"INSTAGRAM\",\n  \"instagramHandle\": \"{{$node['Parse Instagram Message'].json.instagramHandle}}\",\n  \"status\": \"NEW\",\n  \"quality\": \"{{$node['Parse Instagram Message'].json.quality}}\",\n  \"leadScore\": {{$node['Parse Instagram Message'].json.leadScore}},\n  \"firstTouchpoint\": \"instagram_dm\",\n  \"notes\": \"Auto-created from Instagram DM via n8n\\n\\nMessage: {{$node['Parse Instagram Message'].json.message}}\",\n  \"lastContactDate\": \"{{$node['Parse Instagram Message'].json.timestamp}}\"\n}",
+        "options": {}
+      },
+      "name": "Create New Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 150],
+      "id": "create-lead"
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/leads/{{$node['Check if Lead Exists'].json.leads[0].id}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"lastContactDate\": \"{{$node['Parse Instagram Message'].json.timestamp}}\",\n  \"leadScore\": {{Math.max($node['Check if Lead Exists'].json.leads[0].leadScore, $node['Parse Instagram Message'].json.leadScore)}},\n  \"notes\": \"{{$node['Check if Lead Exists'].json.leads[0].notes}}\\n\\n[{{$node['Parse Instagram Message'].json.timestamp}}] New DM: {{$node['Parse Instagram Message'].json.message.substring(0, 100)}}\"\n}",
+        "options": {}
+      },
+      "name": "Update Existing Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1450, 250],
+      "id": "update-lead"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Lead processed successfully\" }",
+        "options": {}
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1650, 200],
+      "id": "success-response"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"success\": true, \"message\": \"Event skipped\" }",
+        "options": {}
+      },
+      "name": "Skip Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 400],
+      "id": "skip-response"
+    }
+  ],
+  "connections": {
+    "Instagram Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Instagram Event?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Instagram Event?": {
+      "main": [
+        [
+          {
+            "node": "Parse Instagram Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Instagram Message": {
+      "main": [
+        [
+          {
+            "node": "Should Process?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Process?": {
+      "main": [
+        [
+          {
+            "node": "Check if Lead Exists",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Lead Exists": {
+      "main": [
+        [
+          {
+            "node": "Lead Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Exists?": {
+      "main": [
+        [
+          {
+            "node": "Create New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Lead": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["instagram", "lead-capture"],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

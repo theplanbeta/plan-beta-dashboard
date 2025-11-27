@@ -112,6 +112,8 @@ model Student {
   upsells            Upsell[]
   teacherReviews     TeacherReview[]  @relation("StudentTeacherReviews")
   interactions       StudentInteraction[] @relation("StudentInteractions")
+  contentPosts       ContentPost[]    @relation("StudentPosts")
+  contentComments    ContentComment[] @relation("StudentComments")
 
   @@index([studentId])
   @@index([whatsapp])
@@ -154,6 +156,9 @@ model Batch {
   startDate     DateTime?
   endDate       DateTime?
   schedule      String?
+  timing        String?        // "MORNING" or "EVENING"
+  meetLink      String?        // Google Meet link
+  autoRecord    Boolean        @default(false) // Enable/disable auto-recording
   teacherId     String?
   totalSeats    Int            @default(10)
   enrolledCount Int            @default(0)
@@ -172,12 +177,15 @@ model Batch {
   leads         Lead[]
   students      Student[]
   teacherHours  TeacherHours[] @relation("BatchHours")
+  recordingLogs RecordingLog[]
 
   @@index([batchCode])
   @@index([level])
   @@index([status])
   @@index([startDate])
   @@index([teacherId])
+  @@index([timing])
+  @@index([autoRecord])
 }
 
 model Attendance {
@@ -636,6 +644,36 @@ model InstagramComment {
   @@index([commentedAt])
 }
 
+model RecordingLog {
+  id              String   @id @default(cuid())
+  batchId         String
+  batchCode       String
+  meetLink        String
+  scheduledTime   DateTime
+  startedAt       DateTime?
+  status          RecordingStatus @default(PENDING)
+  recordingVerified Boolean @default(false)
+  errorMessage    String?
+  screenshot      String?  // Path to screenshot if verification failed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@index([scheduledTime])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum RecordingStatus {
+  PENDING
+  STARTED
+  RECORDING
+  COMPLETED
+  FAILED
+  VERIFICATION_FAILED
+}
+
 enum UserRole {
   FOUNDER
   MARKETING
@@ -945,4 +983,74 @@ enum OfferStatus {
   ACCEPTED
   REJECTED
   EXPIRED
+}
+
+// Content Wall - Students sharing creative German content
+model ContentPost {
+  id          String        @id @default(cuid())
+  studentId   String
+  title       String
+  content     String        @db.Text
+  contentType ContentType
+  level       Level?        // Optional: content difficulty level
+  language    String        @default("de") // de = German, en = English
+  status      PostStatus    @default(PUBLISHED)
+  viewCount   Int           @default(0)
+  featured    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  student     Student       @relation("StudentPosts", fields: [studentId], references: [id], onDelete: Cascade)
+  likes       ContentLike[]
+  comments    ContentComment[]
+
+  @@index([studentId])
+  @@index([contentType])
+  @@index([status])
+  @@index([level])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+model ContentLike {
+  id        String      @id @default(cuid())
+  postId    String
+  studentId String
+  createdAt DateTime    @default(now())
+  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, studentId])
+  @@index([postId])
+  @@index([studentId])
+}
+
+model ContentComment {
+  id        String      @id @default(cuid())
+  postId    String
+  studentId String
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student   Student     @relation("StudentComments", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+enum ContentType {
+  STORY
+  POEM
+  ESSAY
+  LETTER
+  DIALOGUE
+  VOCABULARY
+  GRAMMAR_TIP
+  OTHER
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

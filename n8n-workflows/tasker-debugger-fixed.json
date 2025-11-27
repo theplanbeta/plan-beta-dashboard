@@ -1,0 +1,86 @@
+{
+  "name": "Tasker Debugger FIXED",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tasker-debug-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Tasker Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "tasker-debug-v2",
+      "id": "webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/webhooks/tasker-instagram",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "senderName",
+              "value": "={{$json.senderName}}"
+            },
+            {
+              "name": "messagePreview",
+              "value": "={{$json.messagePreview}}"
+            },
+            {
+              "name": "notificationType",
+              "value": "={{$json.notificationType}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$json.timestamp}}"
+            },
+            {
+              "name": "secret",
+              "value": "={{$json.secret}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Forward to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300],
+      "id": "forward"
+    }
+  ],
+  "connections": {
+    "Tasker Webhook": {
+      "main": [
+        [
+          {
+            "node": "Forward to Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["tasker", "fixed"],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

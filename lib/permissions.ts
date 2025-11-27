@@ -103,6 +103,11 @@ export const NAVIGATION: NavItem[] = [
     roles: ['FOUNDER', 'MARKETING'],
   },
   {
+    name: 'Content Wall',
+    href: '/dashboard/content-wall',
+    roles: ['FOUNDER', 'MARKETING', 'TEACHER'],
+  },
+  {
     name: 'Students',
     href: '/dashboard/students',
     roles: ['FOUNDER', 'MARKETING', 'TEACHER'],
@@ -120,6 +125,11 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'Offer Letters',
     href: '/dashboard/offers',
+    roles: ['FOUNDER'],
+  },
+  {
+    name: 'Custom Invoice',
+    href: '/dashboard/custom-invoice',
     roles: ['FOUNDER'],
   },
   {

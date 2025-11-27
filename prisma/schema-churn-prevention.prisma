@@ -1,0 +1,92 @@
+// CHURN PREVENTION SCHEMA ADDITIONS
+// Add these to your main schema.prisma file
+
+// Add this new model for tracking churn interventions
+model ChurnIntervention {
+  id                    String              @id @default(cuid())
+  studentId             String
+  consecutiveAbsences   Int
+  tier                  Int                 // 1, 2, or 3
+  status                ChurnInterventionStatus @default(INITIATED)
+
+  // Communication tracking
+  whatsappSent          Boolean             @default(false)
+  whatsappSentAt        DateTime?
+  whatsappDelivered     Boolean             @default(false)
+  whatsappRead          Boolean             @default(false)
+  whatsappReadAt        DateTime?
+  whatsappReplied       Boolean             @default(false)
+
+  smsSent               Boolean             @default(false)
+  smsSentAt             DateTime?
+  smsDelivered          Boolean             @default(false)
+
+  emailSent             Boolean             @default(false)
+  emailSentAt           DateTime?
+
+  // Follow-up tracking
+  followUpScheduled     Boolean             @default(false)
+  followUpScheduledAt   DateTime?
+  followUpCompleted     Boolean             @default(false)
+  followUpCompletedAt   DateTime?
+  followUpOutcome       String?
+
+  // Task creation for admins
+  adminTaskCreated      Boolean             @default(false)
+  adminTaskCreatedAt    DateTime?
+  adminTaskAssignedTo   String?
+  adminTaskCompleted    Boolean             @default(false)
+  adminTaskCompletedAt  DateTime?
+
+  // Retention offers
+  retentionOfferSent    Boolean             @default(false)
+  retentionOfferType    String?             // "MAKEUP_CLASS", "DISCOUNT", "FREE_SESSION"
+  retentionOfferAccepted Boolean            @default(false)
+  retentionOfferAcceptedAt DateTime?
+
+  // Exit survey (for Tier 3)
+  exitSurveyInvited     Boolean             @default(false)
+  exitSurveyInvitedAt   DateTime?
+  exitSurveyCompleted   Boolean             @default(false)
+  exitSurveyCompletedAt DateTime?
+  exitSurveyResponse    Json?
+
+  // Outcome
+  resolved              Boolean             @default(false)
+  resolvedAt            DateTime?
+  resolutionType        String?             // "RETURNED", "DROPPED", "ONGOING"
+  notes                 String?
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  student               Student             @relation("StudentChurnInterventions", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([tier])
+  @@index([status])
+  @@index([createdAt])
+  @@index([resolved])
+}
+
+// Add to Student model (add this relation)
+// student               Student             @relation("StudentChurnInterventions")
+
+// Add this new enum
+enum ChurnInterventionStatus {
+  INITIATED
+  IN_PROGRESS
+  AWAITING_RESPONSE
+  ESCALATED
+  RESOLVED
+  FAILED
+}
+
+// ALSO ADD TO STUDENT MODEL:
+// Add these new fields to Student model
+//
+// parentWhatsapp        String?             // Parent's WhatsApp for Tier 2+
+// parentName            String?             // Parent's name
+// lastChurnInterventionAt DateTime?         // Last time intervention was triggered
+// totalChurnInterventions Int              @default(0)  // Count of interventions
+// churnInterventions    ChurnIntervention[] @relation("StudentChurnInterventions")

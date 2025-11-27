@@ -1,0 +1,205 @@
+[2025-11-09T12:02:57.910Z] ================================================================================
+[2025-11-09T12:02:57.910Z] 🔧 Payment Record Fixer Started
+[2025-11-09T12:02:57.910Z] Mode: 🔍 DRY RUN (no changes will be made)
+[2025-11-09T12:02:57.911Z] ================================================================================
+[2025-11-09T12:02:57.911Z] 
+[2025-11-09T12:02:57.911Z] ⚠️  Running in DRY-RUN mode. No changes will be made to the database.
+[2025-11-09T12:02:57.911Z] ⚠️  Review the output, then run with --execute flag to apply changes.
+[2025-11-09T12:02:57.911Z] 
+[2025-11-09T12:03:00.812Z] 📊 Found 44 students with totalPaid > 0
+[2025-11-09T12:03:00.812Z] 
+[2025-11-09T12:03:00.813Z] ⚠️  6 students need payment records created
+[2025-11-09T12:03:00.813Z] 
+[2025-11-09T12:03:00.813Z] 📋 STUDENTS TO BE FIXED:
+[2025-11-09T12:03:00.813Z] --------------------------------------------------------------------------------
+[2025-11-09T12:03:00.813Z] 
+Student: Alet (2025-11-776)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-09
+  Currency: EUR
+  Total Paid in record: EUR 16000.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 16000.00
+  Action: Create payment record for EUR 16000.00
+
+[2025-11-09T12:03:00.813Z] 
+Student: Jebin sebastian (2025-11-014)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-08
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-11-09T12:03:00.814Z] 
+Student: Dhanvin Vinod (2025-11-249)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-02
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-11-09T12:03:00.814Z] 
+Student: Saktishbabu (2025-10-070)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-30
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-11-09T12:03:00.814Z] 
+Student: blesson yohannankutty (2025-10-408)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 80.00
+  Discrepancy: EUR 54.00
+  Action: Create payment record for EUR 54.00
+
+[2025-11-09T12:03:00.814Z] 
+Student: Neethu Ninan (2025-10-393)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 80.00
+  Discrepancy: EUR 32.00
+  Action: Create payment record for EUR 32.00
+
+[2025-11-09T12:03:00.814Z] --------------------------------------------------------------------------------
+[2025-11-09T12:03:00.814Z] 
+[2025-11-09T12:03:00.814Z] 📝 SUMMARY:
+[2025-11-09T12:03:00.814Z]   - Total students to fix: 6
+[2025-11-09T12:03:00.814Z]   - Total payment records to create: 6
+[2025-11-09T12:03:00.814Z] 
+[2025-11-09T12:03:00.814Z] ℹ️  DRY-RUN complete. No changes were made.
+[2025-11-09T12:03:00.814Z] 
+[2025-11-09T12:03:00.814Z] To apply these changes, run:
+[2025-11-09T12:03:00.814Z]   npx tsx scripts/fix-missing-payments.ts --execute
+[2025-11-09T12:03:00.814Z] 
+[2025-11-09T12:03:00.814Z] ================================================================================
+[2025-11-09T12:03:00.814Z] Log saved to: /Users/deepak/plan-beta-dashboard/logs/payment-fix-2025-11-09.log
+[2025-11-09T12:03:00.815Z] ================================================================================
+[2025-11-09T12:03:13.724Z] ================================================================================
+[2025-11-09T12:03:13.724Z] 🔧 Payment Record Fixer Started
+[2025-11-09T12:03:13.724Z] Mode: ⚡ EXECUTE MODE (changes WILL be made)
+[2025-11-09T12:03:13.725Z] ================================================================================
+[2025-11-09T12:03:13.725Z] 
+[2025-11-09T12:03:13.725Z] 🚨 EXECUTE MODE - Changes will be made to the database!
+[2025-11-09T12:03:13.725Z] 
+[2025-11-09T12:03:16.336Z] 📊 Found 44 students with totalPaid > 0
+[2025-11-09T12:03:16.337Z] 
+[2025-11-09T12:03:16.338Z] ⚠️  6 students need payment records created
+[2025-11-09T12:03:16.338Z] 
+[2025-11-09T12:03:16.338Z] 📋 STUDENTS TO BE FIXED:
+[2025-11-09T12:03:16.338Z] --------------------------------------------------------------------------------
+[2025-11-09T12:03:16.338Z] 
+Student: Alet (2025-11-776)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-09
+  Currency: EUR
+  Total Paid in record: EUR 16000.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 16000.00
+  Action: Create payment record for EUR 16000.00
+
+[2025-11-09T12:03:16.338Z] 
+Student: Jebin sebastian (2025-11-014)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-08
+  Currency: EUR
+  Total Paid in record: EUR 156.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 156.00
+  Action: Create payment record for EUR 156.00
+
+[2025-11-09T12:03:16.338Z] 
+Student: Dhanvin Vinod (2025-11-249)
+  Batch: A2-NOV-MOR-01
+  Enrolled: 2025-11-02
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 134.00
+  Action: Create payment record for EUR 134.00
+
+[2025-11-09T12:03:16.338Z] 
+Student: Saktishbabu (2025-10-070)
+  Batch: A1_HYBRID_MALAYALAM-OCT-MOR-01
+  Enrolled: 2025-10-30
+  Currency: EUR
+  Total Paid in record: EUR 100.00
+  Sum of payment transactions: EUR 0.00
+  Discrepancy: EUR 100.00
+  Action: Create payment record for EUR 100.00
+
+[2025-11-09T12:03:16.338Z] 
+Student: blesson yohannankutty (2025-10-408)
+  Batch: A2-OCT-MOR-01
+  Enrolled: 2025-10-17
+  Currency: EUR
+  Total Paid in record: EUR 134.00
+  Sum of payment transactions: EUR 80.00
+  Discrepancy: EUR 54.00
+  Action: Create payment record for EUR 54.00
+
+[2025-11-09T12:03:16.339Z] 
+Student: Neethu Ninan (2025-10-393)
+  Batch: A1-OCT-MOR-01
+  Enrolled: 2025-10-11
+  Currency: EUR
+  Total Paid in record: EUR 112.00
+  Sum of payment transactions: EUR 80.00
+  Discrepancy: EUR 32.00
+  Action: Create payment record for EUR 32.00
+
+[2025-11-09T12:03:16.339Z] --------------------------------------------------------------------------------
+[2025-11-09T12:03:16.339Z] 
+[2025-11-09T12:03:16.339Z] 📝 SUMMARY:
+[2025-11-09T12:03:16.339Z]   - Total students to fix: 6
+[2025-11-09T12:03:16.339Z]   - Total payment records to create: 6
+[2025-11-09T12:03:16.339Z] 
+[2025-11-09T12:03:16.339Z] 🔄 Starting transaction to create payment records...
+[2025-11-09T12:03:16.339Z] 
+[2025-11-09T12:03:16.845Z]   ✅ Created payment record for Alet (EUR 16000.00)
+[2025-11-09T12:03:17.017Z]   ✅ Created payment record for Jebin sebastian (EUR 156.00)
+[2025-11-09T12:03:17.187Z]   ✅ Created payment record for Dhanvin Vinod (EUR 134.00)
+[2025-11-09T12:03:17.357Z]   ✅ Created payment record for Saktishbabu (EUR 100.00)
+[2025-11-09T12:03:17.527Z]   ✅ Created payment record for blesson yohannankutty (EUR 54.00)
+[2025-11-09T12:03:17.694Z]   ✅ Created payment record for Neethu Ninan (EUR 32.00)
+[2025-11-09T12:03:17.694Z] 
+[2025-11-09T12:03:17.695Z] ✅ Transaction complete! Created 6 payment records.
+[2025-11-09T12:03:17.862Z] 
+[2025-11-09T12:03:17.862Z] 🔍 Verifying the fix...
+[2025-11-09T12:03:17.862Z] 
+[2025-11-09T12:03:18.539Z]   ✅ Neethu Ninan: Verified (EUR 112.00 = 112.00)
+[2025-11-09T12:03:18.539Z]   ✅ Saktishbabu: Verified (EUR 100.00 = 100.00)
+[2025-11-09T12:03:18.539Z]   ✅ Dhanvin Vinod: Verified (EUR 134.00 = 134.00)
+[2025-11-09T12:03:18.539Z]   ✅ Alet: Verified (EUR 16000.00 = 16000.00)
+[2025-11-09T12:03:18.539Z]   ✅ Jebin sebastian: Verified (EUR 156.00 = 156.00)
+[2025-11-09T12:03:18.539Z]   ✅ blesson yohannankutty: Verified (EUR 134.00 = 134.00)
+[2025-11-09T12:03:18.540Z] 
+[2025-11-09T12:03:18.540Z] 🎉 SUCCESS! All payment records have been created and verified.
+[2025-11-09T12:03:18.540Z] 
+[2025-11-09T12:03:18.540Z] ================================================================================
+[2025-11-09T12:03:18.540Z] Log saved to: /Users/deepak/plan-beta-dashboard/logs/payment-fix-2025-11-09.log
+[2025-11-09T12:03:18.540Z] ================================================================================
+[2025-11-09T12:16:20.700Z] ================================================================================
+[2025-11-09T12:16:20.701Z] 🔧 Payment Record Fixer Started
+[2025-11-09T12:16:20.701Z] Mode: 🔍 DRY RUN (no changes will be made)
+[2025-11-09T12:16:20.701Z] ================================================================================
+[2025-11-09T12:16:20.701Z] 
+[2025-11-09T12:16:20.701Z] ⚠️  Running in DRY-RUN mode. No changes will be made to the database.
+[2025-11-09T12:16:20.702Z] ⚠️  Review the output, then run with --execute flag to apply changes.
+[2025-11-09T12:16:20.702Z] 
+[2025-11-09T12:16:23.486Z] 📊 Found 44 students with totalPaid > 0
+[2025-11-09T12:16:23.487Z] 
+[2025-11-09T12:16:23.488Z] ⚠️  0 students need payment records created
+[2025-11-09T12:16:23.488Z] 
+[2025-11-09T12:16:23.488Z] ✅ No students need fixing. All payment records are correct!

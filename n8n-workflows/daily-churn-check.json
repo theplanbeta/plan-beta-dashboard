@@ -1,0 +1,437 @@
+{
+  "name": "Daily Churn Prevention Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 22 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule Every Day 10 PM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "id": "schedule-trigger"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-students",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tier",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Tier 1 Students (2 absences)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 200],
+      "id": "fetch-tier1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-students",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tier",
+              "value": "2"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Tier 2 Students (3+ absences)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 400],
+      "id": "fetch-tier2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{$env.NEXT_PUBLIC_APP_URL}}/api/n8n/churn-students",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "tier",
+              "value": "3"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-api-key",
+              "value": "={{$env.N8N_API_KEY}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Tier 3 Students (5+ absences)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 600],
+      "id": "fetch-tier3",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.students.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Has Tier 1 Students?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 200],
+      "id": "check-tier1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.students.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Has Tier 2 Students?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 400],
+      "id": "check-tier2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.students.length}}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Has Tier 3 Students?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 600],
+      "id": "check-tier3"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "students",
+        "options": {}
+      },
+      "name": "Split Tier 1 Students",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [850, 200],
+      "id": "split-tier1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "students",
+        "options": {}
+      },
+      "name": "Split Tier 2 Students",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [850, 400],
+      "id": "split-tier2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "students",
+        "options": {}
+      },
+      "name": "Split Tier 3 Students",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [850, 600],
+      "id": "split-tier3"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{$env.TIER1_WORKFLOW_ID}}",
+        "options": {
+          "waitForExecution": false
+        }
+      },
+      "name": "Trigger Tier 1 Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1050, 200],
+      "id": "trigger-tier1"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{$env.TIER2_WORKFLOW_ID}}",
+        "options": {
+          "waitForExecution": false
+        }
+      },
+      "name": "Trigger Tier 2 Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1050, 400],
+      "id": "trigger-tier2"
+    },
+    {
+      "parameters": {
+        "workflowId": "={{$env.TIER3_WORKFLOW_ID}}",
+        "options": {
+          "waitForExecution": false
+        }
+      },
+      "name": "Trigger Tier 3 Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1050, 600],
+      "id": "trigger-tier3"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll"
+      },
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1250, 400],
+      "id": "merge-results"
+    },
+    {
+      "parameters": {
+        "message": "=🔔 Churn Prevention Daily Report\n\nTier 1 (2 absences): {{$node[\"Fetch Tier 1 Students (2 absences)\"].json.count}} students\nTier 2 (3+ absences): {{$node[\"Fetch Tier 2 Students (3+ absences)\"].json.count}} students\nTier 3 (5+ absences): {{$node[\"Fetch Tier 3 Students (5+ absences)\"].json.count}} students\n\nTotal interventions initiated: {{$node[\"Fetch Tier 1 Students (2 absences)\"].json.count + $node[\"Fetch Tier 2 Students (3+ absences)\"].json.count + $node[\"Fetch Tier 3 Students (5+ absences)\"].json.count}}\n\nTimestamp: {{$now}}"
+      },
+      "name": "Log Summary",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1450, 400],
+      "id": "log-summary",
+      "notes": "Replace with Slack/Email notification if needed"
+    }
+  ],
+  "connections": {
+    "Schedule Every Day 10 PM": {
+      "main": [
+        [
+          {
+            "node": "Fetch Tier 1 Students (2 absences)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Tier 2 Students (3+ absences)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Tier 3 Students (5+ absences)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Tier 1 Students (2 absences)": {
+      "main": [
+        [
+          {
+            "node": "Has Tier 1 Students?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Tier 2 Students (3+ absences)": {
+      "main": [
+        [
+          {
+            "node": "Has Tier 2 Students?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Tier 3 Students (5+ absences)": {
+      "main": [
+        [
+          {
+            "node": "Has Tier 3 Students?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Tier 1 Students?": {
+      "main": [
+        [
+          {
+            "node": "Split Tier 1 Students",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Tier 2 Students?": {
+      "main": [
+        [
+          {
+            "node": "Split Tier 2 Students",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Tier 3 Students?": {
+      "main": [
+        [
+          {
+            "node": "Split Tier 3 Students",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tier 1 Students": {
+      "main": [
+        [
+          {
+            "node": "Trigger Tier 1 Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tier 2 Students": {
+      "main": [
+        [
+          {
+            "node": "Trigger Tier 2 Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tier 3 Students": {
+      "main": [
+        [
+          {
+            "node": "Trigger Tier 3 Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Tier 1 Workflow": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Tier 2 Workflow": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Trigger Tier 3 Workflow": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Log Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "versionId": "1"
+}

@@ -88,14 +88,6 @@ export async function GET(
 
     const likes = await prisma.contentLike.findMany({
       where: { postId },
-      include: {
-        student: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
       orderBy: {
         createdAt: "desc",
       },

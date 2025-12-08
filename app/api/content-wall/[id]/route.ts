@@ -32,13 +32,8 @@ export async function GET(
           },
         },
         likes: {
-          include: {
-            student: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+          select: {
+            studentId: true,
           },
         },
         comments: {

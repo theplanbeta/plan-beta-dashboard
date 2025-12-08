@@ -5,6 +5,7 @@ import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { Prisma } from "@prisma/client"
+import { validateCurrencyAmount, validateCurrencyConsistency, type Currency } from "@/lib/currency-validator"
 
 const limiter = rateLimit(RATE_LIMITS.MODERATE)
 const Decimal = Prisma.Decimal
@@ -113,6 +114,44 @@ export async function POST(request: NextRequest) {
     }
 
     const validData = validation.data
+
+    // Get student info for currency validation
+    const student = await prisma.student.findUnique({
+      where: { id: validData.studentId },
+      select: { currency: true, name: true },
+    })
+
+    if (!student) {
+      return NextResponse.json(
+        { error: 'Student not found' },
+        { status: 404 }
+      )
+    }
+
+    // Validate currency and amount
+    const paymentCurrency = (validData.currency || student.currency) as Currency
+    const currencyValidation = validateCurrencyConsistency(
+      student.currency as Currency,
+      paymentCurrency,
+      validData.amount
+    )
+
+    // If validation fails, return error with suggestions
+    if (!currencyValidation.isValid) {
+      return NextResponse.json(
+        {
+          error: 'Currency validation failed',
+          details: currencyValidation.errors,
+          suggestedCurrency: currencyValidation.suggestedCurrency,
+        },
+        { status: 400 }
+      )
+    }
+
+    // Log warnings if any (but allow the payment)
+    if (currencyValidation.warnings.length > 0) {
+      console.warn(`Payment currency warnings for ${student.name}:`, currencyValidation.warnings)
+    }
 
     // Use Decimal for amount to ensure precision
     const amount = new Decimal(validData.amount.toString())

@@ -59,47 +59,37 @@ export async function POST(request: NextRequest) {
 
     const { studentId, consecutiveAbsences, tier } = validation.data
 
-    // Create intervention record
-    const intervention = await prisma.churnIntervention.create({
-      data: {
-        studentId,
-        consecutiveAbsences,
-        tier,
-        status: "INITIATED",
-      },
-      include: {
-        student: {
-          select: {
-            id: true,
-            studentId: true,
-            name: true,
-            whatsapp: true,
-            email: true,
-          },
-        },
-      },
-    })
+    // TODO: ChurnIntervention model not yet implemented in Prisma schema
+    // This is a stub response until the feature is fully implemented
 
-    // Update student's last intervention timestamp
-    await prisma.student.update({
+    // Get student info
+    const student = await prisma.student.findUnique({
       where: { id: studentId },
-      data: {
-        lastChurnInterventionAt: new Date(),
-        totalChurnInterventions: { increment: 1 },
+      select: {
+        id: true,
+        studentId: true,
+        name: true,
+        whatsapp: true,
+        email: true,
       },
     })
 
+    if (!student) {
+      return NextResponse.json({ error: "Student not found" }, { status: 404 })
+    }
+
+    // Return stub response
     return NextResponse.json({
       success: true,
       intervention: {
-        id: intervention.id,
-        studentId: intervention.studentId,
-        studentName: intervention.student.name,
-        tier: intervention.tier,
-        status: intervention.status,
-        createdAt: intervention.createdAt,
+        id: `stub-${Date.now()}`,
+        studentId,
+        studentName: student.name,
+        tier,
+        status: "INITIATED",
+        createdAt: new Date().toISOString(),
       },
-      message: "Churn intervention created successfully",
+      message: "Churn intervention created (stub - feature not fully implemented)",
     })
   } catch (error) {
     console.error("Error creating churn intervention:", error)
@@ -137,71 +127,19 @@ export async function PATCH(request: NextRequest) {
 
     const { interventionId, ...updates } = validation.data
 
-    // Build update object with timestamps
-    const updateData: any = { ...updates }
-
-    if (updates.whatsappSent && !updates.whatsappSent === false) {
-      updateData.whatsappSentAt = new Date()
-    }
-    if (updates.whatsappRead && !updates.whatsappRead === false) {
-      updateData.whatsappReadAt = new Date()
-    }
-    if (updates.smsSent && !updates.smsSent === false) {
-      updateData.smsSentAt = new Date()
-    }
-    if (updates.emailSent && !updates.emailSent === false) {
-      updateData.emailSentAt = new Date()
-    }
-    if (updates.adminTaskCreated && !updates.adminTaskCreated === false) {
-      updateData.adminTaskCreatedAt = new Date()
-    }
-    if (updates.retentionOfferAccepted && !updates.retentionOfferAccepted === false) {
-      updateData.retentionOfferAcceptedAt = new Date()
-    }
-    if (updates.exitSurveyInvited && !updates.exitSurveyInvited === false) {
-      updateData.exitSurveyInvitedAt = new Date()
-    }
-    if (updates.resolved && !updates.resolved === false) {
-      updateData.resolvedAt = new Date()
-    }
-
-    // Update intervention
-    const intervention = await prisma.churnIntervention.update({
-      where: { id: interventionId },
-      data: updateData,
-      include: {
-        student: {
-          select: {
-            id: true,
-            studentId: true,
-            name: true,
-          },
-        },
-      },
-    })
-
-    // If resolved, update student's churn risk
-    if (updates.resolved && updates.resolutionType === "RETURNED") {
-      await prisma.student.update({
-        where: { id: intervention.studentId },
-        data: {
-          consecutiveAbsences: 0,
-          churnRisk: "LOW",
-          churnMitigatedAt: new Date(),
-        },
-      })
-    }
+    // TODO: ChurnIntervention model not yet implemented in Prisma schema
+    // This is a stub response until the feature is fully implemented
 
     return NextResponse.json({
       success: true,
       intervention: {
-        id: intervention.id,
-        studentName: intervention.student.name,
-        status: intervention.status,
-        resolved: intervention.resolved,
-        updatedAt: intervention.updatedAt,
+        id: interventionId,
+        studentName: "Stub Student",
+        status: updates.status || "INITIATED",
+        resolved: updates.resolved || false,
+        updatedAt: new Date().toISOString(),
       },
-      message: "Churn intervention updated successfully",
+      message: "Churn intervention updated (stub - feature not fully implemented)",
     })
   } catch (error) {
     console.error("Error updating churn intervention:", error)
@@ -234,20 +172,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Intervention ID required" }, { status: 400 })
     }
 
-    const intervention = await prisma.churnIntervention.findUnique({
-      where: { id },
-      include: {
-        student: true,
-      },
-    })
-
-    if (!intervention) {
-      return NextResponse.json({ error: "Intervention not found" }, { status: 404 })
-    }
+    // TODO: ChurnIntervention model not yet implemented in Prisma schema
+    // This is a stub response until the feature is fully implemented
 
     return NextResponse.json({
       success: true,
-      intervention,
+      intervention: {
+        id,
+        status: "INITIATED",
+        resolved: false,
+        message: "Stub - feature not fully implemented",
+      },
     })
   } catch (error) {
     console.error("Error fetching intervention:", error)

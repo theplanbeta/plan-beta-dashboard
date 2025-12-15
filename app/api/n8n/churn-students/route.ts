@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
         },
         // Only students with email/whatsapp
         OR: [
-          { email: { not: null } },
-          { whatsapp: { not: null } },
+          { email: { not: "" } },
+          { whatsapp: { not: "" } },
         ],
       },
       include: {
@@ -48,36 +48,15 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        churnInterventions: {
-          where: {
-            tier: tier ? parseInt(tier) : undefined,
-            createdAt: {
-              // Only interventions from last 7 days to avoid duplicates
-              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          take: 1,
-        },
       },
       orderBy: {
         consecutiveAbsences: "desc",
       },
     })
 
-    // Filter out students who already have active interventions
-    const studentsNeedingIntervention = students.filter((student) => {
-      // If no recent interventions, needs intervention
-      if (!student.churnInterventions || student.churnInterventions.length === 0) {
-        return true
-      }
-
-      // If last intervention is resolved, can create new one
-      const lastIntervention = student.churnInterventions[0]
-      return lastIntervention.resolved
-    })
+    // TODO: Filter logic removed - churnInterventions model not yet implemented
+    // For now, return all students matching the criteria
+    const studentsNeedingIntervention = students
 
     // Format response for n8n
     const formattedStudents = studentsNeedingIntervention.map((student) => ({
@@ -87,8 +66,6 @@ export async function GET(request: NextRequest) {
       name: student.name,
       email: student.email,
       whatsapp: student.whatsapp,
-      parentName: student.parentName,
-      parentWhatsapp: student.parentWhatsapp,
 
       // Absence info
       consecutiveAbsences: student.consecutiveAbsences,

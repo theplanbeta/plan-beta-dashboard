@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { BatchStatus } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       where: {
         timing,
         autoRecord: true,
-        status: 'ACTIVE', // Only active batches
+        status: BatchStatus.RUNNING, // Only running batches
         meetLink: {
           not: null,
         },
@@ -154,7 +155,7 @@ export async function GET(req: NextRequest) {
     where: {
       timing: 'MORNING',
       autoRecord: true,
-      status: 'ACTIVE',
+      status: BatchStatus.RUNNING,
       meetLink: { not: null },
     },
   });
@@ -163,7 +164,7 @@ export async function GET(req: NextRequest) {
     where: {
       timing: 'EVENING',
       autoRecord: true,
-      status: 'ACTIVE',
+      status: BatchStatus.RUNNING,
       meetLink: { not: null },
     },
   });

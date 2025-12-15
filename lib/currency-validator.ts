@@ -7,6 +7,9 @@
 
 import { Currency } from './pricing'
 
+// Re-export Currency type for convenience
+export type { Currency }
+
 export interface CurrencyValidationResult {
   isValid: boolean
   warnings: string[]

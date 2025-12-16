@@ -8,42 +8,42 @@ datasource db {
 }
 
 model User {
-  id                   String          @id @default(cuid())
-  email                String          @unique
-  name                 String
-  password             String
-  role                 UserRole        @default(TEACHER)
-  active               Boolean         @default(true)
-  phone                String?
-  avatar               String?
-  bio                  String?
-  qualifications       String?
-  experience           String?
-  specializations      String?
-  languages            String?
-  availability         String?
-  availableMorning     Boolean?        @default(true)
-  availableEvening     Boolean?        @default(true)
-  preferredContact     String?
-  teacherLevels        String[]
-  teacherTimings       String[]
-  teacherTimeSlots     Json?
-  hourlyRate           Json?
-  currency             String?         @default("EUR")
-  whatsapp             String?
-  remarks              String?
-  requirePasswordChange Boolean        @default(false)
-  passwordResetToken   String?
-  passwordResetExpiry  DateTime?
-  welcomeToken         String?
-  welcomeTokenExpiry   DateTime?
-  createdAt            DateTime        @default(now())
-  updatedAt            DateTime        @updatedAt
-  batches              Batch[]         @relation("TeacherBatches")
-  leads                Lead[]
-  teacherHours         TeacherHours[]  @relation("TeacherHours")
-  teacherReviews       TeacherReview[] @relation("TeacherReviewer")
-  offerLetters         OfferLetter[]   @relation("TeacherOffers")
+  id                    String          @id @default(cuid())
+  email                 String          @unique
+  name                  String
+  password              String
+  role                  UserRole        @default(TEACHER)
+  active                Boolean         @default(true)
+  phone                 String?
+  avatar                String?
+  bio                   String?
+  qualifications        String?
+  experience            String?
+  specializations       String?
+  languages             String?
+  availability          String?
+  availableMorning      Boolean?        @default(true)
+  availableEvening      Boolean?        @default(true)
+  preferredContact      String?
+  teacherLevels         String[]
+  teacherTimings        String[]
+  teacherTimeSlots      Json?
+  hourlyRate            Json?
+  currency              String?         @default("EUR")
+  whatsapp              String?
+  remarks               String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  passwordResetExpiry   DateTime?
+  passwordResetToken    String?
+  requirePasswordChange Boolean         @default(false)
+  welcomeToken          String?
+  welcomeTokenExpiry    DateTime?
+  batches               Batch[]         @relation("TeacherBatches")
+  leads                 Lead[]
+  offerLetters          OfferLetter[]   @relation("TeacherOffers")
+  teacherHours          TeacherHours[]  @relation("TeacherHours")
+  teacherReviews        TeacherReview[] @relation("TeacherReviewer")
 
   @@index([email])
   @@index([role])
@@ -53,72 +53,83 @@ model User {
 }
 
 model Student {
-  id                 String           @id @default(cuid())
-  studentId          String           @unique
-  name               String
-  whatsapp           String           @unique
-  email              String?          @unique
-  enrollmentDate     DateTime         @default(now())
-  currentLevel       Level            @default(NEW)
-  isCombo            Boolean          @default(false)
-  comboLevels        String[]
-  batchId            String?
-  originalPrice      Decimal          @db.Decimal(10, 2)
-  discountApplied    Decimal          @default(0) @db.Decimal(10, 2)
-  finalPrice         Decimal          @db.Decimal(10, 2)
-  currency           String           @default("EUR")
-  eurEquivalent      Decimal?         @db.Decimal(10, 2)
-  exchangeRateUsed   Decimal?         @db.Decimal(10, 4)
-  paymentStatus      PaymentStatus    @default(PENDING)
-  totalPaid          Decimal          @default(0) @db.Decimal(10, 2)
-  totalPaidEur       Decimal?         @db.Decimal(10, 2)
-  balance            Decimal          @default(0) @db.Decimal(10, 2)
-  referralSource     ReferralSource
-  referredById       String?
-  trialAttended      Boolean          @default(false)
-  trialDate          DateTime?
-  classesAttended      Int              @default(0)
-  totalClasses         Int              @default(0)
-  attendanceRate       Decimal          @default(0) @db.Decimal(5, 2)
+  id                   String               @id @default(cuid())
+  studentId            String               @unique
+  name                 String
+  whatsapp             String               @unique
+  email                String?              @unique
+  enrollmentDate       DateTime             @default(now())
+  currentLevel         Level                @default(NEW)
+  isCombo              Boolean              @default(false)
+  comboLevels          String[]
+  batchId              String?
+  originalPrice        Decimal              @db.Decimal(10, 2)
+  discountApplied      Decimal              @default(0) @db.Decimal(10, 2)
+  finalPrice           Decimal              @db.Decimal(10, 2)
+  currency             String               @default("EUR")
+  eurEquivalent        Decimal?             @db.Decimal(10, 2)
+  exchangeRateUsed     Decimal?             @db.Decimal(10, 4)
+  paymentStatus        PaymentStatus        @default(PENDING)
+  totalPaid            Decimal              @default(0) @db.Decimal(10, 2)
+  totalPaidEur         Decimal?             @db.Decimal(10, 2)
+  balance              Decimal              @default(0) @db.Decimal(10, 2)
+  referralSource       ReferralSource
+  referredById         String?
+  trialAttended        Boolean              @default(false)
+  trialDate            DateTime?
+  classesAttended      Int                  @default(0)
+  totalClasses         Int                  @default(0)
+  attendanceRate       Decimal              @default(0) @db.Decimal(5, 2)
   lastClassDate        DateTime?
-  consecutiveAbsences  Int              @default(0)
+  avgQuizScore         Decimal?             @db.Decimal(5, 2)
+  completionStatus     CompletionStatus     @default(ACTIVE)
+  churnRisk            ChurnRisk            @default(LOW)
+  notes                String?
+  emailNotifications   Boolean              @default(true)
+  emailWelcome         Boolean              @default(true)
+  emailPayment         Boolean              @default(true)
+  emailAttendance      Boolean              @default(true)
+  emailBatch           Boolean              @default(true)
+  emailReferral        Boolean              @default(true)
+  // Demographics for smart outreach filtering
+  city                 String?
+  profession           String?
+  dateOfBirth          DateTime?
+  age                  Int?
+  // Germany Relocation Support
+  relocatingToGermany    Boolean         @default(false)
+  relocationTimeline     String?         // e.g., "3_MONTHS", "6_MONTHS", "1_YEAR", "ALREADY_IN_GERMANY"
+  destinationCity        String?         // Target city in Germany
+  visaStatus             String?         // e.g., "NOT_APPLIED", "APPLIED", "APPROVED", "IN_GERMANY"
+  relocationSupportNeeded String[]       // e.g., ["HOUSING", "JOB_SEARCH", "BUREAUCRACY", "NETWORKING"]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  consecutiveAbsences  Int                  @default(0)
   lastAbsenceDate      DateTime?
-  avgQuizScore         Decimal?         @db.Decimal(5, 2)
-  completionStatus   CompletionStatus @default(ACTIVE)
-  churnRisk          ChurnRisk        @default(LOW)
-  churnMitigatedAt   DateTime?
-  suspendedAt        DateTime?
-  suspensionReason   String?
-  previousBatchId    String?
-  notes              String?
-  emailNotifications Boolean          @default(true)
-  emailWelcome       Boolean          @default(true)
-  emailPayment       Boolean          @default(true)
-  emailAttendance    Boolean          @default(true)
-  emailBatch         Boolean          @default(true)
-  emailReferral      Boolean          @default(true)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  attendance         Attendance[]
-  invoices           Invoice[]
-  convertedFromLead  Lead?
-  payments           Payment[]
-  refunds            Refund[]
-  referralsReceived  Referral[]       @relation("RefereeStudent")
-  referralsGiven     Referral[]       @relation("ReferrerStudent")
-  batch              Batch?           @relation(fields: [batchId], references: [id])
-  referredBy         Student?         @relation("StudentReferrals", fields: [referredById], references: [id])
-  referrals          Student[]        @relation("StudentReferrals")
-  upsells            Upsell[]
-  teacherReviews     TeacherReview[]  @relation("StudentTeacherReviews")
-  interactions       StudentInteraction[] @relation("StudentInteractions")
-  contentPosts       ContentPost[]    @relation("StudentPosts")
-  contentComments    ContentComment[] @relation("StudentComments")
-  outreachCalls      OutreachCall[]   @relation("StudentOutreachCalls")
-  lastOutreachCall   DateTime?
-  relationshipDepth  Int              @default(0)
-  communityConnections StudentConnection[] @relation("StudentConnections")
-  connectedWith      StudentConnection[] @relation("ConnectedWith")
+  churnMitigatedAt     DateTime?
+  previousBatchId      String?
+  suspendedAt          DateTime?
+  suspensionReason     String?
+  lastOutreachCall     DateTime?
+  relationshipDepth    Int                  @default(0)
+  attendance           Attendance[]
+  contentComments      ContentComment[]     @relation("StudentComments")
+  contentPosts         ContentPost[]        @relation("StudentPosts")
+  invoices             Invoice[]
+  convertedFromLead    Lead?
+  outreachCalls        OutreachCall[]       @relation("StudentOutreachCalls")
+  payments             Payment[]
+  referralsReceived    Referral[]           @relation("RefereeStudent")
+  referralsGiven       Referral[]           @relation("ReferrerStudent")
+  refunds              Refund[]
+  batch                Batch?               @relation(fields: [batchId], references: [id])
+  referredBy           Student?             @relation("StudentReferrals", fields: [referredById], references: [id])
+  referrals            Student[]            @relation("StudentReferrals")
+  connectedWith        StudentConnection[]  @relation("ConnectedWith")
+  communityConnections StudentConnection[]  @relation("StudentConnections")
+  interactions         StudentInteraction[] @relation("StudentInteractions")
+  teacherReviews       TeacherReview[]      @relation("StudentTeacherReviews")
+  upsells              Upsell[]
 
   @@index([studentId])
   @@index([whatsapp])
@@ -161,9 +172,6 @@ model Batch {
   startDate     DateTime?
   endDate       DateTime?
   schedule      String?
-  timing        String?        // "MORNING" or "EVENING"
-  meetLink      String?        // Google Meet link
-  autoRecord    Boolean        @default(false) // Enable/disable auto-recording
   teacherId     String?
   totalSeats    Int            @default(10)
   enrolledCount Int            @default(0)
@@ -178,11 +186,14 @@ model Batch {
   notes         String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  autoRecord    Boolean        @default(false)
+  meetLink      String?
+  timing        String?
   teacher       User?          @relation("TeacherBatches", fields: [teacherId], references: [id])
   leads         Lead[]
+  recordingLogs RecordingLog[]
   students      Student[]
   teacherHours  TeacherHours[] @relation("BatchHours")
-  recordingLogs RecordingLog[]
 
   @@index([batchCode])
   @@index([level])
@@ -236,35 +247,35 @@ model Payment {
 }
 
 model Receipt {
-  id                String   @id @default(cuid())
-  receiptNumber     String   @unique
-  paymentId         String
-  studentId         String
-  date              DateTime @default(now())
-  currency          String   @default("EUR")
-  amountPaid        Decimal  @db.Decimal(10, 2)
-  totalAmount       Decimal  @db.Decimal(10, 2)
-  balanceRemaining  Decimal  @db.Decimal(10, 2)
-  paymentMethod     String
-  transactionRef    String?
-  invoiceNumber     String?
-  courseItems       Json
-  pdfPath           String?
-  jpgPath           String?
-  pdfData           Bytes?
-  jpgData           Bytes?
-  pdfSize           Int?
-  jpgSize           Int?
-  downloadCount     Int      @default(0)
-  lastAccessedAt    DateTime?
-  sentToEmail       String?
-  emailSentAt       DateTime?
-  whatsappSent      Boolean  @default(false)
-  whatsappSentAt    DateTime?
-  notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  payment           Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  id               String    @id @default(cuid())
+  receiptNumber    String    @unique
+  paymentId        String
+  studentId        String
+  date             DateTime  @default(now())
+  currency         String    @default("EUR")
+  amountPaid       Decimal   @db.Decimal(10, 2)
+  totalAmount      Decimal   @db.Decimal(10, 2)
+  balanceRemaining Decimal   @db.Decimal(10, 2)
+  paymentMethod    String
+  transactionRef   String?
+  invoiceNumber    String?
+  courseItems      Json
+  pdfPath          String?
+  jpgPath          String?
+  pdfSize          Int?
+  jpgSize          Int?
+  downloadCount    Int       @default(0)
+  lastAccessedAt   DateTime?
+  sentToEmail      String?
+  emailSentAt      DateTime?
+  whatsappSent     Boolean   @default(false)
+  whatsappSentAt   DateTime?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  jpgData          Bytes?
+  pdfData          Bytes?
+  payment          Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([receiptNumber])
   @@index([paymentId])
@@ -274,23 +285,23 @@ model Receipt {
 }
 
 model Refund {
-  id                   String       @id @default(cuid())
-  studentId            String
-  paymentId            String?
-  refundAmount         Decimal      @db.Decimal(10, 2)
-  currency             String       @default("EUR")
-  refundDate           DateTime     @default(now())
-  refundMethod         PaymentMethod
-  refundReason         RefundReason
-  processedByUserId    String
-  processedByUserName  String
-  transactionId        String?
-  status               RefundStatus @default(PENDING)
-  notes                String?
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
-  student              Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  payment              Payment?     @relation(fields: [paymentId], references: [id])
+  id                  String        @id @default(cuid())
+  studentId           String
+  paymentId           String?
+  refundAmount        Decimal       @db.Decimal(10, 2)
+  currency            String        @default("EUR")
+  refundDate          DateTime      @default(now())
+  refundMethod        PaymentMethod
+  refundReason        RefundReason
+  processedByUserId   String
+  processedByUserName String
+  transactionId       String?
+  status              RefundStatus  @default(PENDING)
+  notes               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  payment             Payment?      @relation(fields: [paymentId], references: [id])
+  student             Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([paymentId])
@@ -383,46 +394,46 @@ model DailyMetrics {
 }
 
 model Lead {
-  id                  String         @id @default(cuid())
+  id                  String              @id @default(cuid())
   name                String
   whatsapp            String
   email               String?
   phone               String?
   source              ReferralSource
-  status              LeadStatus     @default(NEW)
-  quality             LeadQuality    @default(WARM)
+  status              LeadStatus          @default(NEW)
+  quality             LeadQuality         @default(WARM)
   interestedLevel     Level?
   interestedCombo     Boolean?
-  interestedLevels    String[]       @default([])
-  firstContactDate    DateTime       @default(now())
+  interestedLevels    String[]            @default([])
+  firstContactDate    DateTime            @default(now())
   lastContactDate     DateTime?
   trialScheduledDate  DateTime?
   trialAttendedDate   DateTime?
-  converted           Boolean        @default(false)
+  converted           Boolean             @default(false)
   convertedDate       DateTime?
-  studentId           String?        @unique
+  studentId           String?             @unique
   batchId             String?
   interestedMonth     String?
   interestedBatchTime String?
   followUpDate        DateTime?
   followUpNotes       String?
-  contactAttempts     Int            @default(0)
+  contactAttempts     Int                 @default(0)
   notes               String?
   assignedToId        String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  contentInteractions Json?
+  firstTouchpoint     String?
   instagramHandle     String?
+  leadScore           Int                 @default(0)
+  socialEngagement    Json?
   sourceReelId        String?
   sourceReelUrl       String?
-  firstTouchpoint     String?
-  contentInteractions Json?
-  leadScore           Int            @default(0)
-  socialEngagement    Json?
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
   invoices            Invoice[]
-  assignedTo          User?          @relation(fields: [assignedToId], references: [id])
-  interestedBatch     Batch?         @relation(fields: [batchId], references: [id])
-  convertedToStudent  Student?       @relation(fields: [studentId], references: [id])
+  assignedTo          User?               @relation(fields: [assignedToId], references: [id])
+  interestedBatch     Batch?              @relation(fields: [batchId], references: [id])
   sourceContent       ContentPerformance? @relation("ContentLeads", fields: [sourceReelId], references: [contentId])
+  convertedToStudent  Student?            @relation(fields: [studentId], references: [id])
 
   @@index([status])
   @@index([quality])
@@ -548,17 +559,16 @@ model TeacherHours {
 }
 
 model TeacherReview {
-  id         String   @id @default(cuid())
-  studentId  String
-  teacherId  String
-  rating     Int?
-  category   String?
-  comment    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  student Student @relation("StudentTeacherReviews", fields: [studentId], references: [id], onDelete: Cascade)
-  teacher User    @relation("TeacherReviewer", fields: [teacherId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  studentId String
+  teacherId String
+  rating    Int?
+  category  String?
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   Student  @relation("StudentTeacherReviews", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher   User     @relation("TeacherReviewer", fields: [teacherId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([teacherId])
@@ -566,30 +576,30 @@ model TeacherReview {
 }
 
 model ContentPerformance {
-  id              String   @id @default(cuid())
-  platform        String
-  contentType     String
-  contentId       String   @unique
-  contentUrl      String
-  publishedAt     DateTime
-  views           Int      @default(0)
-  reach           Int      @default(0)
-  likes           Int      @default(0)
-  comments        Int      @default(0)
-  shares          Int      @default(0)
-  saves           Int      @default(0)
-  leadsGenerated  Int      @default(0)
-  enrollments     Int      @default(0)
-  revenue         Decimal  @default(0) @db.Decimal(10, 2)
-  caption         String?
-  hashtags        String[]
-  topic           String?
-  engagementRate  Decimal? @db.Decimal(5, 2)
-  conversionRate  Decimal? @db.Decimal(5, 2)
-  roi             Decimal? @db.Decimal(10, 2)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  leads           Lead[]   @relation("ContentLeads")
+  id             String   @id @default(cuid())
+  platform       String
+  contentType    String
+  contentId      String   @unique
+  contentUrl     String
+  publishedAt    DateTime
+  views          Int      @default(0)
+  likes          Int      @default(0)
+  comments       Int      @default(0)
+  shares         Int      @default(0)
+  saves          Int      @default(0)
+  leadsGenerated Int      @default(0)
+  enrollments    Int      @default(0)
+  revenue        Decimal  @default(0) @db.Decimal(10, 2)
+  caption        String?
+  hashtags       String[]
+  topic          String?
+  engagementRate Decimal? @db.Decimal(5, 2)
+  conversionRate Decimal? @db.Decimal(5, 2)
+  roi            Decimal? @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  reach          Int      @default(0)
+  leads          Lead[]   @relation("ContentLeads")
 
   @@index([platform])
   @@index([contentType])
@@ -620,24 +630,24 @@ model InstagramMessage {
 }
 
 model InstagramComment {
-  id              String   @id @default(cuid())
-  commentId       String   @unique
-  mediaId         String
-  mediaUrl        String?
-  username        String
-  text            String
-  commentedAt     DateTime
-  replied         Boolean  @default(false)
-  replyText       String?
-  repliedAt       DateTime?
-  triggerWords    String[]
-  leadIntent      Boolean  @default(false)
-  leadCreated     Boolean  @default(false)
-  leadId          String?
-  priority        String   @default("low")
-  processed       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           String    @id @default(cuid())
+  commentId    String    @unique
+  mediaId      String
+  mediaUrl     String?
+  username     String
+  text         String
+  commentedAt  DateTime
+  replied      Boolean   @default(false)
+  replyText    String?
+  repliedAt    DateTime?
+  triggerWords String[]
+  leadIntent   Boolean   @default(false)
+  leadCreated  Boolean   @default(false)
+  leadId       String?
+  priority     String    @default("low")
+  processed    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([mediaId])
   @@index([username])
@@ -650,24 +660,221 @@ model InstagramComment {
 }
 
 model RecordingLog {
-  id              String   @id @default(cuid())
-  batchId         String
-  batchCode       String
-  meetLink        String
-  scheduledTime   DateTime
-  startedAt       DateTime?
-  status          RecordingStatus @default(PENDING)
-  recordingVerified Boolean @default(false)
-  errorMessage    String?
-  screenshot      String?  // Path to screenshot if verification failed
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  batch           Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  id                String          @id @default(cuid())
+  batchId           String
+  batchCode         String
+  meetLink          String
+  scheduledTime     DateTime
+  startedAt         DateTime?
+  status            RecordingStatus @default(PENDING)
+  recordingVerified Boolean         @default(false)
+  errorMessage      String?
+  screenshot        String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  batch             Batch           @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@index([batchId])
   @@index([scheduledTime])
   @@index([status])
   @@index([createdAt])
+}
+
+model Subreddit {
+  id               String       @id @default(cuid())
+  name             String       @unique
+  description      String?
+  category         String?
+  active           Boolean      @default(true)
+  lastFetched      DateTime?
+  postCount        Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  currentTimeframe String       @default("week")
+  posts            RedditPost[]
+
+  @@index([active])
+  @@index([name])
+}
+
+model RedditPost {
+  id            String        @id @default(cuid())
+  redditId      String        @unique
+  subredditId   String
+  subredditName String
+  title         String
+  selftext      String?
+  author        String
+  url           String
+  permalink     String
+  upvotes       Int           @default(0)
+  numComments   Int           @default(0)
+  postedAt      DateTime
+  fetchedAt     DateTime      @default(now())
+  saved         Boolean       @default(false)
+  analyzed      Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  contentIdeas  ContentIdea[]
+  subreddit     Subreddit     @relation(fields: [subredditId], references: [id], onDelete: Cascade)
+
+  @@index([subredditId])
+  @@index([saved])
+  @@index([postedAt])
+  @@index([upvotes])
+}
+
+model ContentIdea {
+  id                String     @id @default(cuid())
+  redditPostId      String
+  hook              String
+  script            String
+  visualSuggestions String
+  caption           String
+  hashtags          String[]
+  topic             String
+  status            String     @default("DRAFT")
+  notes             String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  redditPost        RedditPost @relation(fields: [redditPostId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OfferLetter {
+  id                 String      @id @default(cuid())
+  offerNumber        String      @unique
+  teacherId          String
+  teacherAddress     String
+  offerDate          DateTime
+  acceptanceDeadline DateTime
+  positionType       String      @default("PART_TIME")
+  batchAssignments   Json
+  status             OfferStatus @default(DRAFT)
+  sentAt             DateTime?
+  viewedAt           DateTime?
+  pdfUrl             String?
+  pdfData            Bytes?
+  createdBy          String
+  createdByEmail     String
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  teacher            User        @relation("TeacherOffers", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([offerDate])
+  @@index([offerNumber])
+}
+
+model ContentPost {
+  id          String           @id @default(cuid())
+  studentId   String
+  title       String
+  content     String
+  contentType ContentType
+  level       Level?
+  language    String           @default("de")
+  status      PostStatus       @default(PUBLISHED)
+  viewCount   Int              @default(0)
+  featured    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  comments    ContentComment[]
+  likes       ContentLike[]
+  student     Student          @relation("StudentPosts", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([contentType])
+  @@index([status])
+  @@index([level])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+model ContentLike {
+  id        String      @id @default(cuid())
+  postId    String
+  studentId String
+  createdAt DateTime    @default(now())
+  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, studentId])
+  @@index([postId])
+  @@index([studentId])
+}
+
+model ContentComment {
+  id        String      @id @default(cuid())
+  postId    String
+  studentId String
+  content   String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  student   Student     @relation("StudentComments", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+model OutreachCall {
+  id              String             @id @default(cuid())
+  studentId       String
+  scheduledDate   DateTime           @db.Date
+  priority        OutreachPriority   @default(MEDIUM)
+  status          OutreachStatus     @default(PENDING)
+  callType        OutreachCallType
+  purpose         String
+  preCallNotes    String?
+  completedAt     DateTime?
+  duration        Int?
+  callNotes       String?
+  journeyUpdates  Json?
+  sentiment       OutreachSentiment?
+  nextCallDate    DateTime?          @db.Date
+  snoozedUntil    DateTime?          @db.Date
+  snoozeReason    String?
+  attemptCount    Int                @default(0)
+  createdBy       String
+  createdByName   String
+  completedBy     String?
+  completedByName String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  student         Student            @relation("StudentOutreachCalls", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([priority])
+  @@index([callType])
+  @@index([createdBy])
+}
+
+model StudentConnection {
+  id                 String           @id @default(cuid())
+  studentId          String
+  connectedStudentId String
+  reason             String
+  introducedAt       DateTime         @default(now())
+  introducedBy       String
+  introducedByName   String
+  status             ConnectionStatus @default(INTRODUCED)
+  notes              String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  connectedStudent   Student          @relation("ConnectedWith", fields: [connectedStudentId], references: [id], onDelete: Cascade)
+  student            Student          @relation("StudentConnections", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, connectedStudentId])
+  @@index([studentId])
+  @@index([connectedStudentId])
+  @@index([status])
+  @@index([introducedAt])
 }
 
 enum RecordingStatus {
@@ -688,12 +895,12 @@ enum UserRole {
 enum Level {
   NEW
   A1
-  A1_HYBRID
-  A1_HYBRID_MALAYALAM
   A2
   B1
   B2
   SPOKEN_GERMAN
+  A1_HYBRID_MALAYALAM
+  A1_HYBRID
 }
 
 enum PaymentStatus {
@@ -785,9 +992,6 @@ enum AuditAction {
   LOGIN
   LOGOUT
   LOGIN_FAILED
-  PASSWORD_CHANGED
-  PASSWORD_RESET_REQUESTED
-  PASSWORD_RESET_COMPLETED
   LEAD_CREATED
   LEAD_UPDATED
   LEAD_DELETED
@@ -797,10 +1001,6 @@ enum AuditAction {
   INVOICE_UPDATED
   INVOICE_CANCELLED
   PAYMENT_RECEIVED
-  REFUND_PROCESSED
-  RECEIPT_GENERATED
-  RECEIPT_DOWNLOADED
-  RECEIPT_SENT
   STUDENT_CREATED
   LEAD_TO_STUDENT_CONVERSION
   STUDENT_UPDATED
@@ -810,7 +1010,6 @@ enum AuditAction {
   BATCH_DELETED
   TEACHER_CREATED
   TEACHER_UPDATED
-  TEACHER_DELETED
   TEACHER_ACTIVATED
   TEACHER_DEACTIVATED
   TEACHER_HOURS_LOGGED
@@ -825,6 +1024,14 @@ enum AuditAction {
   API_ERROR
   EMAIL_SENT
   EMAIL_FAILED
+  PASSWORD_CHANGED
+  PASSWORD_RESET_REQUESTED
+  PASSWORD_RESET_COMPLETED
+  TEACHER_DELETED
+  RECEIPT_GENERATED
+  RECEIPT_DOWNLOADED
+  RECEIPT_SENT
+  REFUND_PROCESSED
 }
 
 enum AuditSeverity {
@@ -839,68 +1046,6 @@ enum InvoiceStatus {
   SENT
   PAID
   CANCELLED
-}
-
-model Subreddit {
-  id               String       @id @default(cuid())
-  name             String       @unique
-  description      String?
-  category         String?
-  active           Boolean      @default(true)
-  lastFetched      DateTime?
-  postCount        Int          @default(0)
-  currentTimeframe String       @default("week") // week, month, year, all
-  posts            RedditPost[]
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-
-  @@index([active])
-  @@index([name])
-}
-
-model RedditPost {
-  id            String        @id @default(cuid())
-  redditId      String        @unique
-  subredditId   String
-  subredditName String
-  title         String
-  selftext      String?
-  author        String
-  url           String
-  permalink     String
-  upvotes       Int           @default(0)
-  numComments   Int           @default(0)
-  postedAt      DateTime
-  fetchedAt     DateTime      @default(now())
-  saved         Boolean       @default(false)
-  analyzed      Boolean       @default(false)
-  subreddit     Subreddit     @relation(fields: [subredditId], references: [id], onDelete: Cascade)
-  contentIdeas  ContentIdea[]
-  createdAt     DateTime      @default(now())
-
-  @@index([subredditId])
-  @@index([saved])
-  @@index([postedAt])
-  @@index([upvotes])
-}
-
-model ContentIdea {
-  id                String     @id @default(cuid())
-  redditPostId      String
-  hook              String
-  script            String
-  visualSuggestions String
-  caption           String
-  hashtags          String[]
-  topic             String
-  status            String     @default("DRAFT")
-  notes             String?
-  redditPost        RedditPost @relation(fields: [redditPostId], references: [id], onDelete: Cascade)
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-
-  @@index([status])
-  @@index([createdAt])
 }
 
 enum InteractionType {
@@ -939,47 +1084,6 @@ enum RefundReason {
   OTHER
 }
 
-model OfferLetter {
-  id                  String      @id @default(cuid())
-  offerNumber         String      @unique
-
-  // Teacher info
-  teacherId           String
-  teacher             User        @relation("TeacherOffers", fields: [teacherId], references: [id], onDelete: Cascade)
-  teacherAddress      String
-
-  // Dates
-  offerDate           DateTime
-  acceptanceDeadline  DateTime
-
-  // Position
-  positionType        String      @default("PART_TIME")
-
-  // Batch rates (historical snapshot)
-  batchAssignments    Json
-
-  // Status tracking
-  status              OfferStatus @default(DRAFT)
-  sentAt              DateTime?
-  viewedAt            DateTime?
-
-  // Generated PDF
-  pdfUrl              String?
-  pdfData             Bytes?
-
-  // Audit
-  createdBy           String
-  createdByEmail      String
-  notes               String?
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-
-  @@index([teacherId])
-  @@index([status])
-  @@index([offerDate])
-  @@index([offerNumber])
-}
-
 enum OfferStatus {
   DRAFT
   GENERATED
@@ -988,124 +1092,6 @@ enum OfferStatus {
   ACCEPTED
   REJECTED
   EXPIRED
-}
-
-// Content Wall - Students sharing creative German content
-model ContentPost {
-  id          String        @id @default(cuid())
-  studentId   String
-  title       String
-  content     String        @db.Text
-  contentType ContentType
-  level       Level?        // Optional: content difficulty level
-  language    String        @default("de") // de = German, en = English
-  status      PostStatus    @default(PUBLISHED)
-  viewCount   Int           @default(0)
-  featured    Boolean       @default(false)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  student     Student       @relation("StudentPosts", fields: [studentId], references: [id], onDelete: Cascade)
-  likes       ContentLike[]
-  comments    ContentComment[]
-
-  @@index([studentId])
-  @@index([contentType])
-  @@index([status])
-  @@index([level])
-  @@index([featured])
-  @@index([createdAt])
-}
-
-model ContentLike {
-  id        String      @id @default(cuid())
-  postId    String
-  studentId String
-  createdAt DateTime    @default(now())
-  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  @@unique([postId, studentId])
-  @@index([postId])
-  @@index([studentId])
-}
-
-model ContentComment {
-  id        String      @id @default(cuid())
-  postId    String
-  studentId String
-  content   String      @db.Text
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  post      ContentPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  student   Student     @relation("StudentComments", fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([postId])
-  @@index([studentId])
-  @@index([createdAt])
-}
-
-// Founder Outreach System
-model OutreachCall {
-  id                String            @id @default(cuid())
-  studentId         String
-  scheduledDate     DateTime          @db.Date
-  priority          OutreachPriority  @default(MEDIUM)
-  status            OutreachStatus    @default(PENDING)
-  callType          OutreachCallType
-  purpose           String
-  preCallNotes      String?
-
-  // Call completion fields
-  completedAt       DateTime?
-  duration          Int?              // Duration in minutes
-  callNotes         String?
-  journeyUpdates    Json?             // Structured updates about student's journey
-  sentiment         OutreachSentiment?
-  nextCallDate      DateTime?         @db.Date
-
-  // Snooze tracking
-  snoozedUntil      DateTime?         @db.Date
-  snoozeReason      String?
-  attemptCount      Int               @default(0)
-
-  // Metadata
-  createdBy         String
-  createdByName     String
-  completedBy       String?
-  completedByName   String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-
-  student           Student           @relation("StudentOutreachCalls", fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@index([studentId])
-  @@index([scheduledDate])
-  @@index([status])
-  @@index([priority])
-  @@index([callType])
-  @@index([createdBy])
-}
-
-model StudentConnection {
-  id                String   @id @default(cuid())
-  studentId         String
-  connectedStudentId String
-  reason            String   // AI-generated reason for connection
-  introducedAt      DateTime @default(now())
-  introducedBy      String
-  introducedByName  String
-  status            ConnectionStatus @default(INTRODUCED)
-  notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  student           Student  @relation("StudentConnections", fields: [studentId], references: [id], onDelete: Cascade)
-  connectedStudent  Student  @relation("ConnectedWith", fields: [connectedStudentId], references: [id], onDelete: Cascade)
-
-  @@unique([studentId, connectedStudentId])
-  @@index([studentId])
-  @@index([connectedStudentId])
-  @@index([status])
-  @@index([introducedAt])
 }
 
 enum ContentType {

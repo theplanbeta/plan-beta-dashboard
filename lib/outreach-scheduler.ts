@@ -3,12 +3,22 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 /**
- * Student Tier System
- * PLATINUM: VIP students, ambassadors, high referrers - contact monthly
- * GOLD: High engagement, good attendance, community contributors - contact every 6 weeks
- * SILVER: Stable students, moderate engagement - contact every 2-3 months
- * BRONZE: Low engagement or dropoff risk - contact every 3-4 months
+ * NEW OUTREACH SYSTEM (Dec 2024+)
+ * Journey-Based Scheduling: Call frequency based on where student is in their learning journey
+ *
+ * Journey Phases:
+ * - WELCOME (Days 1-7): High-touch onboarding - calls on day 2-3, day 7
+ * - SETTLING_IN (Days 8-21): Building habits - calls on day 14, day 21
+ * - ACTIVE_LEARNING (Days 22-course end): Regular support - every 14 days
+ * - PRE_COMPLETION (5-7 days before end): Upsell & next level - urgent call
+ * - POST_COURSE (After completion): Alumni engagement - every 30-45 days
+ *
+ * Replaces old tier system (PLATINUM/GOLD/SILVER/BRONZE) which rewarded wrong students.
+ * New system: ALL students get support based on their journey, not their "value"
  */
+export type JourneyPhase = 'WELCOME' | 'SETTLING_IN' | 'ACTIVE_LEARNING' | 'PRE_COMPLETION' | 'POST_COURSE';
+
+// Keep for backward compatibility with existing code, but deprecated
 export type StudentTier = 'PLATINUM' | 'GOLD' | 'SILVER' | 'BRONZE';
 
 /**
@@ -51,7 +61,117 @@ export interface ScheduledCall {
 }
 
 /**
- * Calculate a student's tier based on multiple factors
+ * NEW: Journey Phase Calculation Result
+ */
+export interface JourneyPhaseResult {
+  phase: JourneyPhase;
+  enrollmentDays: number;
+  classesAttended: number;
+  expectedCourseDuration: number;
+  daysUntilCompletion: number | null;
+  nextCallDays: number; // Days from now until next recommended call
+  description: string;
+}
+
+/**
+ * NEW: Calculate student's journey phase (Dec 2024+ students only)
+ * Returns where student is in their learning journey and when next call should be
+ */
+export async function getJourneyPhase(studentId: string): Promise<JourneyPhaseResult> {
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+    select: {
+      enrollmentDate: true,
+      currentLevel: true,
+      classesAttended: true,
+      completionStatus: true,
+    }
+  });
+
+  if (!student) {
+    throw new Error(`Student ${studentId} not found`);
+  }
+
+  const enrollmentDays = Math.floor((Date.now() - new Date(student.enrollmentDate).getTime()) / (1000 * 60 * 60 * 24));
+
+  // Determine expected course duration
+  let expectedCourseDuration = 40; // A1/A2
+  if (student.currentLevel === 'B1' || student.currentLevel === 'B2') {
+    expectedCourseDuration = 60;
+  } else if (student.currentLevel === 'NEW' || student.currentLevel === 'SPOKEN_GERMAN') {
+    expectedCourseDuration = 30;
+  }
+
+  const daysUntilCompletion = student.completionStatus === 'ACTIVE'
+    ? expectedCourseDuration - student.classesAttended
+    : null;
+
+  // Determine phase and next call timing
+  let phase: JourneyPhase;
+  let nextCallDays: number;
+  let description: string;
+
+  if (student.completionStatus !== 'ACTIVE') {
+    // Post-course alumni
+    phase = 'POST_COURSE';
+    nextCallDays = 35; // Monthly-ish check-ins
+    description = 'Alumni - monthly community check-in';
+  } else if (daysUntilCompletion !== null && daysUntilCompletion <= 7 && daysUntilCompletion > 0) {
+    // Pre-completion upsell window
+    phase = 'PRE_COMPLETION';
+    nextCallDays = 2; // Urgent - call within 2 days
+    description = `${daysUntilCompletion} days until course completion - upsell opportunity`;
+  } else if (enrollmentDays <= 7) {
+    // Welcome phase - high-touch onboarding
+    phase = 'WELCOME';
+    if (enrollmentDays <= 2) {
+      nextCallDays = 1; // First call: day 2-3
+      description = 'New student - welcome call';
+    } else {
+      nextCallDays = 7 - enrollmentDays; // Second call: day 7
+      description = 'Week 1 settling-in call';
+    }
+  } else if (enrollmentDays <= 21) {
+    // Settling in phase - building habits
+    phase = 'SETTLING_IN';
+    if (enrollmentDays < 14) {
+      nextCallDays = 14 - enrollmentDays; // Call on day 14
+      description = 'Week 2 habit-building check-in';
+    } else {
+      nextCallDays = 21 - enrollmentDays; // Call on day 21
+      description = 'Week 3 progress review';
+    }
+  } else {
+    // Active learning phase - regular support
+    phase = 'ACTIVE_LEARNING';
+    nextCallDays = 14; // Biweekly check-ins
+    description = 'Active learning - biweekly support call';
+  }
+
+  return {
+    phase,
+    enrollmentDays,
+    classesAttended: student.classesAttended,
+    expectedCourseDuration,
+    daysUntilCompletion,
+    nextCallDays,
+    description
+  };
+}
+
+/**
+ * NEW: Calculate next call date based on journey phase
+ * Used for auto-scheduling after call completion
+ */
+export function calculateNextCallDate(journeyPhase: JourneyPhaseResult, lastCallDate: Date = new Date()): Date {
+  const nextDate = new Date(lastCallDate);
+  nextDate.setDate(nextDate.getDate() + journeyPhase.nextCallDays);
+  return nextDate;
+}
+
+/**
+ * DEPRECATED: Calculate a student's tier based on multiple factors
+ * Kept for backward compatibility but should not be used for Dec 2024+ students
  */
 export async function calculateStudentTier(studentId: string): Promise<TierCalculationResult> {
   const student = await prisma.student.findUnique({
@@ -478,15 +598,18 @@ export async function calculateCallPriority(
 }
 
 /**
- * Schedule daily calls based on target date and count
- * Balances priority distribution and respects constraints
+ * NEW: Schedule daily calls based on journey phases (Dec 2024+ students only)
+ * Replaces old tier-based system with lifecycle-aware scheduling
  */
 export async function scheduleDailyCalls(
   targetDate: Date,
   targetCount: number = 5
 ): Promise<ScheduledCall[]> {
-  // Hard limit: never schedule more than 7 calls per day
-  const maxCalls = Math.min(targetCount, 7);
+  // NEW: Lower limit for quality over quantity (max 5 calls per day)
+  const maxCalls = Math.min(targetCount, 5);
+
+  // December 1, 2024 cutoff for new journey-based system
+  const dec2024Cutoff = new Date('2024-12-01');
 
   // Get students who already have scheduled calls for this date
   const existingScheduledCalls = await prisma.outreachCall.findMany({
@@ -499,13 +622,12 @@ export async function scheduleDailyCalls(
 
   const scheduledStudentIds = new Set(existingScheduledCalls.map(c => c.studentId));
 
-  // Get all active students who haven't opted out
+  // NEW: Get only December 2024+ students
   const students = await prisma.student.findMany({
     where: {
       completionStatus: 'ACTIVE',
-      id: { notIn: Array.from(scheduledStudentIds) } // Exclude already scheduled students
-      // Note: We'd need to add outreachOptOut field to schema
-      // outreachOptOut: false
+      enrollmentDate: { gte: dec2024Cutoff }, // NEW: December 2024+ only
+      id: { notIn: Array.from(scheduledStudentIds) }
     },
     include: {
       interactions: {
@@ -525,112 +647,91 @@ export async function scheduleDailyCalls(
     }
   });
 
-  // Filter out students who were called too recently (within 21 days)
-  const threeWeeksAgo = new Date(Date.now() - 21 * 24 * 60 * 60 * 1000);
-  const eligibleStudents = students.filter(student => {
-    // Check both manual interactions and completed outreach calls
-    const lastManualCall = student.interactions.length > 0
-      ? new Date(student.interactions[0].createdAt)
-      : null;
+  // NEW: Journey-based eligibility (no fixed 21-day rule)
+  // Students are eligible if they need a call based on their journey phase
+  const eligibleStudents = await Promise.all(
+    students.map(async (student) => {
+      // Get journey phase
+      const journeyPhase = await getJourneyPhase(student.id);
 
-    const lastOutreachCall = student.outreachCalls.length > 0 && student.outreachCalls[0].completedAt
-      ? new Date(student.outreachCalls[0].completedAt)
-      : null;
+      // Get last call date
+      const lastManualCall = student.interactions.length > 0
+        ? new Date(student.interactions[0].createdAt)
+        : null;
 
-    // Get the most recent call date
-    const lastCallDate = [lastManualCall, lastOutreachCall]
-      .filter(d => d !== null)
-      .sort((a, b) => b!.getTime() - a!.getTime())[0];
+      const lastOutreachCall = student.outreachCalls.length > 0 && student.outreachCalls[0].completedAt
+        ? new Date(student.outreachCalls[0].completedAt)
+        : null;
 
-    if (!lastCallDate) return true; // Never called
+      const lastCallDate = [lastManualCall, lastOutreachCall]
+        .filter(d => d !== null)
+        .sort((a, b) => b!.getTime() - a!.getTime())[0];
 
-    // Exception: HIGH priority can override 3-week rule if older than 1 week
-    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    return lastCallDate <= threeWeeksAgo || (lastCallDate <= oneWeekAgo && student.churnRisk === 'HIGH');
-  });
+      // Calculate days since last call
+      const daysSinceLastCall = lastCallDate
+        ? Math.floor((Date.now() - lastCallDate.getTime()) / (1000 * 60 * 60 * 24))
+        : 999; // Never called
 
-  // Calculate priority for each eligible student
-  const studentPriorities = await Promise.all(
-    eligibleStudents.map(async (student) => {
-      const priority = await calculateCallPriority(student.id);
-      const tier = await calculateStudentTier(student.id);
+      // Student is eligible if days since last call >= recommended next call days
+      const isEligible = daysSinceLastCall >= journeyPhase.nextCallDays;
 
       return {
         student,
-        priority,
-        tier,
-        // Calculate days since last contact for sorting
-        daysSinceContact: student.interactions.length > 0
-          ? Math.floor((Date.now() - new Date(student.interactions[0].createdAt).getTime()) / (1000 * 60 * 60 * 24))
-          : 999
+        journeyPhase,
+        daysSinceLastCall,
+        isEligible
       };
     })
   );
 
-  // Sort by priority score (descending), then by days since contact (descending)
-  studentPriorities.sort((a, b) => {
-    if (b.priority.score !== a.priority.score) {
-      return b.priority.score - a.priority.score;
-    }
-    return b.daysSinceContact - a.daysSinceContact;
+  // Filter to only eligible students
+  const readyForCall = eligibleStudents.filter(s => s.isEligible);
+
+  // NEW: Sort by journey phase priority (WELCOME & PRE_COMPLETION first, then by days overdue)
+  readyForCall.sort((a, b) => {
+    // Priority order: PRE_COMPLETION > WELCOME > SETTLING_IN > ACTIVE_LEARNING > POST_COURSE
+    const phasePriority: Record<JourneyPhase, number> = {
+      'PRE_COMPLETION': 5,
+      'WELCOME': 4,
+      'SETTLING_IN': 3,
+      'ACTIVE_LEARNING': 2,
+      'POST_COURSE': 1
+    };
+
+    const priorityDiff = phasePriority[b.journeyPhase.phase] - phasePriority[a.journeyPhase.phase];
+    if (priorityDiff !== 0) return priorityDiff;
+
+    // If same phase, prioritize students who are most overdue
+    const aDaysOverdue = a.daysSinceLastCall - a.journeyPhase.nextCallDays;
+    const bDaysOverdue = b.daysSinceLastCall - b.journeyPhase.nextCallDays;
+    return bDaysOverdue - aDaysOverdue;
   });
 
-  // Balance priority distribution: 50% HIGH, 30% MEDIUM, 20% LOW
-  const targetHigh = Math.ceil(maxCalls * 0.5);
-  const targetMedium = Math.ceil(maxCalls * 0.3);
-  const targetLow = maxCalls - targetHigh - targetMedium;
+  // Take top maxCalls students
+  const topStudents = readyForCall.slice(0, maxCalls);
 
-  const scheduledCalls: ScheduledCall[] = [];
+  // Create scheduled calls with journey-based context
+  const scheduledCalls: ScheduledCall[] = topStudents.map(({ student, journeyPhase }) => {
+    // Determine priority based on journey phase
+    let priority: CallPriority;
+    if (journeyPhase.phase === 'PRE_COMPLETION' || journeyPhase.phase === 'WELCOME') {
+      priority = 'HIGH';
+    } else if (journeyPhase.phase === 'SETTLING_IN') {
+      priority = 'MEDIUM';
+    } else {
+      priority = 'LOW';
+    }
 
-  // First, add HIGH priority calls
-  const highPriority = studentPriorities.filter(sp => sp.priority.priority === 'HIGH');
-  for (let i = 0; i < Math.min(targetHigh, highPriority.length); i++) {
-    const sp = highPriority[i];
-    scheduledCalls.push({
-      studentId: sp.student.id,
+    return {
+      studentId: student.id,
       scheduledDate: targetDate,
-      priority: sp.priority.priority,
-      reason: sp.priority.reason,
-      tier: sp.tier.tier,
-      studentName: sp.student.name,
-      whatsapp: sp.student.whatsapp
-    });
-  }
-
-  // Then add MEDIUM priority calls
-  const mediumPriority = studentPriorities.filter(sp => sp.priority.priority === 'MEDIUM');
-  for (let i = 0; i < Math.min(targetMedium, mediumPriority.length); i++) {
-    const sp = mediumPriority[i];
-    if (scheduledCalls.length >= maxCalls) break;
-
-    scheduledCalls.push({
-      studentId: sp.student.id,
-      scheduledDate: targetDate,
-      priority: sp.priority.priority,
-      reason: sp.priority.reason,
-      tier: sp.tier.tier,
-      studentName: sp.student.name,
-      whatsapp: sp.student.whatsapp
-    });
-  }
-
-  // Fill remaining slots with LOW priority or additional HIGH/MEDIUM
-  const remaining = studentPriorities.filter(
-    sp => !scheduledCalls.find(sc => sc.studentId === sp.student.id)
-  );
-
-  for (let i = 0; i < remaining.length && scheduledCalls.length < maxCalls; i++) {
-    const sp = remaining[i];
-    scheduledCalls.push({
-      studentId: sp.student.id,
-      scheduledDate: targetDate,
-      priority: sp.priority.priority,
-      reason: sp.priority.reason,
-      tier: sp.tier.tier,
-      studentName: sp.student.name,
-      whatsapp: sp.student.whatsapp
-    });
-  }
+      priority,
+      reason: journeyPhase.description,
+      tier: 'SILVER', // Placeholder for backward compatibility (deprecated)
+      studentName: student.name,
+      whatsapp: student.whatsapp
+    };
+  });
 
   return scheduledCalls;
 }

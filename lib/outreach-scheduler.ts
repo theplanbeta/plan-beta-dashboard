@@ -608,8 +608,8 @@ export async function scheduleDailyCalls(
   // NEW: Lower limit for quality over quantity (max 4 calls per day)
   const maxCalls = Math.min(targetCount, 4);
 
-  // December 1, 2024 cutoff for new journey-based system
-  const dec2024Cutoff = new Date('2024-12-01');
+  // December 1, 2025 cutoff for new journey-based system
+  const dec2025Cutoff = new Date('2025-12-01');
 
   // Get students who already have scheduled calls for this date
   const existingScheduledCalls = await prisma.outreachCall.findMany({
@@ -622,11 +622,11 @@ export async function scheduleDailyCalls(
 
   const scheduledStudentIds = new Set(existingScheduledCalls.map(c => c.studentId));
 
-  // NEW: Get only December 2024+ students
+  // NEW: Get only December 2025+ students
   const students = await prisma.student.findMany({
     where: {
       completionStatus: 'ACTIVE',
-      enrollmentDate: { gte: dec2024Cutoff }, // NEW: December 2024+ only
+      enrollmentDate: { gte: dec2025Cutoff }, // NEW: December 2025+ only
       id: { notIn: Array.from(scheduledStudentIds) }
     },
     include: {

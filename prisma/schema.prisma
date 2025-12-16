@@ -114,6 +114,11 @@ model Student {
   interactions       StudentInteraction[] @relation("StudentInteractions")
   contentPosts       ContentPost[]    @relation("StudentPosts")
   contentComments    ContentComment[] @relation("StudentComments")
+  outreachCalls      OutreachCall[]   @relation("StudentOutreachCalls")
+  lastOutreachCall   DateTime?
+  relationshipDepth  Int              @default(0)
+  communityConnections StudentConnection[] @relation("StudentConnections")
+  connectedWith      StudentConnection[] @relation("ConnectedWith")
 
   @@index([studentId])
   @@index([whatsapp])
@@ -1038,6 +1043,71 @@ model ContentComment {
   @@index([createdAt])
 }
 
+// Founder Outreach System
+model OutreachCall {
+  id                String            @id @default(cuid())
+  studentId         String
+  scheduledDate     DateTime          @db.Date
+  priority          OutreachPriority  @default(MEDIUM)
+  status            OutreachStatus    @default(PENDING)
+  callType          OutreachCallType
+  purpose           String
+  preCallNotes      String?
+
+  // Call completion fields
+  completedAt       DateTime?
+  duration          Int?              // Duration in minutes
+  callNotes         String?
+  journeyUpdates    Json?             // Structured updates about student's journey
+  sentiment         OutreachSentiment?
+  nextCallDate      DateTime?         @db.Date
+
+  // Snooze tracking
+  snoozedUntil      DateTime?         @db.Date
+  snoozeReason      String?
+  attemptCount      Int               @default(0)
+
+  // Metadata
+  createdBy         String
+  createdByName     String
+  completedBy       String?
+  completedByName   String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  student           Student           @relation("StudentOutreachCalls", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([priority])
+  @@index([callType])
+  @@index([createdBy])
+}
+
+model StudentConnection {
+  id                String   @id @default(cuid())
+  studentId         String
+  connectedStudentId String
+  reason            String   // AI-generated reason for connection
+  introducedAt      DateTime @default(now())
+  introducedBy      String
+  introducedByName  String
+  status            ConnectionStatus @default(INTRODUCED)
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  student           Student  @relation("StudentConnections", fields: [studentId], references: [id], onDelete: Cascade)
+  connectedStudent  Student  @relation("ConnectedWith", fields: [connectedStudentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, connectedStudentId])
+  @@index([studentId])
+  @@index([connectedStudentId])
+  @@index([status])
+  @@index([introducedAt])
+}
+
 enum ContentType {
   STORY
   POEM
@@ -1053,4 +1123,43 @@ enum PostStatus {
   DRAFT
   PUBLISHED
   ARCHIVED
+}
+
+enum OutreachPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum OutreachStatus {
+  PENDING
+  COMPLETED
+  SNOOZED
+  CANCELLED
+}
+
+enum OutreachCallType {
+  ONBOARDING
+  CHECK_IN
+  MILESTONE
+  SUPPORT
+  FEEDBACK
+  COMMUNITY
+  RETENTION
+  OTHER
+}
+
+enum OutreachSentiment {
+  VERY_POSITIVE
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  VERY_NEGATIVE
+}
+
+enum ConnectionStatus {
+  INTRODUCED
+  CONNECTED
+  ACTIVE
+  INACTIVE
 }

@@ -603,10 +603,10 @@ export async function calculateCallPriority(
  */
 export async function scheduleDailyCalls(
   targetDate: Date,
-  targetCount: number = 5
+  targetCount: number = 4
 ): Promise<ScheduledCall[]> {
-  // NEW: Lower limit for quality over quantity (max 5 calls per day)
-  const maxCalls = Math.min(targetCount, 5);
+  // NEW: Lower limit for quality over quantity (max 4 calls per day)
+  const maxCalls = Math.min(targetCount, 4);
 
   // December 1, 2024 cutoff for new journey-based system
   const dec2024Cutoff = new Date('2024-12-01');

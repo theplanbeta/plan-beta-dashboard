@@ -345,6 +345,23 @@ async function fetchStudentWithContext(studentId: string) {
           },
         },
       },
+      // NEW: Include outreach calls with rich journey data
+      outreachCalls: {
+        where: {
+          status: 'COMPLETED'
+        },
+        orderBy: { completedAt: 'desc' },
+        take: 3, // Last 3 completed outreach calls
+        select: {
+          completedAt: true,
+          duration: true,
+          callNotes: true,
+          sentiment: true,
+          journeyUpdates: true, // Json field containing all journey tracking data
+          callType: true,
+          purpose: true,
+        },
+      },
       interactions: {
         orderBy: { createdAt: 'desc' },
         take: 5, // Last 5 interactions
@@ -499,6 +516,35 @@ function buildCallBriefPrompt(studentData: any): string {
     .map((a: any) => `${format(a.date, 'MMM dd')}: ${a.status}`)
     .join(', ')
 
+  // NEW: Format outreach call history with journey data
+  const outreachHistory = (studentData.outreachCalls || [])
+    .map((call: any) => {
+      if (!call.completedAt) return null
+
+      // Parse journey updates from Json field
+      const journey = call.journeyUpdates || {}
+
+      let callInfo = `
+CALL ${formatDistanceToNow(call.completedAt)} ago (${format(call.completedAt, 'MMM dd, yyyy')}):
+- Type: ${call.callType} | Duration: ${call.duration || 'N/A'} min
+- Sentiment: ${call.sentiment || 'Not recorded'}`
+
+      // Add journey data if available
+      if (journey.mainGoal) callInfo += `\n- Their Goal: ${journey.mainGoal}`
+      if (journey.currentChallenges) callInfo += `\n- Challenges: ${journey.currentChallenges}`
+      if (journey.recentWins) callInfo += `\n- Recent Wins: ${journey.recentWins}`
+      if (journey.progressSince) callInfo += `\n- Progress Made: ${journey.progressSince}`
+      if (journey.personalNotes) callInfo += `\n- Personal: ${journey.personalNotes}`
+      if (journey.interests && journey.interests.length > 0) callInfo += `\n- Interests: ${journey.interests.join(', ')}`
+      if (journey.emotionalState) callInfo += `\n- Emotional State: ${journey.emotionalState}`
+      if (journey.nextSteps) callInfo += `\n- Next Steps Agreed: ${journey.nextSteps}`
+      if (call.callNotes) callInfo += `\n- Notes: ${call.callNotes}`
+
+      return callInfo
+    })
+    .filter(Boolean)
+    .join('\n\n')
+
   return `You are helping a founder prepare for a warm, personal call with a student in their German language school. Generate a helpful call brief.
 
 **STUDENT PROFILE:**
@@ -512,6 +558,9 @@ Payment status: ${studentData.paymentStatus}
 Churn risk: ${studentData.churnRisk}
 Batch: ${studentData.batch?.batchCode || 'Not assigned'}
 Teacher: ${studentData.batch?.teacher?.name || 'Not assigned'}
+
+**PREVIOUS OUTREACH CALLS (JOURNEY HISTORY):**
+${outreachHistory || 'This is the first call - make it special!'}
 
 **RECENT INTERACTIONS:**
 ${recentInteractions || 'No recent interactions'}
@@ -539,10 +588,14 @@ Please provide a warm, personal call brief in the following JSON format:
 **GUIDELINES:**
 - Be warm and human, not robotic or corporate
 - Focus on the student as a person, not just metrics
+- **REFERENCE THEIR JOURNEY**: Use previous call data to show continuity ("Last time you mentioned wanting to...")
+- **ACKNOWLEDGE PROGRESS**: Reference their wins, goals, and how they've grown since last call
+- **BUILD ON CHALLENGES**: If they mentioned challenges before, ask about progress on those
 - Make conversation starters natural (not "How are your classes?" but "I noticed you've been crushing the attendance lately!")
-- Personal detail should be genuinely personal (hobbies, aspirations, challenges mentioned before)
+- Personal detail should be genuinely personal (hobbies, aspirations, challenges, interests from previous calls)
 - If last call was long ago or never happened, acknowledge it naturally
 - Keep it concise but meaningful
+- If they set goals or next steps last time, definitely reference those!
 
 Return ONLY valid JSON, no additional text.`
 }

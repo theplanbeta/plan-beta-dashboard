@@ -249,6 +249,99 @@ export async function calculateStudentTier(studentId: string): Promise<TierCalcu
 }
 
 /**
+ * Course Duration Business Rules:
+ * - A1, A2: 40 working days minimum
+ * - B1, B2: 60 working days minimum
+ * - NEW, SPOKEN_GERMAN: Flexible
+ */
+interface CourseMilestone {
+  dayInCourse: number;
+  milestone: 'WELCOME' | 'SETTLING_IN' | 'MID_COURSE' | 'PRE_COMPLETION' | 'COMPLETION_DUE' | 'OVERDUE';
+  description: string;
+  priorityBoost: number;
+}
+
+function getCourseJourneyMilestone(
+  level: string,
+  enrollmentDays: number,
+  classesAttended: number
+): CourseMilestone | null {
+  // Determine course duration based on level
+  let courseDuration = 40; // Default for A1/A2
+  if (level === 'B1' || level === 'B2') {
+    courseDuration = 60;
+  } else if (level === 'NEW' || level === 'SPOKEN_GERMAN') {
+    courseDuration = 30; // Shorter courses
+  }
+
+  const progressPercent = (classesAttended / courseDuration) * 100;
+
+  // Week 1 (days 1-7): Welcome period
+  if (enrollmentDays <= 7) {
+    return {
+      dayInCourse: enrollmentDays,
+      milestone: 'WELCOME',
+      description: `Week 1 welcome check-in (day ${enrollmentDays} of ${courseDuration})`,
+      priorityBoost: 8
+    };
+  }
+
+  // Days 8-14: Settling in
+  if (enrollmentDays <= 14) {
+    return {
+      dayInCourse: enrollmentDays,
+      milestone: 'SETTLING_IN',
+      description: `Week 2 settling-in check (day ${enrollmentDays} of ${courseDuration})`,
+      priorityBoost: 6
+    };
+  }
+
+  // Mid-course: Around day 20 for A1/A2, day 30 for B1/B2
+  const midPoint = Math.floor(courseDuration / 2);
+  if (classesAttended >= midPoint - 3 && classesAttended <= midPoint + 3) {
+    return {
+      dayInCourse: classesAttended,
+      milestone: 'MID_COURSE',
+      description: `Mid-course progress check (${progressPercent.toFixed(0)}% complete)`,
+      priorityBoost: 7
+    };
+  }
+
+  // Pre-completion: 5-7 days before expected completion
+  const preCompletionStart = courseDuration - 7;
+  if (classesAttended >= preCompletionStart && classesAttended < courseDuration) {
+    return {
+      dayInCourse: classesAttended,
+      milestone: 'PRE_COMPLETION',
+      description: `Approaching completion - upsell opportunity (${courseDuration - classesAttended} classes remaining)`,
+      priorityBoost: 9
+    };
+  }
+
+  // Near or at expected completion
+  if (classesAttended >= courseDuration && classesAttended <= courseDuration + 5) {
+    return {
+      dayInCourse: classesAttended,
+      milestone: 'COMPLETION_DUE',
+      description: `Course completion - next level discussion (${classesAttended} classes attended)`,
+      priorityBoost: 10
+    };
+  }
+
+  // Overdue (attended more classes than typical duration + buffer)
+  if (classesAttended > courseDuration + 10) {
+    return {
+      dayInCourse: classesAttended,
+      milestone: 'OVERDUE',
+      description: `Extended beyond typical duration - retention check (${classesAttended} classes, typical: ${courseDuration})`,
+      priorityBoost: 8
+    };
+  }
+
+  return null;
+}
+
+/**
  * Calculate call priority based on current student situation
  */
 export async function calculateCallPriority(
@@ -265,6 +358,12 @@ export async function calculateCallPriority(
       payments: {
         orderBy: { paymentDate: 'desc' },
         take: 1
+      },
+      batch: {
+        select: {
+          level: true,
+          startDate: true
+        }
       }
     }
   });
@@ -279,12 +378,22 @@ export async function calculateCallPriority(
   // Check enrollment age (new students get priority)
   const enrollmentDays = Math.floor((Date.now() - new Date(student.enrollmentDate).getTime()) / (1000 * 60 * 60 * 24));
 
-  if (enrollmentDays <= 7) {
-    priorityScore += 10;
-    urgencyFactors.push('Week 1: Welcome call critical');
-  } else if (enrollmentDays <= 21) {
-    priorityScore += 8;
-    urgencyFactors.push('Week 2-3: Early engagement window');
+  // NEW: Check course journey milestone
+  const milestone = getCourseJourneyMilestone(
+    student.currentLevel,
+    enrollmentDays,
+    student.classesAttended
+  );
+
+  if (milestone) {
+    priorityScore += milestone.priorityBoost;
+    urgencyFactors.push(milestone.description);
+  }
+
+  // Legacy check for students without milestone (fallback)
+  if (!milestone && enrollmentDays <= 21) {
+    priorityScore += 5;
+    urgencyFactors.push('Early enrollment period - general check-in');
   }
 
   // Check consecutive absences

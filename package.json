@@ -11,10 +11,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "backup": "tsx scripts/backup-database.ts",
     "restore": "tsx scripts/restore-database.ts",
-    "import": "tsx scripts/bulk-import.ts",
-    "setup-instagram": "tsx scripts/setup-instagram.ts",
-    "debug-facebook": "tsx scripts/debug-facebook.ts",
-    "test-instagram": "tsx scripts/test-instagram.ts"
+    "import": "tsx scripts/bulk-import.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

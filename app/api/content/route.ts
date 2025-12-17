@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { extractHashtags, detectTopic, calculateEngagementRate } from '@/lib/instagram-api'
+import { extractHashtags, detectTopic, calculateEngagementRate } from '@/lib/content-utils'
 import { z } from 'zod'
 
 // Validation schema for creating content

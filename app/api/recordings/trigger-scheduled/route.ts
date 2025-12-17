@@ -14,9 +14,17 @@ import { BatchStatus } from '@prisma/client';
 export async function POST(req: NextRequest) {
   try {
     // Verify the request is from authorized source (e.g., cron secret)
-    const authHeader = req.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'your-secret-here';
+    const cronSecret = process.env.CRON_SECRET;
 
+    if (!cronSecret) {
+      console.error('CRON_SECRET environment variable is not set');
+      return NextResponse.json(
+        { error: 'Server misconfigured' },
+        { status: 500 }
+      );
+    }
+
+    const authHeader = req.headers.get('authorization');
     if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
         { error: 'Unauthorized' },

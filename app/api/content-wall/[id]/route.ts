@@ -146,48 +146,38 @@ export async function PUT(
 }
 
 // DELETE /api/content-wall/[id] - Delete post
-// Permissions: Student who owns the post, FOUNDER (admin), or TEACHER
+// Permissions: FOUNDER (admin) or TEACHER only - requires authenticated session
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params
-    const body = await request.json()
-    const { studentId } = body
 
-    // Get session for admin/teacher access
+    // Require authenticated session
     const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Only FOUNDER and TEACHER can delete posts
+    const isAdmin = session.user.role === "FOUNDER"
+    const isTeacher = session.user.role === "TEACHER"
+
+    if (!isAdmin && !isTeacher) {
+      return NextResponse.json(
+        { error: "You don't have permission to delete posts" },
+        { status: 403 }
+      )
+    }
 
     // Check if post exists
     const post = await prisma.contentPost.findUnique({
       where: { id },
-      include: {
-        student: {
-          select: {
-            studentId: true,
-          },
-        },
-      },
     })
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 })
-    }
-
-    // Permission check:
-    // 1. FOUNDER (admin) can delete any post
-    // 2. TEACHER can delete any post
-    // 3. Student who owns the post can delete it
-    const isAdmin = session?.user?.role === "FOUNDER"
-    const isTeacher = session?.user?.role === "TEACHER"
-    const isOwner = studentId && post.student.studentId === studentId
-
-    if (!isAdmin && !isTeacher && !isOwner) {
-      return NextResponse.json(
-        { error: "You don't have permission to delete this post" },
-        { status: 403 }
-      )
     }
 
     await prisma.contentPost.delete({

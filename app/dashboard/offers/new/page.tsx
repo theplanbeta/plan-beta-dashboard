@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { parseZodIssues, type FieldErrors } from "@/lib/form-errors"
 
 type Teacher = {
   id: string
@@ -20,6 +21,7 @@ export default function NewOfferLetterPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   // Form state
   const [teacherId, setTeacherId] = useState("")
@@ -74,32 +76,39 @@ export default function NewOfferLetterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFieldErrors({})
 
-    // Validation
+    // Client-side validation with field-level errors
+    const errors: FieldErrors = {}
+
     if (!teacherId) {
-      alert("Please select a teacher")
-      return
+      errors.teacherId = "Please select a teacher"
     }
 
     if (!teacherAddress.trim()) {
-      alert("Please enter teacher's address")
-      return
+      errors.teacherAddress = "Please enter teacher's address"
     }
 
-    if (!offerDate || !acceptanceDeadline) {
-      alert("Please set offer date and acceptance deadline")
-      return
+    if (!offerDate) {
+      errors.offerDate = "Please set offer date"
     }
 
-    if (new Date(acceptanceDeadline) <= new Date(offerDate)) {
-      alert("Acceptance deadline must be after offer date")
-      return
+    if (!acceptanceDeadline) {
+      errors.acceptanceDeadline = "Please set acceptance deadline"
+    }
+
+    if (offerDate && acceptanceDeadline && new Date(acceptanceDeadline) <= new Date(offerDate)) {
+      errors.acceptanceDeadline = "Acceptance deadline must be after offer date"
     }
 
     // Validate batch assignments
     const validBatches = batchAssignments.filter(b => b.level.trim() && b.rate > 0)
     if (validBatches.length === 0) {
-      alert("Please add at least one batch assignment with valid level and rate")
+      errors.batchAssignments = "Please add at least one batch assignment with valid level and rate"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
       return
     }
 
@@ -121,15 +130,18 @@ export default function NewOfferLetterPage() {
       })
 
       if (res.ok) {
-        alert("✅ Offer letter created successfully!")
         router.push("/dashboard/offers")
       } else {
         const error = await res.json()
-        alert(`❌ Failed to create offer letter: ${error.error}`)
+        if (error.details) {
+          setFieldErrors(parseZodIssues(error.details))
+        } else {
+          setFieldErrors({ _form: error.error || "Failed to create offer letter" })
+        }
       }
     } catch (error) {
       console.error("Error creating offer letter:", error)
-      alert("❌ Failed to create offer letter")
+      setFieldErrors({ _form: "Failed to create offer letter. Please try again." })
     } finally {
       setSubmitting(false)
     }
@@ -158,6 +170,13 @@ export default function NewOfferLetterPage() {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+        {/* Form-level error */}
+        {fieldErrors._form && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {fieldErrors._form}
+          </div>
+        )}
+
         {/* Teacher Selection */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -167,7 +186,7 @@ export default function NewOfferLetterPage() {
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.teacherId ? "border-red-500" : "border-gray-300"}`}
           >
             <option value="">-- Select Teacher --</option>
             {teachers.map((teacher) => (
@@ -176,6 +195,9 @@ export default function NewOfferLetterPage() {
               </option>
             ))}
           </select>
+          {fieldErrors.teacherId && (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.teacherId}</p>
+          )}
         </div>
 
         {/* Teacher Address */}
@@ -189,11 +211,15 @@ export default function NewOfferLetterPage() {
             required
             rows={3}
             placeholder="Enter full address with street, city, state, and PIN"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.teacherAddress ? "border-red-500" : "border-gray-300"}`}
           />
-          <p className="text-xs text-gray-500 mt-1">
-            This will appear on the offer letter. Enter each line of the address on a new line.
-          </p>
+          {fieldErrors.teacherAddress ? (
+            <p className="text-red-500 text-xs mt-1">{fieldErrors.teacherAddress}</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">
+              This will appear on the offer letter. Enter each line of the address on a new line.
+            </p>
+          )}
         </div>
 
         {/* Dates */}
@@ -207,8 +233,11 @@ export default function NewOfferLetterPage() {
               value={offerDate}
               onChange={(e) => setOfferDate(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.offerDate ? "border-red-500" : "border-gray-300"}`}
             />
+            {fieldErrors.offerDate && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.offerDate}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -219,8 +248,11 @@ export default function NewOfferLetterPage() {
               value={acceptanceDeadline}
               onChange={(e) => setAcceptanceDeadline(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.acceptanceDeadline ? "border-red-500" : "border-gray-300"}`}
             />
+            {fieldErrors.acceptanceDeadline && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.acceptanceDeadline}</p>
+            )}
           </div>
         </div>
 
@@ -305,9 +337,13 @@ export default function NewOfferLetterPage() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Add all batch levels and hourly rates that will be mentioned in the offer letter.
-          </p>
+          {fieldErrors.batchAssignments ? (
+            <p className="text-red-500 text-xs mt-2">{fieldErrors.batchAssignments}</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-2">
+              Add all batch levels and hourly rates that will be mentioned in the offer letter.
+            </p>
+          )}
         </div>
 
         {/* Notes */}

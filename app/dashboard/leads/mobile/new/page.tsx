@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { parseZodIssues, type FieldErrors } from "@/lib/form-errors"
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -12,6 +13,7 @@ const MONTHS = [
 export default function MobileNewLeadPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [formData, setFormData] = useState({
     name: "",
     whatsapp: "",
@@ -28,6 +30,24 @@ export default function MobileNewLeadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFieldErrors({})
+
+    // Client-side validation
+    const errors: FieldErrors = {}
+    if (!formData.name.trim()) {
+      errors.name = "Name is required"
+    }
+    if (!formData.whatsapp.trim()) {
+      errors.whatsapp = "WhatsApp number is required"
+    } else if (!/^\+?\d{10,15}$/.test(formData.whatsapp.replace(/\s/g, ''))) {
+      errors.whatsapp = "Please enter a valid phone number with country code (e.g., +919876543210)"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -41,16 +61,18 @@ export default function MobileNewLeadPage() {
       })
 
       if (res.ok) {
-        // Show success and redirect
-        alert("✅ Lead added successfully!")
         router.push("/dashboard/leads")
       } else {
         const error = await res.json()
-        alert(error.error || "Failed to create lead")
+        if (error.details) {
+          setFieldErrors(parseZodIssues(error.details))
+        } else {
+          setFieldErrors({ _form: error.error || "Failed to create lead" })
+        }
       }
     } catch (error) {
       console.error("Error creating lead:", error)
-      alert("Failed to create lead")
+      setFieldErrors({ _form: "Failed to create lead. Please try again." })
     } finally {
       setLoading(false)
     }
@@ -85,6 +107,13 @@ export default function MobileNewLeadPage() {
 
       {/* Form Content */}
       <form onSubmit={handleSubmit} className="px-4 py-6 space-y-6">
+        {/* Form-level error */}
+        {fieldErrors._form && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            {fieldErrors._form}
+          </div>
+        )}
+
         {/* Contact Information Section */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Contact Info</h2>
@@ -100,8 +129,11 @@ export default function MobileNewLeadPage() {
               onChange={handleChange}
               required
               placeholder="Enter full name"
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErrors.name ? "border-red-500" : "border-gray-300"}`}
             />
+            {fieldErrors.name && (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
+            )}
           </div>
 
           <div>
@@ -115,9 +147,13 @@ export default function MobileNewLeadPage() {
               onChange={handleChange}
               required
               placeholder="+919876543210"
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErrors.whatsapp ? "border-red-500" : "border-gray-300"}`}
             />
-            <p className="text-xs text-gray-500 mt-1">Include country code (e.g., +91)</p>
+            {fieldErrors.whatsapp ? (
+              <p className="text-red-500 text-xs mt-1">{fieldErrors.whatsapp}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">Include country code (e.g., +91)</p>
+            )}
           </div>
 
           <div>

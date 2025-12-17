@@ -139,6 +139,9 @@ model Student {
   @@index([paymentStatus])
   @@index([churnRisk])
   @@index([currentLevel])
+  @@index([referredById])
+  @@index([suspendedAt])
+  @@index([lastOutreachCall])
 }
 
 model StudentInteraction {
@@ -444,6 +447,8 @@ model Lead {
   @@index([instagramHandle])
   @@index([sourceReelId])
   @@index([leadScore])
+  @@index([convertedDate])
+  @@index([status, createdAt])
 }
 
 model AuditLog {
@@ -607,56 +612,6 @@ model ContentPerformance {
   @@index([topic])
   @@index([engagementRate])
   @@index([conversionRate])
-}
-
-model InstagramMessage {
-  id              String   @id @default(cuid())
-  messageId       String   @unique
-  conversationId  String
-  instagramHandle String
-  direction       String
-  content         String
-  sentAt          DateTime
-  isRead          Boolean  @default(false)
-  leadCreated     Boolean  @default(false)
-  leadId          String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@index([instagramHandle])
-  @@index([conversationId])
-  @@index([leadCreated])
-  @@index([sentAt])
-}
-
-model InstagramComment {
-  id           String    @id @default(cuid())
-  commentId    String    @unique
-  mediaId      String
-  mediaUrl     String?
-  username     String
-  text         String
-  commentedAt  DateTime
-  replied      Boolean   @default(false)
-  replyText    String?
-  repliedAt    DateTime?
-  triggerWords String[]
-  leadIntent   Boolean   @default(false)
-  leadCreated  Boolean   @default(false)
-  leadId       String?
-  priority     String    @default("low")
-  processed    Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@index([mediaId])
-  @@index([username])
-  @@index([leadIntent])
-  @@index([leadCreated])
-  @@index([replied])
-  @@index([priority])
-  @@index([processed])
-  @@index([commentedAt])
 }
 
 model RecordingLog {
@@ -853,6 +808,7 @@ model OutreachCall {
   @@index([priority])
   @@index([callType])
   @@index([createdBy])
+  @@index([studentId, scheduledDate, status])
 }
 
 model StudentConnection {

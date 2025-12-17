@@ -75,30 +75,27 @@ export async function POST(request: NextRequest) {
       fullPaymentNotes += ` | ${paymentNotes}`
     }
 
-    // Update all entries to mark as paid
-    const result = await prisma.teacherHours.updateMany({
-      where: {
-        id: {
-          in: unpaidHours.map((h) => h.id),
-        },
-      },
-      data: {
-        paid: true,
-        paidDate: new Date(paidDate),
-        paidAmount: undefined, // Will be calculated per entry based on totalAmount
-        paymentNotes: fullPaymentNotes,
-      },
+    // Update all entries atomically using a transaction
+    // This ensures all-or-nothing: if any update fails, all are rolled back
+    const updateCount = await prisma.$transaction(async (tx) => {
+      const paidDateObj = new Date(paidDate)
+
+      for (const entry of unpaidHours) {
+        await tx.teacherHours.update({
+          where: { id: entry.id },
+          data: {
+            paid: true,
+            paidDate: paidDateObj,
+            paidAmount: entry.totalAmount,
+            paymentNotes: fullPaymentNotes,
+          },
+        })
+      }
+
+      return unpaidHours.length
     })
 
-    // Since updateMany doesn't allow per-record calculations, update each with its own amount
-    for (const entry of unpaidHours) {
-      await prisma.teacherHours.update({
-        where: { id: entry.id },
-        data: {
-          paidAmount: entry.totalAmount,
-        },
-      })
-    }
+    const result = { count: updateCount }
 
     // Audit log
     await logSuccess(

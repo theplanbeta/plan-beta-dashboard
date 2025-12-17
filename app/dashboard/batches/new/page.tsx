@@ -6,6 +6,7 @@ import Link from "next/link"
 import { COURSE_PRICING, type CourseLevel } from "@/lib/pricing"
 import { convertAmount, normalizeCurrency, type SupportedCurrency } from "@/lib/currency"
 import { formatCurrency } from "@/lib/utils"
+import { parseZodIssues, type FieldErrors } from "@/lib/form-errors"
 
 interface Teacher {
   id: string
@@ -20,6 +21,7 @@ export default function NewBatchPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [loadingTeachers, setLoadingTeachers] = useState(true)
   const [hasManualRevenueTarget, setHasManualRevenueTarget] = useState(false)
@@ -118,6 +120,7 @@ export default function NewBatchPage() {
     e.preventDefault()
     setLoading(true)
     setError("")
+    setFieldErrors({})
 
     try {
       const payload = {
@@ -134,7 +137,13 @@ export default function NewBatchPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to create batch")
+        if (Array.isArray(errorData?.details)) {
+          setFieldErrors(parseZodIssues(errorData.details))
+          setError(errorData?.error || "Validation failed. Please check the highlighted fields.")
+        } else {
+          setError(errorData?.error || "Failed to create batch")
+        }
+        return
       }
 
       router.push("/dashboard/batches")
@@ -269,6 +278,13 @@ export default function NewBatchPage() {
         {error && (
           <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">
             {error}
+            {Object.keys(fieldErrors).length > 0 && (
+              <ul className="mt-2 list-disc list-inside text-sm">
+                {Object.entries(fieldErrors).map(([field, message]) => (
+                  <li key={field}><strong>{field}:</strong> {message}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 

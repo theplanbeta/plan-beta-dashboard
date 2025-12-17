@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
     const leadId = data.leadId
     const enrollmentDate = data.enrollmentDate ? new Date(data.enrollmentDate) : new Date()
 
-    // Use transaction to ensure student and payment are created atomically
+    // Use transaction to ensure student, payment, and lead update are atomic
     console.log(`[Student Creation] Starting transaction for student creation`)
     console.log(`[Student Creation] totalPaid: ${totalPaid.toString()} ${currency}`)
 
@@ -232,24 +232,26 @@ export async function POST(request: NextRequest) {
         console.log(`[Student Creation] Skipping payment record creation - totalPaid is ${totalPaid.toString()}`)
       }
 
+      // Mark lead as converted if this was a lead conversion (inside transaction for atomicity)
+      if (leadId) {
+        await tx.lead.update({
+          where: { id: leadId },
+          data: {
+            converted: true,
+            convertedDate: new Date(),
+            studentId: newStudent.id,
+            status: "CONVERTED",
+          },
+        })
+      }
+
       return newStudent
     })
 
     console.log(`[Student Creation] Transaction completed successfully for student ${student.id}`)
 
-    // Mark lead as converted if this was a lead conversion
+    // Track attribution outside transaction (non-critical, can fail independently)
     if (leadId) {
-      await prisma.lead.update({
-        where: { id: leadId },
-        data: {
-          converted: true,
-          convertedDate: new Date(),
-          studentId: student.id,
-          status: "CONVERTED",
-        },
-      })
-
-      // Track attribution: update content performance if lead came from a reel
       await trackEnrollmentFromContent(leadId, Number(finalPrice))
     }
 

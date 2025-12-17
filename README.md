@@ -1,10 +1,38 @@
 # Plan Beta Dashboard - German Language School Management System
 
-A **production-ready** school management system built with Next.js 15, TypeScript, Prisma, and NextAuth with complete email automation, dark mode, PWA support, and comprehensive backup system.
+A **production-ready** comprehensive school management and growth platform built with Next.js 15, TypeScript, Prisma, and NextAuth featuring AI-powered outreach, community building, content management, and complete automation.
 
-![Version](https://img.shields.io/badge/version-3.0-blue)
+![Version](https://img.shields.io/badge/version-4.0-blue)
 ![Status](https://img.shields.io/badge/status-production--ready-green)
-![Email](https://img.shields.io/badge/email-active-brightgreen)
+![AI](https://img.shields.io/badge/AI-powered-purple)
+
+---
+
+## 🌟 Key Features
+
+### 🤖 AI-Powered Outreach & Retention
+- **Journey-Based Outreach**: Automated student lifecycle management
+- **AI Call Preparation**: Context-aware talking points and conversation history
+- **Smart Scheduling**: 4 daily calls prioritized by student journey phase
+- **Community Connections**: AI-suggested peer matching for retention
+
+### 📱 Social Media & Lead Generation
+- **Instagram Integration**: Auto-capture leads from comments and DMs
+- **Content Lab**: Reddit scraping for content ideas
+- **Content Wall**: Student-generated success stories and testimonials
+- **AI Lead Scoring**: Multi-factor lead quality assessment
+
+### 💼 Business Operations
+- **Teacher Payroll**: Automated hourly tracking and bulk payments
+- **Offer Letters**: Professional PDF generation for teachers
+- **Custom Invoices**: Template-based invoice system
+- **Analytics Dashboard**: Real-time insights and KPIs
+
+### 🎓 Student Management
+- **Demographics Tracking**: City, profession, age for targeted outreach
+- **Germany Relocation**: Track visa status, timeline, and support needs
+- **Attendance Alerts**: Automated intervention system
+- **Payment Reminders**: Smart dunning workflows
 
 ---
 
@@ -27,29 +55,7 @@ npm install
 
 2. **Set up environment variables:**
 
-Create a `.env` file in the root directory:
-
-```env
-# Database (Neon PostgreSQL)
-DATABASE_URL="postgresql://neondb_owner:npg_rvf4a3DopMhW@ep-dark-shadow-agv0fe98.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&connection_limit=10&pool_timeout=20"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="oTmXOhyFKONW4OW/Wo6HqGsPkZ05YoUr0NmqRdnwlXI="
-
-# Email (Resend) - ACTIVE & VERIFIED ✅
-RESEND_API_KEY="re_FxkRNtvY_8APyQZGavwzk74dHFFnq3YNJ"
-EMAIL_FROM="noreply@planbeta.in"  # Simple format required by Resend
-SUPPORT_EMAIL="hello@planbeta.in"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-UPI_ID="planbeta@paytm"
-
-# Cron Job Security
-CRON_SECRET="your-cron-secret-key-here"
-
-# AI Features (Gemini for Smart Paste)
-GEMINI_API_KEY="AIzaSyBzYmqDxD_f3n2Np3zoGVc4kmQTxkm5bqY"
-```
+Create a `.env` file in the root directory with all required variables (see Environment Variables section below)
 
 3. **Set up the database:**
 ```bash
@@ -80,49 +86,345 @@ Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🔑 Production Credentials & API Keys
+## 🔑 Environment Variables
 
-### Database (Neon PostgreSQL)
-- **Provider:** Neon.tech
-- **Connection String:** `postgresql://neondb_owner:npg_rvf4a3DopMhW@ep-dark-shadow-agv0fe98.c-2.eu-central-1.aws.neon.tech/neondb`
-- **Features:** Connection pooling (max 10), 20s timeout
-- **Status:** ✅ Active
+### Required Variables
 
-### Email Service (Resend)
-- **Provider:** Resend
-- **API Key:** `re_FxkRNtvY_8APyQZGavwzk74dHFFnq3YNJ`
-- **Domain:** `planbeta.in` ✅ **VERIFIED**
-- **From Address:** `Plan Beta <noreply@planbeta.in>`
-- **Support Email:** `hello@planbeta.in`
-- **Status:** ✅ Fully Operational
-- **DNS Records Set:** TXT records on Hostinger
-- **Features Active:**
-  - Student welcome emails
-  - Payment confirmations & reminders
-  - Attendance alerts
-  - Batch start notifications
-  - Referral payout notifications
-  - Month completion emails
-  - Feedback notifications
-  - Database backup emails
+```env
+# Database (Neon PostgreSQL)
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 
-### AI Integration (Google Gemini)
-- **Provider:** Google AI
-- **API Key:** `AIzaSyBzYmqDxD_f3n2Np3zoGVc4kmQTxkm5bqY`
-- **Usage:** Smart Paste feature for lead parsing
-- **Status:** ✅ Active
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-here"
 
-### Authentication
-- **Provider:** NextAuth.js v4
-- **Secret:** `oTmXOhyFKONW4OW/Wo6HqGsPkZ05YoUr0NmqRdnwlXI=`
-- **Strategy:** JWT with credentials provider
-- **Password Hashing:** bcryptjs
+# Email (Resend)
+RESEND_API_KEY="re_..."
+EMAIL_FROM="noreply@yourdomain.com"
+SUPPORT_EMAIL="hello@yourdomain.com"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+UPI_ID="yourUPI@bank"
 
-### Deployment
-- **Platform:** Vercel
-- **Repository:** https://github.com/theplanbeta/plan-beta-dashboard
-- **Production URL:** https://plan-beta-dashboard.vercel.app (configure in Vercel)
-- **Branch:** main (auto-deploys on push)
+# Cron Job Security
+CRON_SECRET="your-cron-secret-here"
+
+# AI Features (Gemini)
+GEMINI_API_KEY="AIza..."
+
+# Instagram Graph API
+INSTAGRAM_APP_ID="your-app-id"
+INSTAGRAM_APP_SECRET="your-app-secret"
+INSTAGRAM_ACCESS_TOKEN="your-access-token"
+INSTAGRAM_PAGE_ACCESS_TOKEN="your-page-token"
+INSTAGRAM_BUSINESS_ACCOUNT_ID="your-account-id"
+INSTAGRAM_WEBHOOK_VERIFY_TOKEN="your-verify-token"
+
+# Tasker Webhook (for Instagram automation)
+TASKER_WEBHOOK_SECRET="your-tasker-secret"
+
+# WhatsApp Business Cloud API (Meta)
+WHATSAPP_ACCESS_TOKEN="your-whatsapp-token"
+WHATSAPP_PHONE_NUMBER_ID="your-phone-id"
+WHATSAPP_BUSINESS_ACCOUNT_ID="your-account-id"
+WHATSAPP_VERIFY_TOKEN="your-verify-token"
+
+# WhatsApp Message Templates
+WHATSAPP_TEMPLATE_TIER1="tier1_absence_alert"
+WHATSAPP_TEMPLATE_TIER2="tier2_high_risk_alert"
+WHATSAPP_TEMPLATE_TIER3="tier3_urgent_retention"
+
+# n8n Integration
+N8N_API_KEY="your-n8n-api-key"
+N8N_WEBHOOK_URL="http://localhost:5678/webhook"
+```
+
+---
+
+## 🤖 AI-Powered Founder Outreach System
+
+### Overview
+Revolutionary student retention system using AI and journey-based scheduling. Automatically schedules and prepares personalized outreach calls based on student lifecycle stage.
+
+### Journey Phases
+
+**WELCOME** (Days 1-7)
+- Calls on day 2-3 and day 7
+- Focus: Onboarding, first impressions, setting expectations
+
+**SETTLING_IN** (Days 8-21)
+- Calls on day 14 and day 21
+- Focus: Integration, early challenges, routine building
+
+**ACTIVE_LEARNING** (Days 22+)
+- Every 14 days
+- Focus: Progress tracking, motivation, consistency
+
+**PRE_COMPLETION** (5-7 days before course end)
+- Every 2 days (urgent)
+- Focus: Upsell opportunities, next level planning
+
+**POST_COURSE**
+- Every 35 days
+- Focus: Alumni engagement, testimonials, referrals
+
+### Features
+
+**AI Call Preparation** 🤖
+- Fetch previous call history with full context
+- Generate personalized talking points based on:
+  - Journey phase
+  - Goals and challenges from previous calls
+  - Wins and achievements
+  - Personal notes and preferences
+- AI references previous conversations: "Last time you mentioned..."
+
+**Smart Scheduling** 📅
+- Max 4 calls per day for quality over quantity
+- December 2025+ students only (configurable)
+- Priority: PRE_COMPLETION > WELCOME > SETTLING_IN > ACTIVE_LEARNING > POST_COURSE
+- Automatic next-call calculation
+
+**Call Tracking**
+- Status: PENDING, COMPLETED, SNOOZED, SKIPPED
+- Sentiment tracking: POSITIVE, NEUTRAL, NEGATIVE, VERY_NEGATIVE
+- Journey updates: goals, challenges, wins, personal notes
+- Full conversation history preserved
+
+### API Endpoints
+
+```bash
+GET  /api/outreach/scheduled      # Get scheduled calls for a date
+POST /api/outreach/complete       # Mark call as complete with journey data
+POST /api/outreach/snooze         # Snooze a call
+GET  /api/outreach/calls          # Get prioritized calls (today/week/all)
+GET  /api/outreach/stats          # Get outreach statistics
+GET  /api/outreach/[id]           # Get call details with AI preparation
+```
+
+### Dashboard Pages
+
+- `/dashboard/outreach` - Main outreach dashboard with scheduled calls
+- `/dashboard/outreach/community` - Student connection suggestions
+
+### Usage
+
+```typescript
+// Schedule daily calls (run via cron or manually)
+import { scheduleDailyCalls } from '@/lib/outreach-scheduler'
+
+const calls = await scheduleDailyCalls(new Date(), 4) // 4 calls max
+```
+
+---
+
+## 👥 Community Features
+
+### Student Connections
+AI-powered peer matching system to build community and improve retention.
+
+**Matching Criteria:**
+- Same or adjacent learning levels
+- Similar attendance patterns
+- Same enrollment cohort (within 30 days)
+- Common referral source
+- Cross-batch connections for diversity
+
+**Scoring System:**
+- Same level: +10 points
+- Similar attendance (within 10%): +5 points
+- Same enrollment month: +8 points
+- Same referral source: +3 points
+- Different timing (morning vs evening): +4 points
+
+**API:**
+```bash
+GET /api/outreach/connections/suggest?studentId=xxx&limit=5
+POST /api/outreach/connections/create
+```
+
+---
+
+## 📱 Instagram Lead Generation
+
+### Features
+- **Comment Monitoring**: Auto-capture leads from Instagram comments
+- **DM Integration**: Track and respond to direct messages
+- **Intent Detection**: AI-powered lead quality assessment
+- **Auto-Labeling**: Organize leads by priority
+- **Webhook Integration**: Real-time updates from Instagram
+
+### Setup
+
+1. **Facebook App Configuration**
+   - Create Facebook app at developers.facebook.com
+   - Add Instagram Graph API product
+   - Configure webhooks for comments and messages
+
+2. **Environment Variables**
+   - Set Instagram credentials in `.env`
+   - Configure webhook verify token
+
+3. **Webhook Endpoint**
+   ```
+   POST /api/webhooks/instagram
+   ```
+
+4. **Tasker Integration** (optional)
+   - Automated screenshot capture
+   - Manual lead import from mobile
+   ```
+   POST /api/webhooks/tasker-instagram
+   ```
+
+### API Endpoints
+
+```bash
+GET  /api/instagram/comments          # Fetch recent comments
+GET  /api/instagram/messages          # Fetch DMs
+POST /api/instagram/sync              # Manual sync
+POST /api/instagram/fetch-labeled-leads # Get labeled leads
+```
+
+---
+
+## 📝 Content Lab & Reddit Integration
+
+### Content Lab
+AI-powered content idea generation from Reddit discussions.
+
+**Features:**
+- Reddit post scraping from German language subreddits
+- AI analysis for content relevance
+- Save ideas for future content
+- Track performance of published content
+
+**Subreddits Monitored:**
+- r/German
+- r/German_Lernen
+- r/Germany (filtered for language topics)
+
+### API Endpoints
+
+```bash
+GET  /api/reddit/fetch         # Fetch recent posts
+POST /api/reddit/analyze       # AI analysis of post
+GET  /api/content-ideas        # Get saved ideas
+POST /api/subreddits           # Manage tracked subreddits
+```
+
+### Content Performance Tracking
+
+```bash
+POST /api/content              # Create content entry
+GET  /api/content-performance  # View metrics
+```
+
+---
+
+## 🎨 Content Wall
+
+Student-generated content platform for testimonials and success stories.
+
+### Features
+- **Post Types**: SUCCESS_STORY, TIP, QUESTION, ACHIEVEMENT, MILESTONE
+- **Reactions**: Like, comment system
+- **Moderation**: Draft/published status
+- **Featured Content**: Highlight best posts
+- **Level-Based Filtering**: View content by learning level
+
+### API Endpoints
+
+```bash
+GET    /api/content-wall           # Get published posts
+POST   /api/content-wall           # Create post
+GET    /api/content-wall/[id]      # Get post details
+PUT    /api/content-wall/[id]      # Update post
+POST   /api/content-wall/[id]/like # Like a post
+POST   /api/content-wall/[id]/comment # Comment on post
+```
+
+### Dashboard
+```
+/dashboard/content-wall  # Browse and manage content
+```
+
+---
+
+## 💼 Teacher Management
+
+### Offer Letters
+Professional PDF offer letter generation for teacher onboarding.
+
+**Features:**
+- Template-based generation
+- Customizable terms and conditions
+- Multiple status tracking: DRAFT, SENT, ACCEPTED, REJECTED
+- Email delivery integration
+
+**API:**
+```bash
+GET  /api/offers                    # List all offers
+POST /api/offers                    # Create offer
+GET  /api/offers/[id]               # Get offer details
+POST /api/offers/[id]/generate      # Generate PDF
+POST /api/offers/[id]/send-email    # Email to teacher
+```
+
+### Teacher Payroll
+
+**Hourly Tracking:**
+- Automatic or manual hour logging
+- Rate per hour configuration (supports multiple currencies)
+- Status: PENDING, APPROVED, PAID
+- Bulk payment confirmation
+
+**Features:**
+- Monthly payroll summary
+- Per-teacher reports
+- Batch-based hour tracking
+- Payment history
+
+**API:**
+```bash
+GET  /api/teacher-hours              # List hours
+POST /api/teacher-hours              # Log hours
+GET  /api/teacher-hours/summary      # Monthly summary
+GET  /api/teacher-hours/monthly-payroll # Payroll report
+POST /api/teacher-hours/bulk-mark-paid  # Bulk payments
+```
+
+**Dashboard:**
+```
+/dashboard/teacher-hours  # Full payroll management
+```
+
+---
+
+## 📊 Analytics & Insights
+
+### Admin Dashboard
+Real-time KPIs and business metrics at `/dashboard/insights`
+
+**Metrics Tracked:**
+- Revenue breakdown (monthly, by level, by batch)
+- Student acquisition and retention
+- Payment collection rates
+- Teacher performance
+- Attendance patterns
+- Churn risk analysis
+
+**Currency Support:**
+- Multi-currency handling (EUR, INR, USD)
+- Accurate conversion and reporting
+- Currency-aware charts
+
+### API Endpoints
+
+```bash
+GET /api/analytics/dashboard    # Overview metrics
+GET /api/analytics/insights     # Detailed insights
+GET /api/analytics/marketing    # Marketing metrics
+```
 
 ---
 
@@ -131,89 +433,45 @@ Open [http://localhost:3000](http://localhost:3000)
 ### Active Email Features
 
 **1. Student Welcome Emails** 🎉
-- **Trigger:** New student enrollment
-- **Template:** `student-welcome`
-- **Includes:** Student ID, level, batch code, enrollment date, portal link
-- **Location:** `app/api/students/route.ts:198-207`
+- Trigger: New student enrollment
+- Includes: Student ID, level, batch info, portal link
 
-**2. Payment Confirmation Emails** ✅
-- **Trigger:** Payment marked as COMPLETED
-- **Template:** `payment-received`
-- **Includes:** Amount, method, transaction ID, remaining balance
-- **Location:** `app/api/payments/route.ts:158-173`
+**2. Payment Confirmation** ✅
+- Trigger: Payment marked as COMPLETED
+- Includes: Amount, method, transaction ID, balance
 
-**3. Payment Reminder Emails** 💰
-- **Trigger:** Automated cron for OVERDUE students
-- **Template:** `payment-reminder`
-- **Includes:** Outstanding balance, days overdue, payment options
-- **Location:** `app/api/cron/payment-reminders/route.ts`
-- **Endpoint:** `POST /api/cron/payment-reminders` (requires CRON_SECRET)
+**3. Payment Reminders** 💰
+- Trigger: Automated cron for OVERDUE students
+- Includes: Outstanding balance, payment options
 
-**4. Attendance Alert Emails** ⚠️
-- **Trigger:** Automated cron for students <50% attendance
-- **Template:** `attendance-alert`
-- **Includes:** Current attendance rate, classes attended/total
-- **Location:** `app/api/cron/attendance-alerts/route.ts`
-- **Endpoint:** `POST /api/cron/attendance-alerts` (requires CRON_SECRET)
+**4. Attendance Alerts** ⚠️
+- Trigger: Students <50% attendance
+- Includes: Current rate, classes attended/total
 
-**4b. Consecutive Absence Alert Emails** 🚨
-- **Trigger:** Automated daily cron for students with 2+ consecutive absences
-- **Recipients:**
-  - Teachers: All students with 2+ absences in their batches
-  - Admins (FOUNDER): High-risk students only (3+ absences)
-  - Students: Currently DISABLED
-- **Templates:** `consecutive-absence-teacher`, `consecutive-absence-admin`
-- **Includes:** Student details, consecutive absence count, attendance rate, risk level
-- **Location:** `app/api/cron/consecutive-absence-alerts/route.ts`
-- **Endpoint:** `POST /api/cron/consecutive-absence-alerts` (requires CRON_SECRET)
-- **Schedule:** Daily at 10 PM UTC (11 PM CET / 12 AM CEST)
-- **Risk Levels:** 2 absences = MEDIUM risk, 3+ absences = HIGH risk
+**5. Consecutive Absence Alerts** 🚨
+- Trigger: 2+ consecutive absences
+- Recipients: Teachers (all), Admins (high-risk only)
+- Risk levels: 2 absences = MEDIUM, 3+ = HIGH
 
-**5. Month Completion Emails** 🎊
-- **Trigger:** Student completes Month 1 (30+ days, ≥50% attendance)
-- **Template:** `month-complete`
-- **Includes:** Progress stats, referral payout notification
-- **Location:** `app/api/cron/month-completion/route.ts`
-- **Endpoint:** `POST /api/cron/month-completion` (requires CRON_SECRET)
+**6. Month Completion** 🎊
+- Trigger: 30+ days, ≥50% attendance
+- Includes: Progress stats, referral payout notification
 
-**6. Batch Start Emails** 🚀
-- **Trigger:** Batch start date set or status → RUNNING
-- **Template:** `batch-start`
-- **Includes:** Batch code, level, schedule, instructor, start date
-- **Location:** `app/api/batches/[id]/route.ts:149-179`
+**7. Batch Start Notifications** 🚀
+- Trigger: Batch status → RUNNING
+- Includes: Schedule, instructor, start date
 
-**7. Referral Payout Emails** 💸
-- **Trigger:** Referral payout status → PAID
-- **Template:** `referral-payout`
-- **Includes:** Payout amount, referee name, payment date
-- **Location:** `app/api/referrals/[id]/route.ts:113-127`
+**8. Referral Payouts** 💸
+- Trigger: Payout status → PAID
+- Includes: Amount, referee name, payment date
 
-**8. Feedback Notifications** 📣
-- **Trigger:** User submits bug/feature/question feedback
-- **Sends to:** Support team (hello@planbeta.in)
-- **Includes:** Feedback type, description, page, priority, submitter
-- **Location:** `app/api/feedback/route.ts:66-101`
+**9. Database Backups** 💾
+- Trigger: Manual or daily automated (2 AM UTC)
+- Format: Gzip-compressed JSON
+- Sent to: hello@planbeta.in
 
-**9. Database Backup Emails** 💾
-- **Trigger:** Manual button (10min cooldown) or automated daily (2 AM UTC)
-- **Sends to:** hello@planbeta.in
-- **Attachment:** Gzip-compressed database backup (`.json.gz`)
-- **Compression:** 70-80% file size reduction
-- **Timezone:** Berlin time in email timestamps
-- **Location:** `app/api/cron/backup/route.ts`
-- **Manual Trigger:** "Save Backup" button in sidebar (Founder only)
-- **Automated:** GitHub Actions workflow (`.github/workflows/daily-backup.yml`)
-
-### Email Templates
-All templates are defined in `lib/email.ts` with beautiful HTML formatting:
-- Responsive design (max-width: 600px)
-- Brand colors and styling
-- Clear call-to-action buttons
-- Professional formatting
-- Dynamic content
-
-### Email Preferences (Student-Level)
-Students control their email notifications via database flags:
+### Email Preferences
+Students control notifications via database flags:
 ```typescript
 emailNotifications: true  // Master toggle
 emailWelcome: true        // Welcome emails
@@ -223,238 +481,156 @@ emailBatch: true          // Batch notifications
 emailReferral: true       // Referral payouts
 ```
 
-All flags default to `true` in schema (prisma/schema.prisma:79-84).
-
-### Testing Emails Locally
-```bash
-# Test by performing actions in the app:
-1. Create a new student → Welcome email sent
-2. Record a payment → Confirmation email sent
-3. Submit feedback → Notification sent to support
-
-# Test cron endpoints (requires CRON_SECRET header):
-curl -X POST http://localhost:3000/api/cron/payment-reminders \
-  -H "Authorization: Bearer your-cron-secret-key-here"
-
-curl -X POST http://localhost:3000/api/cron/attendance-alerts \
-  -H "Authorization: Bearer your-cron-secret-key-here"
-
-curl -X POST http://localhost:3000/api/cron/consecutive-absence-alerts \
-  -H "Authorization: Bearer your-cron-secret-key-here"
-
-curl -X POST http://localhost:3000/api/cron/month-completion \
-  -H "Authorization: Bearer your-cron-secret-key-here"
-```
-
 ---
 
 ## 📡 Complete API Reference
 
-### Authentication
-- `POST /api/auth/callback/credentials` - Login
-- `POST /api/auth/signout` - Logout
-
 ### Students
-- `GET /api/students` - List all students (with filters)
-- `POST /api/students` - Create student (sends welcome email ✉️)
-- `GET /api/students/[id]` - Get student details
-- `PUT /api/students/[id]` - Update student
-- `DELETE /api/students/[id]` - Delete student
+```bash
+GET    /api/students              # List students (with filters)
+POST   /api/students              # Create student (sends welcome email)
+GET    /api/students/[id]         # Get details
+PUT    /api/students/[id]         # Update student
+DELETE /api/students/[id]         # Delete student
+POST   /api/students/[id]/suspend # Suspend student
+POST   /api/students/[id]/reactivate # Reactivate
+POST   /api/students/[id]/acknowledge-churn # Acknowledge churn risk
+GET    /api/students/[id]/interactions # Interaction history
+POST   /api/students/[id]/interactions # Log interaction
+GET    /api/students/[id]/refunds # Refund history
+GET    /api/students/[id]/reviews # Teacher reviews
+POST   /api/students/parse        # AI parse from text
+```
 
 ### Leads
-- `GET /api/leads` - List all leads
-- `POST /api/leads` - Create lead
-- `POST /api/leads/parse` - Smart Paste AI parsing
-- `GET /api/leads/[id]` - Get lead details
-- `PUT /api/leads/[id]` - Update lead
-- `DELETE /api/leads/[id]` - Delete lead
-- `POST /api/leads/[id]/invoice` - Generate invoice for lead
+```bash
+GET    /api/leads              # List leads
+POST   /api/leads              # Create lead
+POST   /api/leads/quick        # Quick lead (mobile)
+POST   /api/leads/parse        # Smart Paste AI parsing
+GET    /api/leads/[id]         # Get details
+PUT    /api/leads/[id]         # Update lead
+DELETE /api/leads/[id]         # Delete lead
+POST   /api/leads/[id]/convert # Convert to student
+POST   /api/leads/[id]/invoice # Generate invoice
+```
 
-### Payments
-- `GET /api/payments` - List all payments
-- `POST /api/payments` - Record payment (sends confirmation email ✉️)
+### Payments & Invoices
+```bash
+GET    /api/payments              # List payments
+POST   /api/payments              # Record payment
+GET    /api/payments/[id]         # Get details
+PUT    /api/payments/[id]         # Update payment
+GET    /api/invoices              # List invoices
+POST   /api/invoices/generate     # Generate invoice
+POST   /api/invoices/[id]/pay-and-convert # Pay & convert lead
+GET    /api/receipts              # List receipts
+GET    /api/receipts/[id]/download # Download PDF
+POST   /api/custom-invoice/generate # Custom invoice
+```
 
-### Batches
-- `GET /api/batches` - List all batches
-- `POST /api/batches` - Create batch
-- `GET /api/batches/[id]` - Get batch details
-- `PUT /api/batches/[id]` - Update batch (sends batch-start emails ✉️)
-- `DELETE /api/batches/[id]` - Delete batch
+### Outreach & Community
+```bash
+GET  /api/outreach/scheduled      # Scheduled calls
+POST /api/outreach/complete       # Complete call
+POST /api/outreach/snooze         # Snooze call
+GET  /api/outreach/calls          # Prioritized calls
+GET  /api/outreach/stats          # Statistics
+GET  /api/outreach/[id]           # Call details with AI prep
+GET  /api/outreach/connections/suggest # Student matches
+POST /api/outreach/connections/create  # Create connection
+```
 
-### Invoices
-- `GET /api/invoices` - List all invoices
-- `POST /api/invoices` - Create invoice
-- `GET /api/invoices/[id]` - Get invoice details
-- `PUT /api/invoices/[id]` - Update invoice
-- `POST /api/invoices/[id]/pay-and-convert` - Pay invoice & convert lead to student
+### Content & Social
+```bash
+GET    /api/content-wall           # Published posts
+POST   /api/content-wall           # Create post
+POST   /api/content-wall/[id]/like # Like post
+POST   /api/content-wall/[id]/comment # Comment
+GET    /api/reddit/fetch           # Fetch Reddit posts
+POST   /api/reddit/analyze         # AI analysis
+GET    /api/instagram/comments     # Instagram comments
+GET    /api/instagram/messages     # Instagram DMs
+POST   /api/instagram/sync         # Sync Instagram
+```
 
-### Referrals
-- `GET /api/referrals` - List all referrals
-- `POST /api/referrals` - Create referral
-- `GET /api/referrals/[id]` - Get referral details
-- `PUT /api/referrals/[id]` - Update referral (sends payout email ✉️)
-- `DELETE /api/referrals/[id]` - Delete referral
+### Teachers & Payroll
+```bash
+GET  /api/teachers                  # List teachers
+POST /api/teachers                  # Create teacher
+POST /api/teachers/send-welcome-email # Send welcome
+GET  /api/teacher-hours             # List hours
+POST /api/teacher-hours             # Log hours
+GET  /api/teacher-hours/summary     # Monthly summary
+GET  /api/teacher-hours/monthly-payroll # Payroll report
+POST /api/teacher-hours/bulk-mark-paid  # Bulk payments
+GET  /api/offers                    # List offers
+POST /api/offers                    # Create offer
+POST /api/offers/[id]/generate      # Generate PDF
+```
 
-### Attendance
-- `GET /api/attendance` - List attendance records
-- `POST /api/attendance` - Mark attendance
-- `PUT /api/attendance/[id]` - Update attendance
-
-### Automated Cron Jobs ⏰
-All require `Authorization: Bearer ${CRON_SECRET}` header
-
-- `POST /api/cron/payment-reminders` - Send payment reminders ✉️
-- `POST /api/cron/attendance-alerts` - Send attendance alerts ✉️
-- `POST /api/cron/consecutive-absence-alerts` - Send consecutive absence alerts (teachers & admins) ✉️
-- `POST /api/cron/month-completion` - Process month completions ✉️
-- `POST /api/cron/backup` - Backup database & email ✉️
-
-### Feedback
-- `POST /api/feedback` - Submit feedback (sends to support ✉️)
-- `GET /api/feedback` - Get all feedback (Founder only)
-
-### System Monitoring
-- `GET /api/system/health` - System health check
-- `GET /api/system/audit-logs` - Audit logs
+### System & Automation
+```bash
+GET  /api/system/health             # Health check
+GET  /api/system/audit-logs         # Audit logs
+POST /api/cron/payment-reminders    # Send reminders
+POST /api/cron/attendance-alerts    # Send alerts
+POST /api/cron/consecutive-absence-alerts # Absence alerts
+POST /api/cron/month-completion     # Process completions
+POST /api/cron/backup               # Database backup
+POST /api/webhooks/instagram        # Instagram webhooks
+POST /api/webhooks/tasker-instagram # Tasker integration
+```
 
 ---
 
-## 💾 Backup & Restore System - FULLY AUTOMATED ✅
-
-### Overview
-Complete database backup system with both manual and automated options. All backups are gzip-compressed (70-80% size reduction) and emailed as `.json.gz` attachments to `hello@planbeta.in`.
+## 💾 Backup & Restore System
 
 ### Manual Backup (Founder Only)
-**Location:** "Save Backup" button in dashboard sidebar
-**Cooldown:** 10 minutes between backups
-**Format:** Gzip-compressed JSON (`.json.gz`)
-**Email:** Sent to `hello@planbeta.in` with compressed attachment
-**Contents:** Complete database snapshot including:
-- All students, leads, batches, payments, referrals
-- Attendance records, invoices, audit logs (last 1000)
-- Timestamps in Berlin timezone
+- **Location:** "Save Backup" button in sidebar
+- **Cooldown:** 10 minutes
+- **Format:** Gzip-compressed JSON (`.json.gz`)
+- **Compression:** 70-80% size reduction
+- **Email:** Sent to hello@planbeta.in
 
-**How to Use:**
-1. Click "Save Backup" button in sidebar
-2. Wait for success message
-3. Check hello@planbeta.in for email with attachment
-4. Extract with: `gunzip backup-[timestamp].json.gz`
+### Automated Daily Backups
+- **Schedule:** 2:00 AM UTC daily
+- **Provider:** GitHub Actions (free)
+- **Workflow:** `.github/workflows/daily-backup.yml`
 
-### Automated Daily Backups (GitHub Actions)
-**Schedule:** Every day at 2:00 AM UTC (3:00 AM CET / 4:00 AM CEST)
-**Provider:** GitHub Actions (free tier - 2000 minutes/month)
-**Location:** `.github/workflows/daily-backup.yml`
-**Advantage:** Free alternative to Vercel Cron ($20/month Pro plan required)
-
-**Setup Instructions:**
-1. Go to: https://github.com/theplanbeta/plan-beta-dashboard/settings/secrets/actions
-2. Set two GitHub secrets:
-   - `BACKUP_ENDPOINT_URL`: Your production API endpoint
-     ```
-     https://your-app.vercel.app/api/cron/backup
-     ```
-   - `VERCEL_AUTOMATION_BYPASS_TOKEN`: Vercel deployment protection token
-     ```
-     VERCELAUTOMATIONBYPASSTOKENPlANB
-     ```
-3. Workflow will run automatically every day at 2 AM UTC
-
-**Manual Workflow Trigger:**
-1. Go to: https://github.com/theplanbeta/plan-beta-dashboard/actions
-2. Select "Daily Database Backup" workflow
-3. Click "Run workflow" → "Run workflow"
-4. Check email for backup within 30 seconds
-
-### Email Details
-**From:** `noreply@planbeta.in`
-**To:** `hello@planbeta.in`
-**Subject:** `Database Backup - [Date/Time in Berlin timezone]`
-**Attachment:** `backup-[timestamp].json.gz`
-**Body Includes:**
-- Record counts for all tables
-- Original vs compressed file size
-- Compression ratio percentage
-- Extraction instructions
-
-### Backup Scripts
+### Scripts
 ```bash
-# Local backup to file
-npm run backup
-# Creates: backups/backup-TIMESTAMP.json
-
-# Restore from backup
-npx tsx scripts/restore-database.ts backup-TIMESTAMP.json
-
-# Bulk import students/leads from template
-npm run import
-# Uses: import-data.json (auto-generated template)
+npm run backup    # Local backup to file
+npm run restore   # Restore from backup
+npm run import    # Bulk import students/leads
+npx tsx check-db.ts # Verify database state
 ```
-
-### Database Verification
-```bash
-# Check database state
-npx tsx check-db.ts
-# Shows: Record counts and recent entries for all tables
-```
-
----
-
-## 🎨 UI Features
-
-### Dark Mode 🌙
-- **Toggle:** Available in mobile header and desktop sidebar
-- **Persistence:** Saved to localStorage
-- **Auto-detection:** Respects system preference on first load
-- **Implementation:** React Context (`lib/ThemeContext.tsx`)
-- **Classes:** Tailwind `dark:` classes throughout
-
-### PWA Support 📱
-- **Service Worker:** Auto-generated
-- **Manifest:** `/public/manifest.json`
-- **Install Prompt:** Component at `components/PWAInstallPrompt.tsx`
-- **Offline:** Basic offline support
-- **Icons:** 192x192 and 512x512 in `/public/`
-
-### Mobile Optimization
-- **Responsive:** Tailwind breakpoints (sm, md, lg, xl)
-- **Bottom Navigation:** 5-button nav on mobile
-- **Hamburger Menu:** Full menu overlay on mobile
-- **Back Button:** Contextual back navigation
-- **Large Touch Targets:** 44x44px minimum
-
-### Smart Paste AI 🤖
-- **Location:** Quick lead form (`/dashboard/leads/quick`)
-- **Feature:** Parse contact info from pasted text
-- **API:** Google Gemini AI
-- **Extracts:** Name, WhatsApp, interest level
-- **UI:** Collapsible textarea with parse button
 
 ---
 
 ## 📦 Tech Stack
 
 ### Core
-- **Framework:** Next.js 15.5.4 (App Router)
+- **Framework:** Next.js 15.5.9 (App Router)
 - **Language:** TypeScript 5
 - **Database:** PostgreSQL (Prisma ORM 6.16.3)
 - **Auth:** NextAuth.js v4 (JWT strategy)
 - **Styling:** Tailwind CSS 4
 - **UI:** React 19.1.0
 
-### Features
+### Integrations
 - **Email:** Resend API
 - **AI:** Google Gemini API
-- **PWA:** @ducanh2912/next-pwa
-- **Forms:** React Hook Form + Zod validation
-- **State:** Zustand + React Query
+- **Social:** Instagram Graph API, Reddit API
+- **Automation:** n8n, Twilio (optional)
+- **Recording:** Puppeteer for Google Meet
 - **PDF:** jsPDF + jspdf-autotable
-- **Date:** date-fns
 
-### Deployment
-- **Hosting:** Vercel
-- **Database:** Neon (serverless Postgres)
-- **Git:** GitHub
-- **Domain:** planbeta.in (for emails)
+### Features
+- **PWA:** @ducanh2912/next-pwa
+- **Forms:** React Hook Form + Zod
+- **State:** Zustand + React Query
+- **Monitoring:** Sentry
 
 ---
 
@@ -463,89 +639,69 @@ npx tsx check-db.ts
 ```
 plan-beta-dashboard/
 ├── app/
-│   ├── api/                      # API routes
-│   │   ├── students/             # Student CRUD
-│   │   ├── leads/                # Lead management + Smart Paste
-│   │   ├── payments/             # Payment processing
-│   │   ├── batches/              # Batch management
-│   │   ├── invoices/             # Invoice generation
-│   │   ├── referrals/            # Referral system
-│   │   ├── attendance/           # Attendance tracking
-│   │   ├── feedback/             # Feedback submission
-│   │   ├── cron/                 # Automated jobs
-│   │   │   ├── backup/           # Database backups
-│   │   │   ├── payment-reminders/
-│   │   │   ├── attendance-alerts/
-│   │   │   ├── consecutive-absence-alerts/  # 2+ absences alerts
-│   │   │   └── month-completion/
-│   │   └── system/               # Health & audit logs
-│   ├── dashboard/                # Protected dashboard pages
-│   │   ├── students/             # Student management UI
-│   │   ├── leads/                # Lead management UI
-│   │   │   ├── new/              # Full lead form
-│   │   │   └── quick/            # Quick form with Smart Paste
-│   │   ├── batches/              # Batch management UI
-│   │   ├── payments/             # Payment records UI
-│   │   ├── referrals/            # Referral tracking UI
-│   │   ├── attendance/           # Attendance marking UI
-│   │   ├── activity/             # System activity feed
-│   │   └── layout.tsx            # Dashboard layout (sidebar, nav)
-│   ├── login/                    # Login page
-│   ├── layout.tsx                # Root layout (ThemeProvider)
-│   └── page.tsx                  # Landing page
-├── lib/                          # Utilities
-│   ├── prisma.ts                 # Prisma client singleton
-│   ├── auth.ts                   # NextAuth config + backup trigger
-│   ├── email.ts                  # Email templates & sending
-│   ├── ThemeContext.tsx          # Dark mode context
-│   ├── permissions.ts            # Role-based permissions
-│   ├── api-permissions.ts        # API route permissions
-│   ├── pricing.ts                # Pricing configuration
-│   ├── utils.ts                  # Helper functions
-│   └── audit.ts                  # Audit logging
+│   ├── api/                          # API routes
+│   │   ├── students/                 # Student CRUD
+│   │   ├── leads/                    # Lead management
+│   │   ├── payments/                 # Payment processing
+│   │   ├── batches/                  # Batch management
+│   │   ├── outreach/                 # Outreach system
+│   │   │   ├── scheduled/            # Scheduled calls
+│   │   │   ├── complete/             # Complete call
+│   │   │   ├── calls/                # Prioritized calls
+│   │   │   ├── connections/          # Community matching
+│   │   │   └── stats/                # Statistics
+│   │   ├── content-wall/             # Content platform
+│   │   ├── instagram/                # Instagram integration
+│   │   ├── reddit/                   # Reddit scraping
+│   │   ├── teacher-hours/            # Payroll system
+│   │   ├── offers/                   # Offer letters
+│   │   ├── custom-invoice/           # Custom invoices
+│   │   ├── analytics/                # Analytics APIs
+│   │   ├── recordings/               # Google Meet recording
+│   │   ├── cron/                     # Automated jobs
+│   │   └── webhooks/                 # External webhooks
+│   ├── dashboard/                    # Protected pages
+│   │   ├── students/                 # Student management
+│   │   ├── leads/                    # Lead management
+│   │   ├── outreach/                 # Outreach dashboard
+│   │   │   └── community/            # Student connections
+│   │   ├── content-wall/             # Content platform
+│   │   ├── content-lab/              # Content ideas
+│   │   ├── instagram/                # Instagram leads
+│   │   ├── teacher-hours/            # Payroll UI
+│   │   ├── insights/                 # Analytics dashboard
+│   │   └── calendar/                 # Calendar view
+│   └── layout.tsx                    # Root layout
+├── lib/                              # Utilities
+│   ├── outreach-scheduler.ts         # Journey scheduling
+│   ├── outreach-ai.ts                # AI call preparation
+│   ├── outreach-validation.ts        # Input validation
+│   ├── email.ts                      # Email templates
+│   ├── gemini-client.ts              # AI client
+│   ├── instagram-api.ts              # Instagram SDK
+│   ├── reddit-api.ts                 # Reddit API
+│   ├── offer-letter-generator.ts     # PDF generation
+│   ├── invoice-generator.ts          # Invoice PDFs
+│   ├── currency.ts                   # Multi-currency
+│   └── ai/                           # AI modules
+│       ├── conversation-context.ts   # Call context
+│       ├── dm-responder.ts           # Auto-responses
+│       └── knowledge-base.ts         # AI training data
 ├── prisma/
-│   ├── schema.prisma             # Database schema
-│   └── seed.ts                   # Default users seeder
+│   ├── schema.prisma                 # Database schema
+│   └── seed.ts                       # Seed data
 ├── scripts/
-│   ├── backup-database.ts        # Manual backup script
-│   ├── restore-database.ts       # Restore from backup
-│   └── bulk-import.ts            # Import students/leads
+│   ├── backup-database.ts            # Backup script
+│   ├── restore-database.ts           # Restore script
+│   ├── bulk-import.ts                # Bulk import
+│   ├── google-meet-recorder.ts       # Recording automation
+│   └── setup-instagram.ts            # Instagram setup
 ├── components/
-│   └── PWAInstallPrompt.tsx      # PWA install prompt
-├── public/
-│   ├── manifest.json             # PWA manifest
-│   ├── icon-192x192.png          # PWA icons
-│   └── icon-512x512.png
-├── .env                          # Environment variables
-├── check-db.ts                   # Database verification
-├── package.json                  # Dependencies & scripts
-└── README.md                     # This file
-```
-
----
-
-## 🛠️ Available Scripts
-
-```bash
-# Development
-npm run dev              # Start dev server (localhost:3000)
-npm run build            # Production build
-npm start                # Start production server
-
-# Database
-npx prisma db push       # Push schema changes to database
-npx prisma generate      # Regenerate Prisma Client
-npx prisma studio        # Open Prisma Studio GUI (localhost:5555)
-npm run db:seed          # Seed database with default users
-
-# Backup & Restore
-npm run backup           # Create local backup (backups/ folder)
-npm run restore          # Restore from backup file
-npm run import           # Import students/leads from template
-npx tsx check-db.ts      # Verify database state
-
-# Code Quality
-npm run lint             # Run ESLint
+│   ├── calendar/                     # Calendar components
+│   └── PWAInstallPrompt.tsx          # PWA prompt
+└── public/
+    ├── manifest.json                 # PWA manifest
+    └── icons/                        # App icons
 ```
 
 ---
@@ -554,219 +710,157 @@ npm run lint             # Run ESLint
 
 ### FOUNDER (Full Access)
 - All features unlocked
-- Manage users, students, leads, batches, payments, referrals
-- View system activity & audit logs
-- Access backup functionality
-- Configure settings
+- Outreach system management
+- Teacher payroll & offers
+- Analytics & insights
+- System configuration
+- Backup access
 
 ### MARKETING
-- Create & manage leads
-- Generate invoices for leads
+- Lead management & conversion
+- Invoice generation
 - Quick lead entry with Smart Paste
-- View marketing dashboard
-- Convert leads to students (via invoice payment)
+- Instagram lead import
+- Content Lab access
 
 ### TEACHER
 - View assigned batches
-- View students in their batches (names, contact info, attendance stats)
 - Mark attendance
-- View class schedules
-- Limited to own batches only
-- **Restrictions:**
-  - Cannot view student financial information (revenue, payments)
-  - Cannot access student detail pages
-  - Cannot edit or delete students
-  - Cannot view invoices or referrals
-- **Alert System:** Receives consecutive absence alerts for their students
+- View student contact info (names, phone)
+- Receive absence alerts
+- **Restricted from:**
+  - Financial information
+  - Student payments/invoices
+  - Detailed student records
+
+---
+
+## 📋 Recent Updates
+
+### Latest (December 2024) - AI-Powered Outreach & Demographics 🤖
+
+✅ **Journey-Based Outreach System**
+- Five lifecycle phases with intelligent scheduling
+- AI call preparation with conversation history
+- Maximum 4 calls per day (quality over quantity)
+- December 2025+ students only
+- Deprecated tier-based system (PLATINUM/GOLD/etc.)
+
+✅ **Community Building Features**
+- AI-powered student matching algorithm
+- Cross-batch connection suggestions
+- Peer support system for retention
+
+✅ **Demographics & Relocation Tracking**
+- City, profession, age tracking
+- Germany relocation support
+- Visa status and timeline tracking
+- Support needs (housing, job search, bureaucracy)
+
+✅ **Content & Social Integration**
+- Instagram lead generation from comments/DMs
+- Content Lab with Reddit scraping
+- Content Wall for student testimonials
+- AI-powered content analysis
+
+✅ **Teacher Management Enhancements**
+- Automated payroll with hourly tracking
+- Professional offer letter generation
+- Multi-currency support
+- Bulk payment processing
+
+✅ **Analytics & Insights**
+- Real-time KPI dashboard
+- Revenue breakdown by multiple dimensions
+- Currency-aware reporting
+- Teacher performance metrics
+
+### Previous (October 2024)
+
+✅ **Email & Backup Infrastructure**
+- Complete email system rebuild
+- Gzip-compressed backups (70-80% reduction)
+- GitHub Actions automation
+- Consecutive absence alert system
 
 ---
 
 ## 🚀 Production Deployment Checklist
 
 ### Pre-Deployment
-- [ ] Review and update `.env` with production values
-- [ ] Change default admin password
+- [ ] Configure all environment variables
+- [ ] Change default passwords
 - [ ] Test all email flows
-- [ ] Verify Resend domain (planbeta.in)
+- [ ] Verify domain configurations
+- [ ] Test Instagram webhook
 - [ ] Test backup system
-- [ ] Review user roles and permissions
-- [ ] Test invoice generation
-- [ ] Test lead-to-student conversion
+- [ ] Review user permissions
 
 ### Vercel Setup
 1. Connect GitHub repository
-2. Set environment variables in Vercel dashboard:
-   ```
-   DATABASE_URL=postgresql://...
-   NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=your-secret
-   RESEND_API_KEY=re_...
-   EMAIL_FROM=noreply@planbeta.in
-   SUPPORT_EMAIL=hello@planbeta.in
-   NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
-   UPI_ID=planbeta@paytm
-   CRON_SECRET=your-cron-secret
-   GEMINI_API_KEY=AIza...
-   ```
-   **Important:** EMAIL_FROM must be simple format (email only, no name). Do NOT use `Name <email@domain.com>` format.
-
-3. Deploy from `main` branch
-4. Configure custom domain (optional)
-5. Set up GitHub Actions secrets for automated backups (see Backup section)
+2. Set all environment variables in Vercel dashboard
+3. Configure domain (optional)
+4. Set up deployment protection token
+5. Configure GitHub Actions secrets for backups
 
 ### Post-Deployment
-- [ ] Test login with all user roles
-- [ ] Create test student (verify welcome email)
-- [ ] Record test payment (verify confirmation email)
-- [ ] Submit test feedback (verify support email)
-- [ ] Test backup system (manual button)
-- [ ] Monitor email delivery in Resend dashboard
-- [ ] Check Vercel logs for errors
+- [ ] Test login all roles
+- [ ] Create test student (verify emails)
+- [ ] Test outreach system
+- [ ] Test Instagram integration
+- [ ] Verify backup emails
+- [ ] Monitor Vercel logs
 - [ ] Set up uptime monitoring
 
-### Recommended Monitoring
-- **Uptime Robot:** Ping `/api/system/health` every 5 minutes
-- **Email Monitoring:** Check Resend dashboard daily
-- **Backup Verification:** Check hello@planbeta.in for backup emails
-- **Error Tracking:** Review Vercel logs weekly
-
 ---
 
-## 🔧 Troubleshooting
+## 🛠️ Development
 
-### Email Issues
-**Problem:** Emails not sending
-**Solution:**
-1. Verify Resend API key is correct
-2. Check domain verification at resend.com/domains
-3. Verify DNS records on Hostinger
-4. Check student email preferences in database
-5. Review Vercel logs for email errors
+### Available Scripts
+```bash
+npm run dev              # Start dev server
+npm run build            # Production build
+npm start                # Start production
 
-### Database Connection Issues
-**Problem:** Database connection timeout
-**Solution:**
-1. Check DATABASE_URL is correct
-2. Verify Neon project is active
-3. Check connection pooling settings
-4. Increase pool_timeout in connection string
+# Database
+npx prisma db push       # Push schema
+npx prisma generate      # Generate client
+npx prisma studio        # Open GUI
+npm run db:seed          # Seed database
 
-### Build Failures
-**Problem:** Vercel build fails
-**Solution:**
-1. Run `npm run build` locally first
-2. Check for TypeScript errors
-3. Verify all environment variables are set
-4. Clear Vercel cache and rebuild
+# Backup & Restore
+npm run backup           # Create backup
+npm run restore          # Restore from backup
+npm run import           # Bulk import
 
-### Login Issues
-**Problem:** Cannot login
-**Solution:**
-1. Verify NEXTAUTH_SECRET is set
-2. Check NEXTAUTH_URL matches deployment URL
-3. Run `npm run db:seed` to reset passwords
-4. Clear browser cookies and try again
-
----
-
-## 📞 Support
-
-### Contacts
-- **Email:** hello@planbeta.in
-- **GitHub:** https://github.com/theplanbeta/plan-beta-dashboard
-- **Issues:** https://github.com/theplanbeta/plan-beta-dashboard/issues
-
-### Documentation
-- This README.md (comprehensive guide)
-- API documentation (see API Reference section)
-- Email system documentation (see Email System section)
-- Backup system documentation (see Backup & Restore section)
-
-### Getting Help
-1. Check this README first
-2. Review relevant documentation section
-3. Check GitHub issues for similar problems
-4. Create new issue with detailed description
-5. Contact support team at hello@planbeta.in
-
----
-
-## 📋 Recent Updates
-
-### Latest (December 2024) - Consecutive Absence Alert System 🚨
-✅ **Automated student retention system**
-- New consecutive absence tracking in database (`consecutiveAbsences`, `lastAbsenceDate`)
-- Daily automated alerts at 10 PM UTC for students with 2+ consecutive absences
-- Three-tier notification system:
-  - **Teachers:** Receive alerts for all students with 2+ absences in their batches
-  - **Admins (FOUNDER):** Receive alerts only for high-risk students (3+ absences)
-  - **Students:** Currently disabled (can be re-enabled in future)
-- Enhanced churn risk calculation (2+ absences = MEDIUM, 3+ = HIGH)
-- Visual absence indicators on student dashboard (yellow for 2, red for 3+)
-- Detailed email templates with action recommendations
-
-✅ **Teacher access restrictions for data privacy**
-- Teachers can no longer view student financial information
-- Student detail pages, invoices, and payments hidden from teachers
-- Actions column removed from student list for teachers
-- Focus on teaching-related functions only (attendance, batch info)
-
-### Previous (October 2025) - Backup System Overhaul
-✅ **Complete backup system rebuild**
-- Fixed EMAIL_FROM format issue (was blocking all emails)
-- Added gzip compression (70-80% file size reduction)
-- Reduced cooldown from 30 to 10 minutes
-- Berlin timezone in all email timestamps
-- Compressed `.json.gz` attachments
-- Automated daily backups via GitHub Actions (2 AM UTC)
-- Free alternative to Vercel Cron ($20/month saved)
-
-✅ **Email System Fully Operational**
-- Student welcome emails
-- Payment confirmations & reminders
-- Attendance alerts
-- Batch start notifications
-- Referral payout notifications
-- Month completion emails
-- Feedback notifications to support
-- Database backup emails with compressed attachments
-
-✅ **Email infrastructure verified**
-- Domain: planbeta.in ✅ VERIFIED
-- Resend API: ✅ OPERATIONAL
-- All DNS records configured on Hostinger
-- EMAIL_FROM format fixed: `noreply@planbeta.in`
-
-### Previous Updates
-✅ **Database backup system** (automated + manual)
-✅ **Dark mode** (global theme with localStorage)
-✅ **PWA support** (installable app)
-✅ **Smart Paste AI** (lead parsing with Gemini)
-✅ **Mobile optimization** (responsive dashboard)
-✅ **Role-based permissions** (FOUNDER/MARKETING/TEACHER)
+# Social Media
+npm run setup-instagram  # Instagram setup
+npm run test-instagram   # Test Instagram API
+npm run debug-facebook   # Debug Facebook app
+```
 
 ---
 
 ## 📈 Roadmap
 
-### Planned Features
-- [ ] External referrer system (veteran students + external contacts)
-- [ ] Horizontal calendar mode for leads/batches/students
-- [ ] Student portal (login & track progress)
-- [ ] WhatsApp integration (automated messages)
-- [ ] SMS notifications (Twilio integration)
-- [ ] Advanced analytics dashboard
-- [ ] Parent portal & notifications
-- [ ] Certificate generation
-- [ ] Automated upsell campaigns
+### In Progress
+- [ ] WhatsApp automated messaging (Meta Business API configured)
+- [ ] n8n workflow automation (API configured)
+- [ ] Student portal (self-service dashboard)
+
+### Planned
+- [ ] Advanced AI features (GPT-4 integration)
 - [ ] Mobile app (React Native)
+- [ ] Certificate generation
+- [ ] Video testimonials
+- [ ] Parent portal
 
 ### Recently Completed
-- ✅ Consecutive absence alert system (COMPLETED Dec 2024)
-- ✅ Teacher access restrictions (COMPLETED Dec 2024)
-- ✅ Email system (COMPLETED Oct 2024)
-- ✅ Backup system (COMPLETED Oct 2024)
-- ✅ Dark mode (COMPLETED Oct 2024)
+- ✅ AI-powered outreach system (Dec 2024)
+- ✅ Community features (Dec 2024)
+- ✅ Demographics tracking (Dec 2024)
+- ✅ Content Wall (Nov 2024)
+- ✅ Instagram integration (Oct 2024)
 
 ---
 
@@ -776,16 +870,18 @@ npm run lint             # Run ESLint
 - Next.js (React framework)
 - Prisma (Database ORM)
 - NextAuth.js (Authentication)
+- Google Gemini (AI)
 - Resend (Email service)
-- Neon (PostgreSQL hosting)
+- Instagram Graph API
+- Neon (PostgreSQL)
 - Vercel (Deployment)
 - Claude Code (AI-assisted development)
 
 **Developed by:** Plan Beta Team
-**Last Updated:** December 19, 2024
-**Version:** 3.1 (Consecutive Absence Alert System)
+**Last Updated:** December 17, 2024
+**Version:** 4.0 (AI-Powered Outreach & Community)
 **Status:** 🟢 Production Ready
 
 ---
 
-**Built with ❤️ using Next.js, Prisma, and Claude Code**
+**Built with ❤️ using Next.js, Prisma, AI, and Claude Code**

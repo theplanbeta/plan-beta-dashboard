@@ -5,6 +5,7 @@ import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 import BarChart from "@/components/charts/BarChart"
 import LineChart from "@/components/charts/LineChart"
+import AIInsights from "@/components/ai/AIInsights"
 
 type MarketingData = {
   period: number
@@ -389,6 +390,9 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
             }))}
         />
       </div>
+
+      {/* AI Insights */}
+      <AIInsights />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">

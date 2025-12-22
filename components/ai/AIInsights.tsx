@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type InsightType = "daily_digest" | "deep_analysis"
 
@@ -29,10 +29,36 @@ export default function AIInsights() {
   const [cached, setCached] = useState(false)
   const [generatedAt, setGeneratedAt] = useState<string | null>(null)
 
+  // Ollama availability
+  const [ollamaAvailable, setOllamaAvailable] = useState<boolean | null>(null)
+  const [checkingOllama, setCheckingOllama] = useState(true)
+
   // Question mode
   const [question, setQuestion] = useState("")
   const [questionMode, setQuestionMode] = useState(false)
   const [answer, setAnswer] = useState<string | null>(null)
+
+  // Check if Ollama/AI is available on mount
+  useEffect(() => {
+    const checkOllama = async () => {
+      try {
+        const res = await fetch("/api/ai/insights?type=daily_digest")
+        const data = await res.json()
+        // If we get 503 or error mentions Ollama, it's not running
+        if (res.status === 503 || data.error?.includes("AI service")) {
+          setOllamaAvailable(false)
+        } else {
+          setOllamaAvailable(true)
+        }
+      } catch {
+        // Network error or service unavailable
+        setOllamaAvailable(false)
+      } finally {
+        setCheckingOllama(false)
+      }
+    }
+    checkOllama()
+  }, [])
 
   const fetchInsights = async (refresh = false) => {
     setLoading(true)
@@ -156,6 +182,15 @@ export default function AIInsights() {
           </p>
         )
       })
+  }
+
+  // Don't render anything if still checking or Ollama is not available
+  if (checkingOllama) {
+    return null
+  }
+
+  if (!ollamaAvailable) {
+    return null
   }
 
   return (

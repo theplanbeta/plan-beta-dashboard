@@ -284,14 +284,21 @@ export async function GET(request: NextRequest) {
       0
     ) / students.length || 0
 
-    // Outstanding balance analysis
+    // Outstanding balance analysis - convert to EUR for unified calculation
     const totalOutstanding = students.reduce(
-      (sum, s) => sum + Number(s.balance),
+      (sum, s) => {
+        const balance = Number(s.balance)
+        // Convert INR to EUR for consistent totals
+        return sum + (s.currency === 'INR' ? balance / EXCHANGE_RATE : balance)
+      },
       0
     )
     const overdueAmount = students
       .filter((s) => s.paymentStatus === "OVERDUE")
-      .reduce((sum, s) => sum + Number(s.balance), 0)
+      .reduce((sum, s) => {
+        const balance = Number(s.balance)
+        return sum + (s.currency === 'INR' ? balance / EXCHANGE_RATE : balance)
+      }, 0)
 
     // === KEY PERFORMANCE INDICATORS ===
     const kpis = {

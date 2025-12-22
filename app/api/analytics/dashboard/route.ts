@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { getEurEquivalent } from "@/lib/pricing"
+import { getEurEquivalent, EXCHANGE_RATE } from "@/lib/pricing"
 
 // GET /api/analytics/dashboard - Get dashboard analytics
 export async function GET(request: NextRequest) {
@@ -69,8 +69,12 @@ export async function GET(request: NextRequest) {
     // For backward compatibility, use combined total as default totalRevenue
     const totalRevenue = totalRevenueCombined
 
+    // Total pending in EUR - convert INR balances to EUR for unified calculation
     const totalPending = students.reduce(
-      (sum, s) => sum + Number(s.balance),
+      (sum, s) => {
+        const balance = Number(s.balance)
+        return sum + (s.currency === 'INR' ? balance / EXCHANGE_RATE : balance)
+      },
       0
     )
     const avgRevPerStudent = totalStudents > 0 ? totalRevenue / totalStudents : 0

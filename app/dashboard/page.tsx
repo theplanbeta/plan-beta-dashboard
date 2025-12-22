@@ -7,6 +7,7 @@ import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 import TeacherDashboard from "./components/TeacherDashboard"
 import MarketingDashboard from "./components/MarketingDashboard"
+import AIInsights from "@/components/ai/AIInsights"
 import type { UserRole } from "@/lib/permissions"
 
 type DashboardData = {
@@ -446,6 +447,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* AI Insights */}
+      <AIInsights />
 
       {/* Quick Actions */}
       <div className="panel p-6">

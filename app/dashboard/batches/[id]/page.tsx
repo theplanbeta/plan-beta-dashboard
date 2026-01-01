@@ -1,9 +1,11 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { use, useState, useEffect, Fragment } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { Dialog, Transition } from "@headlessui/react"
+import { CheckCircleIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { normalizeCurrency } from "@/lib/currency"
 
@@ -54,6 +56,9 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
   const [batch, setBatch] = useState<Batch | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [completeModalOpen, setCompleteModalOpen] = useState(false)
+  const [completing, setCompleting] = useState(false)
+  const [setEndDateToToday, setSetEndDateToToday] = useState(true)
 
   const isTeacher = session?.user?.role === 'TEACHER'
 
@@ -98,6 +103,52 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
       alert(error instanceof Error ? error.message : "Failed to delete batch")
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleMarkComplete = async () => {
+    setCompleting(true)
+    try {
+      const res = await fetch(`/api/batches/${id}/complete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ setEndDate: setEndDateToToday }),
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || "Failed to complete batch")
+      }
+
+      setCompleteModalOpen(false)
+      fetchBatch() // Refresh batch data
+    } catch (error: unknown) {
+      console.error("Error completing batch:", error)
+      alert(error instanceof Error ? error.message : "Failed to complete batch")
+    } finally {
+      setCompleting(false)
+    }
+  }
+
+  const handleReopenBatch = async () => {
+    if (!confirm("Are you sure you want to reopen this batch? It will be set back to RUNNING status.")) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/batches/${id}/complete`, {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.error || "Failed to reopen batch")
+      }
+
+      fetchBatch() // Refresh batch data
+    } catch (error: unknown) {
+      console.error("Error reopening batch:", error)
+      alert(error instanceof Error ? error.message : "Failed to reopen batch")
     }
   }
 
@@ -161,9 +212,26 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
           <p className="mt-2 text-gray-600">Level {batch.level}</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-wrap gap-3">
           {!isTeacher && (
             <>
+              {batch.status !== "COMPLETED" ? (
+                <button
+                  onClick={() => setCompleteModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-md hover:from-emerald-600 hover:to-teal-700 shadow-sm transition-all"
+                >
+                  <CheckCircleIcon className="h-5 w-5" />
+                  Mark Complete
+                </button>
+              ) : (
+                <button
+                  onClick={handleReopenBatch}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 shadow-sm transition-all"
+                >
+                  <ArrowPathIcon className="h-5 w-5" />
+                  Reopen Batch
+                </button>
+              )}
               <Link
                 href={`/dashboard/batches/${batch.id}/edit`}
                 className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
@@ -181,7 +249,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           )}
           <Link
             href="/dashboard/batches"
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
           >
             Back
           </Link>
@@ -463,6 +531,114 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+
+      {/* Mark Complete Modal */}
+      <Transition appear show={completeModalOpen} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-50"
+          onClose={() => setCompleteModalOpen(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl transition-all">
+                  {/* Success Icon */}
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg">
+                    <CheckCircleIcon className="h-10 w-10 text-white" />
+                  </div>
+
+                  <Dialog.Title className="mt-4 text-center text-xl font-semibold text-gray-900 dark:text-white">
+                    Complete This Batch?
+                  </Dialog.Title>
+
+                  <div className="mt-3 text-center">
+                    <p className="text-gray-600 dark:text-gray-300">
+                      You are about to mark <span className="font-semibold text-gray-900 dark:text-white">{batch.batchCode}</span> as completed.
+                    </p>
+                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                      This batch has {batch.enrolledCount} student{batch.enrolledCount !== 1 ? 's' : ''} enrolled.
+                    </p>
+                  </div>
+
+                  {/* Options */}
+                  <div className="mt-5 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={setEndDateToToday}
+                        onChange={(e) => setSetEndDateToToday(e.target.checked)}
+                        className="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          Set end date to today
+                        </span>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setCompleteModalOpen(false)}
+                      disabled={completing}
+                      className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleMarkComplete}
+                      disabled={completing}
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2.5 text-sm font-medium text-white hover:from-emerald-600 hover:to-teal-700 shadow-sm transition-all disabled:opacity-50"
+                    >
+                      {completing ? (
+                        <>
+                          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Completing...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircleIcon className="h-4 w-4" />
+                          Complete Batch
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   )
 }

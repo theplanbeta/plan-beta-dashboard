@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/consecutive-absence-alerts",
       "schedule": "0 22 * * *"
-    },
-    {
-      "path": "/api/cron/teacher-hours-reminder",
-      "schedule": "0 18 * * 1-5"
     }
   ]
 }

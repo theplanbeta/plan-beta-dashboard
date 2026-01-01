@@ -1,0 +1,33 @@
+name: Teacher Hours Reminder
+
+on:
+  schedule:
+    # Run at 6 PM UTC (7 PM CET) on weekdays (Mon-Fri)
+    - cron: '0 18 * * 1-5'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send teacher hours reminders
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ secrets.APP_URL }}/api/cron/teacher-hours-reminder" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response body:"
+          echo "$body" | jq . 2>/dev/null || echo "$body"
+          echo ""
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+            echo "✅ Reminders sent successfully"
+          else
+            echo "❌ Failed to send reminders"
+            exit 1
+          fi

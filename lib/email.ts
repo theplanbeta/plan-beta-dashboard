@@ -67,6 +67,7 @@ export type EmailTemplate =
   | 'attendance-alert'
   | 'referral-payout'
   | 'month-complete'
+  | 'teacher-hours-reminder'
 
 interface EmailData {
   to: string
@@ -488,6 +489,57 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           <p>Keep up the excellent work!</p>
 
           <p>Best regards,<br>The Plan Beta Team</p>
+        </div>
+      `,
+    },
+
+    'teacher-hours-reminder': {
+      subject: `Log Today's Teaching Hours - ${data.todayDate || 'Today'}`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          ${emailHeader}
+          <div style="padding: 35px 30px;">
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Don't Forget to Log Today's Hours! ⏰</h1>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Hi ${data.teacherName},</p>
+
+            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
+              We noticed you haven't logged your teaching hours for <strong>${data.todayDate || 'today'}</strong> yet.
+            </p>
+
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+              <h3 style="margin: 0 0 10px 0; color: #92400e;">📋 Quick Reminder</h3>
+              <p style="margin: 0; font-size: 14px; color: #92400e;">
+                Logging hours the same day helps you remember exactly what was covered in class and ensures accurate payroll processing.
+              </p>
+            </div>
+
+            ${data.assignedBatches ? `
+            <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Your Active Batches:</strong></p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">${data.assignedBatches}</p>
+            </div>
+            ` : ''}
+
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'}/dashboard/teacher-hours"
+                 style="background: #d2302c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Log Today's Hours
+              </a>
+            </div>
+
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>It only takes 30 seconds:</strong></p>
+              <ol style="margin: 0; font-size: 14px; padding-left: 20px; color: #1e40af;">
+                <li>Click the button above</li>
+                <li>Click "Log Hours"</li>
+                <li>Select your batch, enter hours, add a brief note</li>
+                <li>Done!</li>
+              </ol>
+            </div>
+
+            <p style="color: #374151; font-size: 15px; margin-top: 25px;">Thank you!<br><strong>Plan Beta Team</strong></p>
+          ${emailFooter}
+          </div>
         </div>
       `,
     },

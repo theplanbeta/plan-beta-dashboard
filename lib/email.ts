@@ -68,6 +68,7 @@ export type EmailTemplate =
   | 'referral-payout'
   | 'month-complete'
   | 'teacher-hours-reminder'
+  | 'student-absence-notice'
 
 interface EmailData {
   to: string
@@ -538,6 +539,79 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             </div>
 
             <p style="color: #374151; font-size: 15px; margin-top: 25px;">Thank you!<br><strong>Plan Beta Team</strong></p>
+          ${emailFooter}
+          </div>
+        </div>
+      `,
+    },
+
+    'student-absence-notice': {
+      subject: `Class Attendance Notice - ${data.classDate || 'Today'}`,
+      html: `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          ${emailHeader}
+          <div style="padding: 35px 30px;">
+            <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 24px;">Class Attendance Notice</h1>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${data.studentName},</p>
+
+            <p style="color: #374151; font-size: 15px; line-height: 1.6;">
+              We noticed that you were unable to attend your German class on <strong>${data.classDate || 'today'}</strong>
+              for batch <strong>${data.batchCode}</strong> (${data.level}).
+            </p>
+
+            <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #3b82f6;">
+              <h3 style="margin: 0 0 10px 0; color: #1e40af; font-size: 16px;">Recording Available</h3>
+              <p style="margin: 0; font-size: 14px; color: #1e40af; line-height: 1.6;">
+                To ensure you don't fall behind, please watch the class recording at your earliest convenience.
+                Recordings are available in your student portal and remain accessible for the duration of your course.
+              </p>
+            </div>
+
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 25px 0;">
+              <h3 style="margin: 0 0 12px 0; color: #374151; font-size: 16px;">Your Responsibilities as a Student</h3>
+              <p style="margin: 0 0 12px 0; font-size: 14px; color: #4b5563; line-height: 1.6;">
+                As outlined in your enrollment agreement, regular class attendance is essential for your language learning success.
+                When you are unable to attend a scheduled class, you are expected to:
+              </p>
+              <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #4b5563; line-height: 1.8;">
+                <li>Watch the complete recording of the missed session</li>
+                <li>Complete any assigned homework or exercises</li>
+                <li>Review the material before your next class</li>
+                <li>Reach out to your teacher if you have questions about the content</li>
+              </ul>
+            </div>
+
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
+              <h3 style="margin: 0 0 10px 0; color: #92400e; font-size: 15px;">Important Policy Reminder</h3>
+              <p style="margin: 0; font-size: 13px; color: #92400e; line-height: 1.6;">
+                Please note that course fees are non-refundable for missed classes, as all sessions are recorded and made
+                available to enrolled students. By enrolling in the course, you have acknowledged that it is your responsibility
+                to either attend live sessions or review the recordings. The availability of recordings ensures you have
+                continuous access to all course content regardless of attendance.
+              </p>
+            </div>
+
+            <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-top: 25px;">
+              We understand that circumstances may sometimes prevent attendance. If you're facing any challenges that
+              are affecting your ability to participate in classes, please don't hesitate to reach out to us.
+              We're here to support your learning journey.
+            </p>
+
+            <div style="margin: 30px 0; text-align: center;">
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://plan-beta-dashboard.vercel.app'}/dashboard"
+                 style="background: #d2302c; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+                Access Class Recordings
+              </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; line-height: 1.6;">
+              If you have any questions or need assistance, please contact us at
+              <a href="mailto:${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}" style="color: #d2302c;">${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}</a>.
+            </p>
+
+            <p style="color: #374151; font-size: 15px; margin-top: 25px;">
+              Warm regards,<br><strong>Plan Beta Team</strong>
+            </p>
           ${emailFooter}
           </div>
         </div>

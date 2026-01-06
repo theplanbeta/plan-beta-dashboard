@@ -2,7 +2,7 @@
 
 A **production-ready** comprehensive school management and growth platform built with Next.js 15, TypeScript, Prisma, and NextAuth featuring AI-powered outreach, community building, content management, and complete automation.
 
-![Version](https://img.shields.io/badge/version-4.0-blue)
+![Version](https://img.shields.io/badge/version-4.1-blue)
 ![Status](https://img.shields.io/badge/status-production--ready-green)
 ![AI](https://img.shields.io/badge/AI-powered-purple)
 
@@ -470,6 +470,17 @@ GET /api/analytics/marketing    # Marketing metrics
 - Format: Gzip-compressed JSON
 - Sent to: hello@planbeta.in
 
+**10. Teacher Hours Reminder** ⏰
+- Trigger: Daily at 7 PM CET (weekdays) if teacher hasn't logged hours
+- Recipients: Teachers with active batches (excludes founders)
+- Includes: Assigned batches, direct link to log hours
+
+**11. Daily Absence Notice** 📋
+- Trigger: Daily at 9 PM CET (weekdays) for students marked absent
+- Failsafe: Only sends if teacher actually marked attendance (≥1 present)
+- Includes: Recording reminder, student responsibilities, refund policy
+- "Were You Present?" section with teacher's WhatsApp for corrections
+
 ### Email Preferences
 Students control notifications via database flags:
 ```typescript
@@ -578,6 +589,8 @@ POST /api/cron/attendance-alerts    # Send alerts
 POST /api/cron/consecutive-absence-alerts # Absence alerts
 POST /api/cron/month-completion     # Process completions
 POST /api/cron/backup               # Database backup
+POST /api/cron/teacher-hours-reminder # Teacher hours reminder (7 PM CET)
+POST /api/cron/daily-absence-notice   # Student absence notice (9 PM CET)
 POST /api/webhooks/instagram        # Instagram webhooks
 POST /api/webhooks/tasker-instagram # Tasker integration
 ```
@@ -597,6 +610,12 @@ POST /api/webhooks/tasker-instagram # Tasker integration
 - **Schedule:** 2:00 AM UTC daily
 - **Provider:** GitHub Actions (free)
 - **Workflow:** `.github/workflows/daily-backup.yml`
+
+### Other GitHub Actions Workflows
+- **Teacher Hours Reminder:** 6 PM UTC (7 PM CET) weekdays
+  - Workflow: `.github/workflows/teacher-hours-reminder.yml`
+- **Daily Absence Notice:** 8 PM UTC (9 PM CET) weekdays
+  - Workflow: `.github/workflows/daily-absence-notice.yml`
 
 ### Scripts
 ```bash
@@ -737,7 +756,29 @@ plan-beta-dashboard/
 
 ## 📋 Recent Updates
 
-### Latest (December 2024) - AI-Powered Outreach & Demographics 🤖
+### Latest (January 2025) - Automated Email Reminders & Batch Management 📧
+
+✅ **Teacher Hours Reminder System**
+- Daily reminder at 7 PM CET for teachers who haven't logged hours
+- Excludes founders from reminders
+- Direct link to hours logging page
+
+✅ **Daily Absence Notice for Students**
+- Professional email to students marked absent
+- Failsafe: Only triggers if teacher marked attendance properly
+- Includes: Recording access reminder, responsibilities, refund policy
+- "Were You Present?" section with teacher's WhatsApp for corrections
+
+✅ **Batch Completion Feature**
+- Elegant "Mark Complete" button with confirmation modal
+- Option to set end date to today
+- Reopen batch functionality for completed batches
+
+✅ **Comprehensive CLAUDE.md**
+- Project documentation for AI-assisted development
+- Tech stack, commands, conventions, and architecture
+
+### Previous (December 2024) - AI-Powered Outreach & Demographics 🤖
 
 ✅ **Journey-Based Outreach System**
 - Five lifecycle phases with intelligent scheduling
@@ -878,8 +919,8 @@ npm run debug-facebook   # Debug Facebook app
 - Claude Code (AI-assisted development)
 
 **Developed by:** Plan Beta Team
-**Last Updated:** December 17, 2024
-**Version:** 4.0 (AI-Powered Outreach & Community)
+**Last Updated:** January 6, 2025
+**Version:** 4.1 (Automated Reminders & Batch Management)
 **Status:** 🟢 Production Ready
 
 ---

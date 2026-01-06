@@ -50,8 +50,16 @@ export async function POST(request: NextRequest) {
           include: {
             batch: {
               select: {
+                id: true,
                 batchCode: true,
                 level: true,
+                teacher: {
+                  select: {
+                    name: true,
+                    whatsapp: true,
+                    phone: true,
+                  },
+                },
               },
             },
           },
@@ -59,8 +67,61 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // FAILSAFE: Check which batches actually had attendance marked today
+    // If a batch has no attendance records at all, teacher likely forgot - don't send emails
+    const batchesWithAttendance = await prisma.attendance.groupBy({
+      by: ["studentId"],
+      where: {
+        date: {
+          gte: todayStart,
+          lt: todayEnd,
+        },
+      },
+    })
+
+    // Get unique batch IDs that had attendance marked
+    const studentsWithAttendance = new Set(batchesWithAttendance.map((a) => a.studentId))
+
+    // Get all batch IDs from absent students and check if their batch had attendance marked
+    const batchAttendanceCounts = new Map<string, { present: number; absent: number }>()
+
+    for (const record of absentRecords) {
+      const batchId = record.student.batch?.id
+      if (!batchId) continue
+
+      if (!batchAttendanceCounts.has(batchId)) {
+        // Count how many students in this batch had attendance marked today
+        const batchAttendance = await prisma.attendance.findMany({
+          where: {
+            date: {
+              gte: todayStart,
+              lt: todayEnd,
+            },
+            student: {
+              batchId: batchId,
+            },
+          },
+        })
+        batchAttendanceCounts.set(batchId, {
+          present: batchAttendance.filter((a) => a.status === "PRESENT").length,
+          absent: batchAttendance.filter((a) => a.status === "ABSENT").length,
+        })
+      }
+    }
+
+    // Filter out students whose batch might not have proper attendance marked
+    // A batch should have at least 1 student marked present to consider attendance was properly taken
+    const validAbsentRecords = absentRecords.filter((record) => {
+      const batchId = record.student.batch?.id
+      if (!batchId) return false
+
+      const counts = batchAttendanceCounts.get(batchId)
+      // Only send if at least 1 student was marked present (teacher actually took attendance)
+      return counts && counts.present >= 1
+    })
+
     // Filter students who have email and have email notifications enabled
-    const studentsToNotify = absentRecords.filter(
+    const studentsToNotify = validAbsentRecords.filter(
       (record) =>
         record.student.email &&
         record.student.email.trim().length > 0 &&
@@ -79,6 +140,8 @@ export async function POST(request: NextRequest) {
 
     for (const record of studentsToNotify) {
       const student = record.student
+      const teacher = student.batch?.teacher
+      const teacherContact = teacher?.whatsapp || teacher?.phone || null
 
       const result = await sendEmail("student-absence-notice", {
         to: student.email!,
@@ -86,6 +149,8 @@ export async function POST(request: NextRequest) {
         classDate: dateStr,
         batchCode: student.batch?.batchCode || "Your batch",
         level: student.batch?.level || "German",
+        teacherName: teacher?.name || null,
+        teacherWhatsapp: teacherContact,
       })
 
       results.push({
@@ -93,6 +158,7 @@ export async function POST(request: NextRequest) {
         name: student.name,
         email: student.email,
         batchCode: student.batch?.batchCode,
+        teacherName: teacher?.name,
         sent: result.success,
         error: result.success ? null : String(result.error),
       })
@@ -100,11 +166,14 @@ export async function POST(request: NextRequest) {
 
     const sentCount = results.filter((r) => r.sent).length
     const failedCount = results.filter((r) => !r.sent).length
+    const skippedDueToNoAttendance = absentRecords.length - validAbsentRecords.length
 
     return NextResponse.json({
       success: true,
       date: todayStart.toISOString().split("T")[0],
       totalAbsent: absentRecords.length,
+      skippedNoAttendanceMarked: skippedDueToNoAttendance,
+      validAbsences: validAbsentRecords.length,
       eligibleForNotice: studentsToNotify.length,
       noticesSent: sentCount,
       failed: failedCount,

@@ -591,6 +591,24 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
               </p>
             </div>
 
+            ${data.teacherName ? `
+            <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #10b981;">
+              <h3 style="margin: 0 0 10px 0; color: #065f46; font-size: 15px;">Were You Actually Present?</h3>
+              <p style="margin: 0; font-size: 13px; color: #065f46; line-height: 1.6;">
+                If you believe you attended this class and this notification was sent in error, please contact your teacher
+                <strong>${data.teacherName}</strong>${data.teacherWhatsapp ? ` via WhatsApp at <strong>${data.teacherWhatsapp}</strong>` : ''} to have your attendance corrected.
+              </p>
+            </div>
+            ` : `
+            <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #10b981;">
+              <h3 style="margin: 0 0 10px 0; color: #065f46; font-size: 15px;">Were You Actually Present?</h3>
+              <p style="margin: 0; font-size: 13px; color: #065f46; line-height: 1.6;">
+                If you believe you attended this class and this notification was sent in error, please contact your teacher
+                via WhatsApp to have your attendance corrected.
+              </p>
+            </div>
+            `}
+
             <p style="color: #374151; font-size: 15px; line-height: 1.6; margin-top: 25px;">
               We understand that circumstances may sometimes prevent attendance. If you're facing any challenges that
               are affecting your ability to participate in classes, please don't hesitate to reach out to us.

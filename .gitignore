@@ -51,3 +51,4 @@ production-backup.json
 # Receipt storage
 /storage
 screenshots/
+.env.vercel

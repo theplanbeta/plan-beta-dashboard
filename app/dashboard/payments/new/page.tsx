@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import React, { useState, useEffect, Suspense, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
@@ -32,6 +32,9 @@ function NewPaymentForm() {
   const { addToast } = useToast()
   const [students, setStudents] = useState<Student[]>([])
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+
+  // Ref to prevent double-clicks (instant check, doesn't wait for React state)
+  const isSubmittingRef = useRef(false)
 
   const [formData, setFormData] = useState({
     studentId: studentIdParam || "",
@@ -93,6 +96,14 @@ function NewPaymentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Instant double-click prevention using ref (doesn't wait for React state)
+    if (isSubmittingRef.current) {
+      console.log("Prevented duplicate submission")
+      return
+    }
+    isSubmittingRef.current = true
+
     setLoading(true)
     setError("")
 
@@ -134,6 +145,7 @@ function NewPaymentForm() {
       console.error(err)
     } finally {
       setLoading(false)
+      isSubmittingRef.current = false
     }
   }
 

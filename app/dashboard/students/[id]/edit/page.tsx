@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useEffect } from "react"
+import { use, useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useToast } from "@/components/Toast"
@@ -42,6 +42,9 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
   const { addToast } = useToast()
   const [student, setStudent] = useState<Student | null>(null)
   const [batches, setBatches] = useState<Batch[]>([])
+
+  // Ref to prevent double-clicks (instant check, doesn't wait for React state)
+  const isSubmittingRef = useRef(false)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -110,6 +113,14 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Instant double-click prevention using ref (doesn't wait for React state)
+    if (isSubmittingRef.current) {
+      console.log("Prevented duplicate submission")
+      return
+    }
+    isSubmittingRef.current = true
+
     setSaving(true)
     setError("")
     setFieldErrors({})
@@ -144,6 +155,7 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
       console.error(err)
     } finally {
       setSaving(false)
+      isSubmittingRef.current = false
     }
   }
 

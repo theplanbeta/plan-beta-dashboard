@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, Suspense, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { COURSE_PRICING, COURSE_LEVELS, type Currency, type CourseLevel, getCurrencySymbol, calculateFinalPrice, calculateBalance, getPrice, calculateComboPrice } from "@/lib/pricing"
@@ -43,6 +43,9 @@ function NewStudentForm() {
   const [parsing, setParsing] = useState(false)
   const [showSmartPaste, setShowSmartPaste] = useState(false)
   const [pastedText, setPastedText] = useState("")
+
+  // Ref to prevent double-clicks (instant check, doesn't wait for React state)
+  const isSubmittingRef = useRef(false)
 
   const [formData, setFormData] = useState({
     name: "",
@@ -163,6 +166,14 @@ function NewStudentForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Instant double-click prevention using ref (doesn't wait for React state)
+    if (isSubmittingRef.current) {
+      console.log("Prevented duplicate submission")
+      return
+    }
+    isSubmittingRef.current = true
+
     setLoading(true)
     setError("")
 
@@ -171,6 +182,7 @@ function NewStudentForm() {
     if (validationError) {
       setError(validationError)
       setLoading(false)
+      isSubmittingRef.current = false
       return
     }
 
@@ -203,6 +215,7 @@ function NewStudentForm() {
       console.error(err)
     } finally {
       setLoading(false)
+      isSubmittingRef.current = false
     }
   }
 

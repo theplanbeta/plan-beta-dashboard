@@ -141,6 +141,32 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
+    // DUPLICATE DETECTION: Check for very recent student with same name and phone
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000) // 1 minute window
+    const recentDuplicateStudent = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { name: data.name, whatsapp: data.whatsapp },
+          { whatsapp: data.whatsapp },
+        ],
+        createdAt: {
+          gte: oneMinuteAgo,
+        },
+      },
+    })
+
+    if (recentDuplicateStudent) {
+      console.warn(`Blocked duplicate student creation: ${data.name} (${data.whatsapp})`)
+      return NextResponse.json(
+        {
+          error: 'Duplicate student detected',
+          message: 'A student with this phone number was created less than 1 minute ago. If this is intentional, please wait a moment and try again.',
+          existingStudentId: recentDuplicateStudent.id,
+        },
+        { status: 409 } // Conflict
+      )
+    }
+
     // Generate student ID
     const studentId = generateStudentId()
 

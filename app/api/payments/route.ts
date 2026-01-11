@@ -153,6 +153,30 @@ export async function POST(request: NextRequest) {
       console.warn(`Payment currency warnings for ${student.name}:`, currencyValidation.warnings)
     }
 
+    // DUPLICATE DETECTION: Check for very recent payments with same amount from same student
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000) // 1 minute window
+    const recentDuplicatePayment = await prisma.payment.findFirst({
+      where: {
+        studentId: validData.studentId,
+        amount: validData.amount,
+        createdAt: {
+          gte: oneMinuteAgo,
+        },
+      },
+    })
+
+    if (recentDuplicatePayment) {
+      console.warn(`Blocked duplicate payment for student ${validData.studentId}: ${validData.amount} ${validData.currency}`)
+      return NextResponse.json(
+        {
+          error: 'Duplicate payment detected',
+          message: 'A payment with the same amount was recorded less than 1 minute ago. If this is intentional, please wait a moment and try again.',
+          existingPaymentId: recentDuplicatePayment.id,
+        },
+        { status: 409 } // Conflict
+      )
+    }
+
     // Use Decimal for amount to ensure precision
     const amount = new Decimal(validData.amount.toString())
 

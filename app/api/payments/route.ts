@@ -6,6 +6,7 @@ import { z } from "zod"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { Prisma } from "@prisma/client"
 import { validateCurrencyAmount, validateCurrencyConsistency, type Currency } from "@/lib/currency-validator"
+import { convertToEUR, convertToINR } from "@/lib/pricing"
 
 const limiter = rateLimit(RATE_LIMITS.MODERATE)
 const Decimal = Prisma.Decimal
@@ -185,7 +186,7 @@ export async function POST(request: NextRequest) {
         studentId: validData.studentId,
         amount,
         method: validData.method,
-        currency: validData.currency || "EUR",
+        currency: validData.currency || student.currency || "EUR",
         paymentDate: validData.paymentDate ? new Date(validData.paymentDate) : new Date(),
         status: validData.status || "COMPLETED",
         transactionId: validData.transactionId || null,
@@ -265,9 +266,21 @@ async function updateStudentPaymentStatus(studentId: string) {
 
   if (!student) return
 
-  // Use Decimal for precision
+  // Use Decimal for precision, normalizing all payments to student's currency
+  const studentCurrency = (student.currency || "EUR") as "EUR" | "INR"
   const totalPaid = student.payments.reduce(
-    (sum, payment) => sum.add(new Decimal(payment.amount.toString())),
+    (sum, payment) => {
+      const paymentCurrency = (payment.currency || "EUR") as "EUR" | "INR"
+      const amount = Number(payment.amount)
+      // Convert to student's currency if different
+      let normalizedAmount = amount
+      if (paymentCurrency !== studentCurrency) {
+        normalizedAmount = studentCurrency === "EUR"
+          ? convertToEUR(amount, paymentCurrency)
+          : convertToINR(amount, paymentCurrency)
+      }
+      return sum.add(new Decimal(normalizedAmount.toFixed(2)))
+    },
     new Decimal(0)
   )
   const finalPrice = new Decimal(student.finalPrice.toString())

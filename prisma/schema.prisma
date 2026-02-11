@@ -1105,3 +1105,37 @@ enum ConnectionStatus {
   ACTIVE
   INACTIVE
 }
+
+enum ExpenseType {
+  RECURRING
+  ONE_TIME
+}
+
+enum ExpenseCategory {
+  INFRASTRUCTURE
+  TOOLS_SOFTWARE
+  MARKETING
+  ADMINISTRATIVE
+  OTHER
+}
+
+model Expense {
+  id               String          @id @default(cuid())
+  name             String
+  amount           Decimal         @db.Decimal(10, 2)
+  currency         String          @default("EUR")
+  eurEquivalent    Decimal?        @db.Decimal(10, 2)
+  exchangeRateUsed Decimal?        @db.Decimal(10, 4)
+  category         ExpenseCategory
+  type             ExpenseType
+  date             DateTime        @db.Date
+  notes            String?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([category])
+  @@index([type])
+  @@index([date])
+  @@index([isActive])
+}

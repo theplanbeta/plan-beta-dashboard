@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     startDate.setDate(startDate.getDate() - daysAgo)
 
     // Get all data for the period
-    const [students, payments, attendance, referrals, batches, teacherHours] = await Promise.all([
+    const [students, payments, attendance, referrals, batches, teacherHours, expenses] = await Promise.all([
       prisma.student.findMany({
         include: {
           payments: {
@@ -124,6 +124,14 @@ export async function GET(request: NextRequest) {
           paidAmount: true,
         },
       }),
+      prisma.expense.findMany({
+        where: {
+          OR: [
+            { type: "ONE_TIME", date: { gte: startDate } },
+            { type: "RECURRING", isActive: true },
+          ],
+        },
+      }),
     ])
 
     // === REVENUE INSIGHTS ===
@@ -169,11 +177,78 @@ export async function GET(request: NextRequest) {
     const teacherCostsByDay = generateDailyTeacherCosts(teacherHours, daysAgo)
     const avgDailyTeacherCosts = totalTeacherCosts / daysAgo
 
+    // === OPERATING EXPENSES ===
+    const toEur = (amount: number, currency: string) =>
+      currency === "INR" ? amount / EXCHANGE_RATE : amount
+
+    const recurringExpenses = expenses.filter(e => e.type === "RECURRING" && e.isActive)
+    const oneTimeExpenses = expenses.filter(e => e.type === "ONE_TIME")
+
+    const monthlyRecurringEur = recurringExpenses.reduce(
+      (sum, e) => sum + toEur(Number(e.amount), e.currency), 0
+    )
+    const proratedRecurring = monthlyRecurringEur * (daysAgo / 30)
+    const oneTimeTotal = oneTimeExpenses.reduce(
+      (sum, e) => sum + toEur(Number(e.amount), e.currency), 0
+    )
+    const totalOperatingExpenses = proratedRecurring + oneTimeTotal
+    const avgDailyOperatingExpenses = totalOperatingExpenses / daysAgo
+
+    const expensesByCategory = [...recurringExpenses, ...oneTimeExpenses].reduce(
+      (acc, e) => {
+        const eurAmt = e.type === "RECURRING"
+          ? toEur(Number(e.amount), e.currency) * (daysAgo / 30)
+          : toEur(Number(e.amount), e.currency)
+        acc[e.category] = (acc[e.category] || 0) + eurAmt
+        return acc
+      }, {} as Record<string, number>
+    )
+
     // === PROFITABILITY ===
     const grossProfit = totalRevenue - totalTeacherCosts
     const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
     const projectedMonthlyTeacherCosts = avgDailyTeacherCosts * 30
     const projectedMonthlyProfit = projectedMonthlyRevenue - projectedMonthlyTeacherCosts
+
+    // Net profit includes operating expenses
+    const netProfit = totalRevenue - totalTeacherCosts - totalOperatingExpenses
+    const netProfitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0
+    const projectedMonthlyOperatingExpenses = avgDailyOperatingExpenses * 30
+    const projectedMonthlyNetProfit = projectedMonthlyRevenue - projectedMonthlyTeacherCosts - projectedMonthlyOperatingExpenses
+
+    // === ROLLING P&L WINDOWS ===
+    const rollingPnL = [30, 60, 90].map(windowDays => {
+      const windowStart = new Date()
+      windowStart.setDate(windowStart.getDate() - windowDays)
+
+      const windowRevenue = payments
+        .filter(p => new Date(p.paymentDate) >= windowStart)
+        .reduce((sum, p) => sum + toEur(Number(p.amount), p.currency), 0)
+
+      const windowTeacherCost = teacherHours
+        .filter(h => new Date(h.date) >= windowStart)
+        .reduce((sum, h) => sum + Number(h.totalAmount), 0) / EXCHANGE_RATE
+
+      const windowOpEx = monthlyRecurringEur * (windowDays / 30) +
+        oneTimeExpenses
+          .filter(e => new Date(e.date) >= windowStart)
+          .reduce((sum, e) => sum + toEur(Number(e.amount), e.currency), 0)
+
+      const windowNetProfit = windowRevenue - windowTeacherCost - windowOpEx
+      const windowMargin = windowRevenue > 0 ? (windowNetProfit / windowRevenue) * 100 : 0
+
+      return {
+        days: windowDays,
+        revenue: Math.round(windowRevenue * 100) / 100,
+        teacherCost: Math.round(windowTeacherCost * 100) / 100,
+        operatingExpenses: Math.round(windowOpEx * 100) / 100,
+        netProfit: Math.round(windowNetProfit * 100) / 100,
+        margin: Math.round(windowMargin * 10) / 10,
+      }
+    })
+
+    // === MONTHLY P&L BREAKDOWN ===
+    const monthlyPnL = generateMonthlyPnL(payments, teacherHours, expenses, daysAgo)
 
     // === STUDENT LIFECYCLE INSIGHTS ===
     const avgStudentLifetime = calculateAvgLifetime(students as unknown as StudentRecord[])
@@ -325,8 +400,13 @@ export async function GET(request: NextRequest) {
       expectedChurn: Math.round(students.length * (churnRate / 100)),
       projectedProfit: projectedMonthlyProfit,
       projectedTeacherCosts: projectedMonthlyTeacherCosts,
+      projectedOperatingExpenses: projectedMonthlyOperatingExpenses,
+      projectedNetProfit: projectedMonthlyNetProfit,
       projectedProfitMargin: projectedMonthlyRevenue > 0
         ? ((projectedMonthlyProfit / projectedMonthlyRevenue) * 100)
+        : 0,
+      projectedNetProfitMargin: projectedMonthlyRevenue > 0
+        ? ((projectedMonthlyNetProfit / projectedMonthlyRevenue) * 100)
         : 0,
     }
 
@@ -367,14 +447,28 @@ export async function GET(request: NextRequest) {
           projected: projectedMonthlyTeacherCosts * EXCHANGE_RATE, // Convert back to INR for display
           projectedEUR: projectedMonthlyTeacherCosts,
         },
-        total: totalTeacherCosts, // EUR value for profit calculations
+        operatingExpenses: {
+          total: totalOperatingExpenses,
+          monthlyRecurring: monthlyRecurringEur,
+          oneTime: oneTimeTotal,
+          byCategory: expensesByCategory,
+          avgDaily: avgDailyOperatingExpenses,
+          projected: projectedMonthlyOperatingExpenses,
+        },
+        total: totalTeacherCosts + totalOperatingExpenses, // EUR value for profit calculations
       },
       profitability: {
         gross: grossProfit,
         margin: profitMargin,
+        net: netProfit,
+        netMargin: netProfitMargin,
         projected: projectedMonthlyProfit,
         projectedMargin: projectedMonthlyRevenue > 0
           ? ((projectedMonthlyProfit / projectedMonthlyRevenue) * 100)
+          : 0,
+        projectedNet: projectedMonthlyNetProfit,
+        projectedNetMargin: projectedMonthlyRevenue > 0
+          ? ((projectedMonthlyNetProfit / projectedMonthlyRevenue) * 100)
           : 0,
       },
       students: {
@@ -414,6 +508,8 @@ export async function GET(request: NextRequest) {
       kpis,
       forecasts,
       recommendations,
+      rollingPnL,
+      monthlyPnL,
     })
   } catch (error) {
     console.error("Error fetching insights:", error)
@@ -612,6 +708,76 @@ function calculateRevenueGrowth(payments: PaymentRecord[], days: number) {
   ).reduce((sum, p) => sum + Number(p.amount), 0)
 
   return firstHalf > 0 ? ((secondHalf - firstHalf) / firstHalf) * 100 : 0
+}
+
+function generateMonthlyPnL(
+  payments: Array<PaymentRecord & { currency?: string }>,
+  teacherHours: Array<{ date: Date; totalAmount: unknown }>,
+  expenses: Array<{ type: string; isActive: boolean; amount: unknown; currency: string; date: Date; category: string }>,
+  days: number
+) {
+  const toEur = (amount: number, currency: string) =>
+    currency === "INR" ? amount / EXCHANGE_RATE : amount
+
+  const months: Record<string, { revenue: number; teacherCosts: number; operatingExpenses: number }> = {}
+
+  // Initialize months for the period
+  const today = new Date()
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i)
+    const monthKey = d.toISOString().slice(0, 7)
+    if (!months[monthKey]) {
+      months[monthKey] = { revenue: 0, teacherCosts: 0, operatingExpenses: 0 }
+    }
+  }
+
+  // Revenue by month
+  payments.forEach((p) => {
+    const monthKey = new Date(p.paymentDate).toISOString().slice(0, 7)
+    if (months[monthKey] !== undefined) {
+      months[monthKey].revenue += toEur(Number(p.amount), p.currency || "EUR")
+    }
+  })
+
+  // Teacher costs by month (INR -> EUR)
+  teacherHours.forEach((h) => {
+    const monthKey = new Date(h.date).toISOString().slice(0, 7)
+    if (months[monthKey] !== undefined) {
+      months[monthKey].teacherCosts += Number(h.totalAmount) / EXCHANGE_RATE
+    }
+  })
+
+  // Recurring expenses prorated per month
+  const recurringMonthly = expenses
+    .filter(e => e.type === "RECURRING" && e.isActive)
+    .reduce((sum, e) => sum + toEur(Number(e.amount), e.currency), 0)
+
+  // One-time expenses by month
+  const oneTimeByMonth: Record<string, number> = {}
+  expenses.filter(e => e.type === "ONE_TIME").forEach(e => {
+    const monthKey = new Date(e.date).toISOString().slice(0, 7)
+    oneTimeByMonth[monthKey] = (oneTimeByMonth[monthKey] || 0) + toEur(Number(e.amount), e.currency)
+  })
+
+  return Object.entries(months)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, data]) => {
+      const opEx = recurringMonthly + (oneTimeByMonth[month] || 0)
+      const grossProfit = data.revenue - data.teacherCosts
+      const netProfit = data.revenue - data.teacherCosts - opEx
+      const margin = data.revenue > 0 ? (netProfit / data.revenue) * 100 : 0
+
+      return {
+        month,
+        revenue: Math.round(data.revenue * 100) / 100,
+        teacherCosts: Math.round(data.teacherCosts * 100) / 100,
+        operatingExpenses: Math.round(opEx * 100) / 100,
+        grossProfit: Math.round(grossProfit * 100) / 100,
+        netProfit: Math.round(netProfit * 100) / 100,
+        margin: Math.round(margin * 10) / 10,
+      }
+    })
 }
 
 function generateRecommendations(data: RecommendationData) {

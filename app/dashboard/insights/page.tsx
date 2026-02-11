@@ -30,13 +30,25 @@ type InsightsData = {
       avgDaily: number
       projected: number
     }
+    operatingExpenses: {
+      total: number
+      monthlyRecurring: number
+      oneTime: number
+      byCategory: Record<string, number>
+      avgDaily: number
+      projected: number
+    }
     total: number
   }
   profitability: {
     gross: number
     margin: number
+    net: number
+    netMargin: number
     projected: number
     projectedMargin: number
+    projectedNet: number
+    projectedNetMargin: number
   }
   students: {
     total: number
@@ -94,7 +106,10 @@ type InsightsData = {
     expectedChurn: number
     projectedProfit: number
     projectedTeacherCosts: number
+    projectedOperatingExpenses: number
+    projectedNetProfit: number
     projectedProfitMargin: number
+    projectedNetProfitMargin: number
   }
   recommendations: Array<{
     type: string
@@ -102,16 +117,75 @@ type InsightsData = {
     message: string
     action: string
   }>
+  rollingPnL: Array<{
+    days: number
+    revenue: number
+    teacherCost: number
+    operatingExpenses: number
+    netProfit: number
+    margin: number
+  }>
+  monthlyPnL: Array<{
+    month: string
+    revenue: number
+    teacherCosts: number
+    operatingExpenses: number
+    grossProfit: number
+    netProfit: number
+    margin: number
+  }>
+}
+
+type BatchProfitabilityData = {
+  batches: Array<{
+    batchCode: string
+    level: string
+    status: string
+    teacherName: string
+    studentCount: number
+    durationDays: number
+    revenue: number
+    teacherCost: number
+    operatingCostShare: number
+    totalCost: number
+    profit: number
+    margin: number
+    perStudentProfit: number
+  }>
+  summary: {
+    totalRevenue: number
+    totalTeacherCost: number
+    totalOperatingCost: number
+    totalProfit: number
+    avgMargin: number
+  }
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  INFRASTRUCTURE: "#3b82f6",
+  TOOLS_SOFTWARE: "#8b5cf6",
+  MARKETING: "#f59e0b",
+  ADMINISTRATIVE: "#10b981",
+  OTHER: "#6b7280",
 }
 
 export default function InsightsPage() {
   const [data, setData] = useState<InsightsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState("30")
+  const [activeTab, setActiveTab] = useState<"overview" | "batches" | "pnl">("overview")
+  const [batchData, setBatchData] = useState<BatchProfitabilityData | null>(null)
+  const [batchLoading, setBatchLoading] = useState(false)
 
   useEffect(() => {
     fetchInsights()
   }, [period])
+
+  useEffect(() => {
+    if (activeTab === "batches" && !batchData) {
+      fetchBatchProfitability()
+    }
+  }, [activeTab])
 
   const fetchInsights = async () => {
     setLoading(true)
@@ -123,6 +197,19 @@ export default function InsightsPage() {
       console.error("Error fetching insights:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchBatchProfitability = async () => {
+    setBatchLoading(true)
+    try {
+      const res = await fetch("/api/analytics/batch-profitability")
+      const result = await res.json()
+      setBatchData(result)
+    } catch (error) {
+      console.error("Error fetching batch profitability:", error)
+    } finally {
+      setBatchLoading(false)
     }
   }
 
@@ -165,6 +252,30 @@ export default function InsightsPage() {
         </select>
       </div>
 
+      {/* Tabs */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="flex gap-6">
+          {[
+            { key: "overview" as const, label: "Overview" },
+            { key: "batches" as const, label: "Batch Profitability" },
+            { key: "pnl" as const, label: "P&L Breakdown" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? "border-primary text-primary"
+                  : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {activeTab === "overview" && (<>
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
@@ -227,7 +338,7 @@ export default function InsightsPage() {
       {/* Profitability Overview */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Profitability Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
             <div className="text-2xl font-bold text-success mt-1">
@@ -247,21 +358,71 @@ export default function InsightsPage() {
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">INR: ₹{data.costs.teachers.total.toFixed(2)}</div>
           </div>
           <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Operating Expenses</div>
+            <div className="text-2xl font-bold text-orange-500 mt-1">
+              {formatCurrency(data.costs.operatingExpenses?.total || 0, 'EUR')}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {formatCurrency(data.costs.operatingExpenses?.monthlyRecurring || 0, 'EUR')}/mo recurring
+            </div>
+          </div>
+          <div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Gross Profit</div>
             <div className={`text-2xl font-bold mt-1 ${data.profitability.gross >= 0 ? "text-success" : "text-error"}`}>
               {formatCurrency(data.profitability.gross, 'EUR')}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - costs (EUR)</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Revenue - teacher costs</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Profit Margin</div>
-            <div className={`text-2xl font-bold mt-1 ${data.profitability.margin >= 0 ? "text-success" : "text-error"}`}>
-              {data.profitability.margin.toFixed(1)}%
+            <div className="text-sm text-gray-600 dark:text-gray-400">Net Profit</div>
+            <div className={`text-2xl font-bold mt-1 ${(data.profitability.net || 0) >= 0 ? "text-success" : "text-error"}`}>
+              {formatCurrency(data.profitability.net || 0, 'EUR')}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Actual margin</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">After all expenses</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">Net Margin</div>
+            <div className={`text-2xl font-bold mt-1 ${(data.profitability.netMargin || 0) >= 0 ? "text-success" : "text-error"}`}>
+              {(data.profitability.netMargin || 0).toFixed(1)}%
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">True profit margin</div>
           </div>
         </div>
       </div>
+
+      {/* Rolling P&L Windows */}
+      {data.rollingPnL && data.rollingPnL.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Rolling P&L</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {data.rollingPnL.map((window) => (
+              <div key={window.days} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{window.days}-Day Window</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Revenue</span>
+                    <span className="font-medium text-success">{formatCurrency(window.revenue, 'EUR')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Teacher Costs</span>
+                    <span className="font-medium text-error">{formatCurrency(window.teacherCost, 'EUR')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Operating Exp.</span>
+                    <span className="font-medium text-orange-500">{formatCurrency(window.operatingExpenses, 'EUR')}</span>
+                  </div>
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-2 flex justify-between text-sm">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">Net Profit</span>
+                    <span className={`font-bold ${window.netProfit >= 0 ? "text-success" : "text-error"}`}>
+                      {formatCurrency(window.netProfit, 'EUR')} ({window.margin.toFixed(1)}%)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Revenue Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -481,32 +642,36 @@ export default function InsightsPage() {
       {/* Forecasts */}
       <div className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold mb-4 text-white">Next Month Forecast</h2>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6">
           <div>
             <div className="text-sm opacity-90 text-white">Revenue</div>
             <div className="text-2xl font-bold mt-1 text-white">
               {formatCurrency(data.forecasts.nextMonthRevenue, 'EUR')}
             </div>
-            <div className="text-xs opacity-75 text-white mt-1">Combined EUR</div>
           </div>
           <div>
             <div className="text-sm opacity-90 text-white">Teacher Costs</div>
             <div className="text-2xl font-bold mt-1 text-white">
               {formatCurrency(data.forecasts.projectedTeacherCosts, 'EUR')}
             </div>
-            <div className="text-xs opacity-75 text-white mt-1">Converted from INR</div>
           </div>
           <div>
-            <div className="text-sm opacity-90 text-white">Projected Profit</div>
+            <div className="text-sm opacity-90 text-white">Operating Exp.</div>
             <div className="text-2xl font-bold mt-1 text-white">
-              {formatCurrency(data.forecasts.projectedProfit, 'EUR')}
+              {formatCurrency(data.forecasts.projectedOperatingExpenses || 0, 'EUR')}
+            </div>
+          </div>
+          <div>
+            <div className="text-sm opacity-90 text-white">Net Profit</div>
+            <div className="text-2xl font-bold mt-1 text-white">
+              {formatCurrency(data.forecasts.projectedNetProfit || data.forecasts.projectedProfit, 'EUR')}
             </div>
             <div className="text-xs opacity-75 text-white mt-1">
-              {data.forecasts.projectedProfitMargin.toFixed(1)}% margin
+              {(data.forecasts.projectedNetProfitMargin || data.forecasts.projectedProfitMargin).toFixed(1)}% margin
             </div>
           </div>
           <div>
-            <div className="text-sm opacity-90 text-white">New Enrollments</div>
+            <div className="text-sm opacity-90 text-white">Enrollments</div>
             <div className="text-2xl font-bold mt-1 text-white">{data.forecasts.nextMonthEnrollments}</div>
           </div>
           <div>
@@ -608,6 +773,227 @@ export default function InsightsPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+      </>)}
+
+      {/* Batch Profitability Tab */}
+      {activeTab === "batches" && (
+        <div className="space-y-6">
+          {batchLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">Loading batch profitability...</div>
+            </div>
+          ) : batchData ? (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Revenue</div>
+                  <div className="text-2xl font-bold text-success mt-1">
+                    {formatCurrency(batchData.summary.totalRevenue, 'EUR')}
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Teacher Costs</div>
+                  <div className="text-2xl font-bold text-error mt-1">
+                    {formatCurrency(batchData.summary.totalTeacherCost, 'EUR')}
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Operating Costs</div>
+                  <div className="text-2xl font-bold text-orange-500 mt-1">
+                    {formatCurrency(batchData.summary.totalOperatingCost, 'EUR')}
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Profit</div>
+                  <div className={`text-2xl font-bold mt-1 ${batchData.summary.totalProfit >= 0 ? "text-success" : "text-error"}`}>
+                    {formatCurrency(batchData.summary.totalProfit, 'EUR')}
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-4">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Avg Margin</div>
+                  <div className={`text-2xl font-bold mt-1 ${batchData.summary.avgMargin >= 0 ? "text-success" : "text-error"}`}>
+                    {batchData.summary.avgMargin.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              {/* Batch Profitability Table */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Per-Batch Profitability</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Batch</th>
+                        <th className="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Level</th>
+                        <th className="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Teacher</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Students</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Days</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Revenue</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Teacher</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">OpEx</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Profit</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Margin</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Per Student</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {batchData.batches.map((batch) => (
+                        <tr key={batch.batchCode} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="py-3 px-2 font-medium text-gray-900 dark:text-white">{batch.batchCode}</td>
+                          <td className="py-3 px-2 text-gray-600 dark:text-gray-300">{batch.level}</td>
+                          <td className="py-3 px-2 text-gray-600 dark:text-gray-300">{batch.teacherName}</td>
+                          <td className="py-3 px-2 text-right text-gray-900 dark:text-white">{batch.studentCount}</td>
+                          <td className="py-3 px-2 text-right text-gray-600 dark:text-gray-300">{batch.durationDays}</td>
+                          <td className="py-3 px-2 text-right text-success">{formatCurrency(batch.revenue, 'EUR')}</td>
+                          <td className="py-3 px-2 text-right text-error">{formatCurrency(batch.teacherCost, 'EUR')}</td>
+                          <td className="py-3 px-2 text-right text-orange-500">{formatCurrency(batch.operatingCostShare, 'EUR')}</td>
+                          <td className={`py-3 px-2 text-right font-bold ${batch.profit >= 0 ? "text-success" : "text-error"}`}>
+                            {formatCurrency(batch.profit, 'EUR')}
+                          </td>
+                          <td className={`py-3 px-2 text-right ${batch.margin >= 0 ? "text-success" : "text-error"}`}>
+                            {batch.margin.toFixed(1)}%
+                          </td>
+                          <td className={`py-3 px-2 text-right ${batch.perStudentProfit >= 0 ? "text-success" : "text-error"}`}>
+                            {formatCurrency(batch.perStudentProfit, 'EUR')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Batch Profit Comparison Chart */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Batch Profit Comparison</h2>
+                <BarChart
+                  data={batchData.batches.map((batch) => ({
+                    label: batch.batchCode,
+                    value: batch.profit,
+                    color: batch.profit >= 0 ? "#10b981" : "#ef4444",
+                  }))}
+                  valuePrefix="€"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">Failed to load batch profitability data.</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* P&L Breakdown Tab */}
+      {activeTab === "pnl" && (
+        <div className="space-y-6">
+          {/* Monthly P&L Table */}
+          {data.monthlyPnL && data.monthlyPnL.length > 0 ? (
+            <>
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Monthly P&L Statement</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Month</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Revenue</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Teacher Costs</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Operating Exp.</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Gross Profit</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Net Profit</th>
+                        <th className="text-right py-3 px-2 text-gray-600 dark:text-gray-400 font-medium">Margin</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.monthlyPnL.map((month) => (
+                        <tr key={month.month} className="border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                          <td className="py-3 px-2 font-medium text-gray-900 dark:text-white">
+                            {new Date(month.month + "-01").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                          </td>
+                          <td className="py-3 px-2 text-right text-success">{formatCurrency(month.revenue, 'EUR')}</td>
+                          <td className="py-3 px-2 text-right text-error">{formatCurrency(month.teacherCosts, 'EUR')}</td>
+                          <td className="py-3 px-2 text-right text-orange-500">{formatCurrency(month.operatingExpenses, 'EUR')}</td>
+                          <td className={`py-3 px-2 text-right ${month.grossProfit >= 0 ? "text-success" : "text-error"}`}>
+                            {formatCurrency(month.grossProfit, 'EUR')}
+                          </td>
+                          <td className={`py-3 px-2 text-right font-bold ${month.netProfit >= 0 ? "text-success" : "text-error"}`}>
+                            {formatCurrency(month.netProfit, 'EUR')}
+                          </td>
+                          <td className={`py-3 px-2 text-right ${month.margin >= 0 ? "text-success" : "text-error"}`}>
+                            {month.margin.toFixed(1)}%
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Net Profit Trend Chart */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Net Profit Trend</h2>
+                  <LineChart
+                    data={data.monthlyPnL.map((m) => ({
+                      date: m.month + "-01",
+                      value: m.netProfit,
+                    }))}
+                    color="#10b981"
+                    valuePrefix="€"
+                  />
+                </div>
+
+                {/* Expense Breakdown by Category */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Expense Breakdown</h2>
+                  {data.costs.operatingExpenses?.byCategory && Object.keys(data.costs.operatingExpenses.byCategory).length > 0 ? (
+                    <DonutChart
+                      data={Object.entries(data.costs.operatingExpenses.byCategory).map(([label, value]) => ({
+                        label: label.replace(/_/g, " "),
+                        value,
+                        color: CATEGORY_COLORS[label] || "#6b7280",
+                      }))}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center h-48 text-gray-500 dark:text-gray-400">
+                      No expense data yet. Add expenses in the Expenses page.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Revenue vs Costs Comparison */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Monthly Revenue vs Costs</h2>
+                <BarChart
+                  data={data.monthlyPnL.flatMap((m) => [
+                    {
+                      label: new Date(m.month + "-01").toLocaleDateString("en-US", { month: "short" }) + " Rev",
+                      value: m.revenue,
+                      color: "#10b981",
+                    },
+                    {
+                      label: new Date(m.month + "-01").toLocaleDateString("en-US", { month: "short" }) + " Cost",
+                      value: m.teacherCosts + m.operatingExpenses,
+                      color: "#ef4444",
+                    },
+                  ])}
+                  valuePrefix="€"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-gray-500 dark:text-gray-400">
+                No monthly P&L data available. Try selecting a longer period.
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

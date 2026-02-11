@@ -86,6 +86,7 @@ function NewPaymentForm() {
             ...prev,
             studentId: student.id,
             amount: Number(student.balance),
+            currency: student.currency || "EUR",
           }))
         }
       }

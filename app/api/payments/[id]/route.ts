@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { convertToEUR, convertToINR } from "@/lib/pricing"
 
 // GET /api/payments/[id] - Get single payment
 export async function GET(
@@ -76,6 +77,7 @@ export async function PUT(
       data: {
         amount: body.amount,
         method: body.method,
+        currency: body.currency || undefined,
         paymentDate: body.paymentDate ? new Date(body.paymentDate) : undefined,
         status: body.status,
         transactionId: body.transactionId || null,
@@ -153,8 +155,20 @@ async function updateStudentPaymentStatus(studentId: string) {
 
   if (!student) return
 
+  // Normalize all payments to student's currency before summing
+  const studentCurrency = (student.currency || "EUR") as "EUR" | "INR"
   const totalPaid = student.payments.reduce(
-    (sum, payment) => sum + Number(payment.amount),
+    (sum, payment) => {
+      const paymentCurrency = (payment.currency || "EUR") as "EUR" | "INR"
+      const amount = Number(payment.amount)
+      let normalizedAmount = amount
+      if (paymentCurrency !== studentCurrency) {
+        normalizedAmount = studentCurrency === "EUR"
+          ? convertToEUR(amount, paymentCurrency)
+          : convertToINR(amount, paymentCurrency)
+      }
+      return sum + normalizedAmount
+    },
     0
   )
   const balance = Number(student.finalPrice) - totalPaid

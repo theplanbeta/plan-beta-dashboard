@@ -30,6 +30,7 @@ export const PERMISSIONS: Record<
     calendar: { read: true, create: true, update: true, delete: true },
     offers: { read: true, create: true, update: true, delete: true },
     outreach: { read: true, create: true, update: true, delete: true },
+    expenses: { read: true, create: true, update: true, delete: true },
   },
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
@@ -47,6 +48,7 @@ export const PERMISSIONS: Record<
     calendar: { read: true, create: true, update: true, delete: false },
     offers: { read: false, create: false, update: false, delete: false },
     outreach: { read: false, create: false, update: false, delete: false },
+    expenses: { read: false, create: false, update: false, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -63,6 +65,7 @@ export const PERMISSIONS: Record<
     teacherHours: { read: true, create: true, update: true, delete: true },
     calendar: { read: false, create: false, update: false, delete: false },
     outreach: { read: false, create: false, update: false, delete: false },
+    expenses: { read: false, create: false, update: false, delete: false },
   },
 }
 
@@ -154,6 +157,11 @@ export const NAVIGATION: NavItem[] = [
     name: 'Payments',
     href: '/dashboard/payments',
     roles: ['FOUNDER', 'MARKETING'],
+  },
+  {
+    name: 'Expenses',
+    href: '/dashboard/expenses',
+    roles: ['FOUNDER'],
   },
   {
     name: 'Referrals',

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
 import { generateStudentId } from "@/lib/utils"
+import { Prisma } from "@prisma/client"
+import { EXCHANGE_RATE, getEurEquivalent } from "@/lib/pricing"
 
 type RouteContext = {
   params: Promise<{
@@ -28,7 +30,10 @@ export async function POST(
       originalPrice,
       discountApplied,
       trialAttended,
+      currency: rawCurrency,
     } = body
+
+    const currency = rawCurrency === "INR" ? "INR" : "EUR"
 
     // Validate required fields
     if (!batchId || originalPrice === undefined) {
@@ -85,6 +90,11 @@ export async function POST(
 
       // Calculate final price
       const finalPrice = originalPrice - (discountApplied || 0)
+      const Decimal = Prisma.Decimal
+      const eurEquivalent = new Decimal(
+        getEurEquivalent(finalPrice, currency as "EUR" | "INR").toFixed(2)
+      )
+      const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
 
       // Create student
       const student = await tx.student.create({
@@ -101,7 +111,11 @@ export async function POST(
           originalPrice,
           discountApplied: discountApplied || 0,
           finalPrice,
+          currency,
+          eurEquivalent,
+          exchangeRateUsed,
           totalPaid: 0,
+          totalPaidEur: 0,
           balance: finalPrice,
           paymentStatus: "PENDING",
           referralSource: lead.source,

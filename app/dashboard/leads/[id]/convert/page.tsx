@@ -128,6 +128,7 @@ export default function ConvertLeadPage({
           originalPrice: parseFloat(formData.originalPrice),
           discountApplied: parseFloat(formData.discountApplied),
           trialAttended: formData.trialAttended,
+          currency: formData.currency,
         }),
       })
 

@@ -47,6 +47,10 @@ export async function GET(
             payments: true,
           },
         },
+        enrollments: {
+          where: { status: "ACTIVE" },
+          select: { studentId: true },
+        },
       },
     })
 
@@ -54,8 +58,12 @@ export async function GET(
       return NextResponse.json({ error: "Batch not found" }, { status: 404 })
     }
 
-    // Calculate stats
-    const enrolledCount = batch.students.length
+    // Calculate stats: union of students (batchId FK) + enrollments (multi-batch)
+    const uniqueStudentIds = new Set([
+      ...batch.students.map((s) => s.id),
+      ...batch.enrollments.map((e) => e.studentId),
+    ])
+    const enrolledCount = uniqueStudentIds.size
     const fillRate = batch.totalSeats > 0 ? (enrolledCount / batch.totalSeats) * 100 : 0
     const batchCurrency: SupportedCurrency = normalizeCurrency(batch.currency)
 

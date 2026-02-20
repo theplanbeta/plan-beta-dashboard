@@ -80,10 +80,13 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    // Calculate fill rate using enrollments (includes multi-batch students)
+    // Calculate fill rate: union of students (batchId FK) + enrollments (multi-batch)
     const batchesWithStats = batches.map((batch) => {
-      // Use enrollments count if available, fall back to students count
-      const count = batch.enrollments.length > 0 ? batch.enrollments.length : batch.students.length
+      const uniqueStudentIds = new Set([
+        ...batch.students.map((s) => s.id),
+        ...batch.enrollments.map((e) => e.studentId),
+      ])
+      const count = uniqueStudentIds.size
       return {
         ...batch,
         enrolledCount: count,

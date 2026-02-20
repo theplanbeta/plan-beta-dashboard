@@ -40,6 +40,17 @@ type Student = {
     batchCode: string
     level: string
   } | null
+  enrollments?: Array<{
+    id: string
+    enrollmentDate: string
+    status: string
+    batch: {
+      id: string
+      batchCode: string
+      level: string
+      status: string
+    }
+  }>
   payments: Array<{
     id: string
     amount: number
@@ -721,6 +732,46 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             </div>
+
+            {student.enrollments && student.enrollments.length > 1 && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="text-sm text-gray-600 mb-2 font-medium">Enrollment History</div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-gray-500">
+                        <th className="pr-4 pb-1 font-medium">Batch</th>
+                        <th className="pr-4 pb-1 font-medium">Level</th>
+                        <th className="pr-4 pb-1 font-medium">Enrolled</th>
+                        <th className="pb-1 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {student.enrollments.map((enrollment) => (
+                        <tr key={enrollment.id} className="border-t border-gray-100">
+                          <td className="pr-4 py-1.5">
+                            <Link href={`/dashboard/batches/${enrollment.batch.id}`} className="text-primary hover:underline">
+                              {enrollment.batch.batchCode}
+                            </Link>
+                          </td>
+                          <td className="pr-4 py-1.5">{enrollment.batch.level}</td>
+                          <td className="pr-4 py-1.5">{formatDate(enrollment.enrollmentDate)}</td>
+                          <td className="py-1.5">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                              enrollment.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                              enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {enrollment.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {student.notes && (
               <div className="mt-4 pt-4 border-t">

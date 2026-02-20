@@ -258,6 +258,17 @@ export async function POST(request: NextRequest) {
         console.log(`[Student Creation] Skipping payment record creation - totalPaid is ${totalPaid.toString()}`)
       }
 
+      // Create BatchEnrollment record for initial batch assignment
+      if (newStudent.batchId) {
+        await tx.batchEnrollment.create({
+          data: {
+            studentId: newStudent.id,
+            batchId: newStudent.batchId,
+            enrollmentDate,
+          },
+        })
+      }
+
       // Mark lead as converted if this was a lead conversion (inside transaction for atomicity)
       if (leadId) {
         await tx.lead.update({
@@ -294,10 +305,46 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(student, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating student:", error)
+
+    // Handle Prisma unique constraint violations
+    if (error?.code === "P2002") {
+      const target = error.meta?.target
+      if (Array.isArray(target) && target.includes("whatsapp")) {
+        return NextResponse.json(
+          { error: "A student with this WhatsApp number already exists" },
+          { status: 409 }
+        )
+      }
+      if (Array.isArray(target) && target.includes("email")) {
+        return NextResponse.json(
+          { error: "A student with this email already exists" },
+          { status: 409 }
+        )
+      }
+      if (Array.isArray(target) && target.includes("studentId")) {
+        return NextResponse.json(
+          { error: "Student ID collision, please try again" },
+          { status: 409 }
+        )
+      }
+      return NextResponse.json(
+        { error: "A student with these details already exists" },
+        { status: 409 }
+      )
+    }
+
+    // Handle foreign key constraint failures
+    if (error?.code === "P2003") {
+      return NextResponse.json(
+        { error: "Invalid batch or reference selected" },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: "Failed to create student" },
+      { error: "Failed to create student", details: error?.message },
       { status: 500 }
     )
   }

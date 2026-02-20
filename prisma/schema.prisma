@@ -130,6 +130,7 @@ model Student {
   interactions         StudentInteraction[] @relation("StudentInteractions")
   teacherReviews       TeacherReview[]      @relation("StudentTeacherReviews")
   upsells              Upsell[]
+  enrollments          BatchEnrollment[]
 
   @@index([studentId])
   @@index([whatsapp])
@@ -197,6 +198,7 @@ model Batch {
   recordingLogs RecordingLog[]
   students      Student[]
   teacherHours  TeacherHours[] @relation("BatchHours")
+  enrollments   BatchEnrollment[]
 
   @@index([batchCode])
   @@index([level])
@@ -205,6 +207,23 @@ model Batch {
   @@index([teacherId])
   @@index([timing])
   @@index([autoRecord])
+}
+
+model BatchEnrollment {
+  id             String           @id @default(cuid())
+  studentId      String
+  batchId        String
+  enrollmentDate DateTime         @default(now())
+  status         CompletionStatus @default(ACTIVE)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch          Batch            @relation(fields: [batchId], references: [id])
+
+  @@unique([studentId, batchId])
+  @@index([studentId])
+  @@index([batchId])
 }
 
 model Attendance {

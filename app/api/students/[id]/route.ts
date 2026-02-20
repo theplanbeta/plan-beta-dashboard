@@ -39,6 +39,14 @@ export async function GET(
           },
         },
         referralsGiven: true,
+        enrollments: {
+          include: {
+            batch: {
+              select: { id: true, batchCode: true, level: true, status: true },
+            },
+          },
+          orderBy: { enrollmentDate: "desc" },
+        },
       },
     })
 

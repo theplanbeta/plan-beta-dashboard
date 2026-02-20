@@ -67,18 +67,29 @@ export async function GET(request: NextRequest) {
             paymentStatus: true,
           },
         },
+        enrollments: {
+          where: { status: "ACTIVE" },
+          select: {
+            id: true,
+            studentId: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
       },
     })
 
-    // Calculate fill rate and revenue for each batch
-    const batchesWithStats = batches.map((batch) => ({
-      ...batch,
-      enrolledCount: batch.students.length,
-      fillRate: batch.totalSeats > 0 ? (batch.students.length / batch.totalSeats) * 100 : 0,
-    }))
+    // Calculate fill rate using enrollments (includes multi-batch students)
+    const batchesWithStats = batches.map((batch) => {
+      // Use enrollments count if available, fall back to students count
+      const count = batch.enrollments.length > 0 ? batch.enrollments.length : batch.students.length
+      return {
+        ...batch,
+        enrolledCount: count,
+        fillRate: batch.totalSeats > 0 ? (count / batch.totalSeats) * 100 : 0,
+      }
+    })
 
     return NextResponse.json(batchesWithStats)
   } catch (error) {

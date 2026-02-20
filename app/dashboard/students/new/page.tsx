@@ -44,6 +44,28 @@ function NewStudentForm() {
   const [showSmartPaste, setShowSmartPaste] = useState(false)
   const [pastedText, setPastedText] = useState("")
 
+  // Returning student detection
+  const [existingStudent, setExistingStudent] = useState<{
+    id: string
+    studentId: string
+    name: string
+    whatsapp: string
+    email: string | null
+    currentLevel: string
+    completionStatus: string
+    batch: { id: string; batchCode: string; level: string; status: string } | null
+    enrollments: Array<{
+      id: string
+      status: string
+      batch: { id: string; batchCode: string; level: string; status: string }
+    }>
+  } | null>(null)
+  const [reEnrollMode, setReEnrollMode] = useState(false)
+  const [reEnrollBatchId, setReEnrollBatchId] = useState("")
+  const [reEnrollNotes, setReEnrollNotes] = useState("")
+  const [searchingStudent, setSearchingStudent] = useState(false)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   // Ref to prevent double-clicks (instant check, doesn't wait for React state)
   const isSubmittingRef = useRef(false)
 
@@ -150,6 +172,68 @@ function NewStudentForm() {
     } catch (error) {
       console.error("Error fetching leads:", error)
       setLeads([])
+    }
+  }
+
+  // Search for existing student by WhatsApp (debounced)
+  const searchExistingStudent = (whatsapp: string) => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
+    if (!whatsapp || whatsapp.trim().length < 6) {
+      setExistingStudent(null)
+      return
+    }
+    searchTimeoutRef.current = setTimeout(async () => {
+      setSearchingStudent(true)
+      try {
+        const res = await fetch(`/api/students/search?whatsapp=${encodeURIComponent(whatsapp.trim())}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.found) {
+            setExistingStudent(data.student)
+          } else {
+            setExistingStudent(null)
+          }
+        }
+      } catch (err) {
+        console.error("Error searching student:", err)
+      } finally {
+        setSearchingStudent(false)
+      }
+    }, 500)
+  }
+
+  // Handle re-enrollment of existing student into new batch
+  const handleReEnroll = async () => {
+    if (!existingStudent || !reEnrollBatchId) return
+
+    if (isSubmittingRef.current) return
+    isSubmittingRef.current = true
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch(`/api/students/${existingStudent.id}/enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          batchId: reEnrollBatchId,
+          notes: reEnrollNotes || null,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data?.error || "Failed to enroll student in batch")
+      } else {
+        router.push(`/dashboard/students/${existingStudent.id}`)
+        router.refresh()
+      }
+    } catch (err) {
+      setError("Failed to enroll student. Please try again.")
+      console.error(err)
+    } finally {
+      setLoading(false)
+      isSubmittingRef.current = false
     }
   }
 
@@ -338,6 +422,124 @@ function NewStudentForm() {
           </div>
         )}
 
+        {/* Returning Student Detection */}
+        {existingStudent && !reEnrollMode && (
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-5">
+            <h3 className="text-base font-semibold text-amber-900 mb-2">
+              Existing Student Found
+            </h3>
+            <p className="text-sm text-amber-800 mb-3">
+              <span className="font-semibold">{existingStudent.name}</span> ({existingStudent.whatsapp})
+              is already enrolled
+              {existingStudent.batch
+                ? <> in <span className="font-semibold">{existingStudent.batch.batchCode}</span> ({existingStudent.batch.level})</>
+                : <> (no batch assigned)</>
+              }.
+              {existingStudent.enrollments.length > 1 && (
+                <span className="block mt-1 text-xs text-amber-700">
+                  Total enrollments: {existingStudent.enrollments.length} batches
+                </span>
+              )}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setReEnrollMode(true)}
+                className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium"
+              >
+                Add to New Batch
+              </button>
+              <button
+                type="button"
+                onClick={() => setExistingStudent(null)}
+                className="px-4 py-2 border border-amber-400 text-amber-800 rounded-lg hover:bg-amber-100 text-sm"
+              >
+                This is a different person
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Re-enrollment Form (simplified) */}
+        {reEnrollMode && existingStudent && (
+          <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-green-900">
+                Add {existingStudent.name} to New Batch
+              </h3>
+              <button
+                type="button"
+                onClick={() => { setReEnrollMode(false); setReEnrollBatchId(""); setReEnrollNotes("") }}
+                className="text-sm text-green-700 hover:text-green-900 underline"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <div className="bg-white/60 rounded-md p-3 text-sm text-green-800 space-y-1">
+              <p><span className="font-medium">Student:</span> {existingStudent.name} ({existingStudent.studentId})</p>
+              <p><span className="font-medium">WhatsApp:</span> {existingStudent.whatsapp}</p>
+              <p><span className="font-medium">Current Level:</span> {existingStudent.currentLevel}</p>
+              {existingStudent.enrollments.length > 0 && (
+                <p><span className="font-medium">Active Batches:</span>{" "}
+                  {existingStudent.enrollments
+                    .filter(e => e.status === "ACTIVE")
+                    .map(e => e.batch.batchCode)
+                    .join(", ") || "None"}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-green-800 mb-1">
+                Select New Batch <span className="text-error">*</span>
+              </label>
+              <select
+                value={reEnrollBatchId}
+                onChange={(e) => setReEnrollBatchId(e.target.value)}
+                className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="">-- Select a batch --</option>
+                {batches
+                  .filter(b => !existingStudent.enrollments.some(e => e.batch.id === b.id))
+                  .map((batch) => {
+                    const available = batch.totalSeats - batch.enrolledCount
+                    return (
+                      <option key={batch.id} value={batch.id}>
+                        {batch.batchCode} ({batch.level}) - {available} seats available
+                      </option>
+                    )
+                  })}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-green-800 mb-1">
+                Notes (Optional)
+              </label>
+              <textarea
+                value={reEnrollNotes}
+                onChange={(e) => setReEnrollNotes(e.target.value)}
+                rows={2}
+                placeholder="e.g., Re-enrolling for B2 after completing Spoken German"
+                className="w-full px-3 py-2 border border-green-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleReEnroll}
+              disabled={loading || !reEnrollBatchId}
+              className="w-full px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {loading ? "Enrolling..." : `Enroll ${existingStudent.name} in New Batch`}
+            </button>
+          </div>
+        )}
+
+        {/* Hide the rest of the form when in re-enroll mode */}
+        {!reEnrollMode && (<>
+
         {/* Smart Paste Feature */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-dashed border-blue-300 rounded-lg p-6">
           <div className="flex items-start justify-between mb-3">
@@ -457,11 +659,17 @@ function NewStudentForm() {
                 type="text"
                 name="whatsapp"
                 value={formData.whatsapp}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e)
+                  searchExistingStudent(e.target.value)
+                }}
                 required
                 placeholder="+49 123 4567890"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               />
+              {searchingStudent && (
+                <p className="text-xs text-gray-500 mt-1">Checking for existing student...</p>
+              )}
             </div>
 
             <div>
@@ -750,6 +958,8 @@ function NewStudentForm() {
             {loading ? "Creating..." : "Create Student"}
           </button>
         </div>
+
+        </>)}
       </form>
     </div>
   )

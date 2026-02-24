@@ -7,8 +7,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Already type-checking in CI, skip during builds for faster deploys
-    ignoreBuildErrors: false,
+    // Skip type-checking during builds to reduce memory usage on Vercel (8GB limit)
+    // Types are verified locally with `npx tsc --noEmit`
+    ignoreBuildErrors: true,
   },
   async headers() {
     return [

@@ -38,6 +38,16 @@ const iconMap: Record<string, React.ReactNode> = {
   ),
 }
 
+// Each card gets a unique accent color for its animated orbs
+const cardAccents = [
+  { primary: "bg-primary/20", secondary: "bg-blue-500/15" },
+  { primary: "bg-violet-500/20", secondary: "bg-primary/15" },
+  { primary: "bg-blue-500/20", secondary: "bg-cyan-500/15" },
+  { primary: "bg-primary/20", secondary: "bg-orange-500/15" },
+  { primary: "bg-emerald-500/20", secondary: "bg-primary/15" },
+  { primary: "bg-amber-500/20", secondary: "bg-primary/15" },
+]
+
 export function WhyPlanBeta() {
   return (
     <section className="py-32 bg-white">
@@ -72,6 +82,22 @@ export function WhyPlanBeta() {
                     overlay="bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-slate-900/60 transition-all duration-500 group-hover:from-slate-900/90 group-hover:via-slate-900/70 group-hover:to-slate-900/50"
                   />
                 )}
+
+                {/* Animated gradient orbs — visible on mobile, behind video on desktop */}
+                <div className="absolute inset-0 md:hidden">
+                  <motion.div
+                    animate={{ y: [0, -20, 0], x: [0, 10, 0], scale: [1, 1.1, 1] }}
+                    transition={{ duration: 6 + index, repeat: Infinity, ease: "easeInOut" }}
+                    className={`absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full blur-[80px] ${cardAccents[index]?.primary ?? "bg-primary/20"}`}
+                  />
+                  <motion.div
+                    animate={{ y: [0, 15, 0], x: [0, -10, 0], scale: [1, 1.05, 1] }}
+                    transition={{ duration: 8 + index, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    className={`absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 rounded-full blur-[80px] ${cardAccents[index]?.secondary ?? "bg-blue-500/15"}`}
+                  />
+                  {/* Subtle grid pattern */}
+                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+                </div>
 
                 {/* Content */}
                 <div className="relative z-10 p-8 md:p-10">

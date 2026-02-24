@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     const germanLevelLabel = GERMAN_LEVEL_LABELS[germanLevel] || germanLevel
 
     await resend.emails.send({
-      from: "Plan Beta <noreply@theplanbeta.com>",
+      from: process.env.EMAIL_FROM || "Plan Beta <noreply@planbeta.in>",
       to: "hello@planbeta.in",
       replyTo: email,
       subject: `New Nursing Application: ${name} (${qualificationLabel})`,

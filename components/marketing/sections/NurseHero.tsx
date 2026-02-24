@@ -65,7 +65,7 @@ export function NurseHero() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
               </span>
-              Free of Cost for B2 Candidates
+              No Fees. No Barriers.
             </span>
           </motion.div>
 
@@ -86,7 +86,7 @@ export function NurseHero() {
             variants={item}
             className="text-lg sm:text-xl text-gray-400 mb-10 leading-relaxed"
           >
-            Free German language training and direct hospital placement for B2 certified nurses. BSc or GNM Nursing accepted. Freshers welcome. We handle the rest — zero cost to you.
+            German language training and direct hospital placement for B2 certified nurses — at no cost to you. BSc or GNM Nursing accepted. Freshers welcome. We handle the rest.
           </motion.p>
 
           {/* CTAs */}
@@ -98,7 +98,7 @@ export function NurseHero() {
               href="#apply"
               className="group inline-flex items-center justify-center px-8 py-4 bg-primary text-white text-lg font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02] gap-2"
             >
-              Apply Now — It&apos;s Free
+              Apply Now — No Fees
               <svg className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
@@ -121,7 +121,7 @@ export function NurseHero() {
             variants={item}
             className="flex flex-wrap items-center gap-6 mt-10 text-sm text-gray-500"
           >
-            {["Free for B2 Nurses", "BSc / GNM Nursing", "Freshers Welcome", "Hospital & Care Home Placement"].map(
+            {["No Fees for B2 Nurses", "BSc / GNM Nursing", "Freshers Welcome", "Hospital & Care Home Placement"].map(
               (text) => (
                 <div key={text} className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-green-500/70" fill="currentColor" viewBox="0 0 20 20">

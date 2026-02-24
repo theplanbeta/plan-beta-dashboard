@@ -18,7 +18,7 @@ export function NurseCTA() {
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimateInView direction="none">
           <span className="inline-flex items-center px-4 py-1.5 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium rounded-full mb-6">
-            Free of Cost for B2 Nurses
+            No Fees. No Barriers.
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-6">
             Ready to Start Your Nursing Career in Germany?

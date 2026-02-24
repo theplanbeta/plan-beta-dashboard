@@ -13,7 +13,7 @@ import { NurseCTA } from "@/components/marketing/sections/NurseCTA"
 export const metadata = generatePageMetadata({
   title: "Nursing in Germany | Plan Beta - B2 Training & Hospital Placement",
   description:
-    "Free German training & hospital placement for B2 certified BSc/GNM nurses. Freshers welcome. Goethe certification. Altenpflege & Krankenpflege jobs in Germany.",
+    "No-fee German training & hospital placement for B2 certified BSc/GNM nurses. Freshers welcome. Goethe certification. Altenpflege & Krankenpflege jobs in Germany.",
   keywords: [
     "german nursing program",
     "nurses germany",
@@ -90,7 +90,7 @@ export default function NursesPage() {
             href="#apply"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 hover:shadow-xl gap-2"
           >
-            Apply Now — It&apos;s Free
+            Apply Now — No Fees
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>
@@ -109,7 +109,7 @@ export default function NursesPage() {
             href="#apply"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 hover:shadow-xl gap-2"
           >
-            Apply Now — It&apos;s Free
+            Apply Now — No Fees
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
             </svg>

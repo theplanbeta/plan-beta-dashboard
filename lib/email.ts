@@ -24,7 +24,7 @@ const emailFooter = `
         <a href="mailto:${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}" style="color: #d2302c; text-decoration: none; font-weight: 500;">${process.env.SUPPORT_EMAIL || 'hello@planbeta.in'}</a>
       </p>
       <p style="margin: 0 0 12px 0; color: #374151; font-size: 14px; line-height: 1.8;">
-        <a href="tel:+918547081550" style="color: #d2302c; text-decoration: none; font-weight: 500;">+91 85470 81550</a>
+        <a href="tel:+919028396035" style="color: #d2302c; text-decoration: none; font-weight: 500;">+91 90283 96035</a>
       </p>
       <p style="margin: 0; color: #374151; font-size: 14px; line-height: 1.8;">
         <a href="https://planbeta.in" style="color: #d2302c; text-decoration: none; font-weight: 500;">planbeta.in</a>

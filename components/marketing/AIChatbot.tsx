@@ -259,7 +259,7 @@ export default function AIChatbot() {
       case "goto_whatsapp":
         trackEvent("chatbot_completed", { cta: "whatsapp" })
         window.open(
-          "https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20your%20German%20courses.",
+          "https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20your%20German%20courses.",
           "_blank"
         )
         response = {

@@ -44,7 +44,7 @@ export function CTASection() {
               </svg>
             </Link>
             <a
-              href="https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
+              href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center px-8 py-4 border border-white/20 text-white text-base font-semibold rounded-full hover:bg-white/5 transition-all"

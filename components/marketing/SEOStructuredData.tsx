@@ -21,7 +21,7 @@ export function OrganizationSchema({
   url = "https://planbeta.in",
   logo = "https://planbeta.in/logo.png",
   description = "Kerala's premier German language institute offering A1, A2, B1 courses with live online classes and expert instructors.",
-  phone = "+918547081550",
+  phone = "+919028396035",
   email = "hello@planbeta.in",
   address = {
     city: "Kochi",
@@ -270,7 +270,7 @@ type LocalBusinessSchemaProps = {
 
 export function LocalBusinessSchema({
   name = "Plan Beta German Language Institute",
-  phone = "+918547081550",
+  phone = "+919028396035",
   priceRange = "₹₹",
 }: LocalBusinessSchemaProps) {
   const schema = {

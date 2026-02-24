@@ -395,7 +395,7 @@ export default function MarketingLayout({
 
       {/* WhatsApp Floating Button */}
       <a
-        href="https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
+        href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => trackEvent("whatsapp_click", { location: "floating_button" })}

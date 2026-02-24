@@ -108,7 +108,7 @@ export default function ContactPage() {
           </p>
           <div className="space-y-4">
             <a
-              href="https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I%20just%20submitted%20a%20contact%20form."
+              href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I%20just%20submitted%20a%20contact%20form."
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
@@ -299,7 +299,7 @@ export default function ContactPage() {
                   Chat with us on WhatsApp for immediate assistance. Our team typically responds within minutes during business hours.
                 </p>
                 <a
-                  href="https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
+                  href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full px-6 py-4 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
@@ -339,7 +339,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">Phone</h4>
-                      <a href="tel:+918547081550" className="text-primary hover:underline">
+                      <a href="tel:+919028396035" className="text-primary hover:underline">
                         +91 98765 43210
                       </a>
                       <p className="text-sm text-gray-500 mt-1">Mon-Sat, 9 AM - 8 PM IST</p>

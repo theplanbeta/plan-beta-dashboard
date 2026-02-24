@@ -104,7 +104,7 @@ export default function ContactPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Thank You!</h1>
           <p className="text-gray-600 mb-8">
-            We&apos;ve received your request. Our team will contact you within 24 hours to schedule your free trial class.
+            We&apos;ve received your request. Our team will contact you within 24 hours.
           </p>
           <div className="space-y-4">
             <a
@@ -140,7 +140,7 @@ export default function ContactPage() {
               Start Your <span className="text-primary">German Journey</span>
             </h1>
             <p className="text-xl text-gray-600">
-              Book a free trial class or get in touch with our team. We&apos;re here to help you achieve your German language goals.
+              Get in touch with our team. We&apos;re here to help you achieve your German language goals.
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function ContactPage() {
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Book Your Free Trial</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Get in Touch</h2>
               <p className="text-gray-600 mb-8">
                 Fill out the form below and we&apos;ll get back to you within 24 hours.
               </p>
@@ -277,7 +277,7 @@ export default function ContactPage() {
                       Submitting...
                     </span>
                   ) : (
-                    "Book Free Trial Class"
+                    "Send Enquiry"
                   )}
                 </button>
 

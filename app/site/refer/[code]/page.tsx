@@ -221,7 +221,7 @@ export default function ReferralCodePage() {
                 disabled={loading}
                 className="w-full px-6 py-4 bg-primary text-white text-lg font-semibold rounded-lg hover:bg-primary-dark transition-all disabled:opacity-50"
               >
-                {loading ? "Submitting..." : "Book Free Trial Class"}
+                {loading ? "Submitting..." : "Send Enquiry"}
               </button>
 
               <p className="text-sm text-gray-500 text-center">

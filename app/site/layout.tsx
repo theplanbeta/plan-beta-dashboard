@@ -127,7 +127,7 @@ export default function MarketingLayout({
                     : "bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30"
                 }`}
               >
-                Book Free Trial
+                Contact Us
               </Link>
 
               <button
@@ -199,7 +199,7 @@ export default function MarketingLayout({
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="block w-full text-center px-4 py-3 bg-primary text-white rounded-full font-semibold"
                     >
-                      Book Free Trial
+                      Contact Us
                     </Link>
                     <a
                       href="https://courses.planbeta.in/users/sign_in"

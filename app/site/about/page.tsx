@@ -310,7 +310,7 @@ export default function AboutPage() {
               href="/site/contact"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
             >
-              Book Free Trial
+              Contact Us
             </Link>
             <Link
               href="/site/courses"

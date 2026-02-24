@@ -119,7 +119,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
                 href="/site/contact"
                 className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white text-lg font-semibold rounded-xl hover:bg-primary-dark transition-all"
               >
-                Book Free Trial Class
+                Enquire Now
               </Link>
               <Link
                 href="/site/courses"
@@ -275,13 +275,13 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
             Ready to Start Learning German from {cityInfo.name}?
           </h2>
           <p className="text-red-100 mb-8">
-            Book a free trial class and experience our teaching method. No payment required.
+            Get in touch with us and start your German learning journey today.
           </p>
           <Link
             href="/site/contact"
             className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
           >
-            Book Free Trial Class
+            Enquire Now
           </Link>
         </div>
       </section>

@@ -38,14 +38,12 @@ const a1Foundation = {
 
 export default async function CoursesPage() {
   // Fetch live batch data from database (Server Component — no API call needed)
-  // Only show FILLING batches with future start dates, plus currently RUNNING batches
+  // Only show FILLING batches with future start dates
   const now = new Date()
   const batches = await prisma.batch.findMany({
     where: {
-      OR: [
-        { status: "FILLING", startDate: { gt: now } },
-        { status: "RUNNING" },
-      ],
+      status: "FILLING",
+      startDate: { gt: now },
     },
     select: {
       id: true,
@@ -138,14 +136,8 @@ export default async function CoursesPage() {
                 >
                   {/* Status badge */}
                   <div className="absolute top-4 right-4">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        batch.status === "FILLING"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {batch.status === "FILLING" ? "Enrolling Now" : "In Progress"}
+                    <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                      Enrolling Now
                     </span>
                   </div>
 
@@ -223,7 +215,7 @@ export default async function CoursesPage() {
                       href="/site/contact"
                       className="block text-center w-full px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors"
                     >
-                      {batch.status === "FILLING" ? "Enroll Now" : "Join Waitlist"}
+                      Enroll Now
                     </Link>
                   </div>
                 </div>
@@ -306,14 +298,14 @@ export default async function CoursesPage() {
             Not Sure Which Course is Right for You?
           </h2>
           <p className="text-red-100 mb-8">
-            Book a free consultation with our team. We&apos;ll help you find the perfect learning path.
+            Get in touch with our team. We&apos;ll help you find the perfect learning path.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/site/contact"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
             >
-              Book Free Consultation
+              Contact Us
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>

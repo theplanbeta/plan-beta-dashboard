@@ -5,7 +5,6 @@ import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { HeroSection } from "@/components/marketing/sections/HeroSection"
 import { SocialProofStrip } from "@/components/marketing/sections/SocialProofStrip"
 import { WhyPlanBeta } from "@/components/marketing/sections/WhyPlanBeta"
-import { CoursesSection } from "@/components/marketing/sections/CoursesSection"
 import { GermanyOpportunity } from "@/components/marketing/sections/GermanyOpportunity"
 import { TestimonialsSection } from "@/components/marketing/sections/TestimonialsSection"
 import { FAQSection } from "@/components/marketing/sections/FAQSection"
@@ -29,7 +28,6 @@ export default function HomePage() {
       <HeroSection />
       <SocialProofStrip />
       <WhyPlanBeta />
-      <CoursesSection />
       <GermanyOpportunity />
       <TestimonialsSection />
       <FAQSection faqs={faqs} />

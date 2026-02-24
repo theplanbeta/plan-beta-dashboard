@@ -47,6 +47,19 @@ export async function GET(
       return NextResponse.json({ error: 'Receipt not found' }, { status: 404 })
     }
 
+    // Role-based access: TEACHER can only download receipts for students in their batches
+    if (session.user.role === 'TEACHER') {
+      const student = await prisma.student.findFirst({
+        where: {
+          id: receipt.payment.studentId,
+          batch: { teacherId: session.user.id },
+        },
+      })
+      if (!student) {
+        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      }
+    }
+
     // Get the appropriate compressed data from database
     const compressedData = format === 'pdf' ? receipt.pdfData : receipt.jpgData
 

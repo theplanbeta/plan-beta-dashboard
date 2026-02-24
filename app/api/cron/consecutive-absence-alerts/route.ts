@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { Resend } from "resend"
+import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -162,6 +163,16 @@ export async function GET(request: NextRequest) {
           console.error(`Failed to send email to teacher for student ${student.name}:`, error)
           results.errors.push(`Teacher for ${student.name}: ${error}`)
         }
+      }
+
+      // 2b. Send WhatsApp follow-up to student (fire-and-forget)
+      if (student.whatsapp) {
+        sendTemplate(
+          student.whatsapp,
+          WHATSAPP_TEMPLATES.ABSENCE_FOLLOWUP,
+          [student.name, String(absenceCount), student.batch?.batchCode || "your batch"],
+          { studentId: student.id }
+        )
       }
 
       // 3. Send consolidated alert to admins (only for high-risk cases with 3+ absences)

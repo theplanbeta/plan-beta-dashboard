@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { timingSafeEqual } from "crypto"
+
+function verifyN8nAuth(request: NextRequest): boolean {
+  const apiKey = request.headers.get("x-n8n-api-key") || ""
+  const expected = process.env.N8N_API_KEY || ""
+  if (!expected || apiKey.length !== expected.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(apiKey), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 /**
  * API endpoint for n8n to fetch students with consecutive absences
@@ -7,9 +19,8 @@ import { prisma } from "@/lib/prisma"
  */
 export async function GET(request: NextRequest) {
   try {
-    // Security: Verify n8n API key
-    const apiKey = request.headers.get("x-n8n-api-key")
-    if (apiKey !== process.env.N8N_API_KEY) {
+    // Security: Verify n8n API key (timing-safe)
+    if (!verifyN8nAuth(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

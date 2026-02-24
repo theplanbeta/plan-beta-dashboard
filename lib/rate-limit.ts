@@ -21,11 +21,10 @@ export function rateLimit(config: RateLimitConfig) {
   const { windowMs, maxRequests } = config
 
   return async (req: NextRequest): Promise<NextResponse | null> => {
-    // Get identifier (IP address + user agent for uniqueness)
+    // Get identifier — prefer x-real-ip (set by Vercel, not spoofable) over x-forwarded-for
     const identifier =
-      req.headers.get('x-forwarded-for')?.split(',')[0] ||
       req.headers.get('x-real-ip') ||
-      req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-forwarded-for')?.split(',')[0] ||
       'unknown'
 
     const key = `${identifier}:${req.nextUrl.pathname}`

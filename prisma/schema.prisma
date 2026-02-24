@@ -102,6 +102,7 @@ model Student {
   destinationCity        String?         // Target city in Germany
   visaStatus             String?         // e.g., "NOT_APPLIED", "APPLIED", "APPROVED", "IN_GERMANY"
   relocationSupportNeeded String[]       // e.g., ["HOUSING", "JOB_SEARCH", "BUREAUCRACY", "NETWORKING"]
+  referralCode         String?              @unique // Public referral code e.g. "DEEPAK-PB-7X3K"
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
   consecutiveAbsences  Int                  @default(0)
@@ -451,6 +452,19 @@ model Lead {
   socialEngagement    Json?
   sourceReelId        String?
   sourceReelUrl       String?
+
+  // Website tracking & attribution
+  utmSource           String?
+  utmMedium           String?
+  utmCampaign         String?
+  utmContent          String?
+  utmTerm             String?
+  referrerUrl         String?
+  landingPage         String?
+  deviceType          String?
+  visitorId           String?
+  referralCode        String?             // Referral code used by this lead
+
   invoices            Invoice[]
   assignedTo          User?               @relation(fields: [assignedToId], references: [id])
   interestedBatch     Batch?              @relation(fields: [batchId], references: [id])
@@ -468,6 +482,9 @@ model Lead {
   @@index([leadScore])
   @@index([convertedDate])
   @@index([status, createdAt])
+  @@index([utmCampaign])
+  @@index([visitorId])
+  @@index([landingPage])
 }
 
 model AuditLog {
@@ -1110,6 +1127,27 @@ enum OutreachCallType {
   OTHER
 }
 
+// ========================================
+// 10x Roadmap Models
+// ========================================
+
+model Notification {
+  id        String    @id @default(cuid())
+  type      String    // NEW_LEAD, PAYMENT_RECEIVED, RETENTION_ALERT, WHATSAPP_INBOUND
+  title     String
+  message   String
+  metadata  Json?
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  userId    String?   // null = visible to all FOUNDERs
+  createdAt DateTime  @default(now())
+
+  @@index([read])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
+}
+
 enum OutreachSentiment {
   VERY_POSITIVE
   POSITIVE
@@ -1157,4 +1195,86 @@ model Expense {
   @@index([type])
   @@index([date])
   @@index([isActive])
+}
+
+model WhatsAppMessage {
+  id              String    @id @default(cuid())
+  direction       String    // OUTBOUND, INBOUND
+  whatsappId      String?   @unique
+  phoneNumber     String
+  templateName    String?
+  messageText     String?
+  status          String    @default("SENT") // SENT, DELIVERED, READ, FAILED
+  statusTimestamp DateTime?
+  leadId          String?
+  studentId       String?
+  metadata        Json?
+  errorMessage    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([phoneNumber])
+  @@index([leadId])
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+model RazorpayOrder {
+  id                String   @id @default(cuid())
+  razorpayOrderId   String   @unique
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("INR")
+  status            String   @default("CREATED") // CREATED, PAID, FAILED
+  level             String?
+  customerName      String
+  customerEmail     String?
+  customerPhone     String
+  razorpayPaymentId String?
+  razorpaySignature String?
+  studentId         String?
+  leadId            String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([razorpayOrderId])
+  @@index([status])
+  @@index([studentId])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  studentId  String?
+  leadId     String?
+  userId     String?
+  topics     String[] @default([])
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([studentId])
+  @@index([userId])
+  @@index([active])
+}
+
+model AdSpend {
+  id           String   @id @default(cuid())
+  platform     String   // META_ADS, GOOGLE, INSTAGRAM
+  campaignName String?
+  date         DateTime @db.Date
+  spend        Decimal  @db.Decimal(10, 2)
+  currency     String   @default("INR")
+  impressions  Int      @default(0)
+  clicks       Int      @default(0)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([platform, campaignName, date])
+  @@index([platform])
+  @@index([date])
 }

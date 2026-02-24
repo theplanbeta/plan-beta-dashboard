@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
+import { timingSafeEqual } from "crypto"
+
+function verifyN8nAuth(request: NextRequest): boolean {
+  const apiKey = request.headers.get("x-n8n-api-key") || ""
+  const expected = process.env.N8N_API_KEY || ""
+  if (!expected || apiKey.length !== expected.length) return false
+  try {
+    return timingSafeEqual(Buffer.from(apiKey), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 // Schema for creating intervention
 const createInterventionSchema = z.object({
@@ -41,9 +53,8 @@ const updateInterventionSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
-    // Security check
-    const apiKey = request.headers.get("x-n8n-api-key")
-    if (apiKey !== process.env.N8N_API_KEY) {
+    // Security check (timing-safe)
+    if (!verifyN8nAuth(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -109,9 +120,8 @@ export async function POST(request: NextRequest) {
  */
 export async function PATCH(request: NextRequest) {
   try {
-    // Security check
-    const apiKey = request.headers.get("x-n8n-api-key")
-    if (apiKey !== process.env.N8N_API_KEY) {
+    // Security check (timing-safe)
+    if (!verifyN8nAuth(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -159,9 +169,8 @@ export async function PATCH(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Security check
-    const apiKey = request.headers.get("x-n8n-api-key")
-    if (apiKey !== process.env.N8N_API_KEY) {
+    // Security check (timing-safe)
+    if (!verifyN8nAuth(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

@@ -5,6 +5,25 @@ import { AuditAction, AuditSeverity } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sendBackupEmail } from '@/lib/email'
 import { formatDateTime } from '@/lib/utils'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+
+/**
+ * Verify the request is authorized via CRON_SECRET or an authenticated FOUNDER/MARKETING session.
+ */
+async function verifyBackupAuth(request: NextRequest): Promise<boolean> {
+  // Check CRON_SECRET first (for Vercel cron and server-side calls)
+  const authHeader = request.headers.get("authorization")
+  if (authHeader === `Bearer ${process.env.CRON_SECRET}`) {
+    return true
+  }
+  // Check session (for dashboard UI calls)
+  const session = await getServerSession(authOptions)
+  if (session?.user?.role === "FOUNDER" || session?.user?.role === "MARKETING") {
+    return true
+  }
+  return false
+}
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60 // 60 seconds timeout
@@ -186,10 +205,16 @@ async function performBackup(skipCooldown = false) {
 // GET: Respects 30-min cooldown (automatic cron jobs)
 // POST with ?manual=true: Bypasses cooldown (manual button clicks)
 export async function GET(request: NextRequest) {
+  if (!(await verifyBackupAuth(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   return performBackup()
 }
 
 export async function POST(request: NextRequest) {
+  if (!(await verifyBackupAuth(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
   const { searchParams } = new URL(request.url)
   const isManual = searchParams.get('manual') === 'true'
   return performBackup(isManual)

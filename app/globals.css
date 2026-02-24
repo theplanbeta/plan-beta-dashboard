@@ -123,7 +123,7 @@
   --color-gray-700: var(--gray-700);
   --color-gray-800: var(--gray-800);
   --color-gray-900: var(--gray-900);
-  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter, system-ui), -apple-system, sans-serif;
 }
 
 /* Base body styles with smooth transitions */
@@ -354,4 +354,18 @@ a {
 
 .animate-fade-in {
   animation: fade-in 0.6s ease-out;
+}
+
+/* Marquee for social proof */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }

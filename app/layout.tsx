@@ -1,7 +1,14 @@
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import { Providers } from "./providers"
 import { ThemeProvider } from "@/lib/ThemeContext"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Plan Beta School Management",
@@ -27,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#3b82f6" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)" />

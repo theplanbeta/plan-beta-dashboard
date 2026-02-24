@@ -7,19 +7,32 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import { checkPermission } from '@/lib/api-permissions';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export async function POST(req: NextRequest) {
   try {
+    // Auth check — only authenticated users with batch permissions
+    const check = await checkPermission("batches", "update")
+    if (!check.authorized) return check.response
+
     const { batchId } = await req.json();
 
     if (!batchId) {
       return NextResponse.json(
         { error: 'batchId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate batchId is a safe CUID string (alphanumeric + limited chars)
+    if (!/^[a-zA-Z0-9_-]+$/.test(batchId)) {
+      return NextResponse.json(
+        { error: 'Invalid batchId format' },
         { status: 400 }
       );
     }
@@ -73,11 +86,9 @@ export async function POST(req: NextRequest) {
     const scriptPath = path.join(process.cwd(), 'scripts', 'google-meet-recorder.ts');
     const className = `${batch.level} ${batch.timing || ''} - ${batch.batchCode}`.trim();
 
-    // Run the script in the background using nohup
-    const command = `nohup npx tsx "${scriptPath}" "${batch.meetLink}" "${className}" > /dev/null 2>&1 &`;
-
+    // Run the script in the background using execFile (no shell invocation)
     try {
-      await execAsync(command);
+      await execFileAsync('npx', ['tsx', scriptPath, batch.meetLink, className]);
 
       // Update recording log
       await prisma.recordingLog.update({

@@ -178,6 +178,62 @@ export async function GET(request: NextRequest) {
       COMBO: allLeads.filter((l) => l.interestedCombo).length,
     }
 
+    // === UTM CAMPAIGN PERFORMANCE ===
+    const campaignMap = new Map<string, { total: number; converted: number }>()
+    for (const lead of allLeads) {
+      const campaign = lead.utmCampaign
+      if (!campaign) continue
+      const entry = campaignMap.get(campaign) || { total: 0, converted: 0 }
+      entry.total++
+      if (lead.converted) entry.converted++
+      campaignMap.set(campaign, entry)
+    }
+    const campaignPerformance = Array.from(campaignMap.entries())
+      .map(([campaign, data]) => ({
+        campaign,
+        leads: data.total,
+        converted: data.converted,
+        conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
+      }))
+      .sort((a, b) => b.leads - a.leads)
+
+    // === LANDING PAGE PERFORMANCE ===
+    const landingPageMap = new Map<string, { total: number; converted: number }>()
+    for (const lead of allLeads) {
+      const page = lead.landingPage
+      if (!page) continue
+      const entry = landingPageMap.get(page) || { total: 0, converted: 0 }
+      entry.total++
+      if (lead.converted) entry.converted++
+      landingPageMap.set(page, entry)
+    }
+    const landingPagePerformance = Array.from(landingPageMap.entries())
+      .map(([page, data]) => ({
+        page,
+        leads: data.total,
+        converted: data.converted,
+        conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
+      }))
+      .sort((a, b) => b.leads - a.leads)
+
+    // === DEVICE BREAKDOWN ===
+    const deviceMap = new Map<string, { total: number; converted: number }>()
+    for (const lead of allLeads) {
+      const device = lead.deviceType || "unknown"
+      const entry = deviceMap.get(device) || { total: 0, converted: 0 }
+      entry.total++
+      if (lead.converted) entry.converted++
+      deviceMap.set(device, entry)
+    }
+    const deviceBreakdown = Array.from(deviceMap.entries())
+      .map(([device, data]) => ({
+        device,
+        leads: data.total,
+        converted: data.converted,
+        conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
+      }))
+      .sort((a, b) => b.leads - a.leads)
+
     // === DAILY TRENDS ===
     const dailyLeads = generateDailyLeads(recentLeads, daysAgo)
     const dailyConversions = generateDailyConversions(recentLeads, daysAgo)
@@ -287,6 +343,11 @@ export async function GET(request: NextRequest) {
         recent: recentConversions,
         daily: dailyConversions,
         avgTimeToConversion: Math.round(avgTimeToConversion),
+      },
+      attribution: {
+        campaigns: campaignPerformance,
+        landingPages: landingPagePerformance,
+        devices: deviceBreakdown,
       },
       kpis,
       recommendations,

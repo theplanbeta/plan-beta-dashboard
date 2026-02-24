@@ -5,7 +5,24 @@ import { getToken } from "next-auth/jwt"
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request })
   const path = request.nextUrl.pathname
+  const hostname = request.headers.get("host") || ""
 
+  // ─── Domain-based routing ─────────────────────────────────────────────
+  // theplanbeta.com → marketing site (rewrite root to /site)
+  const isPublicDomain = hostname.includes("theplanbeta.com")
+
+  if (isPublicDomain) {
+    // Root → /site (marketing homepage)
+    if (path === "/") {
+      return NextResponse.rewrite(new URL("/site", request.url))
+    }
+    // Block dashboard/login/api access on public domain
+    if (path.startsWith("/dashboard") || path === "/login" || path.startsWith("/api/auth")) {
+      return NextResponse.redirect(new URL("/site", request.url))
+    }
+  }
+
+  // ─── Dashboard auth ───────────────────────────────────────────────────
   // Redirect to dashboard if accessing login while authenticated
   if (path === "/login" && token) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
@@ -45,11 +62,12 @@ export async function middleware(request: NextRequest) {
   // Content Security Policy
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // Next.js requires unsafe-eval/inline
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://connect.facebook.net https://www.googletagmanager.com https://checkout.razorpay.com",
     "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
     "img-src 'self' data: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.resend.com https://sentry.io",
+    "connect-src 'self' https://api.resend.com https://sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com https://www.facebook.com https://www.google-analytics.com https://region1.google-analytics.com https://lumberjack.razorpay.com https://api.razorpay.com",
+    "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"
@@ -62,7 +80,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/login",
+    "/site/:path*",
+    "/privacy",
+    "/terms",
   ],
 }

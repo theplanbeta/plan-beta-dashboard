@@ -194,14 +194,17 @@ export async function POST(req: NextRequest) {
       console.error(`⚠️ Error sending welcome email to ${teacher.email}:`, error)
     })
 
-    // Return teacher data with generated password (only returned once)
-    return NextResponse.json(
+    // Return teacher data with generated password (displayed once to founder, also sent via email)
+    const response = NextResponse.json(
       {
         ...teacher,
-        password: plainPassword, // Send plain password for display to founder
+        generatedPassword: plainPassword, // Displayed once, then discarded — also sent via welcome email
       },
       { status: 201 }
     )
+    // Prevent caching of response containing credentials
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate")
+    return response
   } catch (error) {
     console.error('Error creating teacher:', error)
     return NextResponse.json({ error: 'Failed to create teacher' }, { status: 500 })

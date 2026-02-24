@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { checkPermission } from "@/lib/api-permissions"
 import { Prisma } from "@prisma/client"
 
 const Decimal = Prisma.Decimal
@@ -12,11 +13,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const check = await checkPermission("students", "read")
+    if (!check.authorized) return check.response
 
     const { id } = await params
 
@@ -80,13 +78,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
+    const check = await checkPermission("students", "update")
+    if (!check.authorized) return check.response
+    const session = check.session
 
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    // Check permissions - FOUNDER and MARKETING can update students
     // TEACHER can only update students in their batches
     if (session.user.role === "TEACHER") {
       const { id } = await params
@@ -197,11 +192,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const check = await checkPermission("students", "delete")
+    if (!check.authorized) return check.response
 
     const { id } = await params
 

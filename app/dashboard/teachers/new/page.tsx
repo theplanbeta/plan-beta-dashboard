@@ -88,7 +88,7 @@ export default function NewTeacherPage() {
         // Store credentials to show in modal
         setCreatedCredentials({
           email: data.email,
-          password: data.password,
+          password: data.generatedPassword,
         })
         setShowCredentials(true)
         setIsDirty(false)

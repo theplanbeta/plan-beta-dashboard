@@ -109,11 +109,26 @@ export default function PrivacyPolicy() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Cookies</h2>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-3">Cookies &amp; Local Storage</h2>
+            <p className="mb-3">
+              We use a minimal set of cookies and browser storage to operate our services. On your
+              first visit to our marketing site, you will see a consent banner allowing you to choose
+              which cookies to accept.
+            </p>
+            <h3 className="text-lg font-semibold text-gray-900 mt-4 mb-2">Essential (Always Active)</h3>
+            <ul className="list-disc pl-6 space-y-2 mb-3">
+              <li><strong>next-auth.session-token</strong> — Authentication cookie used only for staff dashboard login. Not set on the marketing site.</li>
+              <li><strong>pb-cookie-consent</strong> — Stored in localStorage to remember your cookie preferences (essential vs. analytics). Contains no personal data.</li>
+            </ul>
+            <h3 className="text-lg font-semibold text-gray-900 mt-4 mb-2">Analytics (Opt-In Only)</h3>
+            <ul className="list-disc pl-6 space-y-2 mb-3">
+              <li><strong>Vercel Analytics</strong> — Privacy-focused, cookieless web analytics that measures page views and performance. Only loaded if you click &quot;Accept All&quot; in the consent banner.</li>
+              <li><strong>Vercel Speed Insights</strong> — Measures Core Web Vitals (loading speed, interactivity, visual stability) to help us improve site performance. Only loaded with your consent.</li>
+            </ul>
             <p>
-              Our application uses cookies to improve user experience. You can instruct your browser
-              to refuse all cookies or to indicate when a cookie is being sent. However, if you do
-              not accept cookies, you may not be able to use some portions of our service.
+              We do not use any advertising, remarketing, or third-party tracking cookies. You can
+              change your preferences at any time by clearing your browser&apos;s local storage and
+              revisiting our site.
             </p>
           </section>
 

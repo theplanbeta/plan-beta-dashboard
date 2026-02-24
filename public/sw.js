@@ -1,36 +1,85 @@
-// Self-cleaning service worker to replace broken cached version
-// This will clear all caches and unregister itself
-// User needs to manually refresh the page after cleanup
+// Plan Beta Service Worker — Push Notifications + Basic Caching
 
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing cleanup service worker')
+const CACHE_NAME = "planbeta-v2"
+
+// Install — skip waiting to activate immediately
+self.addEventListener("install", () => {
   self.skipWaiting()
 })
 
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating cleanup service worker')
-
+// Activate — clean old caches
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    // Delete all caches
-    caches.keys().then((cacheNames) => {
-      console.log('[SW] Deleting caches:', cacheNames)
-      return Promise.all(
-        cacheNames.map((cacheName) => caches.delete(cacheName))
+    caches.keys().then((names) =>
+      Promise.all(
+        names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
       )
-    }).then(() => {
-      console.log('[SW] All caches deleted, unregistering service worker')
-      return self.registration.unregister()
-    }).then(() => {
-      console.log('[SW] ✅ Cleanup complete! Please refresh the page manually.')
-      console.log('[SW] Press Cmd+R (Mac) or Ctrl+R (Windows/Linux) to reload')
-    }).catch((error) => {
-      console.error('[SW] Error during cleanup:', error)
-    })
+    )
+  )
+  self.clients.claim()
+})
+
+// Fetch — network first, cache fallback for site pages
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url)
+
+  // Skip non-GET and API/dashboard requests
+  if (event.request.method !== "GET") return
+  if (url.pathname.startsWith("/api/")) return
+  if (url.pathname.startsWith("/dashboard")) return
+
+  // Only cache marketing site pages
+  if (!url.pathname.startsWith("/site")) return
+
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone()
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+        }
+        return response
+      })
+      .catch(() => caches.match(event.request))
   )
 })
 
-// Don't intercept any fetch requests - let them pass through normally
-self.addEventListener('fetch', (event) => {
-  // Just let the request go through to the network normally
-  return
+// Push notification received
+self.addEventListener("push", (event) => {
+  if (!event.data) return
+
+  let data
+  try {
+    data = event.data.json()
+  } catch {
+    data = { title: "Plan Beta", body: event.data.text() }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || "/icon-192x192.png",
+    badge: "/icon-192x192.png",
+    data: { url: data.url || "/site" },
+    vibrate: [200, 100, 200],
+  }
+
+  event.waitUntil(self.registration.showNotification(data.title || "Plan Beta", options))
+})
+
+// Notification click — navigate to URL
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+
+  const url = event.notification.data?.url || "/site"
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(url) && "focus" in client) {
+          return client.focus()
+        }
+      }
+      return self.clients.openWindow(url)
+    })
+  )
 })

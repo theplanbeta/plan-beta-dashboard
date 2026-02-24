@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { getAllowedNavigation } from "@/lib/permissions"
 import type { UserRole } from "@/lib/permissions"
 import PWAInstallPrompt from "@/components/PWAInstallPrompt"
+import NotificationBell from "@/components/NotificationBell"
 import { useTheme } from "@/lib/ThemeContext"
 
 export default function DashboardLayout({
@@ -159,6 +160,7 @@ export default function DashboardLayout({
           <h1 className="text-lg font-bold text-primary dark:text-blue-400">Plan Beta</h1>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <button
             onClick={toggleTheme}
             className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -244,8 +246,10 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between h-16 px-6 panel-section">
             <h1 className="text-xl font-bold text-primary dark:text-blue-400">Plan Beta</h1>
-            <button
-              onClick={toggleTheme}
+            <div className="flex items-center gap-1">
+              <NotificationBell />
+              <button
+                onClick={toggleTheme}
               className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               aria-label="Toggle theme"
               {...(mounted && { title: `Switch to ${theme === 'light' ? 'dark' : 'light'} mode` })}
@@ -263,7 +267,8 @@ export default function DashboardLayout({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
               )}
-            </button>
+              </button>
+            </div>
           </div>
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {

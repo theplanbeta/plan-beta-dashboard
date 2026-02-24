@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { checkPermission } from "@/lib/api-permissions"
 import { z } from "zod"
 
 // Validation schema for creating posts
@@ -16,6 +17,9 @@ const createPostSchema = z.object({
 // GET /api/content-wall - Get all posts
 export async function GET(request: NextRequest) {
   try {
+    const check = await checkPermission("students", "read")
+    if (!check.authorized) return check.response
+
     const { searchParams } = new URL(request.url)
     const contentType = searchParams.get("contentType")
     const level = searchParams.get("level")
@@ -98,6 +102,9 @@ export async function GET(request: NextRequest) {
 // POST /api/content-wall - Create new post
 export async function POST(request: NextRequest) {
   try {
+    const check = await checkPermission("students", "update")
+    if (!check.authorized) return check.response
+
     const body = await request.json()
 
     // Validate request body

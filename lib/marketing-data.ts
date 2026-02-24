@@ -104,6 +104,7 @@ export const features = [
       "Small batch sizes ensure personal attention. Ask questions, practice speaking, and get instant feedback from expert instructors.",
     icon: "video",
     span: 2,
+    video: "/videos/bento-classes.mp4",
   },
   {
     title: "Expert Instructors",
@@ -111,6 +112,7 @@ export const features = [
       "Certified German teachers who understand the specific challenges Malayalam speakers face.",
     icon: "teacher",
     span: 1,
+    video: "/videos/bento-instructors.mp4",
   },
   {
     title: "Flexible Timing",
@@ -118,6 +120,7 @@ export const features = [
       "Morning and evening batches. Miss a class? Watch the recording anytime.",
     icon: "clock",
     span: 1,
+    video: "/videos/bento-timing.mp4",
   },
   {
     title: "Exam-Focused Curriculum",
@@ -125,6 +128,7 @@ export const features = [
       "Designed to help you pass Goethe-Institut exams on your first attempt. 95% of our students do.",
     icon: "target",
     span: 2,
+    video: "/videos/bento-exam.mp4",
   },
   {
     title: "Career Guidance",
@@ -132,7 +136,7 @@ export const features = [
       "Mentorship from professionals already in Germany. We help beyond just language.",
     icon: "briefcase",
     span: 1,
-    dark: true,
+    video: "/videos/bento-career.mp4",
   },
   {
     title: "Certification",
@@ -140,6 +144,7 @@ export const features = [
       "Certificates valued by German universities and employers worldwide.",
     icon: "certificate",
     span: 1,
+    video: "/videos/bento-certification.mp4",
   },
 ]
 

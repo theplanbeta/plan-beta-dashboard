@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
+import { VideoBackground } from "@/components/marketing/VideoBackground"
 
 const opportunities = [
   {
@@ -96,7 +97,14 @@ export function GermanyOpportunity() {
               transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="relative aspect-square rounded-3xl overflow-hidden shadow-2xl"
             >
-              {/* German flag stripes */}
+              {/* Video Background */}
+              <VideoBackground
+                src="/videos/germany-cityscape.mp4"
+                overlay="bg-black/40"
+                hideOnMobile={false}
+              />
+
+              {/* Fallback for when video hasn't loaded */}
               <div className="absolute inset-0 flex flex-col">
                 <div className="flex-1 bg-gray-900" />
                 <div className="flex-1 bg-primary" />
@@ -104,9 +112,8 @@ export function GermanyOpportunity() {
               </div>
 
               {/* Overlay with stats */}
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
                 <div className="text-center text-white">
-                  <p className="text-7xl font-bold mb-2">🇩🇪</p>
                   <p className="text-3xl font-bold mb-2">Your Future Awaits</p>
                   <p className="text-white/70 text-lg">
                     €4,500/month average salary

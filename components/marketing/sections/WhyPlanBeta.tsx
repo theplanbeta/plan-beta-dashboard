@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
+import { VideoBackground } from "@/components/marketing/VideoBackground"
 import { features } from "@/lib/marketing-data"
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -62,35 +63,31 @@ export function WhyPlanBeta() {
               <motion.div
                 whileHover={{ scale: 1.02, y: -4 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className={`h-full rounded-3xl p-8 md:p-10 transition-shadow duration-300 ${
-                  feature.dark
-                    ? "bg-slate-900 text-white shadow-xl"
-                    : "bg-gray-50 hover:shadow-lg"
-                }`}
+                className="group relative h-full rounded-3xl overflow-hidden shadow-xl"
               >
-                <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
-                    feature.dark
-                      ? "bg-white/10 text-white"
-                      : "bg-white text-gray-700 shadow-sm"
-                  }`}
-                >
-                  {iconMap[feature.icon]}
+                {/* Video Background (desktop only) */}
+                {feature.video && (
+                  <VideoBackground
+                    src={feature.video}
+                    overlay="bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-slate-900/60 transition-all duration-500 group-hover:from-slate-900/90 group-hover:via-slate-900/70 group-hover:to-slate-900/50"
+                  />
+                )}
+
+                {/* Mobile fallback gradient */}
+                <div className="absolute inset-0 bg-slate-900 md:hidden" />
+
+                {/* Content */}
+                <div className="relative z-10 p-8 md:p-10">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center mb-6">
+                    {iconMap[feature.icon]}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-300 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
-                <h3
-                  className={`text-xl font-bold mb-3 ${
-                    feature.dark ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {feature.title}
-                </h3>
-                <p
-                  className={`leading-relaxed ${
-                    feature.dark ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  {feature.description}
-                </p>
               </motion.div>
             </AnimateInView>
           ))}

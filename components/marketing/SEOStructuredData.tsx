@@ -21,7 +21,7 @@ export function OrganizationSchema({
   url = "https://planbeta.in",
   logo = "https://planbeta.in/logo.png",
   description = "Kerala's premier German language institute offering A1, A2, B1 courses with live online classes and expert instructors.",
-  phone = "+919876543210",
+  phone = "+918547081550",
   email = "hello@planbeta.in",
   address = {
     city: "Kochi",
@@ -90,7 +90,7 @@ type CourseSchemaProps = {
   description: string
   provider?: string
   url: string
-  price: number
+  price?: number
   priceCurrency?: string
   duration?: string
   level?: string
@@ -124,13 +124,15 @@ export function CourseSchema({
     },
     url,
     inLanguage: language,
-    offers: {
-      "@type": "Offer",
-      price,
-      priceCurrency,
-      availability: "https://schema.org/InStock",
-      validFrom: new Date().toISOString(),
-    },
+    ...(price != null && {
+      offers: {
+        "@type": "Offer",
+        price,
+        priceCurrency,
+        availability: "https://schema.org/InStock",
+        validFrom: new Date().toISOString(),
+      },
+    }),
   }
 
   if (duration) {
@@ -268,7 +270,7 @@ type LocalBusinessSchemaProps = {
 
 export function LocalBusinessSchema({
   name = "Plan Beta German Language Institute",
-  phone = "+919876543210",
+  phone = "+918547081550",
   priceRange = "₹₹",
 }: LocalBusinessSchemaProps) {
   const schema = {

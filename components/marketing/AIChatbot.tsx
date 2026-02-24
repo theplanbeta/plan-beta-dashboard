@@ -87,7 +87,7 @@ export default function AIChatbot() {
       case "beginner":
         response = {
           role: "assistant",
-          content: "Great choice! Starting from zero is exciting. We have two options for beginners:\n\n1️⃣ **A1 Live Classes** (₹14,000) - Interactive live sessions 5 days/week for 8 weeks. Perfect if you like structured learning with a teacher.\n\n2️⃣ **A1 Foundation** (₹10,000) - Self-paced course with video lessons in Malayalam. Great if you prefer flexibility.\n\nWhich learning style suits you better?",
+          content: "Great choice! Starting from zero is exciting. We have two options for beginners:\n\n1️⃣ **A1 Live Classes** - Interactive live sessions 5 days/week for 8 weeks. Perfect if you like structured learning with a teacher.\n\n2️⃣ **A1 Foundation** - Self-paced course with video lessons in Malayalam. Great if you prefer flexibility.\n\nWhich learning style suits you better?",
           options: [
             { label: "I prefer live classes with a teacher", value: "prefer_live" },
             { label: "I want to learn at my own pace", value: "prefer_selfpaced" },
@@ -137,7 +137,7 @@ export default function AIChatbot() {
       case "prefer_live":
         response = {
           role: "assistant",
-          content: "The **A1 Live Classes** would be perfect for you!\n\n✅ Live sessions 5 days/week\n✅ Small batch (max 15 students)\n✅ All recordings included\n✅ Direct doubt clearing\n✅ Certificate on completion\n\n**Price:** ₹14,000 (was ₹17,500)\n**Next batch:** January 20, 2025\n\nWould you like to enquire about enrolling?",
+          content: "The **A1 Live Classes** would be perfect for you!\n\n✅ Live sessions 5 days/week\n✅ Small batch (max 15 students)\n✅ All recordings included\n✅ Direct doubt clearing\n✅ Certificate on completion\n\nWould you like to enquire about enrolling?",
           options: [
             { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "Tell me more about the course", value: "more_a1_live" },
@@ -149,7 +149,7 @@ export default function AIChatbot() {
       case "prefer_selfpaced":
         response = {
           role: "assistant",
-          content: "The **A1 Foundation Course** is great for self-learners!\n\n✅ 50+ video lessons\n✅ Malayalam explanations\n✅ Practice exercises\n✅ 3 months access\n✅ Learn anytime, anywhere\n\n**Price:** ₹10,000 (was ₹12,500)\n\nWould you like to see a free preview of the course?",
+          content: "The **A1 Foundation Course** is great for self-learners!\n\n✅ 50+ video lessons\n✅ Malayalam explanations\n✅ Practice exercises\n✅ 3 months access\n✅ Learn anytime, anywhere\n\nWould you like to see a free preview of the course?",
           options: [
             { label: "Yes, show me a preview!", value: "preview_foundation" },
             { label: "What if I get stuck?", value: "support_selfpaced" },
@@ -161,7 +161,7 @@ export default function AIChatbot() {
       case "completed_a1":
         response = {
           role: "assistant",
-          content: "Perfect! **A2 Live Classes** is your next step.\n\n✅ Builds on A1 foundation\n✅ More conversation practice\n✅ Grammar deep-dive\n✅ 10 weeks duration\n\n**Price:** ₹16,000 (was ₹20,000)\n**Next batch:** February 3, 2025\n\nWould you like to enquire about enrolling?",
+          content: "Perfect! **A2 Live Classes** is your next step.\n\n✅ Builds on A1 foundation\n✅ More conversation practice\n✅ Grammar deep-dive\n✅ 10 weeks duration\n\nWould you like to enquire about enrolling?",
           options: [
             { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "What topics are covered in A2?", value: "topics_a2" },
@@ -172,7 +172,7 @@ export default function AIChatbot() {
       case "completed_a2":
         response = {
           role: "assistant",
-          content: "Excellent! You're ready for **B1 Live Classes** - the level required for most work visas!\n\n✅ Achieve intermediate fluency\n✅ Business German module\n✅ Goethe B1 exam prep\n✅ 12 weeks duration\n\n**Price:** ₹18,000 (was ₹22,500)\n**Next batch:** February 10, 2025\n\nWould you like to enquire about enrolling?",
+          content: "Excellent! You're ready for **B1 Live Classes** - the level required for most work visas!\n\n✅ Achieve intermediate fluency\n✅ Business German module\n✅ Goethe B1 exam prep\n✅ 12 weeks duration\n\nWould you like to enquire about enrolling?",
           options: [
             { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "Tell me about B1 exam prep", value: "exam_b1" },
@@ -183,7 +183,7 @@ export default function AIChatbot() {
       case "career_nursing":
         response = {
           role: "assistant",
-          content: "For nursing in Germany, you'll need **B1 level** German.\n\n🏥 Germany has 200,000+ unfilled nursing positions\n💰 Salary: €2,800 - €4,500/month\n📋 Requirement: B1 German + Nursing degree\n\nI recommend starting with our A1→A2→B1 path. It takes about 8-10 months with consistent effort.\n\nWe also offer **Nursing Career Mentorship** (₹500/session) with nurses already working in Germany!\n\nWould you like to start with A1?",
+          content: "For nursing in Germany, you'll need **B1 level** German.\n\n🏥 Germany has 200,000+ unfilled nursing positions\n💰 Salary: €2,800 - €4,500/month\n📋 Requirement: B1 German + Nursing degree\n\nI recommend starting with our A1→A2→B1 path. It takes about 8-10 months with consistent effort.\n\nWe also offer **Nursing Career Mentorship** with nurses already working in Germany!\n\nWould you like to start with A1?",
           options: [
             { label: "Yes, start with A1", value: "beginner" },
             { label: "Tell me about mentorship", value: "mentorship_nursing" },
@@ -195,7 +195,7 @@ export default function AIChatbot() {
       case "career_it":
         response = {
           role: "assistant",
-          content: "Good news! Many German tech companies work in English, but German gives you a huge advantage.\n\n💻 Berlin, Munich & Hamburg are major tech hubs\n💰 Salary: €4,500 - €8,000/month\n📋 B1 German is ideal (some roles accept A2)\n\nWe also offer **IT Career Mentorship** (₹500/session) with tech professionals in Germany!\n\nWhere would you like to start?",
+          content: "Good news! Many German tech companies work in English, but German gives you a huge advantage.\n\n💻 Berlin, Munich & Hamburg are major tech hubs\n💰 Salary: €4,500 - €8,000/month\n📋 B1 German is ideal (some roles accept A2)\n\nWe also offer **IT Career Mentorship** with tech professionals in Germany!\n\nWhere would you like to start?",
           options: [
             { label: "Start from scratch (A1)", value: "beginner" },
             { label: "I know basics, need to improve", value: "improve" },
@@ -207,7 +207,7 @@ export default function AIChatbot() {
       case "q_pricing":
         response = {
           role: "assistant",
-          content: "Here's our pricing:\n\n**Live Classes:**\n• A1: ₹14,000 (8 weeks)\n• A2: ₹16,000 (10 weeks)\n• B1: ₹18,000 (12 weeks)\n\n**Self-paced:**\n• A1 Foundation: ₹10,000 (3 months access)\n\n**Add-ons:**\n• Speaking sessions: ₹349/session\n• Career mentorship: ₹500/session\n\nAll prices include certificates. We offer EMI options too!\n\nAnything else you'd like to know?",
+          content: "We offer courses at every level:\n\n**Live Classes:**\n• A1 (8 weeks) • A2 (10 weeks) • B1 (12 weeks)\n\n**Self-paced:**\n• A1 Foundation (3 months access)\n\n**Add-ons:**\n• Speaking sessions • Career mentorship\n\nAll courses include certificates. Contact our team for detailed pricing and EMI options!\n\nAnything else you'd like to know?",
           options: [
             { label: "Tell me about EMI options", value: "emi" },
             { label: "What's included in live classes?", value: "live_features" },
@@ -259,7 +259,7 @@ export default function AIChatbot() {
       case "goto_whatsapp":
         trackEvent("chatbot_completed", { cta: "whatsapp" })
         window.open(
-          "https://wa.me/919876543210?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20your%20German%20courses.",
+          "https://wa.me/918547081550?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20your%20German%20courses.",
           "_blank"
         )
         response = {

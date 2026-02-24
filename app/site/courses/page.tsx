@@ -85,7 +85,6 @@ export default async function CoursesPage() {
         name="German A1 Foundation - Self-Paced in Malayalam"
         description="Comprehensive beginner German course with 50+ video lessons in Malayalam. Learn at your own pace."
         url="https://planbeta.in/site/courses"
-        price={10000}
         duration="3 months"
         level="Beginner"
         rating={4.8}
@@ -179,18 +178,6 @@ export default async function CoursesPage() {
                       </div>
                     )}
 
-                    {/* Pricing */}
-                    {batch.pricing && (
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-bold text-gray-900">
-                          ₹{batch.pricing.INR.toLocaleString()}
-                        </span>
-                        <span className="text-sm text-gray-400">
-                          / €{batch.pricing.EUR}
-                        </span>
-                      </div>
-                    )}
-
                     {/* Seats */}
                     {batch.status === "FILLING" && (
                       <div className="mb-6">
@@ -242,17 +229,7 @@ export default async function CoursesPage() {
               <p className="text-gray-500 text-sm mb-3">{a1Foundation.subtitle}</p>
               <p className="text-gray-600 mb-6">{a1Foundation.description}</p>
 
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-4xl font-bold text-gray-900">
-                  ₹{a1Foundation.price.toLocaleString()}
-                </span>
-                <span className="text-lg text-gray-400 line-through">
-                  ₹{a1Foundation.originalPrice.toLocaleString()}
-                </span>
-              </div>
-              <p className="text-sm text-green-600 mb-6">
-                Save ₹{(a1Foundation.originalPrice - a1Foundation.price).toLocaleString()} &middot; {a1Foundation.duration}
-              </p>
+              <p className="text-sm text-gray-500 mb-6">{a1Foundation.duration}</p>
 
               <ul className="space-y-3 mb-8">
                 {a1Foundation.features.map((feature, i) => (

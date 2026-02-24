@@ -17,7 +17,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
       },
     ],
-    sitemap: "https://planbeta.in/sitemap.xml",
-    host: "https://planbeta.in",
+    sitemap: "https://theplanbeta.com/sitemap.xml",
+    host: "https://theplanbeta.com",
   }
 }

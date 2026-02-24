@@ -3,9 +3,9 @@
 
 import { Metadata } from 'next'
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://planbeta.in'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://theplanbeta.com'
 const SITE_NAME = 'Plan Beta'
-const DEFAULT_IMAGE = '/og-image.jpg'
+const DEFAULT_IMAGE = '/blogo.png'
 
 // Target keywords for each page/topic
 export const TARGET_KEYWORDS = {
@@ -43,6 +43,9 @@ export const TARGET_KEYWORDS = {
     'nursing germany salary',
     'how to become nurse in germany',
     'germany nursing recruitment',
+    'gnm nursing germany',
+    'bsc nursing germany jobs',
+    'fresher nurse jobs germany',
   ],
   blog: [
     'learn german tips',

@@ -1,11 +1,11 @@
 import Link from "next/link"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
-import { BreadcrumbSchema } from "@/components/marketing/SEOStructuredData"
+import { BreadcrumbSchema, FAQSchema } from "@/components/marketing/SEOStructuredData"
 
 export const metadata = generatePageMetadata({
   title: "Opportunities in Germany | Plan Beta - Work & Study in Germany",
   description:
-    "Discover career opportunities in Germany for nursing, engineering, IT, and medical professionals. Learn about visa requirements, salary expectations, and how to get started.",
+    "Career opportunities in Germany for nursing, engineering, IT & medical professionals. Visa requirements, salaries & how to start.",
   keywords: TARGET_KEYWORDS.opportunities,
   path: "/site/opportunities",
 })
@@ -160,10 +160,11 @@ export default function OpportunitiesPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://planbeta.in/site" },
-          { name: "Opportunities", url: "https://planbeta.in/site/opportunities" },
+          { name: "Home", url: "https://theplanbeta.com/site" },
+          { name: "Opportunities", url: "https://theplanbeta.com/site/opportunities" },
         ]}
       />
+      <FAQSchema faqs={faqs} />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-gray-900 to-gray-800 text-white py-20">

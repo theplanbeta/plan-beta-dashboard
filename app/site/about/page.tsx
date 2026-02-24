@@ -6,6 +6,7 @@ export const metadata = generatePageMetadata({
   title: "About Us | Plan Beta - Kerala's Premier German Language Institute",
   description:
     "Learn about Plan Beta's mission to help Keralites achieve their German dreams. Discover our story, our team, and what makes us different.",
+  keywords: ["plan beta", "german language institute kerala", "about plan beta", "german school india"],
   path: "/site/about",
 })
 
@@ -55,8 +56,8 @@ export default function AboutPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://planbeta.in/site" },
-          { name: "About", url: "https://planbeta.in/site/about" },
+          { name: "Home", url: "https://theplanbeta.com/site" },
+          { name: "About", url: "https://theplanbeta.com/site/about" },
         ]}
       />
       <OrganizationSchema />

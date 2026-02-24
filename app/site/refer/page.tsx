@@ -43,8 +43,8 @@ export default function ReferPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://planbeta.in/site" },
-          { name: "Refer a Friend", url: "https://planbeta.in/site/refer" },
+          { name: "Home", url: "https://theplanbeta.com/site" },
+          { name: "Refer a Friend", url: "https://theplanbeta.com/site/refer" },
         ]}
       />
       <FAQSchema faqs={faqItems} />

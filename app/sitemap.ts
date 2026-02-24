@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const SITE_URL = "https://planbeta.in"
+const SITE_URL = "https://theplanbeta.com"
 
 const KERALA_CITIES = [
   "kochi",

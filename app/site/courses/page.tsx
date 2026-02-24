@@ -7,14 +7,14 @@ import { COURSE_INFO } from "@/lib/pricing"
 export const metadata = generatePageMetadata({
   title: "German Language Courses | Plan Beta - A1, A2, B1, B2 Levels",
   description:
-    "Explore our German language courses for all levels. Live online classes via Google Meet, Mon–Fri, morning and evening batches. From beginner A1 to advanced B2, TELC & Goethe exam prep, and speaking improvement.",
+    "German A1 to B2 live online classes via Google Meet. Mon-Fri morning & evening batches. Goethe & TELC exam prep included.",
   keywords: TARGET_KEYWORDS.courses,
   path: "/site/courses",
 })
 
 const WHATSAPP_NUMBER = "919028396035"
 const THINKIFIC_LOGIN = "https://courses.planbeta.in/users/sign_in"
-const SHOPIFY_BASE = "https://planbeta.in"
+const SHOPIFY_BASE = "https://theplanbeta.com"
 
 function whatsappEnrollUrl(courseName: string) {
   const message = `Hi Plan Beta! I'm interested in enrolling for the ${courseName} course. Could you share more details?`

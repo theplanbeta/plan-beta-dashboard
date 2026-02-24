@@ -18,8 +18,8 @@ type OrganizationSchemaProps = {
 
 export function OrganizationSchema({
   name = "Plan Beta",
-  url = "https://planbeta.in",
-  logo = "https://planbeta.in/logo.png",
+  url = "https://theplanbeta.com",
+  logo = "https://theplanbeta.com/logo.png",
   description = "Kerala's premier German language institute offering A1, A2, B1 courses with live online classes and expert instructors.",
   phone = "+919028396035",
   email = "hello@planbeta.in",
@@ -120,7 +120,7 @@ export function CourseSchema({
     provider: {
       "@type": "Organization",
       name: provider,
-      url: "https://planbeta.in",
+      url: "https://theplanbeta.com",
     },
     url,
     inLanguage: language,
@@ -236,20 +236,20 @@ export function ArticleSchema({
     headline: title,
     description,
     url,
-    image: image || "https://planbeta.in/og-image.jpg",
+    image: image || "https://theplanbeta.com/og-image.jpg",
     datePublished,
     dateModified: dateModified || datePublished,
     author: {
       "@type": "Organization",
       name: author,
-      url: "https://planbeta.in",
+      url: "https://theplanbeta.com",
     },
     publisher: {
       "@type": "Organization",
       name: "Plan Beta",
       logo: {
         "@type": "ImageObject",
-        url: "https://planbeta.in/logo.png",
+        url: "https://theplanbeta.com/logo.png",
       },
     },
   }
@@ -276,9 +276,9 @@ export function LocalBusinessSchema({
   const schema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "@id": "https://planbeta.in",
+    "@id": "https://theplanbeta.com",
     name,
-    image: "https://planbeta.in/logo.png",
+    image: "https://theplanbeta.com/logo.png",
     telephone: phone,
     priceRange,
     address: {
@@ -292,7 +292,7 @@ export function LocalBusinessSchema({
       latitude: 9.9312,
       longitude: 76.2673,
     },
-    url: "https://planbeta.in",
+    url: "https://theplanbeta.com",
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",

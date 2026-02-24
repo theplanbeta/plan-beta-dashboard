@@ -11,9 +11,9 @@ import { FAQSection } from "@/components/marketing/sections/FAQSection"
 import { CTASection } from "@/components/marketing/sections/CTASection"
 
 export const metadata = generatePageMetadata({
-  title: "Plan Beta - Learn German Online | Best German Language Institute in Kerala",
+  title: "Learn German Online | Plan Beta - Best German Classes Kerala",
   description:
-    "Master German with Kerala's premier language institute. Live online classes, expert instructors, and a proven track record of helping students achieve their German language goals.",
+    "Master German with Kerala's premier language institute. Live online classes, expert instructors, A1 to B2 levels. 95% exam pass rate.",
   keywords: TARGET_KEYWORDS.home,
   path: "/site",
 })

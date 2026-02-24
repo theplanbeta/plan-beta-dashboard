@@ -93,8 +93,8 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://planbeta.in/site" },
-          { name: `German Classes in ${cityInfo.name}`, url: `https://planbeta.in/site/german-classes/${city}` },
+          { name: "Home", url: "https://theplanbeta.com/site" },
+          { name: `German Classes in ${cityInfo.name}`, url: `https://theplanbeta.com/site/german-classes/${city}` },
         ]}
       />
       <FAQSchema faqs={faqItems} />

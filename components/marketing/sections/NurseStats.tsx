@@ -27,7 +27,7 @@ function useCounter(end: number, duration = 2000, isInView: boolean) {
 const stats = [
   { value: 200000, suffix: "+", label: "Nursing vacancies in Germany", type: "count" as const },
   { display: "€2,800–4,500", label: "Monthly salary", type: "text" as const },
-  { display: "BSc Nursing", label: "Qualification required", type: "text" as const },
+  { display: "BSc / GNM", label: "Qualification required", type: "text" as const },
   { display: "B2", label: "Language level required", type: "text" as const },
 ]
 

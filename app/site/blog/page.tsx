@@ -81,8 +81,8 @@ export default function BlogPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://planbeta.in/site" },
-          { name: "Blog", url: "https://planbeta.in/site/blog" },
+          { name: "Home", url: "https://theplanbeta.com/site" },
+          { name: "Blog", url: "https://theplanbeta.com/site/blog" },
         ]}
       />
 

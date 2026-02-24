@@ -64,9 +64,7 @@ export default function MarketingLayout({
                 alt="Plan Beta"
                 width={36}
                 height={36}
-                className={`rounded-lg transition-all duration-300 ${
-                  navTransparent ? "brightness-0 invert" : ""
-                }`}
+                className="rounded-lg transition-all duration-300"
               />
               <span
                 className={`text-lg font-semibold tracking-tight transition-colors duration-300 ${
@@ -245,7 +243,7 @@ export default function MarketingLayout({
                   alt="Plan Beta"
                   width={36}
                   height={36}
-                  className="rounded-lg brightness-0 invert"
+                  className="rounded-lg"
                 />
                 <span className="text-lg font-semibold">Plan Beta</span>
               </div>

@@ -36,6 +36,7 @@ export default function MarketingLayout({
 
   const navigation = [
     { name: "Courses", href: "/site/courses" },
+    { name: "For Nurses", href: "/site/nurses" },
     { name: "Opportunities", href: "/site/opportunities" },
     { name: "About", href: "/site/about" },
     { name: "Contact", href: "/site/contact" },
@@ -323,6 +324,7 @@ export default function MarketingLayout({
               <ul className="space-y-3">
                 {[
                   ["About Us", "/site/about"],
+                  ["For Nurses", "/site/nurses"],
                   ["Opportunities", "/site/opportunities"],
                   ["Blog", "/site/blog"],
                   ["Contact", "/site/contact"],

@@ -33,7 +33,7 @@ export function NurseHero() {
         <VideoBackground
           src="/videos/nurse-hero.mp4"
           overlay="bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-slate-900/60"
-          hideOnMobile={true}
+          hideOnMobile={false}
         />
 
         {/* Animated Orbs */}

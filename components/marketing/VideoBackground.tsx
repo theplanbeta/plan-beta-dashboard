@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 
 type Props = {
   src: string
@@ -19,23 +19,20 @@ export function VideoBackground({
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [isVisible, setIsVisible] = useState(false)
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [shouldLoad, setShouldLoad] = useState(false)
 
+  // Lazy-load: start loading video when container is near the viewport
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    setPrefersReducedMotion(mq.matches)
-  }, [])
-
-  useEffect(() => {
-    if (prefersReducedMotion) return
     const el = containerRef.current
     if (!el) return
+
+    // Check reduced motion preference
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true)
+          setShouldLoad(true)
           observer.disconnect()
         }
       },
@@ -43,9 +40,17 @@ export function VideoBackground({
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [prefersReducedMotion])
+  }, [])
 
-  if (prefersReducedMotion) return null
+  // Explicitly play once video can play — handles browser autoplay quirks
+  const handleCanPlay = useCallback(() => {
+    const video = videoRef.current
+    if (video) {
+      video.play().catch(() => {
+        // Autoplay blocked — video stays as poster/first-frame fallback
+      })
+    }
+  }, [])
 
   return (
     <div
@@ -54,19 +59,19 @@ export function VideoBackground({
         hideOnMobile ? "hidden md:block" : ""
       } ${className ?? ""}`}
     >
-      {isVisible && (
+      {shouldLoad && (
         <video
           ref={videoRef}
+          src={src}
           autoPlay
           muted
           loop
           playsInline
           poster={poster}
-          preload="metadata"
+          preload="auto"
+          onCanPlay={handleCanPlay}
           className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source src={src} type="video/mp4" />
-        </video>
+        />
       )}
       {overlay && <div className={`absolute inset-0 ${overlay}`} />}
     </div>

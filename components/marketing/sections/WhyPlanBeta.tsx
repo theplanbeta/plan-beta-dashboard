@@ -63,7 +63,7 @@ export function WhyPlanBeta() {
               <motion.div
                 whileHover={{ scale: 1.02, y: -4 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="group relative h-full rounded-3xl overflow-hidden shadow-xl"
+                className="group relative h-full rounded-3xl overflow-hidden shadow-xl bg-slate-900"
               >
                 {/* Video Background (desktop only) */}
                 {feature.video && (
@@ -72,9 +72,6 @@ export function WhyPlanBeta() {
                     overlay="bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-slate-900/60 transition-all duration-500 group-hover:from-slate-900/90 group-hover:via-slate-900/70 group-hover:to-slate-900/50"
                   />
                 )}
-
-                {/* Mobile fallback gradient */}
-                <div className="absolute inset-0 bg-slate-900 md:hidden" />
 
                 {/* Content */}
                 <div className="relative z-10 p-8 md:p-10">

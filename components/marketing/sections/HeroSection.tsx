@@ -103,10 +103,10 @@ export function HeroSection() {
             >
               <Link
                 href="/site/contact"
-                onClick={() => trackEvent("cta_click", { label: "book_free_trial", location: "hero" })}
+                onClick={() => trackEvent("cta_click", { label: "contact_us", location: "hero" })}
                 className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white rounded-full bg-primary hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02]"
               >
-                Book Free Trial
+                Start Learning German
                 <svg
                   className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
                   fill="none"
@@ -134,7 +134,7 @@ export function HeroSection() {
               variants={item}
               className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mt-10 text-sm text-gray-500"
             >
-              {["Free trial class", "No credit card", "Cancel anytime"].map(
+              {["Expert teachers", "Small batches", "Flexible timings"].map(
                 (text) => (
                   <div key={text} className="flex items-center gap-2">
                     <svg

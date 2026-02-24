@@ -137,9 +137,9 @@ export default function AIChatbot() {
       case "prefer_live":
         response = {
           role: "assistant",
-          content: "The **A1 Live Classes** would be perfect for you!\n\n✅ Live sessions 5 days/week\n✅ Small batch (max 15 students)\n✅ All recordings included\n✅ Direct doubt clearing\n✅ Certificate on completion\n\n**Price:** ₹14,000 (was ₹17,500)\n**Next batch:** January 20, 2025\n\nWould you like to book a free trial class to experience our teaching?",
+          content: "The **A1 Live Classes** would be perfect for you!\n\n✅ Live sessions 5 days/week\n✅ Small batch (max 15 students)\n✅ All recordings included\n✅ Direct doubt clearing\n✅ Certificate on completion\n\n**Price:** ₹14,000 (was ₹17,500)\n**Next batch:** January 20, 2025\n\nWould you like to enquire about enrolling?",
           options: [
-            { label: "Yes, book a free trial!", value: "book_trial" },
+            { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "Tell me more about the course", value: "more_a1_live" },
             { label: "What about morning vs evening?", value: "q_timing" },
           ],
@@ -161,9 +161,9 @@ export default function AIChatbot() {
       case "completed_a1":
         response = {
           role: "assistant",
-          content: "Perfect! **A2 Live Classes** is your next step.\n\n✅ Builds on A1 foundation\n✅ More conversation practice\n✅ Grammar deep-dive\n✅ 10 weeks duration\n\n**Price:** ₹16,000 (was ₹20,000)\n**Next batch:** February 3, 2025\n\nWould you like to book a free trial?",
+          content: "Perfect! **A2 Live Classes** is your next step.\n\n✅ Builds on A1 foundation\n✅ More conversation practice\n✅ Grammar deep-dive\n✅ 10 weeks duration\n\n**Price:** ₹16,000 (was ₹20,000)\n**Next batch:** February 3, 2025\n\nWould you like to enquire about enrolling?",
           options: [
-            { label: "Yes, book a free trial!", value: "book_trial" },
+            { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "What topics are covered in A2?", value: "topics_a2" },
           ],
         }
@@ -172,9 +172,9 @@ export default function AIChatbot() {
       case "completed_a2":
         response = {
           role: "assistant",
-          content: "Excellent! You're ready for **B1 Live Classes** - the level required for most work visas!\n\n✅ Achieve intermediate fluency\n✅ Business German module\n✅ Goethe B1 exam prep\n✅ 12 weeks duration\n\n**Price:** ₹18,000 (was ₹22,500)\n**Next batch:** February 10, 2025\n\nWould you like to book a free trial?",
+          content: "Excellent! You're ready for **B1 Live Classes** - the level required for most work visas!\n\n✅ Achieve intermediate fluency\n✅ Business German module\n✅ Goethe B1 exam prep\n✅ 12 weeks duration\n\n**Price:** ₹18,000 (was ₹22,500)\n**Next batch:** February 10, 2025\n\nWould you like to enquire about enrolling?",
           options: [
-            { label: "Yes, book a free trial!", value: "book_trial" },
+            { label: "Yes, I'm interested!", value: "book_trial" },
             { label: "Tell me about B1 exam prep", value: "exam_b1" },
           ],
         }
@@ -243,7 +243,7 @@ export default function AIChatbot() {
       case "book_trial":
         response = {
           role: "assistant",
-          content: "Excellent! I'll help you book a free trial class. You can:\n\n1️⃣ **Fill out our contact form** - We'll call you within 24 hours\n\n2️⃣ **WhatsApp us directly** - Get instant response\n\nWhich would you prefer?",
+          content: "Excellent! Let me connect you with our team. You can:\n\n1️⃣ **Fill out our contact form** - We'll call you within 24 hours\n\n2️⃣ **WhatsApp us directly** - Get instant response\n\nWhich would you prefer?",
           options: [
             { label: "Take me to contact form", value: "goto_contact" },
             { label: "Chat on WhatsApp", value: "goto_whatsapp" },
@@ -259,7 +259,7 @@ export default function AIChatbot() {
       case "goto_whatsapp":
         trackEvent("chatbot_completed", { cta: "whatsapp" })
         window.open(
-          "https://wa.me/919876543210?text=Hi%20Plan%20Beta!%20I%20want%20to%20book%20a%20free%20trial%20class.",
+          "https://wa.me/919876543210?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20your%20German%20courses.",
           "_blank"
         )
         response = {
@@ -282,7 +282,7 @@ export default function AIChatbot() {
       default:
         response = {
           role: "assistant",
-          content: "I'd be happy to help with that! For more detailed information, I'd recommend booking a free consultation with our team. They can answer all your questions personally.\n\nWould you like to schedule a call?",
+          content: "I'd be happy to help with that! For more detailed information, I'd recommend getting in touch with our team. They can answer all your questions personally.\n\nWould you like to schedule a call?",
           options: [
             { label: "Yes, schedule a call", value: "book_trial" },
             { label: "I have other questions", value: "questions" },
@@ -303,9 +303,9 @@ export default function AIChatbot() {
     // Simple response for free-text input
     await simulateTyping({
       role: "assistant",
-      content: "Thanks for your message! For personalized help, I'd recommend connecting with our team directly. They can answer all your specific questions.\n\nWould you like to book a free consultation?",
+      content: "Thanks for your message! For personalized help, I'd recommend connecting with our team directly. They can answer all your specific questions.\n\nWould you like to get in touch?",
       options: [
-        { label: "Yes, book a consultation", value: "book_trial" },
+        { label: "Yes, contact the team", value: "book_trial" },
         { label: "Show me course options", value: "questions" },
       ],
     })

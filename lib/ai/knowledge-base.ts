@@ -151,8 +151,8 @@ const LEVEL_DATA: LevelInfo[] = [
  */
 const FAQ_DATA = [
   {
-    question: 'Do you offer a free trial class?',
-    answer: 'Yes! We offer a FREE demo class so you can experience our teaching method before enrolling. You can book it anytime.',
+    question: 'How can I enroll?',
+    answer: 'You can enquire about our courses through our contact form or WhatsApp. Our team will get back to you within 24 hours to help you get started.',
   },
   {
     question: 'What are the class timings?',
@@ -211,7 +211,7 @@ const GENERAL_INFO = {
   whatsapp: process.env.SUPPORT_WHATSAPP || '+91 XXX XXX XXXX',
   email: 'hello@planbeta.in',
   website: 'https://plan-beta-dashboard.vercel.app',
-  trialClass: 'Book your FREE trial class - No payment required!',
+  trialClass: 'Get in touch with our team to learn more about our courses!',
 }
 
 /**

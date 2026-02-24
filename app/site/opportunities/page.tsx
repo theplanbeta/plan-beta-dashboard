@@ -17,8 +17,8 @@ const sectors = [
     icon: "🏥",
     demand: "200,000+ unfilled positions",
     salary: "€2,800 - €4,500/month",
-    requirements: "B1 German + Nursing degree",
-    description: "Germany's healthcare sector faces a severe nursing shortage. Indian nurses with proper qualifications and B1 German are in high demand.",
+    requirements: "B2 German + BSc Nursing degree",
+    description: "Germany's healthcare sector faces a severe nursing shortage. Indian nurses with proper qualifications and B2 German are in high demand.",
     benefits: [
       "Fast-track visa processing",
       "Recognition of Indian nursing degrees",
@@ -27,7 +27,7 @@ const sectors = [
       "High job security",
     ],
     path: [
-      "Complete B1 German certification",
+      "Complete B2 German certification",
       "Get your nursing degree recognized (Anerkennung)",
       "Apply for a visa to seek employment",
       "Complete adaptation training if required",

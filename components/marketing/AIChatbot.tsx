@@ -316,7 +316,7 @@ export default function AIChatbot() {
       {/* Chat Button */}
       <button
         onClick={() => { setIsOpen(true); trackEvent("chatbot_opened") }}
-        className={`fixed bottom-24 right-6 z-40 w-14 h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary-dark transition-all hover:scale-110 ${
+        className={`fixed bottom-40 md:bottom-24 right-4 md:right-6 z-40 w-12 h-12 md:w-14 md:h-14 bg-primary rounded-full flex items-center justify-center shadow-lg hover:bg-primary-dark transition-all hover:scale-110 ${
           isOpen ? "hidden" : ""
         }`}
         aria-label="Open chat assistant"
@@ -335,7 +335,7 @@ export default function AIChatbot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
+        <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 w-[380px] max-w-[calc(100vw-32px)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200">
           {/* Header */}
           <div className="bg-primary px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">

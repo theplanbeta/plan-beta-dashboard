@@ -350,30 +350,37 @@ export default function MarketingLayout({
         </div>
       </footer>
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/[0.06]">
-        <div className="flex items-center justify-around h-16 px-2">
-          {bottomNav.map((item) => {
-            const isActive = item.href === "/site" ? pathname === "/site" : pathname.startsWith(item.href)
-            const El = item.external ? "a" : Link
-            const extraProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {}
+      {/* Mobile Bottom Dock */}
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+        <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/[0.1] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <div className="flex items-center justify-around h-14 px-1">
+            {bottomNav.map((item) => {
+              const isActive = item.href === "/site" ? pathname === "/site" : pathname.startsWith(item.href)
+              const El = item.external ? "a" : Link
+              const extraProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {}
 
-            return (
-              <El
-                key={item.name}
-                href={item.href}
-                {...extraProps}
-                className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors ${
-                  isActive
-                    ? "text-primary"
-                    : "text-gray-500"
-                }`}
-              >
-                {item.icon}
-                <span className="text-[10px] font-medium">{item.name}</span>
-              </El>
-            )
-          })}
+              return (
+                <El
+                  key={item.name}
+                  href={item.href}
+                  {...extraProps}
+                  className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-all duration-200 ${
+                    isActive
+                      ? "text-primary"
+                      : "text-gray-500 active:scale-90"
+                  }`}
+                >
+                  <span className={`transition-transform duration-200 ${isActive ? "scale-110" : ""}`}>
+                    {item.icon}
+                  </span>
+                  <span className="text-[10px] font-medium">{item.name}</span>
+                  {isActive && (
+                    <span className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary" />
+                  )}
+                </El>
+              )
+            })}
+          </div>
         </div>
       </nav>
 
@@ -383,7 +390,7 @@ export default function MarketingLayout({
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => trackEvent("whatsapp_click", { location: "floating_button" })}
-        className="fixed bottom-20 md:bottom-6 right-6 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-110"
+        className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-40 w-12 h-12 md:w-14 md:h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-110"
         aria-label="Chat on WhatsApp"
       >
         <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">

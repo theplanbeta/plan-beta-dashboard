@@ -370,7 +370,7 @@ export default function ContactPage() {
                 <h3 className="text-lg font-bold text-white mb-4">Follow Us</h3>
                 <div className="flex gap-4">
                   <a
-                    href="https://facebook.com/theplanbeta"
+                    href="https://facebook.com/aparnaboseofficial"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-white/[0.06] border border-white/[0.08] rounded-lg flex items-center justify-center hover:border-primary/20 transition-colors"
@@ -380,7 +380,7 @@ export default function ContactPage() {
                     </svg>
                   </a>
                   <a
-                    href="https://instagram.com/theplanbeta"
+                    href="https://instagram.com/learn.german.with.aparnabose"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-white/[0.06] border border-white/[0.08] rounded-lg flex items-center justify-center hover:border-primary/20 transition-colors"
@@ -390,7 +390,7 @@ export default function ContactPage() {
                     </svg>
                   </a>
                   <a
-                    href="https://youtube.com/@planbeta00"
+                    href="https://youtube.com/@planbeta_LearnGerman"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-white/[0.06] border border-white/[0.08] rounded-lg flex items-center justify-center hover:border-primary/20 transition-colors"

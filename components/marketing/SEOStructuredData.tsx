@@ -29,9 +29,9 @@ export function OrganizationSchema({
     country: "IN",
   },
   socialProfiles = [
-    "https://facebook.com/theplanbeta",
-    "https://instagram.com/theplanbeta",
-    "https://youtube.com/@planbeta00",
+    "https://facebook.com/aparnaboseofficial",
+    "https://instagram.com/learn.german.with.aparnabose",
+    "https://youtube.com/@planbeta_LearnGerman",
   ],
 }: OrganizationSchemaProps) {
   const schema = {

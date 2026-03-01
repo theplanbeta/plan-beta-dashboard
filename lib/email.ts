@@ -34,11 +34,11 @@ const emailFooter = `
     <div style="text-align: center; margin: 25px 0;">
       <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 12px; font-weight: 600;">Connect With Us</p>
       <div style="margin: 0;">
-        <a href="https://facebook.com/theplanbeta" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Facebook</a>
+        <a href="https://facebook.com/aparnaboseofficial" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Facebook</a>
         <span style="color: #d1d5db;">•</span>
-        <a href="https://instagram.com/theplanbeta" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Instagram</a>
+        <a href="https://instagram.com/learn.german.with.aparnabose" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">Instagram</a>
         <span style="color: #d1d5db;">•</span>
-        <a href="https://youtube.com/@planbeta00" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">YouTube</a>
+        <a href="https://youtube.com/@planbeta_LearnGerman" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">YouTube</a>
         <span style="color: #d1d5db;">•</span>
         <a href="https://www.linkedin.com/company/planbeta/" style="display: inline-block; margin: 0 10px; color: #6b7280; text-decoration: none; font-size: 13px;">LinkedIn</a>
       </div>

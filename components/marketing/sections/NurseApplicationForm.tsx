@@ -131,10 +131,10 @@ export function NurseApplicationForm() {
 
   if (success) {
     return (
-      <section className="py-20 bg-gray-900">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-green-500/15 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-10 h-10 text-green-500"
                 fill="none"
@@ -149,10 +149,10 @@ export function NurseApplicationForm() {
                 />
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+            <h3 className="text-2xl font-bold text-white mb-4">
               Application Submitted!
             </h3>
-            <p className="text-gray-600 mb-8">
+            <p className="text-gray-400 mb-8">
               Thank you for your interest in our nursing program. Our team will
               review your application and get back to you within 48 hours.
             </p>
@@ -170,7 +170,7 @@ export function NurseApplicationForm() {
               </a>
               <button
                 onClick={() => setSuccess(false)}
-                className="w-full px-6 py-3 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                className="w-full px-6 py-3 border border-white/[0.1] text-gray-300 rounded-lg font-medium hover:bg-white/[0.04] transition-colors"
               >
                 Submit Another Application
               </button>
@@ -182,7 +182,7 @@ export function NurseApplicationForm() {
   }
 
   return (
-    <section id="apply" className="py-20 bg-gray-900">
+    <section id="apply" className="py-20 bg-[#0a0a0a]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-white mb-4">
@@ -194,9 +194,9 @@ export function NurseApplicationForm() {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-8">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -204,7 +204,7 @@ export function NurseApplicationForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -214,14 +214,14 @@ export function NurseApplicationForm() {
                 onChange={handleChange}
                 required
                 placeholder="Enter your full name"
-                className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
               />
             </div>
 
             {/* Email & Phone */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -231,11 +231,11 @@ export function NurseApplicationForm() {
                   onChange={handleChange}
                   required
                   placeholder="your@email.com"
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Phone / WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -245,7 +245,7 @@ export function NurseApplicationForm() {
                   onChange={handleChange}
                   required
                   placeholder="+91 98765 43210"
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
                 />
               </div>
             </div>
@@ -253,7 +253,7 @@ export function NurseApplicationForm() {
             {/* Qualification & Experience */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Qualification <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -261,7 +261,7 @@ export function NurseApplicationForm() {
                   value={formData.qualification}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
                 >
                   <option value="">Select qualification...</option>
                   {qualifications.map((q) => (
@@ -272,7 +272,7 @@ export function NurseApplicationForm() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Experience <span className="text-red-500">*</span>
                 </label>
                 <select
@@ -280,7 +280,7 @@ export function NurseApplicationForm() {
                   value={formData.experience}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
                 >
                   <option value="">Select experience...</option>
                   {experienceLevels.map((e) => (
@@ -294,7 +294,7 @@ export function NurseApplicationForm() {
 
             {/* German Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Current German Level <span className="text-red-500">*</span>
               </label>
               <select
@@ -302,7 +302,7 @@ export function NurseApplicationForm() {
                 value={formData.germanLevel}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"
               >
                 <option value="">Select level...</option>
                 {germanLevels.map((l) => (
@@ -315,7 +315,7 @@ export function NurseApplicationForm() {
 
             {/* CV Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Upload CV <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -325,7 +325,7 @@ export function NurseApplicationForm() {
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                 />
               </div>
               <p className="mt-1.5 text-xs text-gray-500">
@@ -335,7 +335,7 @@ export function NurseApplicationForm() {
 
             {/* Message */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Message (Optional)
               </label>
               <textarea
@@ -344,7 +344,7 @@ export function NurseApplicationForm() {
                 onChange={handleChange}
                 rows={3}
                 placeholder="Tell us about your goals or any questions..."
-                className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all resize-none"
               />
             </div>
 
@@ -382,7 +382,7 @@ export function NurseApplicationForm() {
               )}
             </button>
 
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-gray-600 text-center">
               By submitting, you agree to our{" "}
               <a href="/privacy" className="text-primary hover:underline">
                 Privacy Policy

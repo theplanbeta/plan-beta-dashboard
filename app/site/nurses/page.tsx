@@ -83,9 +83,9 @@ export default function NursesPage() {
       <NurseLifeInGermany />
 
       {/* Inline Apply CTA */}
-      <section className="py-10 bg-white">
+      <section className="py-10 bg-[#0a0a0a]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-lg text-gray-600 mb-4">Ready to start your nursing career in Germany?</p>
+          <p className="text-lg text-gray-400 mb-4">Ready to start your nursing career in Germany?</p>
           <a
             href="#apply"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 hover:shadow-xl gap-2"
@@ -102,9 +102,9 @@ export default function NursesPage() {
       <NurseTimeline />
 
       {/* Inline Apply CTA */}
-      <section className="py-10 bg-gray-50">
+      <section className="py-10 bg-[#111]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-lg text-gray-600 mb-4">Take the first step — upload your CV and we&apos;ll guide you through</p>
+          <p className="text-lg text-gray-400 mb-4">Take the first step — upload your CV and we&apos;ll guide you through</p>
           <a
             href="#apply"
             className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 hover:shadow-xl gap-2"

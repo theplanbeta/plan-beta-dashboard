@@ -32,13 +32,13 @@ export function NurseTimeline() {
   const isInView = useInView(lineRef, { once: true, amount: 0.3 })
 
   return (
-    <section className="py-20 bg-white overflow-hidden">
+    <section className="py-20 bg-[#0a0a0a] overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateInView className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             How It Works
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             From application to your first day in a German hospital — a clear, supported journey.
           </p>
         </AnimateInView>
@@ -73,7 +73,7 @@ export function NurseTimeline() {
                         initial={{ scale: 0 }}
                         animate={isInView ? { scale: 1 } : { scale: 0 }}
                         transition={{ delay: 0.3 + index * 0.2, type: "spring", stiffness: 300, damping: 20 }}
-                        className="w-16 h-16 bg-white border-4 border-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
+                        className="w-16 h-16 bg-[#0a0a0a] border-4 border-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/20"
                       >
                         <span className="text-primary font-bold text-lg">{step.step}</span>
                       </motion.div>
@@ -83,9 +83,9 @@ export function NurseTimeline() {
                     <div className={`ml-20 lg:ml-0 lg:w-[calc(50%-3rem)] ${
                       isEven ? "lg:pr-8" : "lg:pl-8 lg:ml-auto"
                     }`}>
-                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">{step.description}</p>
+                      <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 hover:border-primary/20 transition-colors">
+                        <h3 className="text-lg font-bold text-white mb-2">{step.title}</h3>
+                        <p className="text-sm text-gray-400 leading-relaxed">{step.description}</p>
                       </div>
                     </div>
                   </div>

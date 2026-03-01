@@ -144,30 +144,31 @@ export default async function CoursesPage() {
       />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden bg-[#0a0a0a] py-20">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
               Find Your Perfect <span className="text-primary">German Course</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-4">
+            <p className="text-xl text-gray-400 mb-4">
               Live online classes via Google Meet. Small batches, experienced teachers, and a structured path from A1 to B2.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500 mb-8">
               <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Mon–Fri classes
               </span>
               <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Morning &amp; evening batches
               </span>
               <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
                 Live via Google Meet
@@ -178,7 +179,7 @@ export default async function CoursesPage() {
               href={THINKIFIC_LOGIN}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center px-5 py-2.5 text-sm font-medium text-gray-400 border border-white/[0.1] rounded-full hover:bg-white/[0.04] transition-colors"
             >
               Already enrolled? Log in
             </a>
@@ -187,13 +188,13 @@ export default async function CoursesPage() {
       </section>
 
       {/* Live Courses */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-14">
-            <h2 className="text-3xl font-bold text-gray-900 mb-3">
+            <h2 className="text-3xl font-bold text-white mb-3">
               Live Batch Courses
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-400 max-w-2xl mx-auto">
               Structured courses with experienced teachers. 1.5-hour sessions, Monday to Friday, with both morning and evening batches to fit your schedule.
             </p>
           </div>
@@ -202,7 +203,7 @@ export default async function CoursesPage() {
             {liveCourses.map((course) => (
               <div
                 key={course.id}
-                className="relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-shadow overflow-hidden"
+                className="relative bg-white/[0.04] border border-white/[0.08] rounded-2xl hover:border-primary/20 transition-colors overflow-hidden"
               >
                 {/* Level badge header */}
                 <div className={`bg-gradient-to-r ${course.color} px-6 py-4`}>
@@ -219,12 +220,12 @@ export default async function CoursesPage() {
                 </div>
 
                 <div className="p-6">
-                  <p className="text-gray-600 mb-5">{course.description}</p>
+                  <p className="text-gray-400 mb-5">{course.description}</p>
 
                   <ul className="space-y-2.5 mb-6">
                     {course.features.map((feature) => (
-                      <li key={feature} className="flex items-center text-sm text-gray-600">
-                        <svg className="w-4 h-4 text-green-500 mr-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <li key={feature} className="flex items-center text-sm text-gray-400">
+                        <svg className="w-4 h-4 text-primary mr-2.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                         {feature}
@@ -252,16 +253,16 @@ export default async function CoursesPage() {
 
       {/* Upcoming Batches — Dynamic from Dashboard */}
       {upcomingBatches.length > 0 && (
-        <section className="py-20 bg-gray-50">
+        <section className="py-20 bg-[#111]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
               <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
                 Starting Soon
               </p>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl font-bold text-white mb-3">
                 Upcoming Batches
               </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
+              <p className="text-gray-400 max-w-2xl mx-auto">
                 Limited seats available. Enroll now to secure your spot in the next batch.
               </p>
             </div>
@@ -277,7 +278,7 @@ export default async function CoursesPage() {
                 return (
                   <div
                     key={batch.id}
-                    className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-6"
+                    className="bg-white/[0.04] border border-white/[0.08] rounded-2xl hover:border-primary/20 transition-colors p-6"
                   >
                     {/* Status & timing */}
                     <div className="flex items-center justify-between mb-4">
@@ -286,14 +287,14 @@ export default async function CoursesPage() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: info?.color || "#6b7280" }}
                         />
-                        <span className="text-sm font-medium text-gray-900">{batch.batchCode}</span>
+                        <span className="text-sm font-medium text-white">{batch.batchCode}</span>
                       </div>
-                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-50 text-green-700 border border-green-200">
+                      <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
                         {startsIn <= 14 ? "Starting Soon" : "Enrolling"}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    <h3 className="text-lg font-bold text-white mb-1">
                       {info?.label || batch.level}
                     </h3>
 
@@ -320,12 +321,12 @@ export default async function CoursesPage() {
                     {/* Seats progress */}
                     <div className="mb-5">
                       <div className="flex justify-between text-xs mb-1.5">
-                        <span className="text-gray-600">
+                        <span className="text-gray-400">
                           {available} of {batch.totalSeats} seats left
                         </span>
                         <span className="text-gray-400">{fillPercent}% full</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div className="w-full bg-white/[0.1] rounded-full h-1.5">
                         <div
                           className="bg-primary rounded-full h-1.5 transition-all"
                           style={{ width: `${fillPercent}%` }}
@@ -353,22 +354,22 @@ export default async function CoursesPage() {
       )}
 
       {/* Exam Preparation */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-[#111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="inline-flex items-center gap-2 mb-4">
-                <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-amber-500/15 text-amber-400 text-xs font-medium rounded-full border border-amber-500/20">
                   TELC
                 </span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">
                   Goethe
                 </span>
               </span>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl font-bold text-white mb-3">
                 Exam Preparation
               </h2>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 Prepare for internationally recognized German exams. Our courses include dedicated exam prep modules with mock tests, exam strategies, and targeted practice for both TELC and Goethe certifications.
               </p>
 
@@ -381,8 +382,8 @@ export default async function CoursesPage() {
                   "Exam strategies & tips from experienced trainers",
                   "95%+ first-attempt pass rate",
                 ].map((feature) => (
-                  <li key={feature} className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <li key={feature} className="flex items-center text-gray-400">
+                    <svg className="w-5 h-5 text-primary mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     {feature}
@@ -404,11 +405,11 @@ export default async function CoursesPage() {
             </div>
 
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-amber-50 to-blue-50 rounded-2xl flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-amber-500/10 to-blue-500/5 border border-white/[0.08] rounded-2xl flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="text-7xl mb-4">📝</div>
-                  <p className="text-xl font-semibold text-gray-900">TELC &amp; Goethe Certified</p>
-                  <p className="text-gray-600 mt-2">Internationally recognized exams</p>
+                  <p className="text-xl font-semibold text-white">TELC &amp; Goethe Certified</p>
+                  <p className="text-gray-400 mt-2">Internationally recognized exams</p>
                 </div>
               </div>
             </div>
@@ -417,33 +418,33 @@ export default async function CoursesPage() {
       </section>
 
       {/* Speaking Improvement */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
-              <div className="aspect-square bg-gradient-to-br from-rose-50 to-primary/5 rounded-2xl flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-rose-500/10 to-primary/5 border border-white/[0.08] rounded-2xl flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="text-7xl mb-4">🗣️</div>
-                  <p className="text-xl font-semibold text-gray-900">Speak German Fluently</p>
-                  <p className="text-gray-600 mt-2">With Aparna Bose</p>
+                  <p className="text-xl font-semibold text-white">Speak German Fluently</p>
+                  <p className="text-gray-400 mt-2">With Aparna Bose</p>
                 </div>
               </div>
             </div>
 
             <div className="order-1 lg:order-2">
               <span className="inline-flex items-center gap-2 mb-4">
-                <span className="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-rose-500/15 text-rose-400 text-xs font-medium rounded-full border border-rose-500/20">
                   Fluency
                 </span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-white/[0.06] text-gray-400 text-xs font-medium rounded-full border border-white/[0.08]">
                   Specialized
                 </span>
               </span>
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl font-bold text-white mb-3">
                 German Speaking Improvement
               </h2>
               <p className="text-sm text-gray-500 mb-3">By Aparna Bose</p>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-400 mb-6">
                 A dedicated course focused entirely on spoken German fluency. Go beyond textbook learning with conversation practice, pronunciation coaching, and real-world speaking scenarios. Perfect for students who want to sound natural and confident.
               </p>
 
@@ -456,8 +457,8 @@ export default async function CoursesPage() {
                   "Small group for maximum speaking time",
                   "Taught by Aparna Bose",
                 ].map((feature) => (
-                  <li key={feature} className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <li key={feature} className="flex items-center text-gray-400">
+                    <svg className="w-5 h-5 text-primary mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     {feature}

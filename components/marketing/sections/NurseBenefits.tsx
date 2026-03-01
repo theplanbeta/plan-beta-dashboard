@@ -62,16 +62,16 @@ const benefits = [
 
 export function NurseBenefits() {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-[#0a0a0a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <AnimateInView className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Benefits
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Why Choose Plan Beta
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
             Everything you need for a successful nursing career in Germany.
           </p>
         </AnimateInView>
@@ -85,13 +85,13 @@ export function NurseBenefits() {
                 className="h-full"
               >
                 {/* Gradient border wrapper */}
-                <div className="h-full bg-gradient-to-br from-primary/20 via-transparent to-primary/10 p-[1px] rounded-2xl hover:from-primary/40 hover:to-primary/20 transition-all duration-300">
-                  <div className="h-full bg-white rounded-2xl p-6">
+                <div className="h-full bg-gradient-to-br from-primary/30 via-transparent to-primary/15 p-[1px] rounded-2xl hover:from-primary/50 hover:to-primary/30 transition-all duration-300">
+                  <div className="h-full bg-[#0a0a0a] rounded-2xl p-6">
                     <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-primary/5 text-primary rounded-xl flex items-center justify-center mb-4">
                       {benefit.icon}
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{benefit.title}</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">{benefit.description}</p>
+                    <h3 className="text-lg font-bold text-white mb-2">{benefit.title}</h3>
+                    <p className="text-sm text-gray-400 leading-relaxed">{benefit.description}</p>
                   </div>
                 </div>
               </motion.div>

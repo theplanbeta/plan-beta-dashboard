@@ -50,16 +50,17 @@ export default function ReferPage() {
       <FAQSchema faqs={faqItems} />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative bg-[#0a0a0a] py-20 overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <p className="text-sm font-medium text-primary mb-3 uppercase tracking-wide">
               Referral Program
             </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
               Refer a Friend, <span className="text-primary">Earn Rs.2,000</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-400 mb-8">
               Love learning German with us? Share the experience with your friends and earn rewards for every successful enrollment.
             </p>
             <Link
@@ -73,9 +74,9 @@ export default function ReferPage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
+          <h2 className="text-3xl font-bold text-white mb-12 text-center">
             How It Works
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -99,12 +100,12 @@ export default function ReferPage() {
                   "Once your friend completes enrollment, you receive Rs.2,000 as a reward. It's that simple!",
               },
             ].map((item) => (
-              <div key={item.step} className="text-center p-8 rounded-xl bg-gray-50">
+              <div key={item.step} className="text-center p-8 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-primary/20 transition-colors">
                 <div className="w-12 h-12 bg-primary text-white text-xl font-bold rounded-full flex items-center justify-center mx-auto mb-4">
                   {item.step}
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.description}</p>
+                <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
+                <p className="text-gray-400">{item.description}</p>
               </div>
             ))}
           </div>
@@ -112,18 +113,18 @@ export default function ReferPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-[#111]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">
             {faqItems.map((item) => (
-              <details key={item.question} className="group rounded-xl bg-white p-5 shadow-sm">
-                <summary className="cursor-pointer text-lg font-medium text-gray-900 list-none flex items-center justify-between">
+              <details key={item.question} className="group rounded-xl bg-white/[0.04] border border-white/[0.08] p-5">
+                <summary className="cursor-pointer text-lg font-medium text-white list-none flex items-center justify-between">
                   {item.question}
                   <svg
-                    className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"
+                    className="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -131,7 +132,7 @@ export default function ReferPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </summary>
-                <p className="mt-3 text-gray-600">{item.answer}</p>
+                <p className="mt-3 text-gray-400">{item.answer}</p>
               </details>
             ))}
           </div>

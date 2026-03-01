@@ -63,13 +63,14 @@ export default function AboutPage() {
       <OrganizationSchema />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-50 via-white to-red-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-[#0a0a0a] relative overflow-hidden py-20">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
               Helping Keralites Build Their <span className="text-primary">German Dream</span>
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-gray-400">
               We started Plan Beta because we believe that language shouldn&apos;t be a barrier to opportunity.
               Today, we&apos;re Kerala&apos;s most trusted German language institute.
             </p>
@@ -102,12 +103,12 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
-              <div className="space-y-4 text-gray-600">
+              <h2 className="text-3xl font-bold text-white mb-6">Our Story</h2>
+              <div className="space-y-4 text-gray-400">
                 <p>
                   Plan Beta was born from a simple observation: talented, hardworking people in Kerala
                   were missing out on life-changing opportunities in Germany simply because they
@@ -129,7 +130,7 @@ export default function AboutPage() {
                   More than 500 of our alumni are now living and working in Germany - as nurses,
                   engineers, IT professionals, and more.
                 </p>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-white">
                   But we&apos;re just getting started. Our mission remains the same: to help every
                   determined Keralite unlock opportunities in Germany through quality German education.
                 </p>
@@ -139,8 +140,8 @@ export default function AboutPage() {
               <div className="aspect-square bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="text-8xl mb-4">🎓</div>
-                  <p className="text-xl font-semibold text-gray-900">Transforming Lives</p>
-                  <p className="text-gray-600 mt-2">One student at a time</p>
+                  <p className="text-xl font-semibold text-white">Transforming Lives</p>
+                  <p className="text-gray-400 mt-2">One student at a time</p>
                 </div>
               </div>
             </div>
@@ -149,18 +150,18 @@ export default function AboutPage() {
       </section>
 
       {/* Our Values */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-[#111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">What We Stand For</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl font-bold text-white mb-4">What We Stand For</h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               Our values guide everything we do at Plan Beta.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {values.map((value, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 text-center hover:shadow-lg transition-shadow">
+              <div key={index} className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-6 text-center hover:border-primary/20 transition-colors">
                 <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   {value.icon === "heart" && (
                     <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,8 +184,8 @@ export default function AboutPage() {
                     </svg>
                   )}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{value.title}</h3>
-                <p className="text-gray-600 text-sm">{value.description}</p>
+                <h3 className="text-lg font-semibold text-white mb-2">{value.title}</h3>
+                <p className="text-gray-400 text-sm">{value.description}</p>
               </div>
             ))}
           </div>
@@ -192,18 +193,18 @@ export default function AboutPage() {
       </section>
 
       {/* Timeline */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Our Journey</h2>
-            <p className="text-xl text-gray-600">
+            <h2 className="text-3xl font-bold text-white mb-4">Our Journey</h2>
+            <p className="text-xl text-gray-400">
               From a small beginning to Kerala&apos;s leading German institute.
             </p>
           </div>
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 md:left-1/2 md:-ml-0.5" />
+            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-white/[0.1] md:left-1/2 md:-ml-0.5" />
 
             <div className="space-y-12">
               {milestones.map((milestone, index) => (
@@ -222,9 +223,9 @@ export default function AboutPage() {
                       index % 2 === 0 ? "md:pr-12 md:text-right" : "md:pl-12"
                     }`}
                   >
-                    <div className="bg-gray-50 rounded-xl p-6">
+                    <div className="bg-white/[0.04] border border-white/[0.06] rounded-xl p-6">
                       <div className="text-primary font-bold text-lg mb-1">{milestone.year}</div>
-                      <div className="text-gray-700">{milestone.event}</div>
+                      <div className="text-gray-300">{milestone.event}</div>
                     </div>
                   </div>
                 </div>
@@ -235,17 +236,17 @@ export default function AboutPage() {
       </section>
 
       {/* What Makes Us Different */}
-      <section className="py-20 bg-gray-900 text-white">
+      <section className="py-20 bg-[#111]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Why Students Choose Plan Beta</h2>
+            <h2 className="text-3xl font-bold mb-4 text-white">Why Students Choose Plan Beta</h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               We&apos;re not just another language school. Here&apos;s what makes us different.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">🎯</div>
               <h3 className="text-xl font-semibold mb-3">Exam-Focused Curriculum</h3>
               <p className="text-gray-400">
@@ -253,7 +254,7 @@ export default function AboutPage() {
                 95% of our students pass on their first attempt.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">🗣️</div>
               <h3 className="text-xl font-semibold mb-3">Malayalam Support</h3>
               <p className="text-gray-400">
@@ -261,7 +262,7 @@ export default function AboutPage() {
                 Our instructors explain complex concepts in your native language.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">👥</div>
               <h3 className="text-xl font-semibold mb-3">Small Batch Sizes</h3>
               <p className="text-gray-400">
@@ -269,7 +270,7 @@ export default function AboutPage() {
                 for everyone.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">📹</div>
               <h3 className="text-xl font-semibold mb-3">Recorded Classes</h3>
               <p className="text-gray-400">
@@ -277,7 +278,7 @@ export default function AboutPage() {
                 24 hours for you to review.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">🌍</div>
               <h3 className="text-xl font-semibold mb-3">Beyond Language</h3>
               <p className="text-gray-400">
@@ -285,7 +286,7 @@ export default function AboutPage() {
                 connects you with professionals already there.
               </p>
             </div>
-            <div className="bg-gray-800 rounded-xl p-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl p-8">
               <div className="text-4xl mb-4">💪</div>
               <h3 className="text-xl font-semibold mb-3">Proven Results</h3>
               <p className="text-gray-400">

@@ -7,7 +7,7 @@ import { courses } from "@/lib/marketing-data"
 
 export function CoursesSection() {
   return (
-    <section className="py-32 bg-slate-900 relative overflow-hidden">
+    <section className="py-32 bg-[#111] relative overflow-hidden">
       {/* Background accents */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[150px]" />

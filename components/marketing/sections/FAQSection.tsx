@@ -17,21 +17,21 @@ function FAQItem({
 
   return (
     <AnimateInView delay={index * 0.05}>
-      <div className="border-b border-gray-100 last:border-0">
+      <div className="border-b border-white/[0.06] last:border-0">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between py-6 text-left group"
         >
-          <span className="text-lg font-semibold text-gray-900 pr-8 group-hover:text-primary transition-colors">
+          <span className="text-lg font-semibold text-white pr-8 group-hover:text-primary transition-colors">
             {faq.question}
           </span>
           <motion.div
             animate={{ rotate: isOpen ? 45 : 0 }}
             transition={{ duration: 0.2 }}
-            className="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-primary/10 transition-colors"
+            className="flex-shrink-0 w-8 h-8 bg-white/[0.06] rounded-full flex items-center justify-center group-hover:bg-primary/10 transition-colors"
           >
             <svg
-              className="w-4 h-4 text-gray-500"
+              className="w-4 h-4 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -54,7 +54,7 @@ function FAQItem({
           transition={{ duration: 0.3, ease: "easeInOut" }}
           style={{ overflow: "hidden" }}
         >
-          <p className="pb-6 text-gray-600 leading-relaxed pr-12">
+          <p className="pb-6 text-gray-400 leading-relaxed pr-12">
             {faq.answer}
           </p>
         </motion.div>
@@ -65,14 +65,14 @@ function FAQItem({
 
 export function FAQSection({ faqs }: { faqs: FAQ[] }) {
   return (
-    <section className="py-32 bg-white">
+    <section className="py-32 bg-[#111]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <AnimateInView className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             FAQ
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
             Got Questions?
           </h2>
         </AnimateInView>

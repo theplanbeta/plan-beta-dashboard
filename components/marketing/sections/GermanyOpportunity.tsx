@@ -25,8 +25,10 @@ const opportunities = [
 
 export function GermanyOpportunity() {
   return (
-    <section className="py-32 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-32 bg-[#0a0a0a] overflow-hidden">
+      {/* Dot pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-20 items-center">
           {/* Content */}
           <div>
@@ -34,13 +36,13 @@ export function GermanyOpportunity() {
               <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
                 Opportunities
               </p>
-              <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight mb-6">
+              <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
                 Germany Needs{" "}
                 <span className="bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
                   You
                 </span>
               </h2>
-              <p className="text-lg text-gray-600 leading-relaxed mb-10">
+              <p className="text-lg text-gray-400 leading-relaxed mb-10">
                 Germany is facing its biggest skilled worker shortage. With the
                 right qualifications and German language skills, a new life
                 awaits.
@@ -50,15 +52,15 @@ export function GermanyOpportunity() {
             <div className="space-y-6 mb-10">
               {opportunities.map((opp, i) => (
                 <AnimateInView key={opp.title} delay={i * 0.1}>
-                  <div className="flex items-start gap-5 p-5 rounded-2xl hover:bg-gray-50 transition-colors">
-                    <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                  <div className="flex items-start gap-5 p-5 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                    <div className="w-14 h-14 bg-white/[0.06] border border-white/[0.08] rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
                       {opp.icon}
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-900">
+                      <h3 className="text-lg font-bold text-white">
                         {opp.title}
                       </h3>
-                      <p className="text-gray-600 text-sm mt-1">{opp.desc}</p>
+                      <p className="text-gray-500 text-sm mt-1">{opp.desc}</p>
                     </div>
                   </div>
                 </AnimateInView>
@@ -68,7 +70,7 @@ export function GermanyOpportunity() {
             <AnimateInView delay={0.3}>
               <Link
                 href="/site/opportunities"
-                className="group inline-flex items-center px-6 py-3 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-gray-800 transition-all"
+                className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-100 transition-all"
               >
                 Explore All Opportunities
                 <svg

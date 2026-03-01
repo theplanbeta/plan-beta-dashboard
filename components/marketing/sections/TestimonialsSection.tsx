@@ -20,14 +20,16 @@ export function TestimonialsSection() {
   }, [paused, next])
 
   return (
-    <section className="py-32 bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-32 bg-[#0a0a0a]">
+      {/* Dot pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <AnimateInView className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Success Stories
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
             Hear From Our Students
           </h2>
         </AnimateInView>
@@ -39,7 +41,7 @@ export function TestimonialsSection() {
           onMouseLeave={() => setPaused(false)}
         >
           {/* Large decorative quote */}
-          <div className="absolute -top-8 left-0 text-[180px] leading-none text-gray-200/50 font-serif select-none pointer-events-none">
+          <div className="absolute -top-8 left-0 text-[180px] leading-none text-white/[0.04] font-serif select-none pointer-events-none">
             &ldquo;
           </div>
 
@@ -52,7 +54,7 @@ export function TestimonialsSection() {
               transition={{ duration: 0.4, ease: "easeOut" }}
               className="relative z-10"
             >
-              <blockquote className="text-xl sm:text-2xl text-gray-700 leading-relaxed mb-8 font-medium">
+              <blockquote className="text-xl sm:text-2xl text-gray-300 leading-relaxed mb-8 font-medium">
                 &ldquo;{testimonials[active].content}&rdquo;
               </blockquote>
 
@@ -61,7 +63,7 @@ export function TestimonialsSection() {
                   {testimonials[active].avatar}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-white">
                     {testimonials[active].name}
                   </p>
                   <p className="text-sm text-gray-500">
@@ -85,7 +87,7 @@ export function TestimonialsSection() {
               className={`transition-all duration-300 rounded-full ${
                 i === active
                   ? "w-8 h-2 bg-primary"
-                  : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
+                  : "w-2 h-2 bg-white/20 hover:bg-white/40"
               }`}
               aria-label={`Show testimonial ${i + 1}`}
             />

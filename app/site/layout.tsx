@@ -364,11 +364,9 @@ export default function MarketingLayout({
                 href={item.href}
                 {...extraProps}
                 className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors ${
-                  item.highlight
+                  isActive
                     ? "text-primary"
-                    : isActive
-                      ? "text-white"
-                      : "text-gray-500"
+                    : "text-gray-500"
                 }`}
               >
                 {item.icon}

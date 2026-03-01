@@ -92,23 +92,15 @@ export function CoursesSection() {
                   ))}
                 </ul>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link
-                    href="/site/contact"
-                    className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
-                  >
-                    Start Learning
-                    <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </Link>
-                  <Link
-                    href="/site/courses"
-                    className="inline-flex items-center justify-center px-6 py-3.5 bg-white/10 text-white font-medium rounded-full hover:bg-white/15 transition-all"
-                  >
-                    View Details
-                  </Link>
-                </div>
+                <Link
+                  href="/site/contact"
+                  className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
+                >
+                  Start Learning
+                  <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
               </div>
 
               {/* Right — Stats Grid */}

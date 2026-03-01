@@ -80,7 +80,7 @@ export default function DonutChart({ data, size = 200 }: DonutChartProps) {
         {/* Center text */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-2xl font-bold text-foreground">{total}</div>
+            <div className="text-2xl font-bold text-foreground">{total.toFixed(2)}</div>
             <div className="text-xs text-gray-500">Total</div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function DonutChart({ data, size = 200 }: DonutChartProps) {
             <div className="text-sm">
               <span className="text-gray-700">{item.label}</span>
               <span className="text-gray-500 ml-2">
-                {item.value} ({((item.value / total) * 100).toFixed(0)}%)
+                {item.value.toFixed(2)} ({((item.value / total) * 100).toFixed(0)}%)
               </span>
             </div>
           </div>

@@ -50,6 +50,28 @@ export async function POST(req: NextRequest) {
 
     const { batchId, date, hoursWorked, description, hourlyRate } = validation.data
 
+    // Validate date is not more than 30 days in the past
+    const entryDate = new Date(date)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+    if (entryDate < thirtyDaysAgo) {
+      return NextResponse.json(
+        { error: 'Cannot log hours more than 30 days in the past' },
+        { status: 400 }
+      )
+    }
+
+    const today = new Date()
+    today.setHours(23, 59, 59, 999)
+    if (entryDate > today) {
+      return NextResponse.json(
+        { error: 'Cannot log hours for future dates' },
+        { status: 400 }
+      )
+    }
+
     // Get teacher's hourly rate and batch info if needed
     const teacher = await prisma.user.findUnique({
       where: { id: session.user.id },

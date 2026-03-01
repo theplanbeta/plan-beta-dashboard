@@ -135,10 +135,10 @@ export default function LineChart({
       {/* Value range */}
       <div className="flex justify-between text-xs text-gray-600">
         <span>
-          {valuePrefix}{minValue.toLocaleString()}{valueSuffix}
+          {valuePrefix}{minValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}{valueSuffix}
         </span>
         <span>
-          {valuePrefix}{maxValue.toLocaleString()}{valueSuffix}
+          {valuePrefix}{maxValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}{valueSuffix}
         </span>
       </div>
     </div>

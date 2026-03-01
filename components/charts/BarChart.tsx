@@ -42,7 +42,7 @@ export default function BarChart({
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                    {valuePrefix}{item.value.toLocaleString()}{valueSuffix}
+                    {valuePrefix}{item.value.toLocaleString(undefined, { maximumFractionDigits: 2 })}{valueSuffix}
                   </div>
                   <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
                 </div>

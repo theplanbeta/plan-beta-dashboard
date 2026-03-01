@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
         const eurAmt = e.type === "RECURRING"
           ? toEur(Number(e.amount), e.currency) * (daysAgo / 30)
           : toEur(Number(e.amount), e.currency)
-        acc[e.category] = (acc[e.category] || 0) + eurAmt
+        acc[e.category] = Math.round(((acc[e.category] || 0) + eurAmt) * 100) / 100
         return acc
       }, {} as Record<string, number>
     )

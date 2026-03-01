@@ -143,7 +143,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
+        <div className="fixed inset-x-3 top-16 lg:absolute lg:inset-x-auto lg:top-auto lg:left-0 lg:mt-2 w-auto lg:w-96 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               Notifications
@@ -177,7 +177,7 @@ export default function NotificationBell() {
                       <span className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${typeIcon(n.type)} bg-current`} />
                     )}
                     <div className={!n.read ? "" : "ml-4"}>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {n.title}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">

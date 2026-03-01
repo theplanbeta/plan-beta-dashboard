@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { format } from 'date-fns'
 import { PencilIcon, TrashIcon, CheckIcon, XMarkIcon, BanknotesIcon } from '@heroicons/react/24/outline'
 import { formatCurrency } from '@/lib/utils'
@@ -38,6 +38,8 @@ interface HoursListTableProps {
   onApprove?: (entry: TeacherHourEntry) => void
   onReject?: (entry: TeacherHourEntry) => void
   onMarkPaid?: (entry: TeacherHourEntry) => void
+  onBulkApprove?: (entries: TeacherHourEntry[]) => void
+  onBulkReject?: (entries: TeacherHourEntry[]) => void
 }
 
 export default function HoursListTable({
@@ -49,9 +51,12 @@ export default function HoursListTable({
   onApprove,
   onReject,
   onMarkPaid,
+  onBulkApprove,
+  onBulkReject,
 }: HoursListTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
   const [paidFilter, setPaidFilter] = useState<string>('ALL')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   // Filter entries
   const filteredEntries = entries.filter((entry) => {
@@ -65,6 +70,61 @@ export default function HoursListTable({
   const sortedEntries = [...filteredEntries].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
+
+  // Pending entries in current view (selectable)
+  const pendingIds = useMemo(
+    () => new Set(sortedEntries.filter((e) => e.status === 'PENDING').map((e) => e.id)),
+    [sortedEntries]
+  )
+
+  // Selected entries data
+  const selectedEntries = useMemo(
+    () => sortedEntries.filter((e) => selectedIds.has(e.id)),
+    [sortedEntries, selectedIds]
+  )
+
+  const selectedTotalHours = useMemo(
+    () => selectedEntries.reduce((sum, e) => sum + Number(e.hoursWorked), 0),
+    [selectedEntries]
+  )
+
+  const selectedTotalAmount = useMemo(
+    () => selectedEntries.reduce((sum, e) => sum + Number(e.totalAmount), 0),
+    [selectedEntries]
+  )
+
+  const allPendingSelected =
+    pendingIds.size > 0 && [...pendingIds].every((id) => selectedIds.has(id))
+
+  const somePendingSelected =
+    pendingIds.size > 0 && [...pendingIds].some((id) => selectedIds.has(id))
+
+  const showCheckboxes = isFounder && (onBulkApprove || onBulkReject)
+  const colSpan = (isFounder ? 9 : 8) + (showCheckboxes ? 1 : 0)
+
+  function toggleSelectAll() {
+    if (allPendingSelected) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(pendingIds))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set())
+  }
 
   if (loading) {
     return (
@@ -82,7 +142,7 @@ export default function HoursListTable({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
+    <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700">
       {/* Header with filters */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -92,7 +152,10 @@ export default function HoursListTable({
           <div className="flex flex-wrap gap-3">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value)
+                clearSelection()
+              }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="ALL">All Status</option>
@@ -102,7 +165,10 @@ export default function HoursListTable({
             </select>
             <select
               value={paidFilter}
-              onChange={(e) => setPaidFilter(e.target.value)}
+              onChange={(e) => {
+                setPaidFilter(e.target.value)
+                clearSelection()
+              }}
               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="ALL">All Payment</option>
@@ -118,6 +184,21 @@ export default function HoursListTable({
         <table className="w-full">
           <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600">
             <tr>
+              {showCheckboxes && (
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allPendingSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = somePendingSelected && !allPendingSelected
+                    }}
+                    onChange={toggleSelectAll}
+                    disabled={pendingIds.size === 0}
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 disabled:opacity-30"
+                    title={pendingIds.size === 0 ? 'No pending entries' : 'Select all pending'}
+                  />
+                </th>
+              )}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Date
               </th>
@@ -152,115 +233,174 @@ export default function HoursListTable({
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {sortedEntries.length === 0 ? (
               <tr>
-                <td colSpan={isFounder ? 9 : 8} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={colSpan} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
                   No hours logged yet
                 </td>
               </tr>
             ) : (
-              sortedEntries.map((entry) => (
-                <tr
-                  key={entry.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                    {format(new Date(entry.date), 'MMM dd, yyyy')}
-                  </td>
-                  {isFounder && (
+              sortedEntries.map((entry) => {
+                const isPending = entry.status === 'PENDING'
+                const isSelected = selectedIds.has(entry.id)
+                return (
+                  <tr
+                    key={entry.id}
+                    className={`transition-colors ${
+                      isSelected
+                        ? 'bg-blue-50 dark:bg-blue-900/20'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'
+                    }`}
+                  >
+                    {showCheckboxes && (
+                      <td className="px-4 py-4">
+                        {isPending ? (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(entry.id)}
+                            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                          />
+                        ) : (
+                          <div className="h-4 w-4" />
+                        )}
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      <div>
-                        <div className="font-medium">{entry.teacher?.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{entry.teacher?.email}</div>
+                      {format(new Date(entry.date), 'MMM dd, yyyy')}
+                    </td>
+                    {isFounder && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                        <div>
+                          <div className="font-medium">{entry.teacher?.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{entry.teacher?.email}</div>
+                        </div>
+                      </td>
+                    )}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                      {entry.batch?.batchCode || '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {Number(entry.hoursWorked).toFixed(1)}h
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                      {entry.hourlyRate ? formatCurrency(entry.hourlyRate, 'INR') : '-'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {formatCurrency(entry.totalAmount, 'INR')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <HoursStatusBadge status={entry.status} paid={entry.paid} />
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
+                      {entry.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Teacher actions - only for PENDING entries */}
+                        {!isFounder && entry.status === 'PENDING' && (
+                          <>
+                            {onEdit && (
+                              <button
+                                onClick={() => onEdit(entry)}
+                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                title="Edit"
+                              >
+                                <PencilIcon className="h-5 w-5" />
+                              </button>
+                            )}
+                            {onDelete && (
+                              <button
+                                onClick={() => onDelete(entry)}
+                                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                title="Delete"
+                              >
+                                <TrashIcon className="h-5 w-5" />
+                              </button>
+                            )}
+                          </>
+                        )}
+
+                        {/* Founder actions */}
+                        {isFounder && (
+                          <>
+                            {entry.status === 'PENDING' && (
+                              <>
+                                {onApprove && (
+                                  <button
+                                    onClick={() => onApprove(entry)}
+                                    className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors"
+                                    title="Approve"
+                                  >
+                                    <CheckIcon className="h-5 w-5" />
+                                  </button>
+                                )}
+                                {onReject && (
+                                  <button
+                                    onClick={() => onReject(entry)}
+                                    className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                                    title="Reject"
+                                  >
+                                    <XMarkIcon className="h-5 w-5" />
+                                  </button>
+                                )}
+                              </>
+                            )}
+                            {entry.status === 'APPROVED' && !entry.paid && onMarkPaid && (
+                              <button
+                                onClick={() => onMarkPaid(entry)}
+                                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                                title="Mark as Paid"
+                              >
+                                <BanknotesIcon className="h-5 w-5" />
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </td>
-                  )}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                    {entry.batch?.batchCode || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {Number(entry.hoursWorked).toFixed(1)}h
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                    {entry.hourlyRate ? formatCurrency(entry.hourlyRate, 'INR') : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {formatCurrency(entry.totalAmount, 'INR')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <HoursStatusBadge status={entry.status} paid={entry.paid} />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300 max-w-xs truncate">
-                    {entry.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
-                      {/* Teacher actions - only for PENDING entries */}
-                      {!isFounder && entry.status === 'PENDING' && (
-                        <>
-                          {onEdit && (
-                            <button
-                              onClick={() => onEdit(entry)}
-                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                              title="Edit"
-                            >
-                              <PencilIcon className="h-5 w-5" />
-                            </button>
-                          )}
-                          {onDelete && (
-                            <button
-                              onClick={() => onDelete(entry)}
-                              className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                              title="Delete"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          )}
-                        </>
-                      )}
-
-                      {/* Founder actions */}
-                      {isFounder && (
-                        <>
-                          {entry.status === 'PENDING' && (
-                            <>
-                              {onApprove && (
-                                <button
-                                  onClick={() => onApprove(entry)}
-                                  className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors"
-                                  title="Approve"
-                                >
-                                  <CheckIcon className="h-5 w-5" />
-                                </button>
-                              )}
-                              {onReject && (
-                                <button
-                                  onClick={() => onReject(entry)}
-                                  className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                                  title="Reject"
-                                >
-                                  <XMarkIcon className="h-5 w-5" />
-                                </button>
-                              )}
-                            </>
-                          )}
-                          {entry.status === 'APPROVED' && !entry.paid && onMarkPaid && (
-                            <button
-                              onClick={() => onMarkPaid(entry)}
-                              className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                              title="Mark as Paid"
-                            >
-                              <BanknotesIcon className="h-5 w-5" />
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Bulk Action Bar */}
+      {showCheckboxes && selectedIds.size > 0 && (
+        <div className="sticky bottom-0 border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 px-6 py-3 flex flex-wrap items-center justify-between gap-3 rounded-b-lg shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            <span className="font-semibold">{selectedIds.size}</span> selected
+            <span className="text-gray-400 dark:text-gray-500 mx-1">·</span>
+            {selectedTotalHours.toFixed(1)}h
+            <span className="text-gray-400 dark:text-gray-500 mx-1">·</span>
+            {formatCurrency(selectedTotalAmount, 'INR')}
+          </span>
+          <div className="flex items-center gap-2">
+            {onBulkApprove && (
+              <button
+                onClick={() => onBulkApprove(selectedEntries)}
+                className="px-4 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+              >
+                Approve All
+              </button>
+            )}
+            {onBulkReject && (
+              <button
+                onClick={() => onBulkReject(selectedEntries)}
+                className="px-4 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Reject All
+              </button>
+            )}
+            <button
+              onClick={clearSelection}
+              className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

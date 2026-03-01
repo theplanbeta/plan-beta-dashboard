@@ -5,13 +5,15 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 import { format } from 'date-fns'
+import { formatCurrency } from '@/lib/utils'
 import { TeacherHourEntry } from './HoursListTable'
 
 interface ApproveRejectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  entry: TeacherHourEntry | null
+  entry?: TeacherHourEntry | null
+  entries?: TeacherHourEntry[]
   mode: 'approve' | 'reject'
 }
 
@@ -20,15 +22,17 @@ export default function ApproveRejectModal({
   onClose,
   onSuccess,
   entry,
+  entries,
   mode,
 }: ApproveRejectModalProps) {
   const [rejectionReason, setRejectionReason] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const isBulk = entries && entries.length > 0
+  const isApprove = mode === 'approve'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!entry) return
 
     if (mode === 'reject' && !rejectionReason.trim()) {
       toast.error('Please provide a reason for rejection')
@@ -38,37 +42,72 @@ export default function ApproveRejectModal({
     setLoading(true)
 
     try {
-      const payload =
-        mode === 'approve'
+      if (isBulk) {
+        // Bulk mode — call bulk-approve endpoint
+        const response = await fetch('/api/teacher-hours/bulk-approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ids: entries.map((e) => e.id),
+            action: isApprove ? 'APPROVED' : 'REJECTED',
+            rejectionReason: !isApprove ? rejectionReason.trim() : undefined,
+          }),
+        })
+
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || `Failed to ${mode} entries`)
+        }
+
+        const result = await response.json()
+        toast.success(
+          `${result.updatedCount} entries ${isApprove ? 'approved' : 'rejected'}`
+        )
+      } else if (entry) {
+        // Single mode — call individual endpoint
+        const payload = isApprove
           ? { status: 'APPROVED' }
           : { status: 'REJECTED', rejectionReason: rejectionReason.trim() }
 
-      const response = await fetch(`/api/teacher-hours/${entry.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+        const response = await fetch(`/api/teacher-hours/${entry.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || `Failed to ${mode} entry`)
+        if (!response.ok) {
+          const error = await response.json()
+          throw new Error(error.error || `Failed to ${mode} entry`)
+        }
+
+        toast.success(isApprove ? 'Entry approved' : 'Entry rejected')
       }
 
-      toast.success(mode === 'approve' ? 'Entry approved' : 'Entry rejected')
       setRejectionReason('')
       onSuccess()
       onClose()
     } catch (error) {
-      console.error(`Error ${mode}ing entry:`, error)
-      toast.error(error instanceof Error ? error.message : `Failed to ${mode} entry`)
+      console.error(`Error ${mode}ing:`, error)
+      toast.error(
+        error instanceof Error ? error.message : `Failed to ${mode} entries`
+      )
     } finally {
       setLoading(false)
     }
   }
 
-  if (!entry) return null
+  if (!entry && !isBulk) return null
 
-  const isApprove = mode === 'approve'
+  // Compute bulk summary
+  const bulkTotalHours = isBulk
+    ? entries.reduce((sum, e) => sum + Number(e.hoursWorked), 0)
+    : 0
+  const bulkTotalAmount = isBulk
+    ? entries.reduce((sum, e) => sum + Number(e.totalAmount), 0)
+    : 0
+  const bulkTeachers = isBulk
+    ? [...new Set(entries.map((e) => e.teacher?.name).filter(Boolean))]
+    : []
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -105,12 +144,12 @@ export default function ApproveRejectModal({
                     {isApprove ? (
                       <>
                         <CheckCircleIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                        Approve Hours
+                        {isBulk ? `Approve ${entries.length} Entries` : 'Approve Hours'}
                       </>
                     ) : (
                       <>
                         <XCircleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
-                        Reject Hours
+                        {isBulk ? `Reject ${entries.length} Entries` : 'Reject Hours'}
                       </>
                     )}
                   </Dialog.Title>
@@ -124,48 +163,79 @@ export default function ApproveRejectModal({
 
                 {/* Entry Details */}
                 <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Teacher:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {entry.teacher?.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {format(new Date(entry.date), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
-                  {entry.batch && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Batch:</span>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {entry.batch.name}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Hours:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {Number(entry.hoursWorked).toFixed(1)}h
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">Rate:</span>
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {entry.hourlyRate ? `€${Number(entry.hourlyRate).toFixed(2)}` : '-'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
-                    <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      €{Number(entry.totalAmount).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-gray-300 dark:border-gray-600">
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Description:</p>
-                    <p className="text-sm text-gray-900 dark:text-white">{entry.description}</p>
-                  </div>
+                  {isBulk ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Entries:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {entries.length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Teachers:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {bulkTeachers.join(', ')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Total Hours:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {bulkTotalHours.toFixed(1)}h
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
+                        <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {formatCurrency(bulkTotalAmount, 'INR')}
+                        </span>
+                      </div>
+                    </>
+                  ) : entry ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Teacher:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {entry.teacher?.name}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Date:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {format(new Date(entry.date), 'MMM dd, yyyy')}
+                        </span>
+                      </div>
+                      {entry.batch && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">Batch:</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {entry.batch.name || entry.batch.batchCode}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Hours:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {Number(entry.hoursWorked).toFixed(1)}h
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400">Rate:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {entry.hourlyRate ? formatCurrency(entry.hourlyRate, 'INR') : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm border-t border-gray-300 dark:border-gray-600 pt-2 mt-2">
+                        <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {formatCurrency(entry.totalAmount, 'INR')}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-gray-300 dark:border-gray-600">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Description:</p>
+                        <p className="text-sm text-gray-900 dark:text-white">{entry.description}</p>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -194,8 +264,9 @@ export default function ApproveRejectModal({
                   {isApprove && (
                     <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
                       <p className="text-sm text-green-800 dark:text-green-300">
-                        This will approve the hours entry. The teacher will be able to see the
-                        approval status.
+                        {isBulk
+                          ? `This will approve all ${entries.length} selected entries. Teachers will be able to see the approval status.`
+                          : 'This will approve the hours entry. The teacher will be able to see the approval status.'}
                       </p>
                     </div>
                   )}
@@ -219,7 +290,15 @@ export default function ApproveRejectModal({
                           : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
                       }`}
                     >
-                      {loading ? 'Processing...' : isApprove ? 'Approve' : 'Reject'}
+                      {loading
+                        ? 'Processing...'
+                        : isApprove
+                          ? isBulk
+                            ? `Approve ${entries.length} Entries`
+                            : 'Approve'
+                          : isBulk
+                            ? `Reject ${entries.length} Entries`
+                            : 'Reject'}
                     </button>
                   </div>
                 </form>

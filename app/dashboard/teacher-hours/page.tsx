@@ -80,6 +80,7 @@ export default function TeacherHoursPage() {
   const [approveRejectMode, setApproveRejectMode] = useState<'approve' | 'reject'>('approve')
   const [markPaidModalOpen, setMarkPaidModalOpen] = useState(false)
   const [markPaidEntry, setMarkPaidEntry] = useState<TeacherHourEntry | null>(null)
+  const [bulkEntries, setBulkEntries] = useState<TeacherHourEntry[]>([])
 
   const isFounder = session?.user?.role === 'FOUNDER'
   const isTeacher = session?.user?.role === 'TEACHER'
@@ -260,6 +261,20 @@ export default function TeacherHoursPage() {
     setMarkPaidModalOpen(true)
   }
 
+  const handleBulkApprove = (selected: TeacherHourEntry[]) => {
+    setBulkEntries(selected)
+    setApproveRejectEntry(null)
+    setApproveRejectMode('approve')
+    setApproveRejectModalOpen(true)
+  }
+
+  const handleBulkReject = (selected: TeacherHourEntry[]) => {
+    setBulkEntries(selected)
+    setApproveRejectEntry(null)
+    setApproveRejectMode('reject')
+    setApproveRejectModalOpen(true)
+  }
+
   const handleSuccess = () => {
     fetchEntries()
     fetchSummary()
@@ -397,6 +412,8 @@ export default function TeacherHoursPage() {
             onApprove={isFounder ? handleApprove : undefined}
             onReject={isFounder ? handleReject : undefined}
             onMarkPaid={isFounder ? handleMarkPaid : undefined}
+            onBulkApprove={isFounder ? handleBulkApprove : undefined}
+            onBulkReject={isFounder ? handleBulkReject : undefined}
           />
         </>
       )}
@@ -445,9 +462,11 @@ export default function TeacherHoursPage() {
             onClose={() => {
               setApproveRejectModalOpen(false)
               setApproveRejectEntry(null)
+              setBulkEntries([])
             }}
             onSuccess={handleSuccess}
             entry={approveRejectEntry}
+            entries={bulkEntries}
             mode={approveRejectMode}
           />
 

@@ -1,5 +1,29 @@
 // Shared data for marketing site — used by both server and client components
 
+export const selfPacedCourse = {
+  id: "a1-self-paced",
+  title: "German A1 Foundation",
+  subtitle: "Self-Paced Course",
+  description:
+    "Learn German at your own pace with 100+ video lessons, exercises, and native speaker audio. Perfect for working professionals and people with shift duties who can't attend fixed live sessions.",
+  duration: "Lifetime access",
+  level: "Beginner",
+  features: [
+    "100+ video lessons",
+    "Practice exercises after each lesson",
+    "Audio from native German speakers",
+    "Malayalam explanations",
+    "Taught by Aparna Bose (Founder)",
+    "Lifetime access to all updates",
+  ],
+  stats: {
+    videos: "100+",
+    exercises: "50+",
+    audio: "Native",
+    access: "Lifetime",
+  },
+}
+
 export const courses = [
   {
     id: "a1-live",

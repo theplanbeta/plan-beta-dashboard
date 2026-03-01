@@ -482,35 +482,35 @@ export default async function CoursesPage() {
       </section>
 
       {/* A1 Foundation — Self-Paced */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="inline-flex items-center gap-2 mb-4">
-                <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-orange-500/15 text-orange-400 text-xs font-medium rounded-full border border-orange-500/20">
                   Malayalam
                 </span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+                <span className="px-3 py-1 bg-white/[0.06] text-gray-400 text-xs font-medium rounded-full border border-white/[0.08]">
                   Self-Paced
                 </span>
               </span>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">German A1 Foundation</h2>
+              <h2 className="text-3xl font-bold text-white mb-2">German A1 Foundation</h2>
               <p className="text-gray-500 text-sm mb-3">Self-Paced Learning in Malayalam</p>
-              <p className="text-gray-600 mb-6">
-                Learn at your own pace with our comprehensive A1 course designed for Malayalam speakers. Perfect if you prefer flexibility over fixed schedules.
+              <p className="text-gray-400 mb-6">
+                Learn at your own pace with our comprehensive A1 course designed for Malayalam speakers. 100+ video lessons with native speaker audio, exercises, and lifetime access. Perfect for working professionals and shift workers.
               </p>
 
               <ul className="space-y-3 mb-8">
                 {[
-                  "50+ video lessons",
-                  "Downloadable materials",
+                  "100+ video lessons",
                   "Practice exercises",
+                  "Native speaker audio",
                   "Malayalam explanations",
+                  "Taught by Aparna Bose (Founder)",
                   "Lifetime access to updates",
-                  "Certificate on completion",
                 ].map((feature, i) => (
-                  <li key={i} className="flex items-center text-gray-600">
-                    <svg className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <li key={i} className="flex items-center text-gray-300">
+                    <svg className="w-5 h-5 text-primary mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     {feature}
@@ -532,11 +532,11 @@ export default async function CoursesPage() {
             </div>
 
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-orange-50 to-primary/5 rounded-2xl flex items-center justify-center">
+              <div className="aspect-square bg-gradient-to-br from-primary/10 to-orange-500/5 rounded-2xl border border-white/[0.08] flex items-center justify-center">
                 <div className="text-center p-8">
                   <div className="text-7xl mb-4">📚</div>
-                  <p className="text-xl font-semibold text-gray-900">Learn at Your Own Pace</p>
-                  <p className="text-gray-600 mt-2">50+ lessons in Malayalam</p>
+                  <p className="text-xl font-semibold text-white">Learn at Your Own Pace</p>
+                  <p className="text-gray-400 mt-2">100+ lessons in Malayalam</p>
                 </div>
               </div>
             </div>

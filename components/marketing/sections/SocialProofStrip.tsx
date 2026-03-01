@@ -63,7 +63,7 @@ export function SocialProofStrip() {
           </div>
 
           {/* Stats */}
-          <div className="flex items-center divide-x divide-white/10 flex-shrink-0">
+          <div className="grid grid-cols-2 sm:flex items-center sm:divide-x divide-white/10 flex-shrink-0 gap-y-4 sm:gap-y-0">
             {stats.map((stat) => (
               <StatItem key={stat.label} stat={stat} />
             ))}

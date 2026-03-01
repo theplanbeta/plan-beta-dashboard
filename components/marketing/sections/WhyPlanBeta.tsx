@@ -75,13 +75,13 @@ function BentoCard({ children, className = "" }: { children: React.ReactNode; cl
 
 export function WhyPlanBeta() {
   return (
-    <section className="relative py-32 bg-[#0a0a0a]">
+    <section className="relative py-16 md:py-32 bg-[#0a0a0a]">
       {/* Subtle dot pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
-        <AnimateInView className="text-center mb-20">
+        <AnimateInView className="text-center mb-10 md:mb-20">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Why Choose Us
           </p>
@@ -91,22 +91,22 @@ export function WhyPlanBeta() {
         </AnimateInView>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
           {features.map((feature, index) => (
             <AnimateInView
               key={feature.title}
               delay={index * 0.08}
-              className={feature.span === 2 ? "md:col-span-2" : ""}
+              className={feature.span === 2 ? "col-span-2" : ""}
             >
               <BentoCard>
-                <div className="relative z-10 p-8 md:p-10">
-                  <div className="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] text-white flex items-center justify-center mb-6">
+                <div className="relative z-10 p-5 md:p-10">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/[0.06] border border-white/[0.08] text-white flex items-center justify-center mb-3 md:mb-6">
                     {iconMap[feature.icon]}
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-3">
+                  <h3 className="text-base md:text-xl font-bold text-white mb-1.5 md:mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <p className="text-gray-400 text-sm md:text-base leading-relaxed">
                     {feature.description}
                   </p>
                 </div>

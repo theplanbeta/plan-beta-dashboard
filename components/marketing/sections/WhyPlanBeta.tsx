@@ -1,8 +1,8 @@
 "use client"
 
+import { useRef, useCallback, useState } from "react"
 import { motion } from "framer-motion"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
-import { VideoBackground } from "@/components/marketing/VideoBackground"
 import { features } from "@/lib/marketing-data"
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -38,26 +38,54 @@ const iconMap: Record<string, React.ReactNode> = {
   ),
 }
 
-// Each card gets a unique accent color for its animated orbs
-const cardAccents = [
-  { primary: "bg-primary/20", secondary: "bg-blue-500/15" },
-  { primary: "bg-violet-500/20", secondary: "bg-primary/15" },
-  { primary: "bg-blue-500/20", secondary: "bg-cyan-500/15" },
-  { primary: "bg-primary/20", secondary: "bg-orange-500/15" },
-  { primary: "bg-emerald-500/20", secondary: "bg-primary/15" },
-  { primary: "bg-amber-500/20", secondary: "bg-primary/15" },
-]
+function BentoCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [isHovered, setIsHovered] = useState(false)
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current
+    if (!card) return
+    const rect = card.getBoundingClientRect()
+    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+  }, [])
+
+  return (
+    <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      className={`relative h-full rounded-2xl border border-white/[0.08] bg-neutral-900 overflow-hidden transition-colors duration-300 hover:border-white/[0.15] ${className}`}
+    >
+      {/* Mouse-tracking glow */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none z-0 transition-opacity duration-300"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(600px circle at ${mousePos.x}px ${mousePos.y}px, rgba(210, 48, 44, 0.1), transparent 40%)`,
+        }}
+      />
+      {children}
+    </motion.div>
+  )
+}
 
 export function WhyPlanBeta() {
   return (
-    <section className="py-32 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-32 bg-[#0a0a0a]">
+      {/* Subtle dot pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <AnimateInView className="text-center mb-20">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Why Choose Us
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
             The Plan Beta Advantage
           </h2>
         </AnimateInView>
@@ -70,48 +98,19 @@ export function WhyPlanBeta() {
               delay={index * 0.08}
               className={feature.span === 2 ? "md:col-span-2" : ""}
             >
-              <motion.div
-                whileHover={{ scale: 1.02, y: -4 }}
-                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="group relative h-full rounded-3xl overflow-hidden shadow-xl bg-slate-900"
-              >
-                {/* Video Background (desktop only) */}
-                {feature.video && (
-                  <VideoBackground
-                    src={feature.video}
-                    overlay="bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-slate-900/60 transition-all duration-500 group-hover:from-slate-900/90 group-hover:via-slate-900/70 group-hover:to-slate-900/50"
-                  />
-                )}
-
-                {/* Animated gradient orbs — visible on mobile, behind video on desktop */}
-                <div className="absolute inset-0 md:hidden">
-                  <motion.div
-                    animate={{ y: [0, -20, 0], x: [0, 10, 0], scale: [1, 1.1, 1] }}
-                    transition={{ duration: 6 + index, repeat: Infinity, ease: "easeInOut" }}
-                    className={`absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full blur-[80px] ${cardAccents[index]?.primary ?? "bg-primary/20"}`}
-                  />
-                  <motion.div
-                    animate={{ y: [0, 15, 0], x: [0, -10, 0], scale: [1, 1.05, 1] }}
-                    transition={{ duration: 8 + index, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                    className={`absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 rounded-full blur-[80px] ${cardAccents[index]?.secondary ?? "bg-blue-500/15"}`}
-                  />
-                  {/* Subtle grid pattern */}
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
-                </div>
-
-                {/* Content */}
+              <BentoCard>
                 <div className="relative z-10 p-8 md:p-10">
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 text-white flex items-center justify-center mb-6">
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] text-white flex items-center justify-center mb-6">
                     {iconMap[feature.icon]}
                   </div>
                   <h3 className="text-xl font-bold text-white mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-gray-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
-              </motion.div>
+              </BentoCard>
             </AnimateInView>
           ))}
         </div>

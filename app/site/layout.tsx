@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import AIChatbot from "@/components/marketing/AIChatbot"
 import PushNotificationPrompt from "@/components/marketing/PushNotificationPrompt"
 import { trackEvent } from "@/lib/tracking"
@@ -18,7 +18,6 @@ export default function MarketingLayout({
   children: React.ReactNode
 }) {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -42,17 +41,67 @@ export default function MarketingLayout({
     { name: "Contact", href: "/site/contact" },
   ]
 
+  const bottomNav = [
+    {
+      name: "Home",
+      href: "/site",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      ),
+    },
+    {
+      name: "Courses",
+      href: "/site/courses",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      ),
+    },
+    {
+      name: "Contact",
+      href: "/site/contact",
+      highlight: true,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+      ),
+    },
+    {
+      name: "Nurses",
+      href: "/site/nurses",
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+        </svg>
+      ),
+    },
+    {
+      name: "Login",
+      href: "https://courses.planbeta.in/users/sign_in",
+      external: true,
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+        </svg>
+      ),
+    },
+  ]
+
   const isHome = pathname === "/site"
-  const navTransparent = isHome && !isScrolled && !isMobileMenuOpen
+  const navTransparent = isHome && !isScrolled
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          navTransparent && !isMobileMenuOpen
+          navTransparent
             ? "bg-transparent"
-            : "bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm"
+            : "bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/[0.06]"
         }`}
       >
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,9 +116,7 @@ export default function MarketingLayout({
                 className="rounded-lg transition-all duration-300"
               />
               <span
-                className={`text-lg font-semibold tracking-tight transition-colors duration-300 ${
-                  navTransparent ? "text-white" : "text-gray-900"
-                }`}
+                className="text-lg font-semibold tracking-tight text-white"
               >
                 Plan Beta
               </span>
@@ -83,21 +130,15 @@ export default function MarketingLayout({
                   href={item.href}
                   className={`relative px-4 py-2 text-sm font-medium transition-colors duration-300 ${
                     pathname === item.href
-                      ? navTransparent
-                        ? "text-white"
-                        : "text-primary"
-                      : navTransparent
-                        ? "text-white/80 hover:text-white"
-                        : "text-gray-600 hover:text-gray-900"
+                      ? "text-white"
+                      : "text-white/60 hover:text-white"
                   }`}
                 >
                   {item.name}
                   {pathname === item.href && (
                     <motion.div
                       layoutId="nav-indicator"
-                      className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${
-                        navTransparent ? "bg-white" : "bg-primary"
-                      }`}
+                      className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-primary"
                     />
                   )}
                 </Link>
@@ -110,111 +151,26 @@ export default function MarketingLayout({
                 href="https://courses.planbeta.in/users/sign_in"
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`hidden md:inline-flex items-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                  navTransparent
-                    ? "text-white/80 hover:text-white border border-white/30 hover:border-white/60"
-                    : "text-gray-600 hover:text-gray-900 border border-gray-300 hover:border-gray-400"
-                }`}
+                className="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 text-white/70 hover:text-white border border-white/20 hover:border-white/40"
               >
                 Student Login
               </a>
               <Link
                 href="/site/contact"
-                className={`hidden md:inline-flex items-center px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${
-                  navTransparent
-                    ? "bg-white text-gray-900 hover:bg-gray-100 shadow-lg shadow-white/10"
-                    : "bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30"
-                }`}
+                className="hidden md:inline-flex items-center px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
               >
                 Contact Us
               </Link>
 
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-                className={`md:hidden p-2 rounded-lg transition-colors ${
-                  navTransparent
-                    ? "text-white hover:bg-white/10"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+              <Link
+                href="/site/contact"
+                className="md:hidden inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full bg-primary text-white"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  {isMobileMenuOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
-                  )}
-                </svg>
-              </button>
+                Contact
+              </Link>
             </div>
           </div>
 
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-                className="md:hidden overflow-hidden"
-              >
-                <div className="py-4 space-y-1">
-                  {navigation.map((item) => (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                        pathname === item.href
-                          ? navTransparent
-                            ? "bg-white/10 text-white"
-                            : "bg-primary/10 text-primary"
-                          : navTransparent
-                            ? "text-white/80 hover:bg-white/10"
-                            : "text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                  <div className="pt-2 px-4 space-y-2">
-                    <Link
-                      href="/site/contact"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block w-full text-center px-4 py-3 bg-primary text-white rounded-full font-semibold"
-                    >
-                      Contact Us
-                    </Link>
-                    <a
-                      href="https://courses.planbeta.in/users/sign_in"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded-full font-medium"
-                    >
-                      Student Login
-                    </a>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </nav>
       </header>
 
@@ -394,13 +350,42 @@ export default function MarketingLayout({
         </div>
       </footer>
 
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-white/[0.06]">
+        <div className="flex items-center justify-around h-16 px-2">
+          {bottomNav.map((item) => {
+            const isActive = item.href === "/site" ? pathname === "/site" : pathname.startsWith(item.href)
+            const El = item.external ? "a" : Link
+            const extraProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {}
+
+            return (
+              <El
+                key={item.name}
+                href={item.href}
+                {...extraProps}
+                className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors ${
+                  item.highlight
+                    ? "text-primary"
+                    : isActive
+                      ? "text-white"
+                      : "text-gray-500"
+                }`}
+              >
+                {item.icon}
+                <span className="text-[10px] font-medium">{item.name}</span>
+              </El>
+            )
+          })}
+        </div>
+      </nav>
+
       {/* WhatsApp Floating Button */}
       <a
         href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => trackEvent("whatsapp_click", { location: "floating_button" })}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-110"
+        className="fixed bottom-20 md:bottom-6 right-6 z-50 w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all hover:scale-110"
         aria-label="Chat on WhatsApp"
       >
         <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">

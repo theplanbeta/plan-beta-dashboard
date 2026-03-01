@@ -43,14 +43,14 @@ export default function MarketingLayout({
   ]
 
   const isHome = pathname === "/site"
-  const navTransparent = isHome && !isScrolled
+  const navTransparent = isHome && !isScrolled && !isMobileMenuOpen
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          navTransparent
+          navTransparent && !isMobileMenuOpen
             ? "bg-transparent"
             : "bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm"
         }`}
@@ -61,7 +61,7 @@ export default function MarketingLayout({
             <Link href="/site" className="flex items-center space-x-3">
               <Image
                 src="/blogo.png"
-                alt="Plan Beta"
+                alt=""
                 width={36}
                 height={36}
                 className="rounded-lg transition-all duration-300"
@@ -131,6 +131,7 @@ export default function MarketingLayout({
 
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
                 className={`md:hidden p-2 rounded-lg transition-colors ${
                   navTransparent
                     ? "text-white hover:bg-white/10"
@@ -240,7 +241,7 @@ export default function MarketingLayout({
               <div className="flex items-center space-x-3 mb-6">
                 <Image
                   src="/blogo.png"
-                  alt="Plan Beta"
+                  alt=""
                   width={36}
                   height={36}
                   className="rounded-lg"

@@ -6,16 +6,22 @@ import { trackEvent } from "@/lib/tracking"
 
 const container = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.3 } },
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0 } },
 }
 
 const item = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] as const },
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
   },
+}
+
+// The h1 is the LCP element — render it immediately without animation delay
+const lcpItem = {
+  hidden: { opacity: 1, y: 0 },
+  visible: { opacity: 1, y: 0 },
 }
 
 export function HeroSection() {
@@ -74,9 +80,9 @@ export function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Headline */}
+            {/* Headline — LCP element, no animation delay */}
             <motion.h1
-              variants={item}
+              variants={lcpItem}
               className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6"
             >
               Your Journey to{" "}

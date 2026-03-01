@@ -237,13 +237,19 @@ export async function GET(request: NextRequest) {
       const windowNetProfit = windowRevenue - windowTeacherCost - windowOpEx
       const windowMargin = windowRevenue > 0 ? (windowNetProfit / windowRevenue) * 100 : 0
 
+      const roundedRev = Math.round(windowRevenue * 100) / 100
+      const roundedTC = Math.round(windowTeacherCost * 100) / 100
+      const roundedOE = Math.round(windowOpEx * 100) / 100
+      const roundedNP = Math.round((roundedRev - roundedTC - roundedOE) * 100) / 100
+      const roundedMargin = roundedRev > 0 ? Math.round((roundedNP / roundedRev) * 1000) / 10 : 0
+
       return {
         days: windowDays,
-        revenue: Math.round(windowRevenue * 100) / 100,
-        teacherCost: Math.round(windowTeacherCost * 100) / 100,
-        operatingExpenses: Math.round(windowOpEx * 100) / 100,
-        netProfit: Math.round(windowNetProfit * 100) / 100,
-        margin: Math.round(windowMargin * 10) / 10,
+        revenue: roundedRev,
+        teacherCost: roundedTC,
+        operatingExpenses: roundedOE,
+        netProfit: roundedNP,
+        margin: roundedMargin,
       }
     })
 
@@ -763,19 +769,22 @@ function generateMonthlyPnL(
   return Object.entries(months)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, data]) => {
-      const opEx = recurringMonthly + (oneTimeByMonth[month] || 0)
-      const grossProfit = data.revenue - data.teacherCosts
-      const netProfit = data.revenue - data.teacherCosts - opEx
-      const margin = data.revenue > 0 ? (netProfit / data.revenue) * 100 : 0
+      // Round individual values first, then derive totals for self-consistent display
+      const roundedRevenue = Math.round(data.revenue * 100) / 100
+      const roundedTeacherCosts = Math.round(data.teacherCosts * 100) / 100
+      const roundedOpEx = Math.round((recurringMonthly + (oneTimeByMonth[month] || 0)) * 100) / 100
+      const roundedGrossProfit = Math.round((roundedRevenue - roundedTeacherCosts) * 100) / 100
+      const roundedNetProfit = Math.round((roundedRevenue - roundedTeacherCosts - roundedOpEx) * 100) / 100
+      const margin = roundedRevenue > 0 ? Math.round((roundedNetProfit / roundedRevenue) * 1000) / 10 : 0
 
       return {
         month,
-        revenue: Math.round(data.revenue * 100) / 100,
-        teacherCosts: Math.round(data.teacherCosts * 100) / 100,
-        operatingExpenses: Math.round(opEx * 100) / 100,
-        grossProfit: Math.round(grossProfit * 100) / 100,
-        netProfit: Math.round(netProfit * 100) / 100,
-        margin: Math.round(margin * 10) / 10,
+        revenue: roundedRevenue,
+        teacherCosts: roundedTeacherCosts,
+        operatingExpenses: roundedOpEx,
+        grossProfit: roundedGrossProfit,
+        netProfit: roundedNetProfit,
+        margin,
       }
     })
 }

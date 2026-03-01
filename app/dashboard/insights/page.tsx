@@ -182,10 +182,10 @@ export default function InsightsPage() {
   }, [period])
 
   useEffect(() => {
-    if (activeTab === "batches" && !batchData) {
+    if (activeTab === "batches") {
       fetchBatchProfitability()
     }
-  }, [activeTab])
+  }, [activeTab, period])
 
   const fetchInsights = async () => {
     setLoading(true)
@@ -203,7 +203,7 @@ export default function InsightsPage() {
   const fetchBatchProfitability = async () => {
     setBatchLoading(true)
     try {
-      const res = await fetch("/api/analytics/batch-profitability")
+      const res = await fetch(`/api/analytics/batch-profitability?period=${period}`)
       const result = await res.json()
       setBatchData(result)
     } catch (error) {

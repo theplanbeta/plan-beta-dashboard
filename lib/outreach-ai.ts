@@ -134,7 +134,7 @@ export async function generateCallBrief(studentId: string): Promise<CallBrief> {
     const prompt = buildCallBriefPrompt(studentData)
 
     // Generate AI response
-    const result = await generateContent(prompt, 'gemini-1.5-flash')
+    const result = await generateContent(prompt, 'gemini-2.5-flash-lite')
 
     if (!result.success) {
       return gracefulDegradation_CallBrief(studentId, result.error || 'AI generation failed')
@@ -218,7 +218,7 @@ export async function findMeaningfulConnections(studentId: string): Promise<Conn
     const prompt = buildConnectionMatchingPrompt(targetStudent, candidateStudents)
 
     // Generate AI response
-    const result = await generateContent(prompt, 'gemini-1.5-flash')
+    const result = await generateContent(prompt, 'gemini-2.5-flash-lite')
 
     if (!result.success) {
       return {
@@ -297,7 +297,7 @@ export async function enhanceCallNotes(
     const prompt = buildNotesEnhancementPrompt(rawNotes, studentContext)
 
     // Generate AI response
-    const result = await generateContent(prompt, 'gemini-1.5-flash')
+    const result = await generateContent(prompt, 'gemini-2.5-flash-lite')
 
     if (!result.success) {
       return gracefulDegradation_CallNotes(rawNotes, result.error || 'AI generation failed')

@@ -34,9 +34,9 @@ const genAI = initializeGemini()
 
 /**
  * Get Gemini model instance
- * Uses gemini-1.5-flash for fast, cost-effective responses
+ * Uses gemini-2.5-flash-lite for fast, cost-effective responses
  */
-export function getGeminiModel(modelName: string = 'gemini-1.5-flash'): GenerativeModel | null {
+export function getGeminiModel(modelName: string = 'gemini-2.5-flash-lite'): GenerativeModel | null {
   if (!genAI) {
     console.error('[Gemini Client] Gemini AI not initialized. Check API key.')
     return null
@@ -91,7 +91,7 @@ async function waitForRateLimit(): Promise<void> {
  */
 export async function generateContent(
   prompt: string,
-  modelName: string = 'gemini-1.5-flash',
+  modelName: string = 'gemini-2.5-flash-lite',
   options?: {
     retries?: number
     timeout?: number
@@ -165,7 +165,7 @@ export async function generateContent(
  */
 export async function generateContentStream(
   prompt: string,
-  modelName: string = 'gemini-1.5-flash'
+  modelName: string = 'gemini-2.5-flash-lite'
 ): Promise<{ success: boolean; stream?: AsyncIterable<string>; error?: string }> {
   await waitForRateLimit()
 

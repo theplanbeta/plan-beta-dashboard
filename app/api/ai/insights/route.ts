@@ -356,7 +356,7 @@ export async function GET(request: NextRequest) {
 
     // Generate insights via Gemini
     const prompt = buildInsightPrompt(data, type)
-    const result = await generateContent(prompt, 'gemini-1.5-flash', {
+    const result = await generateContent(prompt, 'gemini-2.5-flash-lite', {
       timeout: type === 'deep_analysis' ? 60000 : 30000,
     })
 
@@ -416,7 +416,7 @@ export async function POST(request: NextRequest) {
 
     // Answer question via Gemini
     const prompt = buildQuestionPrompt(question, data)
-    const result = await generateContent(prompt, 'gemini-1.5-flash', {
+    const result = await generateContent(prompt, 'gemini-2.5-flash-lite', {
       timeout: 30000,
     })
 

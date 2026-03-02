@@ -32,6 +32,7 @@ export const PERMISSIONS: Record<
     outreach: { read: true, create: true, update: true, delete: true },
     expenses: { read: true, create: true, update: true, delete: true },
     adSpend: { read: true, create: true, update: true, delete: true },
+    utmLinks: { read: true, create: true, update: true, delete: true },
   },
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
@@ -51,6 +52,7 @@ export const PERMISSIONS: Record<
     outreach: { read: false, create: false, update: false, delete: false },
     expenses: { read: false, create: false, update: false, delete: false },
     adSpend: { read: false, create: false, update: false, delete: false },
+    utmLinks: { read: true, create: true, update: true, delete: true },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -165,6 +167,11 @@ export const NAVIGATION: NavItem[] = [
     name: 'Expenses',
     href: '/dashboard/expenses',
     roles: ['FOUNDER'],
+  },
+  {
+    name: 'UTM Links',
+    href: '/dashboard/utm-links',
+    roles: ['FOUNDER', 'MARKETING'],
   },
   {
     name: 'Ad Spend',

@@ -1278,3 +1278,23 @@ model AdSpend {
   @@index([platform])
   @@index([date])
 }
+
+model UtmLink {
+  id          String   @id @default(cuid())
+  name        String
+  destination String
+  slug        String   @unique
+  utmSource   String
+  utmMedium   String
+  utmCampaign String
+  utmContent  String?
+  utmTerm     String?
+  clicks      Int      @default(0)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([utmCampaign])
+  @@index([createdBy])
+}

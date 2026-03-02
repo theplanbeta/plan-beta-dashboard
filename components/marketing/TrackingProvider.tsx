@@ -44,17 +44,23 @@ export default function TrackingProvider() {
     return () => window.removeEventListener("consent-updated", handler)
   }, [])
 
-  // On mount, if consent was already granted (returning user), update consent mode
+  // When consent is granted (returning user or fresh accept), update consent mode and fire page_view
   useEffect(() => {
-    if (consented && typeof window !== "undefined" && window.gtag) {
-      window.gtag("consent", "update", {
-        ad_storage: "granted",
-        ad_user_data: "granted",
-        ad_personalization: "granted",
-        analytics_storage: "granted",
-      })
+    if (!consented || typeof window === "undefined" || !window.gtag) return
+
+    window.gtag("consent", "update", {
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted",
+      analytics_storage: "granted",
+    })
+
+    // Fire initial page_view now that consent is granted
+    // (the one in the script tag was blocked because analytics_storage was denied)
+    if (GA_MEASUREMENT_ID) {
+      window.gtag("event", "page_view", { page_path: pathname })
     }
-  }, [consented])
+  }, [consented, pathname])
 
   // Track SPA page views on route changes
   useEffect(() => {

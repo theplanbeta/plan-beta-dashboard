@@ -11,8 +11,8 @@ export async function GET() {
     // Overall average revenue per student
     const overallLTV = await prisma.student.aggregate({
       where: { completionStatus: { in: ["ACTIVE", "COMPLETED"] } },
-      _avg: { totalPaid: true },
-      _sum: { totalPaid: true },
+      _avg: { totalPaidEur: true },
+      _sum: { totalPaidEur: true },
       _count: true,
     })
 
@@ -20,8 +20,8 @@ export async function GET() {
     const sourceBreakdown = await prisma.student.groupBy({
       by: ["referralSource"],
       where: { completionStatus: { in: ["ACTIVE", "COMPLETED"] } },
-      _avg: { totalPaid: true },
-      _sum: { totalPaid: true },
+      _avg: { totalPaidEur: true },
+      _sum: { totalPaidEur: true },
       _count: true,
     })
 
@@ -29,8 +29,8 @@ export async function GET() {
     const levelBreakdown = await prisma.student.groupBy({
       by: ["currentLevel"],
       where: { completionStatus: { in: ["ACTIVE", "COMPLETED"] } },
-      _avg: { totalPaid: true },
-      _sum: { totalPaid: true },
+      _avg: { totalPaidEur: true },
+      _sum: { totalPaidEur: true },
       _count: true,
     })
 
@@ -40,7 +40,7 @@ export async function GET() {
         completionStatus: { in: ["ACTIVE", "COMPLETED"] },
         isCombo: true,
       },
-      _avg: { totalPaid: true },
+      _avg: { totalPaidEur: true },
       _count: true,
     })
 
@@ -49,7 +49,7 @@ export async function GET() {
         completionStatus: { in: ["ACTIVE", "COMPLETED"] },
         isCombo: false,
       },
-      _avg: { totalPaid: true },
+      _avg: { totalPaidEur: true },
       _count: true,
     })
 
@@ -67,29 +67,29 @@ export async function GET() {
 
     return NextResponse.json({
       overall: {
-        avgLTV: Number(overallLTV._avg.totalPaid) || 0,
-        totalRevenue: Number(overallLTV._sum.totalPaid) || 0,
+        avgLTV: Number(overallLTV._avg.totalPaidEur) || 0,
+        totalRevenue: Number(overallLTV._sum.totalPaidEur) || 0,
         totalStudents: overallLTV._count,
       },
       bySource: sourceBreakdown.map((s) => ({
         source: s.referralSource,
-        avgLTV: Number(s._avg.totalPaid) || 0,
-        totalRevenue: Number(s._sum.totalPaid) || 0,
+        avgLTV: Number(s._avg.totalPaidEur) || 0,
+        totalRevenue: Number(s._sum.totalPaidEur) || 0,
         count: s._count,
       })),
       byLevel: levelBreakdown.map((l) => ({
         level: l.currentLevel,
-        avgLTV: Number(l._avg.totalPaid) || 0,
-        totalRevenue: Number(l._sum.totalPaid) || 0,
+        avgLTV: Number(l._avg.totalPaidEur) || 0,
+        totalRevenue: Number(l._sum.totalPaidEur) || 0,
         count: l._count,
       })),
       comboVsSingle: {
         combo: {
-          avgLTV: Number(comboLTV._avg.totalPaid) || 0,
+          avgLTV: Number(comboLTV._avg.totalPaidEur) || 0,
           count: comboLTV._count,
         },
         single: {
-          avgLTV: Number(singleLTV._avg.totalPaid) || 0,
+          avgLTV: Number(singleLTV._avg.totalPaidEur) || 0,
           count: singleLTV._count,
         },
       },

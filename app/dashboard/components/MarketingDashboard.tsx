@@ -5,6 +5,8 @@ import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
 import BarChart from "@/components/charts/BarChart"
 import LineChart from "@/components/charts/LineChart"
+import DonutChart from "@/components/charts/DonutChart"
+import PeriodSelector from "@/components/charts/PeriodSelector"
 import AIInsights from "@/components/ai/AIInsights"
 
 type MarketingData = {
@@ -84,12 +86,57 @@ type MarketingData = {
     message: string
     action: string
   }>
+  attribution?: {
+    campaigns: Array<{ campaign: string; leads: number; conversions: number; conversionRate: number }>
+    landingPages: Array<{ page: string; leads: number; conversions: number; conversionRate: number }>
+    devices: Array<{ deviceType: string; leads: number; conversions: number; conversionRate: number }>
+  }
+}
+
+type LeadScoringData = {
+  byRange: Array<{
+    range: string
+    leads: number
+    conversions: number
+    conversionRate: number
+    avgDaysToConvert: number | null
+  }>
+  overall: {
+    totalLeads: number
+    totalConversions: number
+    overallConversionRate: number
+    avgScore: number | null
+    scoredLeadsPercent: number
+  }
+}
+
+type CACData = {
+  byPlatform: Array<{
+    platform: string
+    spend: number
+    leads: number
+    conversions: number
+    conversionRate: number
+    cac: number | null
+    cpc: number | null
+    cpl: number | null
+  }>
+  overall: {
+    totalSpend: number
+    totalLeads: number
+    totalConversions: number
+    overallCAC: number | null
+    avgLTV: number
+    ltvCacRatio: number | null
+  }
 }
 
 export default function MarketingDashboard({ userName }: { userName: string }) {
   const [data, setData] = useState<MarketingData | null>(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState("30")
+  const [cacData, setCacData] = useState<CACData | null>(null)
+  const [leadScoringData, setLeadScoringData] = useState<LeadScoringData | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -98,9 +145,21 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/analytics/marketing?period=${period}`)
-      const marketingData = await res.json()
+      const [marketingRes, cacRes, lsRes] = await Promise.all([
+        fetch(`/api/analytics/marketing?period=${period}`),
+        fetch(`/api/analytics/cac?period=${period}`),
+        fetch(`/api/analytics/lead-scoring`),
+      ])
+      const marketingData = await marketingRes.json()
       setData(marketingData)
+      if (cacRes.ok) {
+        const cacResult = await cacRes.json()
+        setCacData(cacResult)
+      }
+      if (lsRes.ok) {
+        const lsResult = await lsRes.json()
+        setLeadScoringData(lsResult)
+      }
     } catch (error) {
       console.error("Error fetching marketing data:", error)
     } finally {
@@ -148,15 +207,10 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
           <p className="mt-2 text-gray-600 dark:text-gray-300">Your marketing performance at a glance</p>
         </div>
 
-        <select
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="7">Last 7 days</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-        </select>
+        <PeriodSelector
+          value={parseInt(period)}
+          onChange={(days) => setPeriod(String(days || 365))}
+        />
       </div>
 
       {/* KPIs */}
@@ -307,6 +361,199 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
         )}
       </div>
 
+      {/* Campaign Performance */}
+      {data.attribution?.campaigns && data.attribution.campaigns.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Campaign Performance</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Campaign Name</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Leads</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Conversions</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Conversion Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.attribution.campaigns.slice(0, 10).map((campaign) => (
+                  <tr key={campaign.campaign} className="border-b border-gray-100 dark:border-gray-700/50">
+                    <td className="py-3 px-4 text-sm text-gray-900 dark:text-white font-medium">{campaign.campaign}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900 dark:text-white text-right">{campaign.leads}</td>
+                    <td className="py-3 px-4 text-sm text-purple-600 dark:text-purple-400 text-right font-medium">{campaign.conversions}</td>
+                    <td className="py-3 px-4 text-sm text-right">
+                      <span className={`font-medium ${campaign.conversionRate >= 20 ? 'text-success' : campaign.conversionRate >= 10 ? 'text-warning' : 'text-error'}`}>
+                        {campaign.conversionRate.toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : data.attribution ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Campaign Performance</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">No campaign data</p>
+        </div>
+      ) : null}
+
+      {/* Top Landing Pages */}
+      {data.attribution?.landingPages && data.attribution.landingPages.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Landing Pages</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Page</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Leads</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Conversions</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.attribution.landingPages.map((lp) => {
+                  const pathSegment = lp.page.split('/').filter(Boolean).pop() || lp.page
+                  return (
+                    <tr key={lp.page} className="border-b border-gray-100 dark:border-gray-700/50">
+                      <td className="py-3 px-4 text-sm text-gray-900 dark:text-white font-medium" title={lp.page}>
+                        /{pathSegment}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-gray-900 dark:text-white text-right">{lp.leads}</td>
+                      <td className="py-3 px-4 text-sm text-purple-600 dark:text-purple-400 text-right font-medium">{lp.conversions}</td>
+                      <td className="py-3 px-4 text-sm text-right">
+                        <span className={`font-medium ${lp.conversionRate >= 20 ? 'text-success' : lp.conversionRate >= 10 ? 'text-warning' : 'text-error'}`}>
+                          {lp.conversionRate.toFixed(1)}%
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : data.attribution ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Top Landing Pages</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">No landing page data</p>
+        </div>
+      ) : null}
+
+      {/* Device Breakdown */}
+      {data.attribution?.devices && data.attribution.devices.length > 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Device Breakdown</h2>
+          <div className="mb-6">
+            <DonutChart
+              data={data.attribution.devices.map((d) => {
+                const colorMap: Record<string, string> = {
+                  desktop: '#3b82f6',
+                  mobile: '#10b981',
+                  tablet: '#f59e0b',
+                  unknown: '#6b7280',
+                }
+                return {
+                  label: d.deviceType.charAt(0).toUpperCase() + d.deviceType.slice(1),
+                  value: d.leads,
+                  color: colorMap[d.deviceType.toLowerCase()] || '#6b7280',
+                }
+              })}
+            />
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Device</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Leads</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Conversions</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-gray-600 dark:text-gray-300">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.attribution.devices.map((d) => (
+                  <tr key={d.deviceType} className="border-b border-gray-100 dark:border-gray-700/50">
+                    <td className="py-3 px-4 text-sm text-gray-900 dark:text-white font-medium">
+                      {d.deviceType.charAt(0).toUpperCase() + d.deviceType.slice(1)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-900 dark:text-white text-right">{d.leads}</td>
+                    <td className="py-3 px-4 text-sm text-purple-600 dark:text-purple-400 text-right font-medium">{d.conversions}</td>
+                    <td className="py-3 px-4 text-sm text-right">
+                      <span className={`font-medium ${d.conversionRate >= 20 ? 'text-success' : d.conversionRate >= 10 ? 'text-warning' : 'text-error'}`}>
+                        {d.conversionRate.toFixed(1)}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : data.attribution ? (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Device Breakdown</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">No device data</p>
+        </div>
+      ) : null}
+
+      {/* Customer Acquisition Cost */}
+      {cacData && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Customer Acquisition Cost (CAC)</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Total Ad Spend</div>
+              <div className="text-lg font-bold text-gray-900 dark:text-white">{formatCurrency(cacData.overall.totalSpend, 'EUR')}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Overall CAC</div>
+              <div className="text-lg font-bold text-primary">{cacData.overall.overallCAC != null ? formatCurrency(cacData.overall.overallCAC, 'EUR') : "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Avg LTV</div>
+              <div className="text-lg font-bold text-success">{formatCurrency(cacData.overall.avgLTV, 'EUR')}</div>
+            </div>
+            <div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">LTV:CAC Ratio</div>
+              <div className={`text-lg font-bold ${(cacData.overall.ltvCacRatio ?? 0) >= 3 ? "text-success" : "text-warning"}`}>
+                {cacData.overall.ltvCacRatio != null ? `${cacData.overall.ltvCacRatio.toFixed(1)}x` : "—"}
+              </div>
+            </div>
+          </div>
+          {cacData.byPlatform.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">Platform</th>
+                    <th className="text-right py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">Spend (EUR)</th>
+                    <th className="text-right py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">Leads</th>
+                    <th className="text-right py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">Conversions</th>
+                    <th className="text-right py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">CAC</th>
+                    <th className="text-right py-2 px-2 text-gray-600 dark:text-gray-400 font-medium">CPL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cacData.byPlatform.map((p) => (
+                    <tr key={p.platform} className="border-b border-gray-100 dark:border-gray-700/50">
+                      <td className="py-2 px-2 font-medium text-gray-900 dark:text-white">{p.platform.replace(/_/g, " ")}</td>
+                      <td className="py-2 px-2 text-right text-gray-600 dark:text-gray-300">{formatCurrency(p.spend, 'EUR')}</td>
+                      <td className="py-2 px-2 text-right text-gray-600 dark:text-gray-300">{p.leads}</td>
+                      <td className="py-2 px-2 text-right text-gray-600 dark:text-gray-300">{p.conversions}</td>
+                      <td className="py-2 px-2 text-right font-medium text-primary">{p.cac != null ? formatCurrency(p.cac, 'EUR') : "—"}</td>
+                      <td className="py-2 px-2 text-right text-gray-600 dark:text-gray-300">{p.cpl != null ? formatCurrency(p.cpl, 'EUR') : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Lead Quality */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Quality Distribution</h2>
@@ -390,6 +637,60 @@ export default function MarketingDashboard({ userName }: { userName: string }) {
             }))}
         />
       </div>
+
+      {/* Lead Score Effectiveness */}
+      {leadScoringData && leadScoringData.byRange.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lead Score Effectiveness</h2>
+            {leadScoringData.overall.avgScore !== null && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Avg Score: {leadScoringData.overall.avgScore} · {leadScoringData.overall.scoredLeadsPercent.toFixed(0)}% scored
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <BarChart
+                data={leadScoringData.byRange.map((r) => ({
+                  label: r.range,
+                  value: r.conversionRate,
+                  color: r.range === "81-100" ? "#10b981" : r.range === "61-80" ? "#3b82f6" : r.range === "41-60" ? "#f59e0b" : "#ef4444",
+                }))}
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">Conversion Rate by Score Range (%)</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-2 text-gray-600 dark:text-gray-300 font-medium">Range</th>
+                    <th className="text-right py-2 text-gray-600 dark:text-gray-300 font-medium">Leads</th>
+                    <th className="text-right py-2 text-gray-600 dark:text-gray-300 font-medium">Conv.</th>
+                    <th className="text-right py-2 text-gray-600 dark:text-gray-300 font-medium">Rate</th>
+                    <th className="text-right py-2 text-gray-600 dark:text-gray-300 font-medium">Avg Days</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leadScoringData.byRange.map((r) => (
+                    <tr key={r.range} className="border-b border-gray-100 dark:border-gray-700/50">
+                      <td className="py-2 text-gray-900 dark:text-white font-medium">{r.range}</td>
+                      <td className="text-right py-2 text-gray-600 dark:text-gray-300">{r.leads}</td>
+                      <td className="text-right py-2 text-gray-600 dark:text-gray-300">{r.conversions}</td>
+                      <td className={`text-right py-2 font-medium ${r.conversionRate >= 30 ? "text-green-600 dark:text-green-400" : r.conversionRate >= 15 ? "text-yellow-600 dark:text-yellow-400" : "text-red-600 dark:text-red-400"}`}>
+                        {r.conversionRate.toFixed(1)}%
+                      </td>
+                      <td className="text-right py-2 text-gray-600 dark:text-gray-300">
+                        {r.avgDaysToConvert !== null ? `${r.avgDaysToConvert.toFixed(0)}d` : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI Insights */}
       <AIInsights />

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
+import { trackEvent } from "@/lib/tracking"
 
 type FAQ = {
   question: string
@@ -12,11 +13,19 @@ type FAQ = {
 function FAQItem({ faq, index }: { faq: FAQ; index: number }) {
   const [isOpen, setIsOpen] = useState(false)
 
+  const handleToggle = () => {
+    const opening = !isOpen
+    setIsOpen(opening)
+    if (opening) {
+      trackEvent("faq_expand", { question: faq.question.slice(0, 80) })
+    }
+  }
+
   return (
     <AnimateInView delay={index * 0.06}>
       <div className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className="flex items-center justify-between w-full px-6 py-4 text-left"
         >
           <span className="font-semibold text-white pr-4">{faq.question}</span>

@@ -2,11 +2,108 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { isOllamaAvailable, generateInsights, askQuestion, type InsightType } from '@/lib/ollama'
+import { isGeminiAvailable, generateContent } from '@/lib/gemini-client'
+import fs from 'fs'
+import path from 'path'
 
 // Simple in-memory cache (in production, use Redis or DB)
 const insightsCache: Map<string, { data: string; timestamp: number }> = new Map()
 const CACHE_TTL = 60 * 60 * 1000 // 1 hour
+
+// Load business context from file
+let businessContext: string | null = null
+
+function getBusinessContext(): string {
+  if (businessContext) return businessContext
+
+  try {
+    const contextPath = path.join(process.cwd(), 'BUSINESS_CONTEXT.md')
+    businessContext = fs.readFileSync(contextPath, 'utf-8')
+    return businessContext
+  } catch {
+    return 'You are a business analyst for an online German language school serving Indian students.'
+  }
+}
+
+type InsightType = 'daily_digest' | 'deep_analysis'
+
+/**
+ * Build prompt for Gemini based on insight type
+ */
+function buildInsightPrompt(data: Record<string, unknown>, type: InsightType): string {
+  const context = getBusinessContext()
+
+  const prompts: Record<InsightType, string> = {
+    daily_digest: `${context}
+
+---
+
+CURRENT BUSINESS DATA:
+${JSON.stringify(data, null, 2)}
+
+Based on this data, provide a brief daily digest with:
+1. Top 3 things going well (with specific numbers)
+2. Top 3 concerns that need attention (with urgency level)
+3. One key action to take today
+
+Keep it concise and actionable. Use bullet points.`,
+
+    deep_analysis: `${context}
+
+---
+
+CURRENT BUSINESS DATA:
+${JSON.stringify(data, null, 2)}
+
+Provide a comprehensive analysis covering:
+
+## Revenue & Financial Health
+- Current performance vs targets
+- Trends and projections
+- Payment collection status
+
+## Student Metrics
+- Enrollment trends
+- Attendance patterns
+- Churn risk assessment
+
+## Marketing & Leads
+- Lead quality by source
+- Conversion funnel analysis
+- ROI assessment
+
+## Operational Insights
+- Batch performance
+- Teacher utilization
+- Capacity planning
+
+## Recommendations
+List 5 prioritized actions with expected impact.
+
+Be specific with numbers and reference the targets from the business context.`,
+  }
+
+  return prompts[type]
+}
+
+/**
+ * Build prompt for answering a specific question
+ */
+function buildQuestionPrompt(question: string, data: Record<string, unknown>): string {
+  const context = getBusinessContext()
+
+  return `${context}
+
+---
+
+CURRENT BUSINESS DATA:
+${JSON.stringify(data, null, 2)}
+
+QUESTION: ${question}
+
+Provide a clear, data-driven answer. Reference specific numbers from the data.
+If the data doesn't contain enough information to answer, say so.`
+}
 
 /**
  * Aggregate business data for AI analysis
@@ -134,7 +231,6 @@ async function aggregateBusinessData(period: number = 30) {
   // Aggregate revenue
   const totalRevenue = payments.reduce((sum, p) => {
     const amount = Number(p.amount)
-    // Convert INR to EUR roughly
     return sum + (p.currency === 'INR' ? amount / 90 : amount)
   }, 0)
 
@@ -235,12 +331,11 @@ export async function GET(request: NextRequest) {
     const period = parseInt(searchParams.get('period') || '30')
     const skipCache = searchParams.get('refresh') === 'true'
 
-    // Check if Ollama is available
-    const ollamaAvailable = await isOllamaAvailable()
-    if (!ollamaAvailable) {
+    // Check if Gemini is available
+    if (!isGeminiAvailable()) {
       return NextResponse.json({
         error: 'AI service unavailable',
-        message: 'Ollama is not running. Start it with: ollama serve',
+        message: 'Gemini API key is not configured. Set GEMINI_API_KEY in environment variables.',
         fallback: true,
       }, { status: 503 })
     }
@@ -259,17 +354,27 @@ export async function GET(request: NextRequest) {
     // Aggregate data
     const data = await aggregateBusinessData(period)
 
-    // Generate insights
-    const insights = await generateInsights(data, type)
+    // Generate insights via Gemini
+    const prompt = buildInsightPrompt(data, type)
+    const result = await generateContent(prompt, 'gemini-1.5-flash', {
+      timeout: type === 'deep_analysis' ? 60000 : 30000,
+    })
+
+    if (!result.success || !result.content) {
+      return NextResponse.json({
+        error: 'Failed to generate insights',
+        message: result.error || 'Gemini returned no content',
+      }, { status: 500 })
+    }
 
     // Cache result
     insightsCache.set(cacheKey, {
-      data: insights,
+      data: result.content,
       timestamp: Date.now(),
     })
 
     return NextResponse.json({
-      insights,
+      insights: result.content,
       cached: false,
       generatedAt: new Date().toISOString(),
       dataSnapshot: data,
@@ -298,24 +403,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 })
     }
 
-    // Check if Ollama is available
-    const ollamaAvailable = await isOllamaAvailable()
-    if (!ollamaAvailable) {
+    // Check if Gemini is available
+    if (!isGeminiAvailable()) {
       return NextResponse.json({
         error: 'AI service unavailable',
-        message: 'Ollama is not running. Start it with: ollama serve',
+        message: 'Gemini API key is not configured. Set GEMINI_API_KEY in environment variables.',
       }, { status: 503 })
     }
 
     // Aggregate data
     const data = await aggregateBusinessData(period)
 
-    // Answer question
-    const answer = await askQuestion(question, data)
+    // Answer question via Gemini
+    const prompt = buildQuestionPrompt(question, data)
+    const result = await generateContent(prompt, 'gemini-1.5-flash', {
+      timeout: 30000,
+    })
+
+    if (!result.success || !result.content) {
+      return NextResponse.json({
+        error: 'Failed to answer question',
+        message: result.error || 'Gemini returned no content',
+      }, { status: 500 })
+    }
 
     return NextResponse.json({
       question,
-      answer,
+      answer: result.content,
       generatedAt: new Date().toISOString(),
     })
   } catch (error) {

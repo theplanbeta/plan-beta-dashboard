@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
-import { COURSE_PRICING } from "@/lib/pricing"
+import { COURSE_PRICING, EXCHANGE_RATE } from "@/lib/pricing"
 
 // GET /api/analytics/forecast — Revenue pipeline and 3-month forecast
 export async function GET() {
@@ -72,11 +72,14 @@ export async function GET() {
       select: { amount: true, paymentDate: true, currency: true },
     })
 
-    // Group by month
+    // Group by month (normalize to EUR)
+    const toEur = (amount: number, currency: string) =>
+      currency === "INR" ? amount / EXCHANGE_RATE : amount
+
     const monthlyRevenue: Record<string, number> = {}
     for (const payment of recentPayments) {
       const month = new Date(payment.paymentDate).toISOString().substring(0, 7)
-      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + Number(payment.amount)
+      monthlyRevenue[month] = (monthlyRevenue[month] || 0) + toEur(Number(payment.amount), payment.currency)
     }
 
     // 3-month rolling average for forecast

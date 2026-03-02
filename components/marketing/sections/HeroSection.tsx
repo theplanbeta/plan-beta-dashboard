@@ -129,6 +129,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href="/site/courses"
+                onClick={() => trackEvent("cta_click", { label: "explore_courses", location: "hero" })}
                 className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white border border-white/20 rounded-full hover:bg-white/5 transition-all duration-300"
               >
                 Explore Courses

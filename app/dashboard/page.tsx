@@ -8,6 +8,8 @@ import { formatCurrency } from "@/lib/utils"
 import TeacherDashboard from "./components/TeacherDashboard"
 import MarketingDashboard from "./components/MarketingDashboard"
 import AIInsights from "@/components/ai/AIInsights"
+import BarChart from "@/components/charts/BarChart"
+import ExecutiveSummary from "@/components/analytics/ExecutiveSummary"
 import type { UserRole } from "@/lib/permissions"
 
 type DashboardData = {
@@ -136,6 +138,9 @@ export default function DashboardPage() {
           Here&apos;s what&apos;s happening with your school today.
         </p>
       </div>
+
+      {/* Executive Summary */}
+      <ExecutiveSummary />
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -348,6 +353,42 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Student Distribution by Level */}
+      {data.financial?.enrollmentBreakdown && (
+        <div className="panel p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Distribution by Level</h2>
+          <BarChart
+            data={(() => {
+              const levelColors: Record<string, string> = {
+                COMBO: "#10b981",
+                A1: "#3b82f6",
+                A1_HYBRID: "#3b82f6",
+                A1_HYBRID_MALAYALAM: "#3b82f6",
+                A2: "#6366f1",
+                B1: "#8b5cf6",
+                B2: "#a855f7",
+                SPOKEN_GERMAN: "#f59e0b",
+                NEW: "#9ca3af",
+                SINGLE_LEVEL: "#6b7280",
+              }
+              return Object.entries(data.financial.enrollmentBreakdown)
+                .filter(([key]) => key !== "SINGLE_LEVEL")
+                .filter(([, value]) => value > 0)
+                .map(([key, value]) => ({
+                  label: key.replace(/_/g, " "),
+                  value,
+                  color: levelColors[key] || "#6b7280",
+                }))
+            })()}
+            height={250}
+            valueSuffix=" students"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
+            COMBO students are enrolled across multiple levels. Other counts show single-level enrollments only.
+          </p>
+        </div>
+      )}
 
       {/* Monthly Revenue Breakdown */}
       <div className="panel p-6">

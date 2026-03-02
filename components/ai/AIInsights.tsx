@@ -29,35 +29,33 @@ export default function AIInsights() {
   const [cached, setCached] = useState(false)
   const [generatedAt, setGeneratedAt] = useState<string | null>(null)
 
-  // Ollama availability
-  const [ollamaAvailable, setOllamaAvailable] = useState<boolean | null>(null)
-  const [checkingOllama, setCheckingOllama] = useState(true)
+  // AI availability
+  const [aiAvailable, setAiAvailable] = useState<boolean | null>(null)
+  const [checkingAi, setCheckingAi] = useState(true)
 
   // Question mode
   const [question, setQuestion] = useState("")
   const [questionMode, setQuestionMode] = useState(false)
   const [answer, setAnswer] = useState<string | null>(null)
 
-  // Check if Ollama/AI is available on mount
+  // Check if AI is available on mount
   useEffect(() => {
-    const checkOllama = async () => {
+    const checkAi = async () => {
       try {
         const res = await fetch("/api/ai/insights?type=daily_digest")
         const data = await res.json()
-        // If we get 503 or error mentions Ollama, it's not running
         if (res.status === 503 || data.error?.includes("AI service")) {
-          setOllamaAvailable(false)
+          setAiAvailable(false)
         } else {
-          setOllamaAvailable(true)
+          setAiAvailable(true)
         }
       } catch {
-        // Network error or service unavailable
-        setOllamaAvailable(false)
+        setAiAvailable(false)
       } finally {
-        setCheckingOllama(false)
+        setCheckingAi(false)
       }
     }
-    checkOllama()
+    checkAi()
   }, [])
 
   const fetchInsights = async (refresh = false) => {
@@ -184,12 +182,12 @@ export default function AIInsights() {
       })
   }
 
-  // Don't render anything if still checking or Ollama is not available
-  if (checkingOllama) {
+  // Don't render anything if still checking or AI is not available
+  if (checkingAi) {
     return null
   }
 
-  if (!ollamaAvailable) {
+  if (!aiAvailable) {
     return null
   }
 
@@ -203,7 +201,7 @@ export default function AIInsights() {
             AI Insights
           </h2>
           <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full">
-            Powered by Ollama
+            Powered by Gemini
           </span>
         </div>
       </div>
@@ -309,9 +307,9 @@ export default function AIInsights() {
       {error && (
         <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
-          {error.includes("Ollama") && (
+          {error.includes("API key") && (
             <p className="text-red-600 dark:text-red-500 text-xs mt-1">
-              Run <code className="bg-red-100 dark:bg-red-900 px-1 rounded">ollama serve</code> in terminal to start the AI server.
+              Set <code className="bg-red-100 dark:bg-red-900 px-1 rounded">GEMINI_API_KEY</code> in environment variables.
             </p>
           )}
         </div>

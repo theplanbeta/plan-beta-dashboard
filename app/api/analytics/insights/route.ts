@@ -69,6 +69,10 @@ export async function GET(request: NextRequest) {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - daysAgo)
 
+    // Extended start for period-over-period revenue growth comparison
+    const extendedStartDate = new Date()
+    extendedStartDate.setDate(extendedStartDate.getDate() - daysAgo * 2)
+
     // Get all data for the period
     const [students, payments, attendance, referrals, batches, teacherHours, expenses] = await Promise.all([
       prisma.student.findMany({
@@ -90,7 +94,7 @@ export async function GET(request: NextRequest) {
       prisma.payment.findMany({
         where: {
           status: "COMPLETED",
-          paymentDate: { gte: startDate },
+          paymentDate: { gte: extendedStartDate },
         },
         include: { student: true },
       }),
@@ -217,7 +221,12 @@ export async function GET(request: NextRequest) {
     const projectedMonthlyNetProfit = projectedMonthlyRevenue - projectedMonthlyTeacherCosts - projectedMonthlyOperatingExpenses
 
     // === ROLLING P&L WINDOWS ===
-    const rollingPnL = [30, 60, 90].map(windowDays => {
+    // Generate windows that fit within the selected period
+    const allWindows = [30, 60, 90, 180, 365]
+    const fitWindows = allWindows.filter(w => w <= daysAgo)
+    // Always include at least the selected period itself
+    const rollingWindows = fitWindows.length > 0 ? fitWindows : [daysAgo]
+    const rollingPnL = rollingWindows.map(windowDays => {
       const windowStart = new Date()
       windowStart.setDate(windowStart.getDate() - windowDays)
 
@@ -396,7 +405,7 @@ export async function GET(request: NextRequest) {
         (sum, b) => sum + Number(b.fillRate),
         0
       ) / batches.length || 0,
-      customerSatisfaction: avgAttendanceRate, // Proxy metric
+      avgAttendance: avgAttendanceRate,
     }
 
     // === FORECASTS & PREDICTIONS ===
@@ -646,8 +655,9 @@ function calculateAvgLifetime(students: StudentRecord[]) {
 
 function calculateAvgStudentValue(students: StudentRecord[]) {
   if (students.length === 0) return 0
+  // Use totalPaidEur (EUR-normalized) to avoid mixing currencies
   const totalValue = students.reduce(
-    (sum, s) => sum + Number(s.totalPaid),
+    (sum, s) => sum + Number((s as Record<string, unknown>).totalPaidEur || s.totalPaid || 0),
     0
   )
   return totalValue / students.length
@@ -700,20 +710,26 @@ function calculateGrowthRate(newStudents: number, churned: number) {
   return newStudents - churned
 }
 
-function calculateRevenueGrowth(payments: PaymentRecord[], days: number) {
-  const midpoint = Math.floor(days / 2)
-  const midDate = new Date()
-  midDate.setDate(midDate.getDate() - midpoint)
+function calculateRevenueGrowth(payments: Array<PaymentRecord & { currency?: string }>, days: number) {
+  // True period-over-period: compare current period vs prior same-length period
+  const toEur = (amount: number, currency?: string) =>
+    currency === "INR" ? amount / EXCHANGE_RATE : amount
 
-  const firstHalf = payments.filter(
-    (p) => new Date(p.paymentDate) < midDate
-  ).reduce((sum, p) => sum + Number(p.amount), 0)
+  const now = new Date()
+  const periodStart = new Date()
+  periodStart.setDate(now.getDate() - days)
+  const priorStart = new Date()
+  priorStart.setDate(now.getDate() - days * 2)
 
-  const secondHalf = payments.filter(
-    (p) => new Date(p.paymentDate) >= midDate
-  ).reduce((sum, p) => sum + Number(p.amount), 0)
+  const currentPeriod = payments.filter(
+    (p) => new Date(p.paymentDate) >= periodStart
+  ).reduce((sum, p) => sum + toEur(Number(p.amount), p.currency), 0)
 
-  return firstHalf > 0 ? ((secondHalf - firstHalf) / firstHalf) * 100 : 0
+  const priorPeriod = payments.filter(
+    (p) => new Date(p.paymentDate) >= priorStart && new Date(p.paymentDate) < periodStart
+  ).reduce((sum, p) => sum + toEur(Number(p.amount), p.currency), 0)
+
+  return priorPeriod > 0 ? ((currentPeriod - priorPeriod) / priorPeriod) * 100 : 0
 }
 
 function generateMonthlyPnL(

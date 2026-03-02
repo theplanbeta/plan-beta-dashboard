@@ -1,7 +1,18 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { getTrackingData, getVisitorId, trackConversion, trackEvent } from "@/lib/tracking"
+
+// Helper to read Meta cookies for CAPI matching
+function getMetaCookies() {
+  if (typeof document === "undefined") return {}
+  const cookies = document.cookie.split(";").reduce((acc, c) => {
+    const [key, ...val] = c.trim().split("=")
+    acc[key] = val.join("=")
+    return acc
+  }, {} as Record<string, string>)
+  return { fbc: cookies._fbc || undefined, fbp: cookies._fbp || undefined }
+}
 
 const courses = [
   { value: "a1-live", label: "German A1 Live Classes" },
@@ -34,6 +45,27 @@ export default function ContactPage() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const formRef = useRef<HTMLFormElement>(null)
+  const formStarted = useRef(false)
+
+  // Track form abandonment on page unload
+  const handleBeforeUnload = useCallback(() => {
+    if (formStarted.current && !success) {
+      const filledFields = Object.values(formData).filter(Boolean).length
+      trackEvent("form_abandon", { form: "contact", fieldsCompleted: String(filledFields) })
+    }
+  }, [formData, success])
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [handleBeforeUnload])
+
+  const handleFormStart = () => {
+    if (!formStarted.current) {
+      formStarted.current = true
+      trackEvent("form_start", { form: "contact" })
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,6 +75,7 @@ export default function ContactPage() {
     try {
       const tracking = getTrackingData()
       const visitorId = getVisitorId()
+      const metaCookies = getMetaCookies()
 
       const response = await fetch("/api/leads/public", {
         method: "POST",
@@ -57,6 +90,7 @@ export default function ContactPage() {
                           formData.course.includes("b1") ? "B1" : "A1",
           notes: `Course interest: ${formData.course}\nPreferred time: ${formData.preferredTime}\nMessage: ${formData.message}`,
           ...tracking,
+          ...metaCookies,
           visitorId,
         }),
       })
@@ -113,6 +147,7 @@ export default function ContactPage() {
               href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I%20just%20submitted%20a%20contact%20form."
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent("whatsapp_click", { location: "post_contact_form" })}
               className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -176,6 +211,7 @@ export default function ContactPage() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    onFocus={handleFormStart}
                     required
                     placeholder="Enter your full name"
                     className={inputClasses}
@@ -305,6 +341,7 @@ export default function ContactPage() {
                   href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackEvent("whatsapp_click", { location: "contact_page" })}
                   className="flex items-center justify-center gap-2 w-full px-6 py-4 bg-white text-green-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

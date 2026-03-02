@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { trackEvent, trackConversion, getTrackingData, getVisitorId } from "@/lib/tracking"
 
 const qualifications = [
   { value: "bsc-nursing", label: "BSc Nursing" },
@@ -44,6 +45,27 @@ export function NurseApplicationForm() {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const formStarted = useRef(false)
+
+  // Track form abandonment on page unload
+  const handleBeforeUnload = useCallback(() => {
+    if (formStarted.current && !success) {
+      const filledFields = Object.values(formData).filter(Boolean).length
+      trackEvent("form_abandon", { form: "nurse_application", fieldsCompleted: String(filledFields) })
+    }
+  }, [formData, success])
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [handleBeforeUnload])
+
+  const handleFormStart = () => {
+    if (!formStarted.current) {
+      formStarted.current = true
+      trackEvent("form_start", { form: "nurse_application" })
+    }
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -86,6 +108,9 @@ export function NurseApplicationForm() {
     }
 
     try {
+      const tracking = getTrackingData()
+      const visitorId = getVisitorId()
+
       const body = new FormData()
       body.append("name", formData.name)
       body.append("email", formData.email)
@@ -96,6 +121,14 @@ export function NurseApplicationForm() {
       body.append("message", formData.message)
       body.append("cv", file)
 
+      // Append tracking data
+      if (tracking) {
+        Object.entries(tracking).forEach(([key, value]) => {
+          if (value) body.append(key, value)
+        })
+      }
+      if (visitorId) body.append("visitorId", visitorId)
+
       const response = await fetch("/api/nurses/apply", {
         method: "POST",
         body,
@@ -105,6 +138,10 @@ export function NurseApplicationForm() {
         const errData = await response.json()
         throw new Error(errData.error || "Failed to submit application")
       }
+
+      // Fire conversion tracking events
+      trackConversion("Lead")
+      trackEvent("form_submit", { form: "nurse_application", germanLevel: formData.germanLevel })
 
       setSuccess(true)
       setFormData({
@@ -161,6 +198,7 @@ export function NurseApplicationForm() {
                 href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I%20just%20submitted%20a%20nursing%20application."
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackEvent("whatsapp_click", { location: "post_nurse_form" })}
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -212,6 +250,7 @@ export function NurseApplicationForm() {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                onFocus={handleFormStart}
                 required
                 placeholder="Enter your full name"
                 className="w-full px-4 py-3 bg-[#1a1a1a] text-white border border-white/[0.1] rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary/50 placeholder:text-gray-600 transition-all"

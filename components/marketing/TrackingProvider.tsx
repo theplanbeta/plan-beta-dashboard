@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
+import { usePathname } from "next/navigation"
 import Script from "next/script"
 import { captureTrackingData, trackEvent } from "@/lib/tracking"
 import { getConsent } from "@/components/marketing/CookieConsent"
@@ -11,6 +12,8 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
 export default function TrackingProvider() {
   const [consented, setConsented] = useState(false)
   const scrollMilestonesRef = useRef(new Set<number>())
+  const pathname = usePathname()
+  const isFirstRender = useRef(true)
 
   // Capture UTM params on mount
   useEffect(() => {
@@ -29,6 +32,48 @@ export default function TrackingProvider() {
     window.addEventListener("consent-updated", handler)
     return () => window.removeEventListener("consent-updated", handler)
   }, [])
+
+  // Track SPA page views on route changes
+  useEffect(() => {
+    // Skip the first render (initial page view is handled by the script injection)
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+
+    if (!consented) return
+
+    // Fire Meta Pixel PageView on route change
+    if (META_PIXEL_ID && typeof window !== "undefined" && window.fbq) {
+      window.fbq("track", "PageView")
+    }
+
+    // Fire GA4 page_view on route change
+    if (GA_MEASUREMENT_ID && typeof window !== "undefined" && window.gtag) {
+      window.gtag("config", GA_MEASUREMENT_ID, { page_path: pathname })
+    }
+
+    // Reset scroll milestones for the new page
+    scrollMilestonesRef.current.clear()
+  }, [pathname, consented])
+
+  // Internal first-party page view logging (consent-free, no PII)
+  useEffect(() => {
+    if (!pathname) return
+    try {
+      const data = JSON.stringify({
+        path: pathname,
+        referrer: document.referrer || undefined,
+        deviceType: window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop",
+        timestamp: new Date().toISOString(),
+      })
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon("/api/analytics/pageview", data)
+      }
+    } catch {
+      // Silent fail — pageview logging is non-critical
+    }
+  }, [pathname])
 
   // Scroll depth tracking
   useEffect(() => {

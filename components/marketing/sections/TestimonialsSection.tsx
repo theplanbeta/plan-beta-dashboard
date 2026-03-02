@@ -1,13 +1,33 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
 import { testimonials } from "@/lib/marketing-data"
+import { trackEvent } from "@/lib/tracking"
 
 export function TestimonialsSection() {
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+  const tracked = useRef(false)
+
+  // Track when section scrolls into view
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !tracked.current) {
+          tracked.current = true
+          trackEvent("section_view", { section: "testimonials" })
+        }
+      },
+      { threshold: 0.3 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   const next = useCallback(() => {
     setActive((prev) => (prev + 1) % testimonials.length)
@@ -20,7 +40,7 @@ export function TestimonialsSection() {
   }, [paused, next])
 
   return (
-    <section className="relative py-32 bg-[#0a0a0a]">
+    <section ref={sectionRef} className="relative py-32 bg-[#0a0a0a]">
       {/* Dot pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

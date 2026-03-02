@@ -41,6 +41,10 @@ const publicLeadSchema = z.object({
   // Device & visitor
   deviceType: z.string().optional().or(z.literal("")),
   visitorId: z.string().optional().or(z.literal("")),
+
+  // Meta cookies for CAPI attribution matching
+  fbc: z.string().optional().or(z.literal("")),
+  fbp: z.string().optional().or(z.literal("")),
 })
 
 // POST /api/leads/public — Unauthenticated lead intake from website
@@ -87,6 +91,9 @@ export async function POST(request: NextRequest) {
     if (data.referrerUrl) contentInteractions.referrer = data.referrerUrl
     if (data.deviceType) contentInteractions.device = data.deviceType
 
+    // Calculate initial lead score based on available data
+    const leadScore = calculateLeadScore(source, data)
+
     const lead = await prisma.lead.create({
       data: {
         name: data.name,
@@ -98,6 +105,7 @@ export async function POST(request: NextRequest) {
         quality: "WARM",
         interestedLevel: (data.interestedLevel || null) as any,
         notes: data.notes || null,
+        leadScore,
         firstTouchpoint: data.landingPage || null,
         contentInteractions: Object.keys(contentInteractions).length > 0 ? contentInteractions : undefined,
         utmSource: data.utmSource || null,
@@ -136,6 +144,8 @@ export async function POST(request: NextRequest) {
       ip: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
       userAgent: request.headers.get("user-agent"),
       visitorId: data.visitorId,
+      fbc: data.fbc || undefined,
+      fbp: data.fbp || undefined,
     })
 
     return NextResponse.json({ success: true, id: lead.id, eventId }, { status: 201 })
@@ -146,4 +156,47 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
+}
+
+// Auto-populate lead score based on source quality, fields filled, and device type
+function calculateLeadScore(
+  source: string,
+  data: {
+    email?: string
+    phone?: string
+    deviceType?: string
+    interestedLevel?: string
+    notes?: string
+  }
+): number {
+  let score = 0
+
+  // Source quality (base score)
+  const sourceScores: Record<string, number> = {
+    REFERRAL: 90,
+    GOOGLE: 80,
+    INSTAGRAM: 70,
+    META_ADS: 60,
+    ORGANIC: 50,
+    OTHER: 40,
+  }
+  score += sourceScores[source] || 40
+
+  // Has email (+5)
+  if (data.email) score += 5
+
+  // Has phone (+10)
+  if (data.phone) score += 10
+
+  // Desktop users tend to be more intentional (+5)
+  if (data.deviceType?.toLowerCase() === "desktop") score += 5
+
+  // Course selected shows specificity (+5)
+  if (data.interestedLevel) score += 5
+
+  // Provided additional notes (+5)
+  if (data.notes && data.notes.length > 10) score += 5
+
+  // Cap at 100
+  return Math.min(score, 100)
 }

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { VideoBackground } from "@/components/marketing/VideoBackground"
+import { trackEvent } from "@/lib/tracking"
 
 const WHATSAPP_NUMBER = "919028396035"
 
@@ -107,6 +108,7 @@ export function NurseHero() {
               href={whatsappUrl("Hi Plan Beta! I'm a nurse interested in the Germany nursing program. I'd like to know more.")}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackEvent("whatsapp_click", { location: "nurse_hero" })}
               className="inline-flex items-center justify-center px-8 py-4 border border-white/20 text-white text-lg font-semibold rounded-full hover:bg-white/5 transition-all gap-2"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

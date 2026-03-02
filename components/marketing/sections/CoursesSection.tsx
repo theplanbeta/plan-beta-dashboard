@@ -1,13 +1,34 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
 import { courses, selfPacedCourse } from "@/lib/marketing-data"
+import { trackEvent } from "@/lib/tracking"
 
 export function CoursesSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const tracked = useRef(false)
+
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !tracked.current) {
+          tracked.current = true
+          trackEvent("section_view", { section: "courses" })
+        }
+      },
+      { threshold: 0.2 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section className="py-32 bg-[#111] relative overflow-hidden">
+    <section ref={sectionRef} className="py-32 bg-[#111] relative overflow-hidden">
       {/* Background accents */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px]" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[150px]" />
@@ -94,6 +115,7 @@ export function CoursesSection() {
 
                 <Link
                   href="/site/contact"
+                  onClick={() => trackEvent("cta_click", { label: "start_learning", location: "courses_section" })}
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
                 >
                   Start Learning

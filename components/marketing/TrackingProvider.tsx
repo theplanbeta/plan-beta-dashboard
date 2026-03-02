@@ -27,11 +27,34 @@ export default function TrackingProvider() {
 
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail
-      if (detail?.analytics) setConsented(true)
+      if (detail?.analytics) {
+        setConsented(true)
+        // Update Google Consent Mode to granted
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag("consent", "update", {
+            ad_storage: "granted",
+            ad_user_data: "granted",
+            ad_personalization: "granted",
+            analytics_storage: "granted",
+          })
+        }
+      }
     }
     window.addEventListener("consent-updated", handler)
     return () => window.removeEventListener("consent-updated", handler)
   }, [])
+
+  // On mount, if consent was already granted (returning user), update consent mode
+  useEffect(() => {
+    if (consented && typeof window !== "undefined" && window.gtag) {
+      window.gtag("consent", "update", {
+        ad_storage: "granted",
+        ad_user_data: "granted",
+        ad_personalization: "granted",
+        analytics_storage: "granted",
+      })
+    }
+  }, [consented])
 
   // Track SPA page views on route changes
   useEffect(() => {
@@ -98,6 +121,37 @@ export default function TrackingProvider() {
 
   return (
     <>
+      {/* GA4 — always load with consent mode defaults (denied until user consents) */}
+      {GA_MEASUREMENT_ID && (
+        <>
+          <Script
+            id="gtag-consent-defaults"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
+                gtag('consent', 'default', {
+                  'ad_storage': 'denied',
+                  'ad_user_data': 'denied',
+                  'ad_personalization': 'denied',
+                  'analytics_storage': 'denied'
+                });
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `,
+            }}
+          />
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            strategy="afterInteractive"
+          />
+        </>
+      )}
+
       {/* Meta Pixel — only if env var set AND user consented */}
       {META_PIXEL_ID && consented && (
         <>
@@ -128,31 +182,6 @@ export default function TrackingProvider() {
               alt=""
             />
           </noscript>
-        </>
-      )}
-
-      {/* GA4 — only if env var set AND user consented */}
-      {GA_MEASUREMENT_ID && consented && (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script
-            id="ga4-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', '${GA_MEASUREMENT_ID}', {
-                  page_path: window.location.pathname,
-                });
-                window.gtag = gtag;
-              `,
-            }}
-          />
         </>
       )}
     </>

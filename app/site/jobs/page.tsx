@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, Suspense } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
@@ -47,6 +47,14 @@ function formatDate(dateStr: string | null) {
 }
 
 export default function JobsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
+      <JobsPageContent />
+    </Suspense>
+  )
+}
+
+function JobsPageContent() {
   const searchParams = useSearchParams()
   const initialProfession = searchParams.get("profession") || ""
 

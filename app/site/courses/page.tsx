@@ -336,7 +336,7 @@ export default async function CoursesPage() {
                 const enrolled = batch._count.students
                 const available = Math.max(0, batch.totalSeats - enrolled)
                 const fillPercent = Math.min(100, Math.round((enrolled / batch.totalSeats) * 100))
-                const startsIn = Math.ceil((new Date(batch.startDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                const startsIn = Math.ceil((new Date(batch.startDate!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
 
                 return (
                   <div
@@ -367,7 +367,7 @@ export default async function CoursesPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        Starts {new Date(batch.startDate).toLocaleDateString("en-IN", {
+                        Starts {new Date(batch.startDate!).toLocaleDateString("en-IN", {
                           month: "long",
                           day: "numeric",
                           year: "numeric",

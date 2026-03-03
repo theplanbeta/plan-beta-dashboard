@@ -1298,3 +1298,48 @@ model UtmLink {
   @@index([utmCampaign])
   @@index([createdBy])
 }
+
+// ========================================
+// Job Portal Models
+// ========================================
+
+model JobSource {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  url         String
+  active      Boolean      @default(true)
+  lastFetched DateTime?
+  jobCount    Int          @default(0)
+  jobs        JobPosting[]
+  createdAt   DateTime     @default(now())
+
+  @@index([active])
+}
+
+model JobPosting {
+  id          String    @id @default(cuid())
+  sourceId    String
+  externalId  String?   @unique
+  title       String
+  company     String
+  location    String?
+  description String?
+  salaryMin   Int?
+  salaryMax   Int?
+  currency    String    @default("EUR")
+  germanLevel String?
+  profession  String?
+  jobType     String?
+  requirements String[]
+  applyUrl    String?
+  postedAt    DateTime?
+  active      Boolean   @default(true)
+  source      JobSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([profession])
+  @@index([germanLevel])
+  @@index([active])
+  @@index([sourceId])
+}

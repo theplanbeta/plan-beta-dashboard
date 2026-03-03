@@ -53,6 +53,25 @@ export const TARGET_KEYWORDS = {
     'germany immigration guide',
     'goethe exam tips',
   ],
+  pathway: [
+    'work in germany from india',
+    'germany eligibility check',
+    'can i work in germany',
+    'germany visa for indian nurses',
+    'germany job seeker visa',
+    'blue card germany',
+    'ausbildung germany',
+    'germany pathway checker',
+  ],
+  jobs: [
+    'jobs in germany for indians',
+    'germany job portal',
+    'nursing jobs germany',
+    'IT jobs germany',
+    'engineering jobs germany',
+    'germany job vacancy',
+    'german jobs visa sponsorship',
+  ],
 }
 
 // Generate comprehensive metadata for a page

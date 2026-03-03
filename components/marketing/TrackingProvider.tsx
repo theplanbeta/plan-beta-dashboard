@@ -205,18 +205,19 @@ export default function TrackingProvider() {
     document.head.appendChild(script)
 
     // Initialize fbq inline (doesn't need script to be loaded first)
-    const n = (window.fbq = function () {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const n: any = (window.fbq = function () {
       // eslint-disable-next-line prefer-rest-params
       n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-    })
+    } as unknown as typeof window.fbq)
     if (!window._fbq) window._fbq = n
     n.push = n
     n.loaded = true
     n.version = "2.0"
     n.queue = []
 
-    window.fbq("init", META_PIXEL_ID)
-    window.fbq("track", "PageView")
+    window.fbq!("init", META_PIXEL_ID)
+    window.fbq!("track", "PageView")
   }, [consented])
 
   // No JSX needed — scripts are injected via useEffect

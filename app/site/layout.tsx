@@ -36,7 +36,8 @@ export default function MarketingLayout({
   const navigation = [
     { name: "Courses", href: "/site/courses" },
     { name: "For Nurses", href: "/site/nurses" },
-    { name: "Opportunities", href: "/site/opportunities" },
+    { name: "Eligibility", href: "/site/germany-pathway" },
+    { name: "Jobs", href: "/site/jobs" },
     { name: "About", href: "/site/about" },
     { name: "Contact", href: "/site/contact" },
   ]
@@ -296,7 +297,8 @@ export default function MarketingLayout({
                   ["About Us", "/site/about"],
                   ["For Nurses", "/site/nurses"],
                   ["Opportunities", "/site/opportunities"],
-                  ["Blog", "/site/blog"],
+                  ["Eligibility Check", "/site/germany-pathway"],
+                  ["Jobs in Germany", "/site/jobs"],
                   ["Contact", "/site/contact"],
                 ].map(([name, href]) => (
                   <li key={name}>

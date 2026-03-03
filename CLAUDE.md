@@ -186,7 +186,7 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=    # Google Analytics 4 Measurement ID
 
 ### Operations
 - **Attendance**: Daily attendance records per student
-- **TeacherHours**: Teacher work hours for payroll
+- **TeacherHours**: Teacher work hours for payroll (30-day past logging limit, bulk approve/reject supported)
 - **Referral**: Student referral program tracking
 
 ### Content & Marketing
@@ -215,3 +215,7 @@ NEXT_PUBLIC_GA_MEASUREMENT_ID=    # Google Analytics 4 Measurement ID
 4. **Teacher Exclusions**: Founders who teach (like Aparna) are excluded from hour reminders via email exclusion list in cron routes
 5. **Marketing Site**: Served at `/site` path. The site layout is a client component; use `layout.tsx` wrappers for server-side metadata
 6. **Cookie Consent**: All analytics (Vercel, Meta, GA4) are consent-gated. Never load tracking scripts before consent
+7. **Teacher Hours**: Teachers can only log hours up to 30 days in the past. Founders can bulk approve/reject via `/api/teacher-hours/bulk-approve`. Teacher salary costs auto-feed into Insights P&L.
+8. **Charts**: All chart components (`components/charts/`) limit decimal display to 2 places. API responses for financial data should be rounded before returning.
+9. **Notification Bell**: Dropdown uses fixed positioning on mobile (full-width below header) and `left-0` on desktop (extends over main content) to avoid clipping inside the sidebar.
+10. **Domain**: Primary domain is `theplanbeta.com` (non-www). `www` redirects via 308. Google Search Console is set up with sitemap submitted.

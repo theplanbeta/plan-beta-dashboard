@@ -40,6 +40,11 @@ export async function fetchSubredditPosts(
   timeframe: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'week'
 ): Promise<RedditPost[]> {
   try {
+    // Validate subreddit name to prevent path traversal / injection
+    if (!/^[a-zA-Z0-9_]{1,50}$/.test(subreddit)) {
+      throw new Error(`Invalid subreddit name: ${subreddit}`)
+    }
+
     // Fetch top posts for better quality content
     const url = `https://www.reddit.com/r/${subreddit}/top.json?limit=${limit}&t=${timeframe}`
 
@@ -120,6 +125,11 @@ export function formatPostForStorage(post: RedditPost) {
  * Check if a subreddit exists and is accessible
  */
 export async function validateSubreddit(subreddit: string): Promise<boolean> {
+  // Validate subreddit name format
+  if (!/^[a-zA-Z0-9_]{1,50}$/.test(subreddit)) {
+    return false
+  }
+
   try {
     const url = `https://www.reddit.com/r/${subreddit}/about.json`
 
@@ -140,6 +150,11 @@ export async function validateSubreddit(subreddit: string): Promise<boolean> {
  * Get subreddit metadata
  */
 export async function getSubredditInfo(subreddit: string) {
+  // Validate subreddit name format
+  if (!/^[a-zA-Z0-9_]{1,50}$/.test(subreddit)) {
+    throw new Error(`Invalid subreddit name: ${subreddit}`)
+  }
+
   try {
     const url = `https://www.reddit.com/r/${subreddit}/about.json`
 
@@ -185,6 +200,14 @@ export async function fetchPostComments(
   postId: string,
   limit: number = 100
 ): Promise<RedditComment[]> {
+  // Validate subreddit and postId to prevent path traversal
+  if (!/^[a-zA-Z0-9_]{1,50}$/.test(subreddit)) {
+    throw new Error(`Invalid subreddit name: ${subreddit}`)
+  }
+  if (!/^[a-zA-Z0-9_]{1,20}$/.test(postId)) {
+    throw new Error(`Invalid post ID: ${postId}`)
+  }
+
   try {
     const url = `https://www.reddit.com/r/${subreddit}/comments/${postId}.json?limit=${limit}&sort=top&depth=2`
 

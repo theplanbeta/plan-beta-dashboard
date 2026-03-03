@@ -48,35 +48,16 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // Trigger backup on successful login (fire and forget)
-        if (typeof window === 'undefined') {
+        // Trigger backup on login as safety net (cron can be unreliable)
+        // Fire-and-forget — don't block login. 10-min cooldown in backup route prevents spam.
+        if (process.env.CRON_SECRET) {
           const backupUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/cron/backup`
-          console.log('🔄 Triggering backup on login...')
-
           fetch(backupUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.CRON_SECRET}`,
-            },
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${process.env.CRON_SECRET}` },
+          }).catch(() => {
+            // Silently ignore — backup is best-effort on login
           })
-            .then(res => {
-              if (res.ok) {
-                return res.json().then(data => {
-                  if (data.skipped) {
-                    console.log('⏭️  Backup skipped (recent backup exists)')
-                  } else {
-                    console.log('✅ Backup triggered successfully')
-                  }
-                })
-              } else {
-                console.error('❌ Backup endpoint returned error:', res.status)
-              }
-            })
-            .catch(err => {
-              console.error('❌ Failed to trigger backup:', err.message)
-              // Silently fail - backup is not critical for login
-            })
         }
 
         return {

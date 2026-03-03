@@ -3,6 +3,16 @@ import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas'
 import { SCHOOL_INFO, BANK_DETAILS, CURRENCY_SYMBOLS, COURSE_INFO, type Currency } from './pricing'
 
+function escapeHtml(str: string | number | null | undefined): string {
+  if (str == null) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 export interface InvoiceItem {
   level: string
   description: string
@@ -426,7 +436,7 @@ export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
       </div>
       <div style="position: absolute; top: 30px; right: 30px; background: white; padding: 15px; border-radius: 8px;">
         <div style="color: #787878; font-size: 10px;">INVOICE NUMBER</div>
-        <div style="color: #d2302c; font-size: 16px; font-weight: bold; margin-top: 5px;">#${data.invoiceNumber}</div>
+        <div style="color: #d2302c; font-size: 16px; font-weight: bold; margin-top: 5px;">#${escapeHtml(data.invoiceNumber)}</div>
         <div style="color: #646464; font-size: 11px; margin-top: 5px;">Date: ${data.date}</div>
       </div>
     </div>
@@ -444,8 +454,8 @@ export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
         </div>
         <div style="text-align: right;">
           <h3 style="margin: 0; font-size: 13px; color: #d2302c;">BILL TO</h3>
-          <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${data.studentName}</p>
-          ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${data.studentAddress.replace(/\n/g, '<br/>')}</p>` : ''}
+          <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${escapeHtml(data.studentName)}</p>
+          ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</p>` : ''}
         </div>
       </div>
 
@@ -463,11 +473,11 @@ export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
             const levelColor = COURSE_INFO[item.level as keyof typeof COURSE_INFO]?.color || '#6b7280'
             return `
               <tr style="background: ${idx % 2 === 0 ? '#fafcfe' : '#fff'}; border-bottom: 1px solid #eee;">
-                <td style="padding: 12px 10px; font-size: 11px;">${item.description}</td>
+                <td style="padding: 12px 10px; font-size: 11px;">${escapeHtml(item.description)}</td>
                 <td style="padding: 12px 10px;">
-                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; min-width: 50px; text-align: center;">${item.level}</span>
+                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; min-width: 50px; text-align: center;">${escapeHtml(item.level)}</span>
                 </td>
-                <td style="padding: 12px 10px; font-size: 11px;">${item.month}</td>
+                <td style="padding: 12px 10px; font-size: 11px;">${escapeHtml(item.month)}</td>
                 <td style="padding: 12px 10px; text-align: right; font-weight: bold; font-size: 12px;">${currencySymbol}${parseFloat(item.amount.toString()).toFixed(2)}</td>
               </tr>
             `

@@ -7,14 +7,14 @@ import { sendBackupEmail } from '@/lib/email'
 import { formatDateTime } from '@/lib/utils'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { verifyCronSecret } from '@/lib/api-permissions'
 
 /**
  * Verify the request is authorized via CRON_SECRET or an authenticated FOUNDER/MARKETING session.
  */
 async function verifyBackupAuth(request: NextRequest): Promise<boolean> {
   // Check CRON_SECRET first (for Vercel cron and server-side calls)
-  const authHeader = request.headers.get("authorization")
-  if (authHeader === `Bearer ${process.env.CRON_SECRET}`) {
+  if (verifyCronSecret(request)) {
     return true
   }
   // Check session (for dashboard UI calls)
@@ -58,9 +58,16 @@ async function performBackup(skipCooldown = false) {
 
     console.log('🔄 Starting backup...')
 
-    // Fetch all data
+    // Fetch all data (exclude sensitive fields like password hashes)
     const [users, students, leads, batches, payments, referrals, attendance, invoices, auditLogs] = await Promise.all([
-      prisma.user.findMany(),
+      prisma.user.findMany({
+        select: {
+          id: true, name: true, email: true, role: true, active: true,
+          whatsapp: true, hourlyRate: true, createdAt: true, updatedAt: true,
+          requirePasswordChange: true,
+          // Explicitly exclude: password, passwordResetToken, passwordResetExpiry, welcomeToken, welcomeTokenExpiry
+        }
+      }),
       prisma.student.findMany(),
       prisma.lead.findMany(),
       prisma.batch.findMany(),

@@ -1,7 +1,18 @@
 import { Resend } from 'resend'
 import { gzipSync } from 'zlib'
+import { createCipheriv, randomBytes } from 'crypto'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+
+function escapeHtml(str: string | number | boolean | null | undefined): string {
+  if (str == null) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 // Elegant email header with clean typography - Plan Beta branding
 const emailHeader = `
@@ -80,19 +91,19 @@ interface EmailData {
 export function generateEmail(template: EmailTemplate, data: Record<string, string | number | boolean | null | undefined>): EmailData {
   const templates = {
     'student-welcome': {
-      subject: `Welcome to Plan Beta, ${data.studentName}!`,
+      subject: `Welcome to Plan Beta, ${escapeHtml(data.studentName)}!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #3b82f6;">Welcome to Plan Beta! 🎉</h1>
-          <p>Dear ${data.studentName},</p>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
           <p>We're excited to have you join us for your German language journey!</p>
 
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Your Enrollment Details:</h3>
-            <p><strong>Student ID:</strong> ${data.studentId}</p>
-            <p><strong>Level:</strong> ${data.level}</p>
-            <p><strong>Batch:</strong> ${data.batchCode || 'To be assigned'}</p>
-            <p><strong>Start Date:</strong> ${data.startDate}</p>
+            <p><strong>Student ID:</strong> ${escapeHtml(data.studentId)}</p>
+            <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
+            <p><strong>Batch:</strong> ${escapeHtml(data.batchCode) || 'To be assigned'}</p>
+            <p><strong>Start Date:</strong> ${escapeHtml(data.startDate)}</p>
           </div>
 
           <p>Your learning portal is now active. Log in to access your schedule, materials, and track your progress.</p>
@@ -118,7 +129,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Welcome to Plan Beta! 👋</h1>
-            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Dear ${data.teacherName},</p>
+            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Dear ${escapeHtml(data.teacherName)},</p>
             <p style="color: #374151; font-size: 15px;">Your teacher account has been created successfully. We're excited to have you as part of our teaching team!</p>
 
           <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #3b82f6;">
@@ -139,15 +150,15 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <div style="margin: 20px 0; text-align: center; padding: 15px; background: #f9fafb; border-radius: 6px;">
             <p style="margin: 0; color: #6b7280; font-size: 13px;">Or copy and paste this link into your browser:</p>
-            <p style="margin: 8px 0 0 0;"><a href="${data.welcomeUrl}" style="color: #d2302c; text-decoration: none; font-size: 12px; word-break: break-all;">${data.welcomeUrl}</a></p>
+            <p style="margin: 8px 0 0 0;"><a href="${data.welcomeUrl}" style="color: #d2302c; text-decoration: none; font-size: 12px; word-break: break-all;">${escapeHtml(data.welcomeUrl)}</a></p>
           </div>
 
           <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
             <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; font-weight: bold;">
-              ⏰ Link Expires in ${data.expiryHours} Hours
+              ⏰ Link Expires in ${escapeHtml(data.expiryHours)} Hours
             </p>
             <p style="margin: 0; color: #92400e; font-size: 13px;">
-              This secure link will automatically log you in and take you to set up your password. The link expires in ${data.expiryHours} hours for your security.
+              This secure link will automatically log you in and take you to set up your password. The link expires in ${escapeHtml(data.expiryHours)} hours for your security.
             </p>
           </div>
 
@@ -187,7 +198,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Complete Your Account Setup 🎓</h1>
-            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${data.teacherName},</p>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${escapeHtml(data.teacherName)},</p>
           <p>A teacher account has been created for you at Plan Beta. Please complete your account setup to get started.</p>
 
           <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
@@ -197,8 +208,8 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
 
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Temporary Login Credentials:</h3>
-            <p><strong>Email:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.email}</code></p>
-            <p><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${data.password}</code></p>
+            <p><strong>Email:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${escapeHtml(data.email)}</code></p>
+            <p><strong>Temporary Password:</strong> <code style="background: #e5e7eb; padding: 4px 8px; border-radius: 4px; font-size: 14px;">${escapeHtml(data.password)}</code></p>
             <p style="font-size: 13px; color: #6b7280; margin-top: 10px;">Use these credentials for your first login only.</p>
           </div>
 
@@ -251,7 +262,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Password Reset Request</h1>
-            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Hi ${data.userName},</p>
+            <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 15px;">Hi ${escapeHtml(data.userName)},</p>
 
             <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 25px 0;">
               We received a request to reset your password for your Plan Beta account. Click the button below to create a new password:
@@ -280,7 +291,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
               <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
                 If the button does not work, copy and paste this link into your browser:<br>
-                <a href="${data.resetUrl}" style="color: #d2302c; word-break: break-all;">${data.resetUrl}</a>
+                <a href="${data.resetUrl}" style="color: #d2302c; word-break: break-all;">${escapeHtml(data.resetUrl)}</a>
               </p>
             </div>
 
@@ -292,24 +303,24 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'payment-received': {
-      subject: `Payment Received - €${data.amount}`,
+      subject: `Payment Received - €${escapeHtml(data.amount)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #10b981;">Payment Received ✓</h1>
-          <p>Dear ${data.studentName},</p>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
           <p>We've successfully received your payment. Thank you!</p>
 
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Payment Details:</h3>
-            <p><strong>Amount Paid:</strong> €${data.amount}</p>
-            <p><strong>Payment Method:</strong> ${data.method}</p>
-            <p><strong>Transaction ID:</strong> ${data.transactionId || 'N/A'}</p>
-            <p><strong>Date:</strong> ${data.paymentDate}</p>
-            <p><strong>Remaining Balance:</strong> €${data.balance}</p>
+            <p><strong>Amount Paid:</strong> €${escapeHtml(data.amount)}</p>
+            <p><strong>Payment Method:</strong> ${escapeHtml(data.method)}</p>
+            <p><strong>Transaction ID:</strong> ${escapeHtml(data.transactionId) || 'N/A'}</p>
+            <p><strong>Date:</strong> ${escapeHtml(data.paymentDate)}</p>
+            <p><strong>Remaining Balance:</strong> €${escapeHtml(data.balance)}</p>
           </div>
 
           ${data.balance && Number(data.balance) > 0 ? `
-            <p style="color: #f59e0b;">You still have a balance of €${data.balance}. Please clear it at your earliest convenience.</p>
+            <p style="color: #f59e0b;">You still have a balance of €${escapeHtml(data.balance)}. Please clear it at your earliest convenience.</p>
           ` : `
             <p style="color: #10b981;">Your fees are fully paid! 🎉</p>
           `}
@@ -322,19 +333,19 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'payment-reminder': {
-      subject: `Payment Reminder - €${data.balance} Due`,
+      subject: `Payment Reminder - €${escapeHtml(data.balance)} Due`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #f59e0b;">Payment Reminder</h1>
-          <p>Dear ${data.studentName},</p>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
           <p>This is a friendly reminder about your pending payment.</p>
 
           <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
             <h3 style="margin-top: 0;">Outstanding Balance:</h3>
-            <p style="font-size: 24px; font-weight: bold; color: #f59e0b; margin: 10px 0;">€${data.balance}</p>
-            <p><strong>Original Fee:</strong> €${data.originalPrice}</p>
-            <p><strong>Paid So Far:</strong> €${data.totalPaid}</p>
-            ${data.daysOverdue && Number(data.daysOverdue) > 0 ? `<p style="color: #dc2626;"><strong>Days Overdue:</strong> ${data.daysOverdue}</p>` : ''}
+            <p style="font-size: 24px; font-weight: bold; color: #f59e0b; margin: 10px 0;">€${escapeHtml(data.balance)}</p>
+            <p><strong>Original Fee:</strong> €${escapeHtml(data.originalPrice)}</p>
+            <p><strong>Paid So Far:</strong> €${escapeHtml(data.totalPaid)}</p>
+            ${data.daysOverdue && Number(data.daysOverdue) > 0 ? `<p style="color: #dc2626;"><strong>Days Overdue:</strong> ${escapeHtml(data.daysOverdue)}</p>` : ''}
           </div>
 
           <p>Please clear your dues to continue enjoying uninterrupted access to our classes and materials.</p>
@@ -354,21 +365,21 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'batch-start': {
-      subject: `Your Batch Starts ${data.startDate} - ${data.batchCode}`,
+      subject: `Your Batch Starts ${escapeHtml(data.startDate)} - ${escapeHtml(data.batchCode)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #3b82f6;">Your Batch is Starting Soon! 🚀</h1>
-          <p>Dear ${data.studentName},</p>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
           <p>Great news! You've been assigned to a new batch.</p>
 
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Batch Details:</h3>
-            <p><strong>Batch Code:</strong> ${data.batchCode}</p>
-            <p><strong>Level:</strong> ${data.level}</p>
-            <p><strong>Start Date:</strong> ${data.startDate}</p>
-            <p><strong>Schedule:</strong> ${data.schedule}</p>
-            <p><strong>Instructor:</strong> ${data.instructor || 'To be announced'}</p>
-            <p><strong>Total Students:</strong> ${data.enrolledCount}/${data.totalSeats}</p>
+            <p><strong>Batch Code:</strong> ${escapeHtml(data.batchCode)}</p>
+            <p><strong>Level:</strong> ${escapeHtml(data.level)}</p>
+            <p><strong>Start Date:</strong> ${escapeHtml(data.startDate)}</p>
+            <p><strong>Schedule:</strong> ${escapeHtml(data.schedule)}</p>
+            <p><strong>Instructor:</strong> ${escapeHtml(data.instructor) || 'To be announced'}</p>
+            <p><strong>Total Students:</strong> ${escapeHtml(data.enrolledCount)}/${escapeHtml(data.totalSeats)}</p>
           </div>
 
           <p><strong>What to Bring for First Class:</strong></p>
@@ -397,13 +408,13 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #dc2626;">Attendance Alert ⚠️</h1>
-          <p>Dear ${data.studentName},</p>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
           <p>We've noticed your attendance has fallen below our minimum requirement.</p>
 
           <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
             <h3 style="margin-top: 0;">Current Attendance:</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #dc2626; margin: 10px 0;">${data.attendanceRate}%</p>
-            <p><strong>Classes Attended:</strong> ${data.classesAttended} / ${data.totalClasses}</p>
+            <p style="font-size: 32px; font-weight: bold; color: #dc2626; margin: 10px 0;">${escapeHtml(data.attendanceRate)}%</p>
+            <p><strong>Classes Attended:</strong> ${escapeHtml(data.classesAttended)} / ${escapeHtml(data.totalClasses)}</p>
             <p style="color: #dc2626;"><strong>Minimum Required:</strong> 50%</p>
           </div>
 
@@ -424,22 +435,22 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'referral-payout': {
-      subject: `Referral Payout Processed - €${data.amount}`,
+      subject: `Referral Payout Processed - €${escapeHtml(data.amount)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #10b981;">Referral Payout Processed! 🎉</h1>
-          <p>Dear ${data.referrerName},</p>
+          <p>Dear ${escapeHtml(data.referrerName)},</p>
           <p>Great news! Your referral payout has been processed successfully.</p>
 
           <div style="background: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
             <h3 style="margin-top: 0;">Payout Details:</h3>
-            <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 10px 0;">€${data.amount}</p>
-            <p><strong>Referee:</strong> ${data.refereeName}</p>
-            <p><strong>Payout Date:</strong> ${data.payoutDate}</p>
-            <p><strong>Payment Method:</strong> ${data.paymentMethod || 'Bank Transfer'}</p>
+            <p style="font-size: 32px; font-weight: bold; color: #10b981; margin: 10px 0;">€${escapeHtml(data.amount)}</p>
+            <p><strong>Referee:</strong> ${escapeHtml(data.refereeName)}</p>
+            <p><strong>Payout Date:</strong> ${escapeHtml(data.payoutDate)}</p>
+            <p><strong>Payment Method:</strong> ${escapeHtml(data.paymentMethod) || 'Bank Transfer'}</p>
           </div>
 
-          <p>Thank you for referring ${data.refereeName}! They've successfully completed their first month with excellent attendance.</p>
+          <p>Thank you for referring ${escapeHtml(data.refereeName)}! They've successfully completed their first month with excellent attendance.</p>
 
           <p><strong>Keep Referring, Keep Earning:</strong></p>
           <ul>
@@ -461,24 +472,24 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'month-complete': {
-      subject: `Congratulations! Month ${data.month} Complete 🎉`,
+      subject: `Congratulations! Month ${escapeHtml(data.month)} Complete 🎉`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #8b5cf6;">Month ${data.month} Complete! 🎉</h1>
-          <p>Dear ${data.studentName},</p>
-          <p>Congratulations on completing Month ${data.month} of your German learning journey!</p>
+          <h1 style="color: #8b5cf6;">Month ${escapeHtml(data.month)} Complete! 🎉</h1>
+          <p>Dear ${escapeHtml(data.studentName)},</p>
+          <p>Congratulations on completing Month ${escapeHtml(data.month)} of your German learning journey!</p>
 
           <div style="background: #f3e8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="margin-top: 0;">Your Progress:</h3>
-            <p><strong>Attendance Rate:</strong> ${data.attendanceRate}%</p>
-            <p><strong>Classes Attended:</strong> ${data.classesAttended} / ${data.totalClasses}</p>
-            <p><strong>Current Level:</strong> ${data.currentLevel}</p>
-            ${data.referrerName ? `<p style="color: #10b981;">✓ Referral payout triggered for ${data.referrerName}!</p>` : ''}
+            <p><strong>Attendance Rate:</strong> ${escapeHtml(data.attendanceRate)}%</p>
+            <p><strong>Classes Attended:</strong> ${escapeHtml(data.classesAttended)} / ${escapeHtml(data.totalClasses)}</p>
+            <p><strong>Current Level:</strong> ${escapeHtml(data.currentLevel)}</p>
+            ${data.referrerName ? `<p style="color: #10b981;">✓ Referral payout triggered for ${escapeHtml(data.referrerName)}!</p>` : ''}
           </div>
 
           <p><strong>What's Next:</strong></p>
           <ul>
-            <li>Continue with Month ${parseInt(String(data.month)) + 1} starting ${data.nextMonthStart}</li>
+            <li>Continue with Month ${parseInt(String(data.month)) + 1} starting ${escapeHtml(data.nextMonthStart)}</li>
             <li>Practice regularly to retain what you've learned</li>
             <li>Consider referring friends to earn €2,000 per referral</li>
           </ul>
@@ -495,16 +506,16 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'teacher-hours-reminder': {
-      subject: `Log Today's Teaching Hours - ${data.todayDate || 'Today'}`,
+      subject: `Log Today's Teaching Hours - ${escapeHtml(data.todayDate) || 'Today'}`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 26px;">Don't Forget to Log Today's Hours! ⏰</h1>
-            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Hi ${data.teacherName},</p>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Hi ${escapeHtml(data.teacherName)},</p>
 
             <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-              We noticed you haven't logged your teaching hours for <strong>${data.todayDate || 'today'}</strong> yet.
+              We noticed you haven't logged your teaching hours for <strong>${escapeHtml(data.todayDate) || 'today'}</strong> yet.
             </p>
 
             <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #f59e0b;">
@@ -517,7 +528,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
             ${data.assignedBatches ? `
             <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
               <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Your Active Batches:</strong></p>
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">${data.assignedBatches}</p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">${escapeHtml(data.assignedBatches)}</p>
             </div>
             ` : ''}
 
@@ -546,17 +557,17 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
     },
 
     'student-absence-notice': {
-      subject: `Class Attendance Notice - ${data.classDate || 'Today'}`,
+      subject: `Class Attendance Notice - ${escapeHtml(data.classDate) || 'Today'}`,
       html: `
         <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
           ${emailHeader}
           <div style="padding: 35px 30px;">
             <h1 style="color: #1f2937; margin: 0 0 10px 0; font-size: 24px;">Class Attendance Notice</h1>
-            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${data.studentName},</p>
+            <p style="color: #6b7280; margin: 0 0 25px 0; font-size: 15px;">Dear ${escapeHtml(data.studentName)},</p>
 
             <p style="color: #374151; font-size: 15px; line-height: 1.6;">
-              We noticed that you were unable to attend your German class on <strong>${data.classDate || 'today'}</strong>
-              for batch <strong>${data.batchCode}</strong> (${data.level}).
+              We noticed that you were unable to attend your German class on <strong>${escapeHtml(data.classDate) || 'today'}</strong>
+              for batch <strong>${escapeHtml(data.batchCode)}</strong> (${escapeHtml(data.level)}).
             </p>
 
             <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #3b82f6;">
@@ -596,7 +607,7 @@ export function generateEmail(template: EmailTemplate, data: Record<string, stri
               <h3 style="margin: 0 0 10px 0; color: #065f46; font-size: 15px;">Were You Actually Present?</h3>
               <p style="margin: 0; font-size: 13px; color: #065f46; line-height: 1.6;">
                 If you believe you attended this class and this notification was sent in error, please contact your teacher
-                <strong>${data.teacherName}</strong>${data.teacherWhatsapp ? ` via WhatsApp at <strong>${data.teacherWhatsapp}</strong>` : ''} to have your attendance corrected.
+                <strong>${escapeHtml(data.teacherName)}</strong>${data.teacherWhatsapp ? ` via WhatsApp at <strong>${escapeHtml(data.teacherWhatsapp)}</strong>` : ''} to have your attendance corrected.
               </p>
             </div>
             ` : `
@@ -713,9 +724,6 @@ export async function sendBackupEmail({
     ? to
     : [to || process.env.SUPPORT_EMAIL || 'hello@planbeta.in']
 
-  const safeFilename =
-    filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json.gz`
-
   const summaryRows = Object.entries(counts)
     .map(([name, value]) => `<li><strong>${name}:</strong> ${value}</li>`)
     .join('')
@@ -728,19 +736,51 @@ export async function sendBackupEmail({
 
   console.log(`📦 Backup compression: ${originalSize} bytes → ${compressedSize} bytes (${compressionRatio}% reduction)`)
 
+  // Encrypt the compressed backup with AES-256-GCM if key is configured
+  const encryptionKey = process.env.BACKUP_ENCRYPTION_KEY
+  let attachmentBuffer: Buffer
+  let safeFilename: string
+  let isEncrypted = false
+
+  if (encryptionKey && encryptionKey.length === 64) {
+    // AES-256-GCM encryption: [12-byte IV][16-byte auth tag][ciphertext]
+    const iv = randomBytes(12)
+    const cipher = createCipheriv('aes-256-gcm', Buffer.from(encryptionKey, 'hex'), iv)
+    const encrypted = Buffer.concat([cipher.update(compressed), cipher.final()])
+    const authTag = cipher.getAuthTag()
+    attachmentBuffer = Buffer.concat([iv, authTag, encrypted])
+    safeFilename = filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json.gz.enc`
+    isEncrypted = true
+    console.log('🔐 Backup encrypted with AES-256-GCM')
+  } else {
+    attachmentBuffer = compressed
+    safeFilename = filename || `backup-${timestamp.replace(/[: ]/g, '-').replace(/\..+$/, '')}.json.gz`
+    if (!encryptionKey) {
+      console.warn('⚠️ BACKUP_ENCRYPTION_KEY not set — sending unencrypted backup')
+    }
+  }
+
+  const encryptionNote = isEncrypted
+    ? `<p style="font-size: 12px; color: #6b7280;">
+        🔐 <strong>Encrypted</strong> with AES-256-GCM. Decrypt with: <code>node scripts/decrypt-backup.js ${safeFilename}</code>
+      </p>`
+    : `<p style="font-size: 12px; color: #6b7280;">
+        Extract with: <code>gunzip ${safeFilename}</code>
+      </p>`
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2 style="color: #1d4ed8;">Plan Beta Database Backup</h2>
       <p><strong>Timestamp:</strong> ${timestamp}</p>
-      <p>A compressed JSON backup (.gz) is attached.</p>
+      <p>A ${isEncrypted ? 'compressed and encrypted' : 'compressed'} JSON backup is attached.</p>
       <h3>Record counts</h3>
       <ul>
         ${summaryRows}
       </ul>
       <p style="font-size: 12px; color: #6b7280;">
-        File size: ${Math.round(compressedSize / 1024)} KB (compressed from ${Math.round(originalSize / 1024)} KB)<br>
-        Extract with: <code>gunzip ${safeFilename}</code>
+        File size: ${Math.round(attachmentBuffer.length / 1024)} KB (original ${Math.round(originalSize / 1024)} KB)
       </p>
+      ${encryptionNote}
       <p style="font-size: 12px; color: #6b7280;">
         This email was generated automatically by the dashboard backup service.
       </p>
@@ -749,7 +789,6 @@ export async function sendBackupEmail({
 
   try {
     console.log('📧 Sending backup email to:', recipientList)
-    console.log('📧 Using Resend API key:', process.env.RESEND_API_KEY ? '✓ Configured' : '✗ Missing')
 
     const result = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'Plan Beta Backups <noreply@planbeta.in>',
@@ -759,7 +798,7 @@ export async function sendBackupEmail({
       attachments: [
         {
           filename: safeFilename,
-          content: compressed.toString('base64'),
+          content: attachmentBuffer.toString('base64'),
         },
       ],
     })

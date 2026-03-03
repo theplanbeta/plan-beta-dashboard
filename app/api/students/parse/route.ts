@@ -18,6 +18,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 })
     }
 
+    // Sanitize: limit length and strip control characters
+    if (text.length > 5000) {
+      return NextResponse.json({ error: "Text too long (max 5000 characters)" }, { status: 400 })
+    }
+    const sanitizedText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         { error: "Gemini API key not configured" },
@@ -31,7 +37,7 @@ export async function POST(request: Request) {
 Extract structured student information from the following unstructured text.
 
 Text: """
-${text}
+${sanitizedText}
 """
 
 Extract and return ONLY a valid JSON object with these fields:

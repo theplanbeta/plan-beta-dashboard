@@ -27,18 +27,21 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text()
 
-    // Verify HMAC signature from Meta (if app secret is configured)
-    if (APP_SECRET) {
-      const signature = request.headers.get("x-hub-signature-256")
-      if (!signature) {
-        return NextResponse.json({ error: "Missing signature" }, { status: 403 })
-      }
-      const expectedHash = createHmac("sha256", APP_SECRET)
-        .update(rawBody)
-        .digest("hex")
-      if (signature !== `sha256=${expectedHash}`) {
-        return NextResponse.json({ error: "Invalid signature" }, { status: 403 })
-      }
+    // Verify HMAC signature from Meta — fail closed if secret not configured
+    if (!APP_SECRET) {
+      console.error("WHATSAPP_APP_SECRET not configured — rejecting webhook")
+      return NextResponse.json({ error: "Webhook not configured" }, { status: 500 })
+    }
+
+    const signature = request.headers.get("x-hub-signature-256")
+    if (!signature) {
+      return NextResponse.json({ error: "Missing signature" }, { status: 403 })
+    }
+    const expectedHash = createHmac("sha256", APP_SECRET)
+      .update(rawBody)
+      .digest("hex")
+    if (signature !== `sha256=${expectedHash}`) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 403 })
     }
 
     const body = JSON.parse(rawBody)

@@ -4,6 +4,9 @@ import { z } from "zod"
 import { createNotification, NOTIFICATION_TYPES } from "@/lib/notifications"
 import { trackServerLead } from "@/lib/meta-capi"
 import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const limiter = rateLimit(RATE_LIMITS.MODERATE)
 
 // Map UTM source to ReferralSource enum
 function mapUtmToSource(utmSource?: string | null): "META_ADS" | "INSTAGRAM" | "GOOGLE" | "ORGANIC" | "REFERRAL" | "OTHER" {
@@ -50,6 +53,9 @@ const publicLeadSchema = z.object({
 // POST /api/leads/public — Unauthenticated lead intake from website
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResult = await limiter(request)
+    if (rateLimitResult) return rateLimitResult
+
     const body = await request.json()
 
     const validation = publicLeadSchema.safeParse(body)

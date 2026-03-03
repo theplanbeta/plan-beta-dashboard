@@ -7,6 +7,7 @@ import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { sendEmail } from '@/lib/email'
 import crypto from 'crypto'
+import { hashToken } from '@/lib/password-utils'
 
 const limiter = rateLimit(RATE_LIMITS.STANDARD)
 
@@ -84,16 +85,17 @@ export async function POST(req: NextRequest) {
 
     // Send emails to each teacher
     for (const teacher of teachers) {
-      // Generate secure welcome token
+      // Generate secure welcome token — store only SHA-256 hash in DB
       const welcomeToken = crypto.randomBytes(32).toString('hex')
+      const hashedWelcomeToken = hashToken(welcomeToken)
       const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 
-      // Store token in database
+      // Store hashed token in database
       try {
         await prisma.user.update({
           where: { id: teacher.id },
           data: {
-            welcomeToken,
+            welcomeToken: hashedWelcomeToken,
             welcomeTokenExpiry: tokenExpiry,
             requirePasswordChange: true,
           },

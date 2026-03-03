@@ -15,8 +15,21 @@ export async function GET(
   try {
     const check = await checkPermission("students", "read")
     if (!check.authorized) return check.response
+    const session = check.session
 
     const { id } = await params
+
+    // TEACHER can only view students in their batches
+    if (session.user.role === 'TEACHER') {
+      const studentCheck = await prisma.student.findUnique({
+        where: { id },
+        include: { batch: true, enrollments: { include: { batch: true } } }
+      })
+      if (!studentCheck) return NextResponse.json({ error: 'Student not found' }, { status: 404 })
+      const teacherBatches = [studentCheck.batch, ...studentCheck.enrollments.map(e => e.batch)].filter(Boolean)
+      const isOwnStudent = teacherBatches.some(b => b?.teacherId === session.user.id)
+      if (!isOwnStudent) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const student = await prisma.student.findUnique({
       where: { id },

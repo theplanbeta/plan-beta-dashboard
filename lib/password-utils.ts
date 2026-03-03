@@ -1,8 +1,9 @@
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt, createHash } from 'crypto'
 
 /**
  * Generate a secure random password
  * Format: 12 characters with uppercase, lowercase, numbers, and special characters
+ * Uses crypto.randomInt() for cryptographically secure randomness
  */
 export function generateSecurePassword(): string {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -13,21 +14,23 @@ export function generateSecurePassword(): string {
 
   // Ensure at least one of each type
   let password = ''
-  password += uppercase[Math.floor(Math.random() * uppercase.length)]
-  password += lowercase[Math.floor(Math.random() * lowercase.length)]
-  password += numbers[Math.floor(Math.random() * numbers.length)]
-  password += special[Math.floor(Math.random() * special.length)]
+  password += uppercase[randomInt(uppercase.length)]
+  password += lowercase[randomInt(lowercase.length)]
+  password += numbers[randomInt(numbers.length)]
+  password += special[randomInt(special.length)]
 
   // Fill remaining 8 characters randomly
   for (let i = 0; i < 8; i++) {
-    password += allChars[Math.floor(Math.random() * allChars.length)]
+    password += allChars[randomInt(allChars.length)]
   }
 
-  // Shuffle the password to randomize positions
-  return password
-    .split('')
-    .sort(() => Math.random() - 0.5)
-    .join('')
+  // Fisher-Yates shuffle with crypto randomness
+  const arr = password.split('')
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = randomInt(i + 1)
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr.join('')
 }
 
 /**
@@ -72,6 +75,14 @@ export function validatePasswordStrength(password: string): {
  */
 export function generateResetToken(): string {
   return randomBytes(32).toString('hex')
+}
+
+/**
+ * Hash a token with SHA-256 for safe storage in the database.
+ * The raw token is sent to the user (via email link); only the hash is stored.
+ */
+export function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex')
 }
 
 /**

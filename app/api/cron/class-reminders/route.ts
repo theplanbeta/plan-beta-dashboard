@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
+import { verifyCronSecret } from "@/lib/api-permissions"
 
 /**
  * Cron job to send class reminder WhatsApp messages to students.
@@ -12,8 +13,7 @@ import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
 export async function GET(request: NextRequest) {
   try {
     // Verify cron secret
-    const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!verifyCronSecret(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

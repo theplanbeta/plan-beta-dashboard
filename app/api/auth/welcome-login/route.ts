@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+import { hashToken } from '@/lib/password-utils'
 
 /**
  * POST /api/auth/welcome-login
@@ -18,10 +19,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Find user with this welcome token
+    // Hash the incoming token to compare against stored hash
+    const hashedToken = hashToken(token)
+
+    // Find user with this welcome token hash
     const user = await prisma.user.findFirst({
       where: {
-        welcomeToken: token,
+        welcomeToken: hashedToken,
         active: true,
       },
       select: {
@@ -58,7 +62,7 @@ export async function POST(req: NextRequest) {
 
     // Generate a temporary password for this login session
     const tempPassword = crypto.randomBytes(32).toString('hex')
-    const hashedTempPassword = await bcrypt.hash(tempPassword, 10)
+    const hashedTempPassword = await bcrypt.hash(tempPassword, 12)
 
     // Update user with temp password, clear welcome token, set password change required
     await prisma.user.update({

@@ -33,6 +33,14 @@ export async function POST(request: NextRequest) {
 
     const data = validation.data
 
+    // Validate push endpoint is from a known push service
+    const allowedPushDomains = ['fcm.googleapis.com', 'updates.push.services.mozilla.com', 'notify.windows.com', 'wns2-par02p.notify.windows.com']
+    const endpointUrl = new URL(data.endpoint)
+    const isAllowedPush = allowedPushDomains.some(d => endpointUrl.hostname === d || endpointUrl.hostname.endsWith('.' + d))
+    if (!isAllowedPush) {
+      return NextResponse.json({ error: 'Invalid push endpoint' }, { status: 400 })
+    }
+
     // Upsert — update if endpoint already exists, merge topics
     const existing = await prisma.pushSubscription.findUnique({
       where: { endpoint: data.endpoint },

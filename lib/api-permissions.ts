@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { hasPermission, type UserRole } from './permissions'
+import { timingSafeEqual } from 'crypto'
 
 export async function checkPermission(
   resource: string,
@@ -38,4 +39,15 @@ export async function checkPermission(
     authorized: true,
     session: { user: { role: userRole, id: userId } },
   }
+}
+
+/**
+ * Verify CRON_SECRET using timing-safe comparison to prevent timing attacks.
+ */
+export function verifyCronSecret(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization')
+  if (!authHeader || !process.env.CRON_SECRET) return false
+  const expected = `Bearer ${process.env.CRON_SECRET}`
+  if (authHeader.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected))
 }

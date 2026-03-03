@@ -7,6 +7,19 @@
 import { prisma } from "@/lib/prisma"
 import { generateContent } from "@/lib/gemini-client"
 
+function isUrlAllowed(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:') return false
+    const hostname = parsed.hostname
+    // Block private/internal IPs
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.|localhost|host\.docker\.internal)/i.test(hostname)) return false
+    // Block common cloud metadata endpoints
+    if (hostname === 'metadata.google.internal') return false
+    return true
+  } catch { return false }
+}
+
 interface ExtractedJob {
   title: string
   company: string
@@ -29,6 +42,8 @@ interface ExtractedJob {
  * Docs: https://www.arbeitnow.com/api
  */
 async function fetchArbeitnow(url: string): Promise<ExtractedJob[]> {
+  if (!isUrlAllowed(url)) throw new Error('URL not allowed: blocked by security policy')
+
   const apiUrl = url.replace(/\/?$/, "").includes("/api/")
     ? url
     : "https://www.arbeitnow.com/api/job-board-api"
@@ -208,6 +223,8 @@ ${truncated}`
  * Fetch raw HTML from a URL.
  */
 async function fetchHtml(url: string): Promise<string | null> {
+  if (!isUrlAllowed(url)) throw new Error('URL not allowed: blocked by security policy')
+
   try {
     const res = await fetch(url, {
       headers: {

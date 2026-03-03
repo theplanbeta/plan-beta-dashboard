@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { sendEmail } from "@/lib/email"
+import { verifyCronSecret } from "@/lib/api-permissions"
 
 // POST /api/cron/teacher-hours-reminder
 // Runs at 7 PM CET (18:00 UTC) on weekdays to remind teachers who haven't logged hours TODAY
 export async function POST(request: NextRequest) {
   try {
     // Verify cron secret for security
-    const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!verifyCronSecret(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

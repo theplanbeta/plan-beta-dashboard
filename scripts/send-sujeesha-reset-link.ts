@@ -1,14 +1,16 @@
 import { prisma } from '../lib/prisma'
 import crypto from 'crypto'
+import { hashToken } from '../lib/password-utils'
 
 async function sendPasswordReset() {
   const resetToken = crypto.randomBytes(32).toString('hex')
+  const hashedToken = hashToken(resetToken)
   const resetExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
   await prisma.user.update({
     where: { email: 'sujeeshasureshbabu@gmail.com' },
     data: {
-      passwordResetToken: resetToken,
+      passwordResetToken: hashedToken,
       passwordResetExpiry: resetExpiry
     }
   })

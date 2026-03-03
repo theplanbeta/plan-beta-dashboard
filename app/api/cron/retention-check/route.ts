@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { createNotification, NOTIFICATION_TYPES } from "@/lib/notifications"
 import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
+import { verifyCronSecret } from "@/lib/api-permissions"
 
 /**
  * Retention check cron — calculates composite risk score for all active students.
@@ -17,8 +18,7 @@ import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
  */
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization")
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (!verifyCronSecret(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 

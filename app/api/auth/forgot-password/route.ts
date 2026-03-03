@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { generateResetToken, getTokenExpiry } from '@/lib/password-utils'
+import { generateResetToken, getTokenExpiry, hashToken } from '@/lib/password-utils'
 import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
@@ -54,15 +54,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Generate reset token
+    // Generate reset token — store only the SHA-256 hash in DB
     const resetToken = generateResetToken()
+    const hashedResetToken = hashToken(resetToken)
     const resetExpiry = getTokenExpiry()
 
-    // Store reset token in database
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordResetToken: resetToken,
+        passwordResetToken: hashedResetToken,
         passwordResetExpiry: resetExpiry,
       },
     })

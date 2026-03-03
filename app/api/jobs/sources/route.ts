@@ -40,6 +40,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // SSRF protection: block private IPs and non-HTTPS URLs
+    const sourceUrl = new URL(validation.data.url)
+    if (sourceUrl.protocol !== 'https:') {
+      return NextResponse.json({ error: 'Only HTTPS URLs are allowed' }, { status: 400 })
+    }
+    const hostname = sourceUrl.hostname
+    if (/^(10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|127\.|0\.|169\.254\.|localhost|host\.docker\.internal)/i.test(hostname) || hostname === 'metadata.google.internal') {
+      return NextResponse.json({ error: 'URL not allowed: blocked by security policy' }, { status: 400 })
+    }
+
     const source = await prisma.jobSource.create({
       data: {
         name: validation.data.name,

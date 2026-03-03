@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+const ALLOWED_REDIRECT_DOMAINS = [
+  "theplanbeta.com",
+  "planbeta.app",
+  "planbeta.in",
+  "courses.planbeta.in",
+  "wa.me",
+  "api.whatsapp.com",
+  "instagram.com",
+  "www.instagram.com",
+  "facebook.com",
+  "www.facebook.com",
+  "youtube.com",
+  "www.youtube.com",
+  "shopify.com",
+]
+
+function isAllowedRedirect(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false
+    const hostname = parsed.hostname.toLowerCase()
+    return ALLOWED_REDIRECT_DOMAINS.some(
+      (d) => hostname === d || hostname.endsWith(`.${d}`)
+    )
+  } catch {
+    return false
+  }
+}
+
 const WA_NUMBER = "919028396035"
 const WA_MESSAGES: Record<string, string> = {
   "wa:a1": "Hi! I'm interested in the A1 German course.",
@@ -37,8 +66,11 @@ export async function GET(
       return NextResponse.redirect(waUrl, 302)
     }
 
-    // External URLs — redirect directly
+    // External URLs — redirect only to allowed domains
     if (link.destination.startsWith("http")) {
+      if (!isAllowedRedirect(link.destination)) {
+        return NextResponse.redirect(new URL("/site", request.url))
+      }
       return NextResponse.redirect(link.destination, 302)
     }
 

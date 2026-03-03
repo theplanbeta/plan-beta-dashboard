@@ -10,22 +10,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BatchStatus } from '@prisma/client';
+import { verifyCronSecret } from '@/lib/api-permissions';
 
 export async function POST(req: NextRequest) {
   try {
     // Verify the request is from authorized source (e.g., cron secret)
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (!cronSecret) {
-      console.error('CRON_SECRET environment variable is not set');
-      return NextResponse.json(
-        { error: 'Server misconfigured' },
-        { status: 500 }
-      );
-    }
-
-    const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    if (!verifyCronSecret(req)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }

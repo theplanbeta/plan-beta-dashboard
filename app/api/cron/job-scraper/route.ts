@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { scrapeAllSources } from "@/lib/job-scraper"
+import { verifyCronSecret } from "@/lib/api-permissions"
 
 // GET /api/cron/job-scraper — Daily job scraping cron (protected by CRON_SECRET)
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization")
-  const cronSecret = process.env.CRON_SECRET
-
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

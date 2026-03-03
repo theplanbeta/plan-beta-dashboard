@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hash } from 'bcryptjs'
 import { z } from 'zod'
-import { validatePasswordStrength, isTokenExpired } from '@/lib/password-utils'
+import { validatePasswordStrength, isTokenExpired, hashToken } from '@/lib/password-utils'
 import { logSuccess } from '@/lib/audit'
 import { AuditAction } from '@prisma/client'
 import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
@@ -48,10 +48,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Find user by reset token
+    // Hash the incoming token to compare against stored hash
+    const hashedToken = hashToken(token)
+
+    // Find user by reset token hash
     const user = await prisma.user.findFirst({
       where: {
-        passwordResetToken: token,
+        passwordResetToken: hashedToken,
       },
       select: {
         id: true,
@@ -87,7 +90,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Hash new password
-    const hashedPassword = await hash(newPassword, 10)
+    const hashedPassword = await hash(newPassword, 12)
 
     // Update password and clear reset token
     await prisma.user.update({

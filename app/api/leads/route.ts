@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
     console.error("❌ Failed to create lead:", error)
     console.error("Error details:", error instanceof Error ? error.message : String(error))
     return NextResponse.json(
-      { error: "Failed to create lead", details: error instanceof Error ? error.message : String(error) },
+      { error: "Failed to create lead" },
       { status: 500 }
     )
   }

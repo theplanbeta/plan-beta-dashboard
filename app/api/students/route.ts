@@ -344,7 +344,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Failed to create student", details: error?.message },
+      { error: "Failed to create student" },
       { status: 500 }
     )
   }

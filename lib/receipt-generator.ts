@@ -4,6 +4,16 @@ import html2canvas from 'html2canvas'
 import { SCHOOL_INFO, BANK_DETAILS, CURRENCY_SYMBOLS, COURSE_INFO, type Currency } from './pricing'
 import type { ReceiptData, ReceiptItem, PaymentMethod, PaymentStatus } from './receipt-types'
 
+function escapeHtml(str: string | number | null | undefined): string {
+  if (str == null) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 // Helper function to load image as base64
 async function loadImageAsBase64(imagePath: string): Promise<string> {
   try {
@@ -485,7 +495,7 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
       </div>
       <div style="position: absolute; top: 30px; right: 30px; background: white; padding: 15px; border-radius: 8px;">
         <div style="color: #787878; font-size: 10px;">RECEIPT NUMBER</div>
-        <div style="color: #d2302c; font-size: 16px; font-weight: bold; margin-top: 5px;">#${data.receiptNumber}</div>
+        <div style="color: #d2302c; font-size: 16px; font-weight: bold; margin-top: 5px;">#${escapeHtml(data.receiptNumber)}</div>
         <div style="color: #646464; font-size: 11px; margin-top: 5px;">Date: ${data.date}</div>
         <div style="background: #16a34a; color: white; padding: 5px 10px; border-radius: 4px; margin-top: 8px; text-align: center; font-weight: bold; font-size: 10px;">PAID</div>
       </div>
@@ -498,12 +508,12 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
             <div>
               <span style="color: #16a34a; font-size: 12px; font-weight: bold;">✓ PAYMENT RECEIVED</span>
               <div style="color: #374151; font-size: 10px; margin-top: 3px;">
-                Payment Method: <strong>${data.paymentMethod}</strong>
-                ${data.transactionReference ? ` | Ref: <strong>${data.transactionReference}</strong>` : ''}
+                Payment Method: <strong>${escapeHtml(data.paymentMethod)}</strong>
+                ${data.transactionReference ? ` | Ref: <strong>${escapeHtml(data.transactionReference)}</strong>` : ''}
               </div>
             </div>
             <div style="text-align: right; font-size: 9px; color: #6b7280;">
-              Against Invoice: <strong>#${data.invoiceNumber}</strong>
+              Against Invoice: <strong>#${escapeHtml(data.invoiceNumber)}</strong>
             </div>
           </div>
         </div>
@@ -511,8 +521,8 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
         <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 6px; padding: 12px; margin-bottom: 20px;">
           <div style="color: #16a34a; font-size: 12px; font-weight: bold;">✓ PAYMENT RECEIVED</div>
           <div style="color: #374151; font-size: 10px; margin-top: 3px;">
-            Payment Method: <strong>${data.paymentMethod}</strong>
-            ${data.transactionReference ? ` | Transaction Ref: <strong>${data.transactionReference}</strong>` : ''}
+            Payment Method: <strong>${escapeHtml(data.paymentMethod)}</strong>
+            ${data.transactionReference ? ` | Transaction Ref: <strong>${escapeHtml(data.transactionReference)}</strong>` : ''}
           </div>
         </div>
       `}
@@ -529,8 +539,8 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
         </div>
         <div style="text-align: right;">
           <h3 style="margin: 0; font-size: 13px; color: #16a34a;">RECEIVED FROM</h3>
-          <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${data.studentName}</p>
-          ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${data.studentAddress.replace(/\n/g, '<br/>')}</p>` : ''}
+          <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${escapeHtml(data.studentName)}</p>
+          ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</p>` : ''}
         </div>
       </div>
 
@@ -548,11 +558,11 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
             const levelColor = COURSE_INFO[item.level as keyof typeof COURSE_INFO]?.color || '#6b7280'
             return `
               <tr style="background: ${idx % 2 === 0 ? '#fafcfe' : '#fff'}; border-bottom: 1px solid #eee;">
-                <td style="padding: 14px 10px; font-size: 11px; vertical-align: middle;">${item.description}</td>
+                <td style="padding: 14px 10px; font-size: 11px; vertical-align: middle;">${escapeHtml(item.description)}</td>
                 <td style="padding: 14px 10px; text-align: center; vertical-align: middle;">
-                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; white-space: nowrap;">${item.level}</span>
+                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 6px 14px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; white-space: nowrap;">${escapeHtml(item.level)}</span>
                 </td>
-                <td style="padding: 14px 10px; font-size: 11px; text-align: center; vertical-align: middle;">${item.month}</td>
+                <td style="padding: 14px 10px; font-size: 11px; text-align: center; vertical-align: middle;">${escapeHtml(item.month)}</td>
                 <td style="padding: 14px 10px; text-align: right; font-weight: bold; font-size: 12px; vertical-align: middle;">${currencySymbol}${parseFloat(item.amount.toString()).toFixed(2)}</td>
               </tr>
             `

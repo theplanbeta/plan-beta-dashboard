@@ -3,6 +3,16 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+function escapeHtml(str: string | number | boolean | null | undefined): string {
+  if (str == null) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -86,7 +96,7 @@ export async function POST(request: Request) {
       from: process.env.EMAIL_FROM || "Plan Beta <noreply@planbeta.in>",
       to: "hello@planbeta.in",
       replyTo: email,
-      subject: `New Nursing Application: ${name} (${qualificationLabel})`,
+      subject: `New Nursing Application: ${escapeHtml(name)} (${escapeHtml(qualificationLabel)})`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0;">
@@ -96,32 +106,32 @@ export async function POST(request: Request) {
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151; width: 40%;">Name</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${name}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(name)}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Email</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;"><a href="mailto:${email}">${email}</a></td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Phone / WhatsApp</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${phone}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(phone)}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Qualification</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${qualificationLabel}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(qualificationLabel)}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Experience</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${experienceLabel}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(experienceLabel)}</td>
               </tr>
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">German Level</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${germanLevelLabel}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(germanLevelLabel)}</td>
               </tr>
               ${message ? `
               <tr>
                 <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; font-weight: 600; color: #374151;">Message</td>
-                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${message}</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid #e5e7eb; color: #4b5563;">${escapeHtml(message)}</td>
               </tr>
               ` : ""}
             </table>

@@ -1,4 +1,4 @@
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 
 // ─── Environment Guard ──────────────────────────────────────────────────────
 // Returns null from all functions if Razorpay env vars are not configured.
@@ -108,7 +108,8 @@ export function verifySignature(params: {
     .update(body)
     .digest("hex")
 
-  return expectedSignature === params.signature
+  if (expectedSignature.length !== params.signature.length) return false
+  return timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(params.signature))
 }
 
 /**
@@ -123,7 +124,8 @@ export function verifyWebhookSignature(body: string, signature: string): boolean
     .update(body)
     .digest("hex")
 
-  return expectedSignature === signature
+  if (expectedSignature.length !== signature.length) return false
+  return timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature))
 }
 
 /**

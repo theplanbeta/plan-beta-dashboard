@@ -18,13 +18,34 @@ interface UtmLink {
 }
 
 const DESTINATIONS = [
-  { value: "/site", label: "Homepage" },
-  { value: "/site/contact", label: "Contact Page" },
-  { value: "/site/nurses", label: "Nurses Page" },
-  { value: "/site/courses", label: "Courses Page" },
-  { value: "/site/opportunities", label: "Opportunities Page" },
-  { value: "/site/about", label: "About Page" },
+  { group: "Pages", items: [
+    { value: "/site", label: "Homepage" },
+    { value: "/site/contact", label: "Contact Page" },
+    { value: "/site/nurses", label: "Nurses Page" },
+    { value: "/site/courses", label: "Courses Page" },
+    { value: "/site/opportunities", label: "Opportunities Page" },
+    { value: "/site/about", label: "About Page" },
+    { value: "/site/blog", label: "Blog" },
+    { value: "/site/refer", label: "Referral Page" },
+  ]},
+  { group: "Course Levels", items: [
+    { value: "/site/courses#a1", label: "A1 Course" },
+    { value: "/site/courses#a2", label: "A2 Course" },
+    { value: "/site/courses#b1", label: "B1 Course" },
+    { value: "/site/courses#b2", label: "B2 Course" },
+  ]},
+  { group: "WhatsApp CTAs", items: [
+    { value: "wa:a1", label: "WhatsApp — A1 Enquiry" },
+    { value: "wa:a2", label: "WhatsApp — A2 Enquiry" },
+    { value: "wa:b1", label: "WhatsApp — B1 Enquiry" },
+    { value: "wa:b2", label: "WhatsApp — B2 Enquiry" },
+    { value: "wa:nurse", label: "WhatsApp — Nurse Enquiry" },
+    { value: "wa:general", label: "WhatsApp — General" },
+  ]},
 ]
+
+// Flat list for lookups
+const ALL_DESTINATIONS = DESTINATIONS.flatMap(g => g.items)
 
 const SOURCES = [
   "facebook",
@@ -223,7 +244,7 @@ export default function UtmLinksPage() {
                     <td className="p-3">
                       <p className="font-medium text-gray-900 dark:text-white">{link.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5 md:hidden">
-                        {DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
+                        {ALL_DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
                       </p>
                     </td>
                     <td className="p-3">
@@ -249,7 +270,7 @@ export default function UtmLinksPage() {
                       </div>
                     </td>
                     <td className="p-3 hidden md:table-cell text-gray-600 dark:text-gray-400">
-                      {DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
+                      {ALL_DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
                     </td>
                     <td className="p-3 hidden lg:table-cell">
                       <div className="flex flex-wrap gap-1">
@@ -325,8 +346,12 @@ export default function UtmLinksPage() {
                     value={formData.destination}
                     onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
                   >
-                    {DESTINATIONS.map((d) => (
-                      <option key={d.value} value={d.value}>{d.label}</option>
+                    {DESTINATIONS.map((group) => (
+                      <optgroup key={group.group} label={group.group}>
+                        {group.items.map((d) => (
+                          <option key={d.value} value={d.value}>{d.label}</option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
                 </div>
@@ -422,7 +447,7 @@ export default function UtmLinksPage() {
                       theplanbeta.com/go/{formData.slug || "auto"}
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
-                      → {DESTINATIONS.find(d => d.value === formData.destination)?.label}
+                      → {ALL_DESTINATIONS.find(d => d.value === formData.destination)?.label}
                       {" · "}{formData.utmSource}/{formData.utmMedium}/{formData.utmCampaign}
                     </p>
                   </div>

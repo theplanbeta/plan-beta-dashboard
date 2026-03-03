@@ -10,6 +10,7 @@ import { GermanyOpportunity } from "@/components/marketing/sections/GermanyOppor
 import { TestimonialsSection } from "@/components/marketing/sections/TestimonialsSection"
 import { FAQSection } from "@/components/marketing/sections/FAQSection"
 import { CTASection } from "@/components/marketing/sections/CTASection"
+import { ExploreSection } from "@/components/marketing/sections/ExploreSection"
 
 export const metadata = generatePageMetadata({
   title: "Learn German Online | Plan Beta - Best German Classes Kerala",
@@ -31,6 +32,7 @@ export default function HomePage() {
       <WhyPlanBeta />
       <CoursesSection />
       <GermanyOpportunity />
+      <ExploreSection />
       <TestimonialsSection />
       <FAQSection faqs={faqs} />
       <CTASection />

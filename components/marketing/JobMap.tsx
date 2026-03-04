@@ -9,7 +9,7 @@ import Map, {
   type MapRef,
   type MapLayerMouseEvent,
 } from "react-map-gl/maplibre"
-import "maplibre-gl/dist/maplibre-gl.css"
+import type { GeoJSONSource } from "maplibre-gl"
 import type { GeoJsonProperties } from "geojson"
 
 interface MapJob {
@@ -93,7 +93,7 @@ export default function JobMap({
       if (props.cluster) {
         const map = mapRef.current?.getMap()
         if (!map) return
-        const source = map.getSource("jobs") as maplibregl.GeoJSONSource
+        const source = map.getSource("jobs") as GeoJSONSource
         source.getClusterExpansionZoom(props.cluster_id).then((zoom) => {
           const geometry = feature.geometry as GeoJSON.Point
           map.easeTo({
@@ -151,7 +151,7 @@ export default function JobMap({
   }, [highlightedJobId])
 
   return (
-    <div className="relative w-full h-full min-h-[400px] rounded-xl overflow-hidden border border-white/[0.06]">
+    <div className="relative w-full rounded-xl overflow-hidden border border-white/[0.06]" style={{ height: "100%" }}>
       {loading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0a0a0a]">
           <div className="flex items-center gap-3 text-gray-400">

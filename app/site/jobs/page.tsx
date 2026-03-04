@@ -430,7 +430,7 @@ function JobsPageContent() {
             </p>
             {pagination.totalCount > 0 && (
               <p className="text-sm text-gray-500">
-                {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany
+                {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany &middot; Updated daily
               </p>
             )}
             <div className="mt-6 flex items-center justify-center gap-4">
@@ -544,9 +544,9 @@ function JobsPageContent() {
 
           {/* ─── MAP VIEW ──────────────────────────────────────────── */}
           {viewMode === "map" && mapLoaded && (
-            <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 8rem)" }}>
+            <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 10rem)" }}>
               {/* Left panel: scrollable job list */}
-              <div className="order-2 lg:order-1 lg:w-[380px] xl:w-[420px] flex-shrink-0 overflow-y-auto bg-[#0a0a0a] border-r border-white/[0.06]">
+              <div className="order-2 lg:order-1 lg:w-[380px] xl:w-[420px] flex-shrink-0 overflow-y-auto bg-[#0a0a0a] border-r border-white/[0.06] h-[40vh] lg:h-auto">
                 <div className="p-4 border-b border-white/[0.06]">
                   <p className="text-sm text-gray-400">
                     {displayedJobs.length} job{displayedJobs.length !== 1 ? "s" : ""} in view
@@ -579,7 +579,7 @@ function JobsPageContent() {
               </div>
 
               {/* Right panel: map */}
-              <div className="order-1 lg:order-2 flex-1 h-[50vh] lg:h-full">
+              <div className="order-1 lg:order-2 flex-1" style={{ minHeight: "50vh" }}>
                 <JobMap
                   onJobHover={setHoveredJobId}
                   highlightedJobId={hoveredJobId}

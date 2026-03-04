@@ -38,6 +38,94 @@ interface ExtractedJob {
 // ─── Known API Adapters ──────────────────────────────────────────────────────
 
 /**
+ * Bundesagentur für Arbeit (Agentur für Arbeit) Jobsuche API.
+ * Public REST API — requires X-API-Key header (no OAuth needed).
+ * Docs: https://github.com/bundesAPI/jobsuche-api
+ *
+ * Searches for nursing/healthcare/skilled worker jobs in Germany.
+ * The URL can include query params to customize the search.
+ */
+async function fetchArbeitsagentur(url: string): Promise<ExtractedJob[]> {
+  // Parse any custom params from the source URL, or use defaults
+  const parsed = new URL(url)
+  const was = parsed.searchParams.get("was") || "Krankenpfleger" // default: nurses
+  const wo = parsed.searchParams.get("wo") || ""
+  const size = parsed.searchParams.get("size") || "50"
+  const angebotsart = parsed.searchParams.get("angebotsart") || "1" // 1=employment
+  const arbeitszeit = parsed.searchParams.get("arbeitszeit") || "" // vz=full, tz=part, mj=mini-job
+
+  const apiUrl = new URL("https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs")
+  apiUrl.searchParams.set("was", was)
+  if (wo) apiUrl.searchParams.set("wo", wo)
+  apiUrl.searchParams.set("size", size)
+  apiUrl.searchParams.set("page", "1")
+  apiUrl.searchParams.set("angebotsart", angebotsart)
+  if (arbeitszeit) apiUrl.searchParams.set("arbeitszeit", arbeitszeit)
+
+  try {
+    const res = await fetch(apiUrl.toString(), {
+      headers: {
+        "X-API-Key": "jobboerse-jobsuche",
+        Accept: "application/json",
+      },
+      signal: AbortSignal.timeout(15000),
+    })
+
+    if (!res.ok) {
+      console.error(`[JobScraper:Arbeitsagentur] API returned ${res.status}`)
+      return []
+    }
+
+    const data = await res.json()
+    const jobs = data.stellenangebote || []
+    if (!Array.isArray(jobs)) return []
+
+    console.log(`[JobScraper:Arbeitsagentur] Found ${data.maxErgebnisse || 0} total, fetched ${jobs.length}`)
+
+    return jobs.map((j: Record<string, unknown>) => {
+      const arbeitsort = j.arbeitsort as Record<string, unknown> | null
+      const location = arbeitsort
+        ? [arbeitsort.ort, arbeitsort.region].filter(Boolean).join(", ")
+        : null
+
+      return {
+        title: String(j.titel || ""),
+        company: String(j.arbeitgeber || "Unknown"),
+        location: location || null,
+        salaryMin: null,
+        salaryMax: null,
+        currency: "EUR",
+        germanLevel: inferGermanLevelFromBeruf(String(j.beruf || ""), String(j.titel || "")),
+        profession: inferProfession([String(j.beruf || "")], String(j.titel || "")),
+        jobType: arbeitszeit.includes("tz") || arbeitszeit.includes("mj") ? "PART_TIME" : "FULL_TIME",
+        requirements: [String(j.beruf || "")].filter(Boolean),
+        applyUrl: j.externeUrl
+          ? String(j.externeUrl)
+          : `https://www.arbeitsagentur.de/jobsuche/jobdetail/${String(j.refnr || "")}`,
+        externalId: j.refnr ? `ba-${j.refnr}` : null,
+      }
+    }).filter((j: ExtractedJob) => j.title)
+  } catch (error) {
+    console.error("[JobScraper:Arbeitsagentur] Fetch error:", error)
+    return []
+  }
+}
+
+/**
+ * Infer German level from Beruf (profession) field — BA jobs in Germany
+ * typically require at least B1/B2.
+ */
+function inferGermanLevelFromBeruf(beruf: string, title: string): string | null {
+  const text = `${beruf} ${title}`.toLowerCase()
+  // Nursing/healthcare in Germany typically requires B1-B2
+  if (text.match(/pflege|kranken|alten|hebamme|rettung/)) return "B1"
+  if (text.match(/arzt|ärztin|medizin|therap/)) return "B2"
+  if (text.match(/ingenieur|engineer/)) return "B1"
+  // Most jobs on BA require some German
+  return "B1"
+}
+
+/**
  * Arbeitnow public JSON API — returns 100 jobs per page, structured data.
  * Docs: https://www.arbeitnow.com/api
  */
@@ -253,6 +341,7 @@ async function fetchHtml(url: string): Promise<string | null> {
 /** Known API sources — map URL patterns to their JSON adapter */
 const API_ADAPTERS: { pattern: RegExp; fetch: (url: string) => Promise<ExtractedJob[]> }[] = [
   { pattern: /arbeitnow\.com/i, fetch: fetchArbeitnow },
+  { pattern: /arbeitsagentur\.de/i, fetch: fetchArbeitsagentur },
 ]
 
 /**

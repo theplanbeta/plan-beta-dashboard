@@ -25,6 +25,18 @@ interface JobPosting {
   source: { name: string }
 }
 
+const PRESET_SOURCES = [
+  { name: "BA — Nursing Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Krankenpfleger" },
+  { name: "BA — Healthcare/Pflege", url: "https://www.arbeitsagentur.de/jobsuche?was=Pflege" },
+  { name: "BA — Engineering", url: "https://www.arbeitsagentur.de/jobsuche?was=Ingenieur" },
+  { name: "BA — IT Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Software%20Developer" },
+  { name: "BA — Nebenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Nebenjob" },
+  { name: "BA — Werkstudent", url: "https://www.arbeitsagentur.de/jobsuche?was=Werkstudent&arbeitszeit=tz" },
+  { name: "BA — Studentenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Studentenjob" },
+  { name: "BA — Mini-Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Minijob&arbeitszeit=mj" },
+  { name: "Arbeitnow — All Jobs", url: "https://www.arbeitnow.com/api/job-board-api" },
+]
+
 export default function JobsDashboardPage() {
   const [sources, setSources] = useState<JobSource[]>([])
   const [jobs, setJobs] = useState<JobPosting[]>([])
@@ -160,6 +172,30 @@ export default function JobsDashboardPage() {
       {showAddSource && (
         <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <h3 className="font-medium mb-3">Add New Job Source</h3>
+
+          {/* Preset Quick-Add */}
+          <div className="mb-4">
+            <label className="block text-xs text-gray-500 mb-2">Quick Add (Presets)</label>
+            <div className="flex flex-wrap gap-2">
+              {PRESET_SOURCES
+                .filter((p) => !sources.some((s) => s.name === p.name))
+                .map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setNewSource({ name: preset.name, url: preset.url })}
+                    className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                      newSource.name === preset.name
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                        : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                    }`}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+            </div>
+          </div>
+
           <form onSubmit={handleAddSource} className="flex gap-3 items-end">
             <div className="flex-1">
               <label className="block text-xs text-gray-500 mb-1">Source Name</label>

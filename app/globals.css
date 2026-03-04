@@ -126,12 +126,30 @@
   --font-sans: var(--font-inter, system-ui), -apple-system, sans-serif;
 }
 
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Base body styles with smooth transitions */
 body {
   font-family: system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* GPU-accelerated blur orbs — prevent layout thrashing */
+.blur-orb {
+  will-change: transform;
+  contain: layout style paint;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Section containment for paint isolation */
+.paint-contain {
+  contain: layout style paint;
 }
 
 /* Explicit background/foreground handling - don't use CSS vars here to avoid conflicts */

@@ -30,8 +30,8 @@ export function CoursesSection() {
   return (
     <section ref={sectionRef} className="py-32 bg-[#111] relative overflow-hidden">
       {/* Background accents */}
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px]" />
-      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[150px]" />
+      <div className="blur-orb absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[80px]" />
+      <div className="blur-orb absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-orange-500/5 rounded-full blur-[80px]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}

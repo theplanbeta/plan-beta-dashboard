@@ -227,7 +227,7 @@ export default function GermanyPathwayPage() {
             </p>
 
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 mb-10">
-              {["10,000+ assessments", "95% accuracy", "100% free"].map((item) => (
+              {["Personalized results", "Based on current rules", "100% free"].map((item) => (
                 <div key={item} className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -257,7 +257,7 @@ export default function GermanyPathwayPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { step: "1", title: "Fill Your Profile", desc: "Tell us about your education, profession, and German level" },
-              { step: "2", title: "Get Your Pathway", desc: "Our AI analyzes 50+ factors to find your best route to Germany" },
+              { step: "2", title: "Get Your Pathway", desc: "Get a personalized visa route, timeline, and salary estimate for Germany" },
               { step: "3", title: "Start Learning", desc: "Begin your German course with a clear timeline and goal" },
             ].map((item) => (
               <motion.div

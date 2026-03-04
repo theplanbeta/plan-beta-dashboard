@@ -42,12 +42,18 @@ function BentoCard({ children, className = "" }: { children: React.ReactNode; cl
   const cardRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [isHovered, setIsHovered] = useState(false)
+  const rafRef = useRef<number>(0)
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current
     if (!card) return
-    const rect = card.getBoundingClientRect()
-    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top })
+    const clientX = e.clientX
+    const clientY = e.clientY
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(() => {
+      const rect = card.getBoundingClientRect()
+      setMousePos({ x: clientX - rect.left, y: clientY - rect.top })
+    })
   }, [])
 
   return (

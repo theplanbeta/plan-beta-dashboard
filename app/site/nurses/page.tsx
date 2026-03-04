@@ -79,6 +79,43 @@ export default function NursesPage() {
       <FAQSchema faqs={faqs} />
 
       <NurseHero />
+
+      {/* Deposit Transparency — compact trust signal above the fold */}
+      <section className="py-10 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl px-6 py-6 sm:px-8 sm:py-7">
+            <div className="flex items-start gap-4">
+              <div className="hidden sm:flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 mt-0.5">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl font-bold text-white mb-2">
+                  Transparent Investment Policy
+                </h2>
+                <p className="text-sm sm:text-base text-gray-400 leading-relaxed mb-3">
+                  <span className="text-emerald-400 font-medium">B2 certified nurses pay no deposit.</span>{" "}
+                  Others: Rs. 20,000–55,000 based on current language level — <span className="text-white font-medium">100% refundable</span> upon job contract issuance.
+                </p>
+                <p className="text-sm text-gray-500 mb-4">
+                  This refundable deposit ensures commitment from both sides and is returned in full when your German employer issues your job contract.
+                </p>
+                <a
+                  href="#eligibility"
+                  className="inline-flex items-center text-sm text-primary hover:text-primary-light transition-colors gap-1.5 font-medium"
+                >
+                  View full deposit breakdown
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <NurseStats />
       <NurseLifeInGermany />
 

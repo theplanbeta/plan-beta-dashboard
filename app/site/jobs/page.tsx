@@ -28,6 +28,21 @@ interface FilterOption {
   count: number
 }
 
+interface CommunityJob {
+  id: string
+  imageUrl: string
+  title: string | null
+  company: string | null
+  location: string | null
+  cityName: string | null
+  germanLevel: string | null
+  jobType: string | null
+  salaryInfo: string | null
+  viewCount: number
+  createdAt: string
+  status: string
+}
+
 const JOB_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "Full Time",
   PART_TIME: "Part Time",
@@ -54,11 +69,83 @@ export default function JobsPage() {
   )
 }
 
+function CommunityJobCard({ job, index }: { job: CommunityJob; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.05 }}
+      className="bg-[#1a1a1a] border border-white/[0.06] rounded-xl overflow-hidden hover:border-white/[0.12] transition-all group"
+    >
+      <div className="flex">
+        {/* Thumbnail */}
+        <div className="relative w-28 sm:w-36 flex-shrink-0 bg-white/5">
+          <img
+            src={job.imageUrl}
+            alt={job.title || "Job posting photo"}
+            className="w-full h-full object-cover min-h-[140px]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#1a1a1a]/30" />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 p-4 min-w-0">
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="text-white font-semibold text-sm truncate group-hover:text-primary transition-colors">
+              {job.title || "Job Posting"}
+            </h3>
+            <span className="text-xs text-gray-600 flex-shrink-0 ml-2">
+              {formatDate(job.createdAt)}
+            </span>
+          </div>
+
+          {/* Company / Location */}
+          {(job.company || job.location || job.cityName) && (
+            <p className="text-gray-400 text-xs mb-2 truncate">
+              {[job.company, job.location || job.cityName].filter(Boolean).join(" \u00B7 ")}
+            </p>
+          )}
+
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {job.germanLevel && (
+              <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
+                {job.germanLevel}
+              </span>
+            )}
+            {job.jobType && (
+              <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400">
+                {job.jobType}
+              </span>
+            )}
+          </div>
+
+          {/* Salary */}
+          {job.salaryInfo && (
+            <p className="text-xs text-emerald-400 font-medium mb-2 truncate">
+              {job.salaryInfo}
+            </p>
+          )}
+
+          {/* Community badge */}
+          <div className="flex items-center gap-1 text-xs text-gray-600">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Spotted by community
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 function JobsPageContent() {
   const searchParams = useSearchParams()
   const initialProfession = searchParams.get("profession") || ""
 
   const [jobs, setJobs] = useState<Job[]>([])
+  const [communityJobs, setCommunityJobs] = useState<CommunityJob[]>([])
   const [filters, setFilters] = useState<{
     professions: FilterOption[]
     germanLevels: FilterOption[]
@@ -75,10 +162,18 @@ function JobsPageContent() {
   useEffect(() => {
     async function fetchJobs() {
       try {
-        const res = await fetch("/api/jobs")
-        const data = await res.json()
-        setJobs(data.jobs || [])
-        setFilters(data.filters || { professions: [], germanLevels: [], locations: [] })
+        const [jobsRes, communityRes] = await Promise.all([
+          fetch("/api/jobs"),
+          fetch("/api/jobs/community?status=approved&limit=12"),
+        ])
+        const jobsData = await jobsRes.json()
+        setJobs(jobsData.jobs || [])
+        setFilters(jobsData.filters || { professions: [], germanLevels: [], locations: [] })
+
+        if (communityRes.ok) {
+          const communityData = await communityRes.json()
+          setCommunityJobs(communityData.jobs || [])
+        }
       } catch {
         console.error("Failed to fetch jobs")
       } finally {
@@ -237,24 +332,79 @@ function JobsPageContent() {
 
           {/* No Jobs */}
           {!loading && filteredJobs.length === 0 && (
-            <div className="text-center py-20">
-              <svg className="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {jobs.length === 0 ? "Jobs coming soon" : "No matching jobs"}
-              </h3>
-              <p className="text-gray-400 text-sm mb-6">
-                {jobs.length === 0
-                  ? "We're currently building our job database. Check back soon!"
-                  : "Try adjusting your filters or search query."}
-              </p>
-              {hasFilters && (
-                <button onClick={clearFilters} className="text-sm text-primary hover:text-primary-light transition-colors">
-                  Clear all filters
-                </button>
+            <>
+              {/* If no scraped jobs but has community jobs, show them here */}
+              {jobs.length === 0 && communityJobs.length > 0 ? (
+                <div>
+                  <div className="text-center mb-10">
+                    <h2 className="text-2xl font-bold text-white mb-2">Community-Spotted Jobs</h2>
+                    <p className="text-gray-400 text-sm">
+                      Job postings spotted and shared by our student community in Germany
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {communityJobs.map((cj, i) => (
+                      <CommunityJobCard key={cj.id} job={cj} index={i} />
+                    ))}
+                  </div>
+                  <div className="text-center mt-8">
+                    <Link
+                      href="/site/spot-a-job"
+                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_empty_state" })}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-medium rounded-full hover:bg-emerald-500/20 transition-all"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Spot a Job
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-20">
+                  <svg className="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {jobs.length === 0 ? "Jobs coming soon" : "No matching jobs"}
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-6">
+                    {jobs.length === 0
+                      ? "We're currently building our job database. Check back soon!"
+                      : "Try adjusting your filters or search query."}
+                  </p>
+                  {hasFilters && (
+                    <button onClick={clearFilters} className="text-sm text-primary hover:text-primary-light transition-colors mb-6">
+                      Clear all filters
+                    </button>
+                  )}
+                  {jobs.length === 0 && (
+                    <div className="mt-4 p-6 bg-[#1a1a1a] border border-white/[0.06] rounded-xl max-w-md mx-auto">
+                      <div className="flex items-center justify-center w-12 h-12 bg-emerald-500/10 rounded-full mx-auto mb-4">
+                        <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-300 text-sm mb-4">
+                        Are you in Germany? Help fellow students by photographing job postings you see!
+                      </p>
+                      <Link
+                        href="/site/spot-a-job"
+                        onClick={() => trackEvent("spot_a_job_click", { from: "jobs_empty_cta" })}
+                        className="inline-flex items-center gap-2 text-sm text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                      >
+                        Spot a Job
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
+            </>
           )}
 
           {/* Job Cards Grid */}
@@ -350,6 +500,49 @@ function JobsPageContent() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+
+          {/* Community-Spotted Jobs Section */}
+          {!loading && communityJobs.length > 0 && filteredJobs.length > 0 && (
+            <div className="mt-16">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Community-Spotted Jobs</h2>
+                  <p className="text-gray-400 text-sm">
+                    Job postings spotted and shared by our student community in Germany
+                  </p>
+                </div>
+                <Link
+                  href="/site/spot-a-job"
+                  onClick={() => trackEvent("spot_a_job_click", { from: "jobs_community_section" })}
+                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-full hover:bg-emerald-500/20 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Spot a Job
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {communityJobs.map((cj, i) => (
+                  <CommunityJobCard key={cj.id} job={cj} index={i} />
+                ))}
+              </div>
+              <div className="text-center mt-6 sm:hidden">
+                <Link
+                  href="/site/spot-a-job"
+                  onClick={() => trackEvent("spot_a_job_click", { from: "jobs_community_section_mobile" })}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-full hover:bg-emerald-500/20 transition-all"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Spot a Job
+                </Link>
+              </div>
             </div>
           )}
 

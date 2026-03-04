@@ -33,7 +33,7 @@ export function HeroSection() {
         <motion.div
           animate={{ y: [0, -30, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"
+          className="blur-orb absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[80px]"
         />
         <motion.div
           animate={{ y: [0, 20, 0], scale: [1, 1.05, 1] }}
@@ -43,7 +43,7 @@ export function HeroSection() {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-orange-500/15 rounded-full blur-[120px]"
+          className="blur-orb absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-orange-500/15 rounded-full blur-[80px]"
         />
         <motion.div
           animate={{ y: [0, -15, 0] }}
@@ -53,7 +53,7 @@ export function HeroSection() {
             ease: "easeInOut",
             delay: 2,
           }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-red-500/10 rounded-full blur-[100px]"
+          className="blur-orb absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-red-500/10 rounded-full blur-[60px]"
         />
 
         {/* Grid Pattern */}
@@ -108,11 +108,11 @@ export function HeroSection() {
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Link
-                href="/site/contact"
-                onClick={() => trackEvent("cta_click", { label: "contact_us", location: "hero" })}
+                href="/site/germany-pathway"
+                onClick={() => trackEvent("cta_click", { label: "check_eligibility", location: "hero" })}
                 className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white rounded-full bg-primary hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02]"
               >
-                Start Learning German
+                Check Eligibility (Free)
                 <svg
                   className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
                   fill="none"
@@ -159,6 +159,51 @@ export function HeroSection() {
                   </div>
                 )
               )}
+            </motion.div>
+
+            {/* Audience Pathway Buttons */}
+            <motion.div variants={item} className="mt-8">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-3 text-center lg:text-left">
+                I want to...
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+                {[
+                  {
+                    label: "I'm a Nurse",
+                    subtitle: "Hospital placement in Germany",
+                    href: "/site/nurses",
+                    audience: "nurse",
+                  },
+                  {
+                    label: "I'm in IT/Engineering",
+                    subtitle: "Blue Card pathway",
+                    href: "/site/germany-pathway",
+                    audience: "it_engineering",
+                  },
+                  {
+                    label: "I'm a Student",
+                    subtitle: "A1 to B2 courses",
+                    href: "/site/courses",
+                    audience: "student",
+                  },
+                ].map((btn) => (
+                  <Link
+                    key={btn.audience}
+                    href={btn.href}
+                    onClick={() =>
+                      trackEvent("audience_click", { audience: btn.audience })
+                    }
+                    className="flex-1 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] px-4 py-3 text-center transition-all duration-300"
+                  >
+                    <span className="block text-white font-medium">
+                      {btn.label}
+                    </span>
+                    <span className="block text-gray-500 text-xs mt-0.5">
+                      {btn.subtitle}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
 

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { generatePageMetadata } from "@/lib/seo"
 import { BreadcrumbSchema, FAQSchema } from "@/components/marketing/SEOStructuredData"
 import { prisma } from "@/lib/prisma"
-import { COURSE_PRICING, COURSE_INFO } from "@/lib/pricing"
+import { COURSE_INFO } from "@/lib/pricing"
 
 const KERALA_CITIES: Record<string, { name: string; region: string }> = {
   kochi: { name: "Kochi", region: "Ernakulam" },
@@ -178,8 +178,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {batches.map((batch) => {
-                const levelKey = batch.level as keyof typeof COURSE_PRICING
-                const pricing = COURSE_PRICING[levelKey]
+                const levelKey = batch.level as keyof typeof COURSE_INFO
                 const info = COURSE_INFO[levelKey]
                 const enrolled = batch._count.students
                 const available = Math.max(0, batch.totalSeats - enrolled)
@@ -204,12 +203,6 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
                     <p className="text-sm text-gray-500 mb-4">
                       {batch.schedule || "Mon–Fri"} {batch.timing ? `| ${batch.timing}` : ""}
                     </p>
-
-                    {pricing && (
-                      <p className="text-2xl font-bold text-gray-900 mb-1">
-                        ₹{pricing.INR.toLocaleString()}
-                      </p>
-                    )}
 
                     {batch.status === "FILLING" && (
                       <p className="text-sm text-green-600 mb-4">

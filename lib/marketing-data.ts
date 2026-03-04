@@ -31,8 +31,6 @@ export const courses = [
     subtitle: "Beginner",
     description:
       "Start from zero. Interactive live classes with expert instructors, 5 days a week.",
-    price: 14000,
-    originalPrice: 17500,
     duration: "8 weeks",
     level: "Beginner",
     features: [
@@ -50,8 +48,6 @@ export const courses = [
     subtitle: "Elementary",
     description:
       "Build conversation skills and grammar mastery. Prepare for everyday situations.",
-    price: 16000,
-    originalPrice: 20000,
     duration: "10 weeks",
     level: "Elementary",
     features: [
@@ -69,8 +65,6 @@ export const courses = [
     subtitle: "Intermediate",
     description:
       "The level required for work visas. Achieve real conversational fluency.",
-    price: 18000,
-    originalPrice: 22500,
     duration: "12 weeks",
     level: "Intermediate",
     features: [

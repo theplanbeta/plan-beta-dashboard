@@ -183,15 +183,6 @@ export function CoursesSection() {
                   {course.description}
                 </p>
 
-                <div className="flex items-baseline gap-2 mb-6">
-                  <span className="text-3xl font-bold text-white">
-                    ₹{course.price.toLocaleString()}
-                  </span>
-                  <span className="text-base text-gray-600 line-through">
-                    ₹{course.originalPrice.toLocaleString()}
-                  </span>
-                </div>
-
                 <div className="flex items-center gap-3 text-xs text-gray-500 mb-6">
                   <span className="flex items-center gap-1">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +233,7 @@ export function CoursesSection() {
             href="/site/courses"
             className="group inline-flex items-center text-sm font-semibold text-gray-400 hover:text-white transition-colors"
           >
-            View all courses and pricing
+            View all courses
             <svg
               className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
               fill="none"

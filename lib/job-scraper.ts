@@ -104,7 +104,10 @@ async function fetchArbeitsagentur(url: string): Promise<ExtractedJob[]> {
         currency: "EUR",
         germanLevel: inferGermanLevelFromBeruf(String(j.beruf || ""), String(j.titel || "")),
         profession: inferProfession([String(j.beruf || "")], String(j.titel || "")),
-        jobType: arbeitszeit.includes("tz") || arbeitszeit.includes("mj") ? "PART_TIME" : "FULL_TIME",
+        jobType: mapJobType(
+          [arbeitszeit.includes("tz") || arbeitszeit.includes("mj") ? "Teilzeit" : ""],
+          String(j.titel || "")
+        ) || "FULL_TIME",
         requirements: [String(j.beruf || "")].filter(Boolean),
         applyUrl: j.externeUrl
           ? String(j.externeUrl)
@@ -181,7 +184,7 @@ async function fetchArbeitnow(url: string): Promise<ExtractedJob[]> {
         currency: "EUR",
         germanLevel: inferGermanLevel(tags, String(j.title || ""), String(j.description || "")),
         profession: inferProfession(tags, String(j.title || "")),
-        jobType: mapJobType(jobTypes),
+        jobType: mapJobType(jobTypes, String(j.title || "")),
         requirements: extractRequirementsFromTags(tags),
         applyUrl: j.url ? String(j.url) : null,
         externalId: j.slug ? `arbeitnow-${j.slug}` : null,
@@ -222,11 +225,18 @@ function inferProfession(tags: string[], title: string): string {
   return "Other"
 }
 
-function mapJobType(types: string[]): string | null {
-  const t = types.join(" ").toLowerCase()
-  if (t.includes("full")) return "FULL_TIME"
-  if (t.includes("part")) return "PART_TIME"
-  if (t.includes("contract") || t.includes("freelance")) return "CONTRACT"
+function mapJobType(types: string[], title?: string): string | null {
+  const t = [...types, title || ""].join(" ").toLowerCase()
+  // Part-time checks (German + English)
+  if (t.includes("teilzeit") || t.includes("part-time") || t.includes("part time") || t.includes("minijob") || t.includes("mini-job") || t.includes("geringfügig")) return "PART_TIME"
+  // Student/working student → part-time
+  if (t.includes("werkstudent") || t.includes("working student")) return "PART_TIME"
+  // Full-time checks
+  if (t.includes("vollzeit") || t.includes("full-time") || t.includes("full time") || types.some(v => v.toLowerCase() === "full-time")) return "FULL_TIME"
+  // Contract/freelance
+  if (t.includes("contract") || t.includes("freelance") || t.includes("freiberuf") || t.includes("befristet")) return "CONTRACT"
+  // Internship → part-time
+  if (t.includes("praktik") || t.includes("internship")) return "PART_TIME"
   return null
 }
 

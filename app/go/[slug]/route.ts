@@ -83,9 +83,11 @@ export async function GET(
       }),
     ]).catch(() => {})
 
-    // WhatsApp CTA shortcuts (wa:a1, wa:b2, wa:nurse, etc.)
+    // WhatsApp CTA shortcuts (wa:a1, wa:b2, wa:nurse, wa:custom, etc.)
     if (link.destination.startsWith("wa:")) {
-      const message = WA_MESSAGES[link.destination] || WA_MESSAGES["wa:general"]
+      const message = link.destination === "wa:custom" && link.whatsappMessage
+        ? link.whatsappMessage
+        : WA_MESSAGES[link.destination] || WA_MESSAGES["wa:general"]
       const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`
       return NextResponse.redirect(waUrl, 302)
     }

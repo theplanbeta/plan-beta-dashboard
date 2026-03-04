@@ -18,9 +18,11 @@ interface UtmLink {
   utmCampaign: string
   utmContent: string | null
   utmTerm: string | null
+  whatsappMessage: string | null
   clickCount: number
   createdAt: string
 }
+
 
 interface AnalyticsData {
   totalClicks: number
@@ -91,6 +93,7 @@ const DESTINATIONS = [
     { value: "/site/courses#b2", label: "B2 Course" },
   ]},
   { group: "WhatsApp CTAs", items: [
+    { value: "wa:custom", label: "WhatsApp — Custom Message" },
     { value: "wa:a1", label: "WhatsApp — A1 Enquiry" },
     { value: "wa:a2", label: "WhatsApp — A2 Enquiry" },
     { value: "wa:b1", label: "WhatsApp — B1 Enquiry" },
@@ -102,6 +105,16 @@ const DESTINATIONS = [
 
 // Flat list for lookups
 const ALL_DESTINATIONS = DESTINATIONS.flatMap(g => g.items)
+
+function getDestinationLabel(link: UtmLink): string {
+  if (link.destination === "wa:custom" && link.whatsappMessage) {
+    const preview = link.whatsappMessage.length > 40
+      ? link.whatsappMessage.slice(0, 40) + "..."
+      : link.whatsappMessage
+    return `WhatsApp — "${preview}"`
+  }
+  return ALL_DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination
+}
 
 const SOURCES = [
   "facebook",
@@ -133,6 +146,7 @@ const emptyForm = {
   utmCampaign: "",
   utmContent: "",
   utmTerm: "",
+  whatsappMessage: "",
 }
 
 function SkeletonCard() {
@@ -186,8 +200,62 @@ export default function UtmLinksPage() {
     try {
       const res = await fetch(`/api/utm-links/analytics?period=${days}`)
       if (!res.ok) throw new Error()
-      const data = await res.json()
-      setAnalyticsData(data)
+      const raw = await res.json()
+
+      // Transform API response to match AnalyticsData interface
+      const summary = raw.summary || {}
+      const geography = raw.geography || []
+      const topCountryData = geography.find((g: { country: string }) => g.country === summary.topCountry)
+      const devicesRaw = raw.devices || []
+      const topDeviceData = devicesRaw.find((d: { deviceType: string }) => d.deviceType === summary.topDevice)
+      const browsersRaw = raw.browsers || []
+      const topBrowserData = browsersRaw.find((b: { browser: string }) => b.browser === summary.topBrowser)
+
+      const transformed: AnalyticsData = {
+        totalClicks: summary.totalClicks || 0,
+        uniqueCountries: summary.uniqueCountries || 0,
+        topCountry: summary.topCountry
+          ? { code: summary.topCountry, clicks: topCountryData?.clicks || 0 }
+          : null,
+        topDevice: summary.topDevice
+          ? { type: summary.topDevice, clicks: topDeviceData?.clicks || 0 }
+          : null,
+        topBrowser: summary.topBrowser
+          ? { name: summary.topBrowser, clicks: topBrowserData?.clicks || 0 }
+          : null,
+        clicksByDay: (summary.clicksByDay || []).map((d: { date: string; clicks: number }) => ({
+          date: d.date,
+          value: d.clicks,
+        })),
+        devices: devicesRaw.map((d: { deviceType: string; clicks: number }) => ({
+          label: d.deviceType,
+          value: d.clicks,
+        })),
+        browsers: browsersRaw.map((b: { browser: string; clicks: number }) => ({
+          label: b.browser,
+          value: b.clicks,
+        })),
+        operatingSystems: (raw.operatingSystems || []).map((os: { os: string; clicks: number }) => ({
+          label: os.os,
+          value: os.clicks,
+        })),
+        countries: geography.map((g: { country: string; clicks: number; cities: Array<{ city: string; clicks: number }> }) => ({
+          code: g.country,
+          clicks: g.clicks,
+          cities: (g.cities || []).map((c: { city: string; clicks: number }) => ({
+            name: c.city,
+            clicks: c.clicks,
+          })),
+        })),
+        referrers: (raw.referrers || []).map((r: { referrer: string; clicks: number }) => ({
+          domain: r.referrer,
+          clicks: r.clicks,
+        })),
+        peakHours: raw.hourly || [],
+        topLinks: raw.topLinks || [],
+      }
+
+      setAnalyticsData(transformed)
     } catch {
       addToast("Failed to load analytics", { type: "error" })
     } finally {
@@ -689,7 +757,7 @@ export default function UtmLinksPage() {
                     <td className="p-3">
                       <p className="font-medium text-gray-900 dark:text-white">{link.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5 md:hidden">
-                        {ALL_DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
+                        {getDestinationLabel(link)}
                       </p>
                     </td>
                     <td className="p-3">
@@ -715,7 +783,7 @@ export default function UtmLinksPage() {
                       </div>
                     </td>
                     <td className="p-3 hidden md:table-cell text-gray-600 dark:text-gray-400">
-                      {ALL_DESTINATIONS.find(d => d.value === link.destination)?.label || link.destination}
+                      {getDestinationLabel(link)}
                     </td>
                     <td className="p-3 hidden lg:table-cell">
                       <div className="flex flex-wrap gap-1">
@@ -800,6 +868,27 @@ export default function UtmLinksPage() {
                     ))}
                   </select>
                 </div>
+
+                {/* Custom WhatsApp Message */}
+                {formData.destination === "wa:custom" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      WhatsApp Message
+                    </label>
+                    <textarea
+                      className="input w-full"
+                      rows={3}
+                      placeholder="e.g. Hi! I saw your ad about the March batch..."
+                      value={formData.whatsappMessage}
+                      onChange={(e) => setFormData({ ...formData, whatsappMessage: e.target.value })}
+                      maxLength={500}
+                      required
+                    />
+                    <p className="text-xs text-gray-400 mt-1">
+                      {formData.whatsappMessage.length}/500 — This message will be pre-filled in WhatsApp when the link is clicked
+                    </p>
+                  </div>
+                )}
 
                 {/* Source + Medium */}
                 <div className="grid grid-cols-2 gap-3">
@@ -893,6 +982,9 @@ export default function UtmLinksPage() {
                     </p>
                     <p className="text-xs text-gray-400 mt-1">
                       → {ALL_DESTINATIONS.find(d => d.value === formData.destination)?.label}
+                      {formData.destination === "wa:custom" && formData.whatsappMessage
+                        ? ` · "${formData.whatsappMessage.slice(0, 50)}${formData.whatsappMessage.length > 50 ? "..." : ""}"`
+                        : null}
                       {" · "}{formData.utmSource}/{formData.utmMedium}/{formData.utmCampaign}
                     </p>
                   </div>

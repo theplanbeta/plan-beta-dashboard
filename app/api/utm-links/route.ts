@@ -26,6 +26,7 @@ const createSchema = z.object({
   utmCampaign: z.string().min(1, "Campaign is required"),
   utmContent: z.string().optional().or(z.literal("")),
   utmTerm: z.string().optional().or(z.literal("")),
+  whatsappMessage: z.string().max(500).optional().or(z.literal("")),
 })
 
 // GET /api/utm-links — List all UTM links
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
         utmCampaign: data.utmCampaign,
         utmContent: data.utmContent || null,
         utmTerm: data.utmTerm || null,
+        whatsappMessage: data.whatsappMessage || null,
         createdBy: check.session.user.id,
       },
     })

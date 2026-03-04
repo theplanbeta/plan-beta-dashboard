@@ -1280,20 +1280,21 @@ model AdSpend {
 }
 
 model UtmLink {
-  id          String   @id @default(cuid())
-  name        String
-  destination String
-  slug        String   @unique
-  utmSource   String
-  utmMedium   String
-  utmCampaign String
-  utmContent  String?
-  utmTerm     String?
-  clickCount  Int      @default(0)
-  createdBy   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  linkClicks  LinkClick[]
+  id              String   @id @default(cuid())
+  name            String
+  destination     String
+  slug            String   @unique
+  utmSource       String
+  utmMedium       String
+  utmCampaign     String
+  utmContent      String?
+  utmTerm         String?
+  whatsappMessage String?
+  clickCount      Int      @default(0)
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  linkClicks      LinkClick[]
 
   @@index([slug])
   @@index([utmCampaign])

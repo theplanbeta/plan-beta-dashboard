@@ -3,8 +3,24 @@
 import { useState, useEffect, useCallback, Suspense } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { useSearchParams, useRouter } from "next/navigation"
 import { trackEvent } from "@/lib/tracking"
+
+const JobMap = dynamic(() => import("@/components/marketing/JobMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-[#0a0a0a] rounded-xl border border-white/[0.06]">
+      <div className="flex items-center gap-3 text-gray-400">
+        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        Loading map...
+      </div>
+    </div>
+  ),
+})
 
 interface Job {
   id: string
@@ -210,11 +226,65 @@ function PaginationControls({
   )
 }
 
+// ─── Compact job card for map split-view sidebar ────────────────────────────
+function MapJobCard({
+  job,
+  isHighlighted,
+  onHover,
+}: {
+  job: Job
+  isHighlighted: boolean
+  onHover: (id: string | null) => void
+}) {
+  return (
+    <div
+      onMouseEnter={() => onHover(job.id)}
+      onMouseLeave={() => onHover(null)}
+      className={`p-4 border-b border-white/[0.06] transition-all cursor-default ${
+        isHighlighted ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
+      }`}
+    >
+      <h3 className="text-white font-semibold text-sm truncate mb-1">{job.title}</h3>
+      <p className="text-gray-400 text-xs mb-2">{job.company}</p>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {job.location && (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/5 rounded text-[11px] text-gray-400">
+            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {job.location}
+          </span>
+        )}
+        {job.germanLevel && (
+          <span className="px-1.5 py-0.5 bg-primary/10 border border-primary/20 rounded text-[11px] text-primary font-medium">
+            {job.germanLevel}
+          </span>
+        )}
+      </div>
+      <div className="flex gap-2">
+        {job.applyUrl && (
+          <a
+            href={job.applyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title })}
+            className="px-3 py-1 bg-primary text-white text-xs font-medium rounded hover:bg-primary-dark transition-colors"
+          >
+            Apply
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function JobsPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialProfession = searchParams.get("profession") || ""
   const initialPage = parseInt(searchParams.get("page") || "1", 10)
+  const initialView = searchParams.get("view") === "map" ? "map" : "list"
 
   const [jobs, setJobs] = useState<Job[]>([])
   const [communityJobs, setCommunityJobs] = useState<CommunityJob[]>([])
@@ -239,6 +309,9 @@ function JobsPageContent() {
   const [selectedLocation, setSelectedLocation] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [viewMode, setViewMode] = useState<"list" | "map">(initialView)
+  const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
+  const [mapLoaded, setMapLoaded] = useState(initialView === "map")
 
   // Debounce search input
   useEffect(() => {
@@ -310,6 +383,20 @@ function JobsPageContent() {
     window.scrollTo({ top: 300, behavior: "smooth" })
   }
 
+  const handleViewToggle = (view: "list" | "map") => {
+    setViewMode(view)
+    if (view === "map") setMapLoaded(true)
+    trackEvent("job_view_toggle", { view })
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString())
+    if (view === "map") {
+      params.set("view", "map")
+    } else {
+      params.delete("view")
+    }
+    router.push(`/site/jobs?${params}`, { scroll: false })
+  }
+
   const clearFilters = () => {
     setSelectedProfession("")
     setSelectedLevel("")
@@ -346,7 +433,7 @@ function JobsPageContent() {
                 {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany
               </p>
             )}
-            <div className="mt-6">
+            <div className="mt-6 flex items-center justify-center gap-4">
               <Link
                 href="/site/germany-pathway"
                 className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-light transition-colors"
@@ -354,328 +441,415 @@ function JobsPageContent() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Not sure if you qualify? Check your eligibility first
+                Check your eligibility
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      <section className="pb-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className={viewMode === "map" ? "pb-0" : "pb-20"}>
+        <div className={viewMode === "map" ? "" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
 
-          {/* ─── Filter Bar (always visible when there are jobs) ──── */}
+          {/* ─── Filter Bar + View Toggle ──────────────────────────── */}
           {pagination.totalCount > 0 && (
-            <div className="sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-4 border-b border-white/[0.06] mb-8">
-              <div className="flex flex-wrap gap-3 items-center">
-                <div className="relative flex-1 min-w-[200px]">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search by title, company, or city..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                  />
-                </div>
-
-                <select value={selectedProfession} onChange={(e) => setSelectedProfession(e.target.value)} className={selectClasses}>
-                  <option value="">All Professions</option>
-                  {filters.professions.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {PROFESSION_LABELS[p.value] || p.value} ({p.count})
-                    </option>
-                  ))}
-                </select>
-
-                <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className={selectClasses}>
-                  <option value="">Any German Level</option>
-                  {filters.germanLevels.map((l) => (
-                    <option key={l.value} value={l.value}>
-                      {l.value} ({l.count})
-                    </option>
-                  ))}
-                </select>
-
-                {filters.locations.length > 0 && (
-                  <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className={selectClasses}>
-                    <option value="">All Locations</option>
-                    {filters.locations.map((l) => (
-                      <option key={l.value} value={l.value}>
-                        {l.value} ({l.count})
-                      </option>
-                    ))}
-                  </select>
+            <div className={`sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-4 border-b border-white/[0.06] mb-0 ${viewMode === "map" ? "px-4 sm:px-6 lg:px-8" : ""}`}>
+              <div className="flex flex-wrap gap-3 items-center max-w-5xl mx-auto">
+                {viewMode === "list" && (
+                  <div className="relative flex-1 min-w-[200px]">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search by title, company, or city..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                    />
+                  </div>
                 )}
 
-                {hasFilters && (
-                  <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition-colors">
-                    Clear filters
-                  </button>
+                {viewMode === "list" && (
+                  <>
+                    <select value={selectedProfession} onChange={(e) => setSelectedProfession(e.target.value)} className={selectClasses}>
+                      <option value="">All Professions</option>
+                      {filters.professions.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {PROFESSION_LABELS[p.value] || p.value} ({p.count})
+                        </option>
+                      ))}
+                    </select>
+
+                    <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className={selectClasses}>
+                      <option value="">Any German Level</option>
+                      {filters.germanLevels.map((l) => (
+                        <option key={l.value} value={l.value}>
+                          {l.value} ({l.count})
+                        </option>
+                      ))}
+                    </select>
+
+                    {filters.locations.length > 0 && (
+                      <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className={selectClasses}>
+                        <option value="">All Locations</option>
+                        {filters.locations.map((l) => (
+                          <option key={l.value} value={l.value}>
+                            {l.value} ({l.count})
+                          </option>
+                        ))}
+                      </select>
+                    )}
+
+                    {hasFilters && (
+                      <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition-colors">
+                        Clear filters
+                      </button>
+                    )}
+                  </>
                 )}
-              </div>
-            </div>
-          )}
 
-          {/* Loading */}
-          {loading && (
-            <div className="flex items-center justify-center py-20">
-              <div className="flex items-center gap-3 text-gray-400">
-                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Loading jobs...
-              </div>
-            </div>
-          )}
-
-          {/* ─── Job Listings ───────────────────────────────────────── */}
-          {!loading && displayedJobs.length > 0 && (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <p className="text-sm text-gray-500">
-                  {debouncedSearch
-                    ? `${displayedJobs.length} result${displayedJobs.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
-                    : `Showing ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.totalCount)} of ${pagination.totalCount} jobs`}
-                </p>
-                {pagination.totalPages > 1 && !debouncedSearch && (
-                  <p className="text-xs text-gray-600">
-                    Page {pagination.page} of {pagination.totalPages}
-                  </p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {displayedJobs.map((job, i) => (
-                  <motion.div
-                    key={job.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.3) }}
-                    className="bg-[#1a1a1a] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-all group"
+                {/* View toggle */}
+                <div className={`flex items-center bg-[#1a1a1a] border border-white/[0.1] rounded-lg p-0.5 ${viewMode === "map" ? "ml-auto" : ""}`}>
+                  <button
+                    onClick={() => handleViewToggle("list")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      viewMode === "list"
+                        ? "bg-white/10 text-white"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-semibold truncate group-hover:text-primary transition-colors">
-                          {job.title}
-                        </h3>
-                        <p className="text-gray-400 text-sm">{job.company}</p>
-                      </div>
-                      {job.postedAt && (
-                        <span className="text-xs text-gray-600 flex-shrink-0 ml-3">
-                          {formatDate(job.postedAt)}
-                        </span>
-                      )}
-                    </div>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                    List
+                  </button>
+                  <button
+                    onClick={() => handleViewToggle("map")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      viewMode === "map"
+                        ? "bg-white/10 text-white"
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    Map
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {job.location && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                          {job.location}
-                        </span>
-                      )}
-                      {job.germanLevel && (
-                        <span className="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
-                          German {job.germanLevel}
-                        </span>
-                      )}
-                      {job.profession && (
-                        <span className="px-2 py-1 bg-blue-500/10 rounded text-xs text-blue-400">
-                          {PROFESSION_LABELS[job.profession] || job.profession}
-                        </span>
-                      )}
-                      {job.jobType && (
-                        <span className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
-                          {JOB_TYPE_LABELS[job.jobType] || job.jobType}
-                        </span>
-                      )}
+          {/* ─── MAP VIEW ──────────────────────────────────────────── */}
+          {viewMode === "map" && mapLoaded && (
+            <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 8rem)" }}>
+              {/* Left panel: scrollable job list */}
+              <div className="order-2 lg:order-1 lg:w-[380px] xl:w-[420px] flex-shrink-0 overflow-y-auto bg-[#0a0a0a] border-r border-white/[0.06]">
+                <div className="p-4 border-b border-white/[0.06]">
+                  <p className="text-sm text-gray-400">
+                    {displayedJobs.length} job{displayedJobs.length !== 1 ? "s" : ""} in view
+                  </p>
+                </div>
+                {loading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <div className="flex items-center gap-3 text-gray-400 text-sm">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Loading...
                     </div>
+                  </div>
+                ) : displayedJobs.length > 0 ? (
+                  displayedJobs.map((job) => (
+                    <MapJobCard
+                      key={job.id}
+                      job={job}
+                      isHighlighted={hoveredJobId === job.id}
+                      onHover={setHoveredJobId}
+                    />
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-gray-500 text-sm">
+                    No jobs to display
+                  </div>
+                )}
+              </div>
 
-                    {(job.salaryMin || job.salaryMax) && (
-                      <p className="text-sm text-emerald-400 font-medium mb-3">
-                        {job.currency} {job.salaryMin?.toLocaleString()}
-                        {job.salaryMax ? ` – ${job.salaryMax.toLocaleString()}` : "+"}
-                        /month
+              {/* Right panel: map */}
+              <div className="order-1 lg:order-2 flex-1 h-[50vh] lg:h-full">
+                <JobMap
+                  onJobHover={setHoveredJobId}
+                  highlightedJobId={hoveredJobId}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ─── LIST VIEW ─────────────────────────────────────────── */}
+          {viewMode === "list" && (
+            <div className="mt-8">
+              {/* Loading */}
+              {loading && (
+                <div className="flex items-center justify-center py-20">
+                  <div className="flex items-center gap-3 text-gray-400">
+                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Loading jobs...
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Job Listings ───────────────────────────────────── */}
+              {!loading && displayedJobs.length > 0 && (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <p className="text-sm text-gray-500">
+                      {debouncedSearch
+                        ? `${displayedJobs.length} result${displayedJobs.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
+                        : `Showing ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.totalCount)} of ${pagination.totalCount} jobs`}
+                    </p>
+                    {pagination.totalPages > 1 && !debouncedSearch && (
+                      <p className="text-xs text-gray-600">
+                        Page {pagination.page} of {pagination.totalPages}
                       </p>
                     )}
+                  </div>
 
-                    {job.requirements.length > 0 && (
-                      <ul className="space-y-1 mb-4">
-                        {job.requirements.slice(0, 3).map((req, j) => (
-                          <li key={j} className="text-xs text-gray-500 flex items-start gap-2">
-                            <span className="text-gray-700 mt-1">&#8226;</span>
-                            <span className="line-clamp-1">{req}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {displayedJobs.map((job, i) => (
+                      <motion.div
+                        key={job.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.3) }}
+                        className="bg-[#1a1a1a] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-all group"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-white font-semibold truncate group-hover:text-primary transition-colors">
+                              {job.title}
+                            </h3>
+                            <p className="text-gray-400 text-sm">{job.company}</p>
+                          </div>
+                          {job.postedAt && (
+                            <span className="text-xs text-gray-600 flex-shrink-0 ml-3">
+                              {formatDate(job.postedAt)}
+                            </span>
+                          )}
+                        </div>
 
-                    <div className="flex gap-2 pt-3 border-t border-white/[0.06]">
-                      {job.applyUrl && (
-                        <a
-                          href={job.applyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title })}
-                          className="flex-1 text-center py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-all"
-                        >
-                          Apply
-                        </a>
-                      )}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {job.location && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              {job.location}
+                            </span>
+                          )}
+                          {job.germanLevel && (
+                            <span className="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
+                              German {job.germanLevel}
+                            </span>
+                          )}
+                          {job.profession && (
+                            <span className="px-2 py-1 bg-blue-500/10 rounded text-xs text-blue-400">
+                              {PROFESSION_LABELS[job.profession] || job.profession}
+                            </span>
+                          )}
+                          {job.jobType && (
+                            <span className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
+                              {JOB_TYPE_LABELS[job.jobType] || job.jobType}
+                            </span>
+                          )}
+                        </div>
+
+                        {(job.salaryMin || job.salaryMax) && (
+                          <p className="text-sm text-emerald-400 font-medium mb-3">
+                            {job.currency} {job.salaryMin?.toLocaleString()}
+                            {job.salaryMax ? ` – ${job.salaryMax.toLocaleString()}` : "+"}
+                            /month
+                          </p>
+                        )}
+
+                        {job.requirements.length > 0 && (
+                          <ul className="space-y-1 mb-4">
+                            {job.requirements.slice(0, 3).map((req, j) => (
+                              <li key={j} className="text-xs text-gray-500 flex items-start gap-2">
+                                <span className="text-gray-700 mt-1">&#8226;</span>
+                                <span className="line-clamp-1">{req}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        <div className="flex gap-2 pt-3 border-t border-white/[0.06]">
+                          {job.applyUrl && (
+                            <a
+                              href={job.applyUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title })}
+                              className="flex-1 text-center py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-all"
+                            >
+                              Apply
+                            </a>
+                          )}
+                          <Link
+                            href="/site/germany-pathway"
+                            onClick={() => trackEvent("job_eligibility_click", { jobId: job.id })}
+                            className="flex-1 text-center py-2 bg-white/5 border border-white/10 text-gray-300 text-sm font-medium rounded-lg hover:bg-white/10 transition-all"
+                          >
+                            Check Eligibility
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {!debouncedSearch && (
+                    <PaginationControls pagination={pagination} onPageChange={handlePageChange} />
+                  )}
+                </>
+              )}
+
+              {/* No results for current filters */}
+              {!loading && displayedJobs.length === 0 && pagination.totalCount > 0 && (
+                <div className="text-center py-12 mb-12">
+                  <p className="text-gray-400 text-sm mb-4">No matching jobs. Try adjusting your filters.</p>
+                  <button onClick={clearFilters} className="text-sm text-primary hover:text-primary-light transition-colors">
+                    Clear all filters
+                  </button>
+                </div>
+              )}
+
+              {/* ─── Community-Spotted Jobs (page 1 only) ───────────── */}
+              {!loading && currentPage === 1 && hasCommunityJobs && (
+                <div className="mt-16 mb-12">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white mb-1">Community-Spotted Jobs</h2>
+                      <p className="text-gray-400 text-sm">
+                        Job postings photographed and shared by students in Germany
+                      </p>
+                    </div>
+                    <Link
+                      href="/site/spot-a-job"
+                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_community_section" })}
+                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-full hover:bg-emerald-500/20 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Spot a Job
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {communityJobs.map((cj, i) => (
+                      <CommunityJobCard key={cj.id} job={cj} index={i} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ─── Empty State (no jobs at all) ───────────────────── */}
+              {!loading && !hasAnyContent && (
+                <div className="text-center py-16">
+                  <div className="flex items-center justify-center w-16 h-16 bg-blue-500/10 rounded-full mx-auto mb-6">
+                    <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-3">Job listings coming soon</h2>
+                  <p className="text-gray-400 max-w-md mx-auto mb-8">
+                    We&apos;re actively building our database of jobs in Germany — nursing, IT, engineering, student positions, and more. Check back soon.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link
+                      href="/site/spot-a-job"
+                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_empty" })}
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Help by Spotting a Job
+                    </Link>
+                    <Link
+                      href="/site/germany-pathway"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
+                    >
+                      Check Your Eligibility
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* ─── SpotAJob CTA (page 1 only, when there are jobs) ─ */}
+              {!loading && currentPage === 1 && hasAnyContent && (
+                <div className="my-12">
+                  <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-8 text-center">
+                    <div className="flex items-center justify-center w-14 h-14 bg-emerald-500/10 rounded-full mx-auto mb-4">
+                      <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">SpotAJob</h3>
+                    <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
+                      Are you in Germany? Help fellow students by photographing job postings you see — at supermarkets, notice boards, shop windows. Our AI extracts the details automatically.
+                    </p>
+                    <Link
+                      href="/site/spot-a-job"
+                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_cta" })}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Spot a Job
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom CTA */}
+              {!loading && (
+                <div className="mt-4 text-center">
+                  <div className="bg-[#1a1a1a] border border-white/[0.06] rounded-2xl p-8">
+                    <h3 className="text-xl font-bold text-white mb-3">
+                      Want to maximize your chances?
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
+                      Most German jobs require at least B1 German. Start learning now and unlock thousands more opportunities.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      <Link
+                        href="/site/courses"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all"
+                      >
+                        View German Courses
+                      </Link>
                       <Link
                         href="/site/germany-pathway"
-                        onClick={() => trackEvent("job_eligibility_click", { jobId: job.id })}
-                        className="flex-1 text-center py-2 bg-white/5 border border-white/10 text-gray-300 text-sm font-medium rounded-lg hover:bg-white/10 transition-all"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
                       >
-                        Check Eligibility
+                        Check Your Eligibility
                       </Link>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {!debouncedSearch && (
-                <PaginationControls pagination={pagination} onPageChange={handlePageChange} />
+                  </div>
+                </div>
               )}
-            </>
-          )}
-
-          {/* No results for current filters */}
-          {!loading && displayedJobs.length === 0 && pagination.totalCount > 0 && (
-            <div className="text-center py-12 mb-12">
-              <p className="text-gray-400 text-sm mb-4">No matching jobs. Try adjusting your filters.</p>
-              <button onClick={clearFilters} className="text-sm text-primary hover:text-primary-light transition-colors">
-                Clear all filters
-              </button>
-            </div>
-          )}
-
-          {/* ─── Community-Spotted Jobs (page 1 only) ─────────────── */}
-          {!loading && currentPage === 1 && hasCommunityJobs && (
-            <div className="mt-16 mb-12">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">Community-Spotted Jobs</h2>
-                  <p className="text-gray-400 text-sm">
-                    Job postings photographed and shared by students in Germany
-                  </p>
-                </div>
-                <Link
-                  href="/site/spot-a-job"
-                  onClick={() => trackEvent("spot_a_job_click", { from: "jobs_community_section" })}
-                  className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-full hover:bg-emerald-500/20 transition-all"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Spot a Job
-                </Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {communityJobs.map((cj, i) => (
-                  <CommunityJobCard key={cj.id} job={cj} index={i} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ─── Empty State (no jobs at all) ─────────────────────── */}
-          {!loading && !hasAnyContent && (
-            <div className="text-center py-16">
-              <div className="flex items-center justify-center w-16 h-16 bg-blue-500/10 rounded-full mx-auto mb-6">
-                <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-3">Job listings coming soon</h2>
-              <p className="text-gray-400 max-w-md mx-auto mb-8">
-                We&apos;re actively building our database of jobs in Germany — nursing, IT, engineering, student positions, and more. Check back soon.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  href="/site/spot-a-job"
-                  onClick={() => trackEvent("spot_a_job_click", { from: "jobs_empty" })}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Help by Spotting a Job
-                </Link>
-                <Link
-                  href="/site/germany-pathway"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
-                >
-                  Check Your Eligibility
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* ─── SpotAJob CTA (page 1 only, when there are jobs) ─── */}
-          {!loading && currentPage === 1 && hasAnyContent && (
-            <div className="my-12">
-              <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-8 text-center">
-                <div className="flex items-center justify-center w-14 h-14 bg-emerald-500/10 rounded-full mx-auto mb-4">
-                  <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">SpotAJob</h3>
-                <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-                  Are you in Germany? Help fellow students by photographing job postings you see — at supermarkets, notice boards, shop windows. Our AI extracts the details automatically.
-                </p>
-                <Link
-                  href="/site/spot-a-job"
-                  onClick={() => trackEvent("spot_a_job_click", { from: "jobs_cta" })}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Spot a Job
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Bottom CTA */}
-          {!loading && (
-            <div className="mt-4 text-center">
-              <div className="bg-[#1a1a1a] border border-white/[0.06] rounded-2xl p-8">
-                <h3 className="text-xl font-bold text-white mb-3">
-                  Want to maximize your chances?
-                </h3>
-                <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-                  Most German jobs require at least B1 German. Start learning now and unlock thousands more opportunities.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link
-                    href="/site/courses"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all"
-                  >
-                    View German Courses
-                  </Link>
-                  <Link
-                    href="/site/germany-pathway"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
-                  >
-                    Check Your Eligibility
-                  </Link>
-                </div>
-              </div>
             </div>
           )}
         </div>

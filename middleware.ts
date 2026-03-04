@@ -66,8 +66,9 @@ export async function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
     "img-src 'self' data: https: https://*.public.blob.vercel-storage.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.resend.com https://sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com https://www.facebook.com https://www.google-analytics.com https://region1.google-analytics.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.public.blob.vercel-storage.com",
+    "connect-src 'self' https://api.resend.com https://sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com https://www.facebook.com https://www.google-analytics.com https://region1.google-analytics.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.public.blob.vercel-storage.com https://tiles.openfreemap.org",
     "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
+    "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"

@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     })
 
     const totals = await prisma.utmLink.aggregate({
-      _sum: { clicks: true },
+      _sum: { clickCount: true },
       _count: true,
     })
 
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       links,
       totals: {
         count: totals._count,
-        totalClicks: totals._sum.clicks || 0,
+        totalClicks: totals._sum.clickCount || 0,
       },
     })
   } catch (error) {

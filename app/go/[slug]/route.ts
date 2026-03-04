@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { parseUserAgent } from "@/lib/ua-parser"
 
 const ALLOWED_REDIRECT_DOMAINS = [
   "theplanbeta.com",
@@ -53,11 +54,34 @@ export async function GET(
       return NextResponse.redirect(new URL("/site", request.url))
     }
 
-    // Increment click count before redirecting
-    await prisma.utmLink.update({
-      where: { id: link.id },
-      data: { clicks: { increment: 1 } },
-    }).catch(() => {})
+    // Capture click details from request headers
+    const country = request.headers.get("x-vercel-ip-country") || null
+    const region = request.headers.get("x-vercel-ip-country-region") || null
+    const city = request.headers.get("x-vercel-ip-city") || null
+    const rawReferrer = request.headers.get("referer") || null
+    const ua = request.headers.get("user-agent") || ""
+    const { deviceType, browser, os } = parseUserAgent(ua)
+
+    // Truncate referrer to domain only (privacy)
+    let referrer: string | null = null
+    if (rawReferrer) {
+      try {
+        referrer = new URL(rawReferrer).hostname
+      } catch {
+        referrer = rawReferrer.slice(0, 100)
+      }
+    }
+
+    // Fire-and-forget: increment counter + store click detail
+    prisma.$transaction([
+      prisma.utmLink.update({
+        where: { id: link.id },
+        data: { clickCount: { increment: 1 } },
+      }),
+      prisma.linkClick.create({
+        data: { linkId: link.id, country, region, city, deviceType, browser, os, referrer },
+      }),
+    ]).catch(() => {})
 
     // WhatsApp CTA shortcuts (wa:a1, wa:b2, wa:nurse, etc.)
     if (link.destination.startsWith("wa:")) {

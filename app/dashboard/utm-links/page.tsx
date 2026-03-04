@@ -1,7 +1,12 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Fragment } from "react"
 import { useToast } from "@/components/Toast"
+import LineChart from "@/components/charts/LineChart"
+import BarChart from "@/components/charts/BarChart"
+import DonutChart from "@/components/charts/DonutChart"
+import PeriodSelector from "@/components/charts/PeriodSelector"
+import { getCountryFlag, getCountryName } from "@/lib/countries"
 
 interface UtmLink {
   id: string
@@ -13,8 +18,59 @@ interface UtmLink {
   utmCampaign: string
   utmContent: string | null
   utmTerm: string | null
-  clicks: number
+  clickCount: number
   createdAt: string
+}
+
+interface AnalyticsData {
+  totalClicks: number
+  uniqueCountries: number
+  topCountry: { code: string; clicks: number } | null
+  topDevice: { type: string; clicks: number } | null
+  topBrowser: { name: string; clicks: number } | null
+  clicksByDay: Array<{ date: string; value: number }>
+  devices: Array<{ label: string; value: number }>
+  browsers: Array<{ label: string; value: number }>
+  operatingSystems: Array<{ label: string; value: number }>
+  countries: Array<{
+    code: string
+    clicks: number
+    cities: Array<{ name: string; clicks: number }>
+  }>
+  referrers: Array<{ domain: string; clicks: number }>
+  peakHours: Array<{ hour: number; clicks: number }>
+  topLinks: Array<{
+    id: string
+    name: string
+    slug: string
+    clicks: number
+    topCountry: string | null
+    topDevice: string | null
+  }>
+}
+
+const DEVICE_COLORS: Record<string, string> = {
+  mobile: "#10b981",
+  desktop: "#3b82f6",
+  tablet: "#f59e0b",
+}
+
+const BROWSER_COLORS: Record<string, string> = {
+  Chrome: "#4285F4",
+  Safari: "#5AC8FA",
+  Firefox: "#FF7139",
+  Edge: "#0078D7",
+  Samsung: "#1428A0",
+  Other: "#6b7280",
+}
+
+const OS_COLORS: Record<string, string> = {
+  Android: "#3DDC84",
+  iOS: "#000000",
+  Windows: "#0078D6",
+  macOS: "#999999",
+  Linux: "#FCC624",
+  Other: "#6b7280",
 }
 
 const DESTINATIONS = [
@@ -79,6 +135,24 @@ const emptyForm = {
   utmTerm: "",
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-3" />
+      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+    </div>
+  )
+}
+
+function SkeletonChart({ height = 200 }: { height?: number }) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-4" />
+      <div className="bg-gray-200 dark:bg-gray-700 rounded" style={{ height }} />
+    </div>
+  )
+}
+
 export default function UtmLinksPage() {
   const [links, setLinks] = useState<UtmLink[]>([])
   const [totals, setTotals] = useState({ count: 0, totalClicks: 0 })
@@ -87,6 +161,10 @@ export default function UtmLinksPage() {
   const [formData, setFormData] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [period, setPeriod] = useState(30)
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(true)
+  const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set())
   const { addToast } = useToast()
 
   const fetchLinks = useCallback(async () => {
@@ -103,9 +181,31 @@ export default function UtmLinksPage() {
     }
   }, [addToast])
 
+  const fetchAnalytics = useCallback(async (days: number) => {
+    setAnalyticsLoading(true)
+    try {
+      const res = await fetch(`/api/utm-links/analytics?period=${days}`)
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setAnalyticsData(data)
+    } catch {
+      addToast("Failed to load analytics", { type: "error" })
+    } finally {
+      setAnalyticsLoading(false)
+    }
+  }, [addToast])
+
   useEffect(() => {
     fetchLinks()
   }, [fetchLinks])
+
+  useEffect(() => {
+    fetchAnalytics(period)
+  }, [period, fetchAnalytics])
+
+  const handlePeriodChange = (days: number) => {
+    setPeriod(days)
+  }
 
   const getShortUrl = (slug: string) => `theplanbeta.com/go/${slug}`
 
@@ -161,12 +261,49 @@ export default function UtmLinksPage() {
     }
   }
 
+  const toggleCountryExpand = (code: string) => {
+    setExpandedCountries(prev => {
+      const next = new Set(prev)
+      if (next.has(code)) {
+        next.delete(code)
+      } else {
+        next.add(code)
+      }
+      return next
+    })
+  }
+
   // Top campaign by clicks
   const topCampaign = links.length > 0
     ? links.reduce((best, link) =>
-        link.clicks > (best?.clicks || 0) ? link : best,
+        link.clickCount > (best?.clickCount || 0) ? link : best,
       links[0])
     : null
+
+  // Prepare chart data from analytics
+  const deviceChartData = analyticsData?.devices.map(d => ({
+    label: d.label,
+    value: d.value,
+    color: DEVICE_COLORS[d.label.toLowerCase()] || "#6b7280",
+  })) || []
+
+  const browserChartData = analyticsData?.browsers.map(b => ({
+    label: b.label,
+    value: b.value,
+    color: BROWSER_COLORS[b.label] || "#6b7280",
+  })) || []
+
+  const osChartData = analyticsData?.operatingSystems.map(os => ({
+    label: os.label,
+    value: os.value,
+    color: OS_COLORS[os.label] || "#6b7280",
+  })) || []
+
+  const peakHoursData = analyticsData?.peakHours.map(h => ({
+    label: `${h.hour.toString().padStart(2, "0")}`,
+    value: h.clicks,
+    color: "#3b82f6",
+  })) || []
 
   return (
     <div className="space-y-6">
@@ -188,7 +325,315 @@ export default function UtmLinksPage() {
         </button>
       </div>
 
-      {/* Summary Cards */}
+      {/* Analytics Section */}
+      <div className="space-y-6">
+        {/* Period Selector */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Click Analytics
+          </h2>
+          <PeriodSelector value={period} onChange={handlePeriodChange} />
+        </div>
+
+        {/* 1. Summary Cards */}
+        {analyticsLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : analyticsData ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Total Clicks</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {analyticsData.totalClicks.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Unique Countries</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {analyticsData.uniqueCountries}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Top Country</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {analyticsData.topCountry
+                  ? `${getCountryFlag(analyticsData.topCountry.code)} ${getCountryName(analyticsData.topCountry.code)}`
+                  : "—"}
+              </p>
+              {analyticsData.topCountry && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {analyticsData.topCountry.clicks} clicks
+                </p>
+              )}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Top Device</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1 capitalize">
+                {analyticsData.topDevice?.type || "—"}
+              </p>
+              {analyticsData.topDevice && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {analyticsData.topDevice.clicks} clicks
+                </p>
+              )}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Top Browser</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {analyticsData.topBrowser?.name || "—"}
+              </p>
+              {analyticsData.topBrowser && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {analyticsData.topBrowser.clicks} clicks
+                </p>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* 2. Click Trend */}
+        {analyticsLoading ? (
+          <SkeletonChart height={200} />
+        ) : analyticsData && analyticsData.clicksByDay.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Click Trend
+            </h3>
+            <LineChart
+              data={analyticsData.clicksByDay}
+              color="#3b82f6"
+              height={200}
+            />
+          </div>
+        ) : !analyticsLoading ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Click Trend
+            </h3>
+            <div className="flex items-center justify-center h-48 text-gray-400 dark:text-gray-500">
+              No click data for this period
+            </div>
+          </div>
+        ) : null}
+
+        {/* 3. Three-column grid: Devices, Browsers, OS */}
+        {analyticsLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonChart key={i} height={180} />
+            ))}
+          </div>
+        ) : analyticsData ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                Devices
+              </h3>
+              {deviceChartData.length > 0 ? (
+                <DonutChart data={deviceChartData} size={140} />
+              ) : (
+                <div className="flex items-center justify-center h-36 text-gray-400 dark:text-gray-500 text-sm">
+                  No data
+                </div>
+              )}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                Browsers
+              </h3>
+              {browserChartData.length > 0 ? (
+                <DonutChart data={browserChartData} size={140} />
+              ) : (
+                <div className="flex items-center justify-center h-36 text-gray-400 dark:text-gray-500 text-sm">
+                  No data
+                </div>
+              )}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                Operating Systems
+              </h3>
+              {osChartData.length > 0 ? (
+                <DonutChart data={osChartData} size={140} />
+              ) : (
+                <div className="flex items-center justify-center h-36 text-gray-400 dark:text-gray-500 text-sm">
+                  No data
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
+
+        {/* 4. Geography Table */}
+        {analyticsLoading ? (
+          <SkeletonChart height={200} />
+        ) : analyticsData && analyticsData.countries.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Geography
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400">Country</th>
+                    <th className="text-right p-3 font-medium text-gray-500 dark:text-gray-400">Clicks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.countries.map((country) => {
+                    const isExpanded = expandedCountries.has(country.code)
+                    const hasCities = country.cities && country.cities.length > 0
+                    return (
+                      <Fragment key={country.code}>
+                        <tr
+                          className={`border-b border-gray-100 dark:border-gray-800 ${
+                            hasCities ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50" : ""
+                          }`}
+                          onClick={() => hasCities && toggleCountryExpand(country.code)}
+                        >
+                          <td className="p-3">
+                            <div className="flex items-center gap-2">
+                              {hasCities && (
+                                <svg
+                                  className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              )}
+                              {!hasCities && <span className="w-4" />}
+                              <span className="text-gray-900 dark:text-white">
+                                {getCountryFlag(country.code)} {getCountryName(country.code)}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="p-3 text-right font-mono font-medium text-gray-900 dark:text-white">
+                            {country.clicks}
+                          </td>
+                        </tr>
+                        {isExpanded && country.cities.map((city) => (
+                          <tr
+                            key={`${country.code}-${city.name}`}
+                            className="border-b border-gray-50 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-800/30"
+                          >
+                            <td className="p-3 pl-12">
+                              <span className="text-gray-600 dark:text-gray-400">{city.name}</span>
+                            </td>
+                            <td className="p-3 text-right font-mono text-gray-600 dark:text-gray-400">
+                              {city.clicks}
+                            </td>
+                          </tr>
+                        ))}
+                      </Fragment>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 5. Top Referrers */}
+        {analyticsLoading ? (
+          <SkeletonChart height={150} />
+        ) : analyticsData && analyticsData.referrers.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Top Referrers
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400">Referrer</th>
+                    <th className="text-right p-3 font-medium text-gray-500 dark:text-gray-400">Clicks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.referrers.map((ref) => (
+                    <tr
+                      key={ref.domain}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-3 text-gray-900 dark:text-white">{ref.domain}</td>
+                      <td className="p-3 text-right font-mono font-medium text-gray-900 dark:text-white">
+                        {ref.clicks}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
+
+        {/* 6. Peak Hours */}
+        {analyticsLoading ? (
+          <SkeletonChart height={200} />
+        ) : analyticsData && peakHoursData.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Peak Hours (UTC)
+            </h3>
+            <BarChart data={peakHoursData} height={200} />
+          </div>
+        ) : null}
+
+        {/* 7. Per-Link Breakdown */}
+        {analyticsLoading ? (
+          <SkeletonChart height={200} />
+        ) : analyticsData && analyticsData.topLinks.length > 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Top 10 Links
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400">Link</th>
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400 hidden sm:table-cell">Top Country</th>
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400 hidden sm:table-cell">Top Device</th>
+                    <th className="text-right p-3 font-medium text-gray-500 dark:text-gray-400">Clicks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.topLinks.map((link) => (
+                    <tr
+                      key={link.id}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-3">
+                        <p className="font-medium text-gray-900 dark:text-white">{link.name}</p>
+                        <code className="text-xs text-gray-400">/go/{link.slug}</code>
+                      </td>
+                      <td className="p-3 hidden sm:table-cell text-gray-700 dark:text-gray-300">
+                        {link.topCountry
+                          ? `${getCountryFlag(link.topCountry)} ${getCountryName(link.topCountry)}`
+                          : "—"}
+                      </td>
+                      <td className="p-3 hidden sm:table-cell text-gray-700 dark:text-gray-300 capitalize">
+                        {link.topDevice || "—"}
+                      </td>
+                      <td className="p-3 text-right font-mono font-medium text-gray-900 dark:text-white">
+                        {link.clicks}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Existing Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="panel p-5">
           <p className="text-sm text-gray-500 dark:text-gray-400">Total Links</p>
@@ -207,8 +652,8 @@ export default function UtmLinksPage() {
           <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1 truncate">
             {topCampaign ? topCampaign.name : "—"}
           </p>
-          {topCampaign && topCampaign.clicks > 0 && (
-            <p className="text-xs text-gray-400 mt-0.5">{topCampaign.clicks} clicks</p>
+          {topCampaign && topCampaign.clickCount > 0 && (
+            <p className="text-xs text-gray-400 mt-0.5">{topCampaign.clickCount} clicks</p>
           )}
         </div>
       </div>
@@ -286,7 +731,7 @@ export default function UtmLinksPage() {
                       </div>
                     </td>
                     <td className="p-3 text-right font-mono font-medium text-gray-900 dark:text-white">
-                      {link.clicks}
+                      {link.clickCount}
                     </td>
                     <td className="p-3 text-right">
                       <button

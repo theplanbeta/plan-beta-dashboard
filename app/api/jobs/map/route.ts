@@ -4,6 +4,22 @@ import { geocodeCity } from "@/lib/german-cities"
 
 export const dynamic = "force-dynamic"
 
+/**
+ * Deterministic jitter from a string ID.
+ * Spreads jobs within ~0.015° (~1.5 km) of the city center
+ * so they don't stack on a single pixel when zoomed in.
+ */
+function jitter(id: string): [number, number] {
+  let h = 0
+  for (let i = 0; i < id.length; i++) {
+    h = ((h << 5) - h + id.charCodeAt(i)) | 0
+  }
+  // Two independent offsets from different bit ranges
+  const lonOff = ((h & 0xffff) / 0xffff - 0.5) * 0.03
+  const latOff = (((h >>> 16) & 0xffff) / 0xffff - 0.5) * 0.03
+  return [lonOff, latOff]
+}
+
 export async function GET() {
   try {
     const [jobPostings, communityJobs] = await Promise.all([
@@ -49,9 +65,10 @@ export async function GET() {
       const coords = geocodeCity(job.location)
       if (coords) {
         mapped++
+        const [dLon, dLat] = jitter(job.id)
         features.push({
           type: "Feature",
-          geometry: { type: "Point", coordinates: coords },
+          geometry: { type: "Point", coordinates: [coords[0] + dLon, coords[1] + dLat] },
           properties: {
             id: job.id,
             title: job.title,
@@ -73,17 +90,21 @@ export async function GET() {
     for (const job of communityJobs) {
       // Prefer stored lat/lon, fall back to city lookup
       let coords: [number, number] | null = null
+      let hasRealGps = false
       if (job.latitude != null && job.longitude != null) {
         coords = [job.longitude, job.latitude]
+        hasRealGps = true
       } else {
         coords = geocodeCity(job.location || job.cityName)
       }
 
       if (coords) {
         mapped++
+        // Only jitter city-lookup coords, not real GPS
+        const [dLon, dLat] = hasRealGps ? [0, 0] : jitter(job.id)
         features.push({
           type: "Feature",
-          geometry: { type: "Point", coordinates: coords },
+          geometry: { type: "Point", coordinates: [coords[0] + dLon, coords[1] + dLat] },
           properties: {
             id: job.id,
             title: job.title || "Community Job",

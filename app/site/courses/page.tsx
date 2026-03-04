@@ -2,7 +2,7 @@ import Link from "next/link"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema, CourseSchema } from "@/components/marketing/SEOStructuredData"
 import { prisma } from "@/lib/prisma"
-import { COURSE_INFO } from "@/lib/pricing"
+import { COURSE_INFO, COURSE_PRICING } from "@/lib/pricing"
 
 export const metadata = generatePageMetadata({
   title: "German Language Courses | Plan Beta - A1, A2, B1, B2 Levels",
@@ -24,11 +24,11 @@ function whatsappEnrollUrl(courseName: string) {
 const liveCourses = [
   {
     id: "a1",
-    level: "A1",
-    title: "German A1",
+    level: "A1" as const,
+    title: "A1 — Your Foundation for Germany",
     subtitle: "Beginner",
     description:
-      "Start from zero. Build a strong foundation in German with everyday vocabulary, basic grammar, and simple conversations.",
+      "The first step to your German life. Build the basics you need for visa applications, simple conversations, and your Goethe A1 exam.",
     sessions: 40,
     sessionDuration: "1.5 hours",
     color: "from-emerald-500 to-green-600",
@@ -43,11 +43,11 @@ const liveCourses = [
   },
   {
     id: "a2",
-    level: "A2",
-    title: "German A2",
+    level: "A2" as const,
+    title: "A2 — Everyday Life in Germany",
     subtitle: "Elementary",
     description:
-      "Build on your A1 foundation. Gain confidence in everyday conversations, expand vocabulary, and deepen grammar understanding.",
+      "Handle daily life in Germany with confidence. From grocery shopping to doctor visits — the language skills you need to settle in.",
     sessions: 40,
     sessionDuration: "1.5 hours",
     color: "from-blue-500 to-indigo-600",
@@ -62,11 +62,11 @@ const liveCourses = [
   },
   {
     id: "b1",
-    level: "B1",
-    title: "German B1",
+    level: "B1" as const,
+    title: "B1 — The Level That Opens German Jobs",
     subtitle: "Intermediate",
     description:
-      "The level required for most work visas. Achieve conversational fluency, handle complex topics, and prepare for Goethe/TELC B1.",
+      "The gateway to German work visas. B1 is required for most jobs — clear it and unlock nursing, IT, and engineering careers in Germany.",
     sessions: 60,
     sessionDuration: "1.5 hours",
     color: "from-purple-500 to-violet-600",
@@ -81,11 +81,11 @@ const liveCourses = [
   },
   {
     id: "b2",
-    level: "B2",
-    title: "German B2",
+    level: "B2" as const,
+    title: "B2 — Professional Recognition in Germany",
     subtitle: "Upper Intermediate",
     description:
-      "Advanced fluency for professional settings. Complex grammar, academic writing, and preparation for Goethe/TELC B2 certification.",
+      "The level that gets your qualifications recognised. Required for nursing registration, medical practice, and senior professional roles in Germany.",
     sessions: 60,
     sessionDuration: "1.5 hours",
     color: "from-rose-500 to-red-600",
@@ -149,10 +149,10 @@ export default async function CoursesPage() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">
-              Find Your Perfect <span className="text-primary">German Course</span>
+              Your Path to a <span className="text-primary">Career in Germany</span>
             </h1>
             <p className="text-xl text-gray-400 mb-4">
-              Live online classes via Google Meet. Small batches, experienced teachers, and a structured path from A1 to B2.
+              Each level is a milestone on your journey to Germany. Live online classes via Google Meet, small batches, and a structured pathway from A1 to B2.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500 mb-8">
               <span className="flex items-center gap-1.5">
@@ -276,8 +276,12 @@ export default async function CoursesPage() {
                       <p className="text-white/80 text-sm">{course.subtitle}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-white font-bold text-lg">{course.sessions} Sessions</div>
-                      <div className="text-white/70 text-xs">{course.sessionDuration} each</div>
+                      <div className="text-white font-bold text-2xl">
+                        {COURSE_PRICING[course.level]
+                          ? `₹${COURSE_PRICING[course.level].INR.toLocaleString("en-IN")}`
+                          : `${course.sessions} Sessions`}
+                      </div>
+                      <div className="text-white/70 text-xs">{course.sessions} sessions &middot; {course.sessionDuration} each</div>
                     </div>
                   </div>
                 </div>
@@ -541,6 +545,69 @@ export default async function CoursesPage() {
                 Enquire About Speaking Classes
               </a>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* What Happens Next */}
+      <section className="py-20 bg-[#111]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
+              After You Enroll
+            </p>
+            <h2 className="text-3xl font-bold text-white mb-3">
+              What Happens Next
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              From enrollment to your first class — here&apos;s exactly what to expect.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            {[
+              {
+                step: "1",
+                title: "WhatsApp Confirmation",
+                description: "You'll receive an instant confirmation with your batch details, schedule, and payment receipt.",
+                icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+              },
+              {
+                step: "2",
+                title: "Class Group Access",
+                description: "You'll be added to your batch's WhatsApp group and receive the Google Meet link for all sessions.",
+                icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+              },
+              {
+                step: "3",
+                title: "Study Materials & Schedule",
+                description: "Get your complete course materials, textbook recommendations, and your Mon–Fri class schedule.",
+                icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+              },
+              {
+                step: "4",
+                title: "Regular Progress Tracking",
+                description: "Attendance tracking, periodic assessments, and direct feedback from your teacher throughout the course.",
+                icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+              },
+            ].map((item) => (
+              <div
+                key={item.step}
+                className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 hover:border-primary/20 transition-colors"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={item.icon} />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-1">{item.title}</h3>
+                    <p className="text-sm text-gray-400">{item.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

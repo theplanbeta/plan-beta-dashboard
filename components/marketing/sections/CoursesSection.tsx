@@ -37,14 +37,13 @@ export function CoursesSection() {
         {/* Heading */}
         <AnimateInView className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Our Courses
+            Your Germany Pathway
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
-            Choose Your Path
+            Choose Your Milestone
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            From complete beginner to advanced — structured courses designed for
-            your success.
+            Each level brings you closer to your career in Germany.
           </p>
         </AnimateInView>
 
@@ -115,10 +114,10 @@ export function CoursesSection() {
 
                 <Link
                   href="/site/contact"
-                  onClick={() => trackEvent("cta_click", { label: "start_learning", location: "courses_section" })}
+                  onClick={() => trackEvent("cta_click", { label: "start_journey", location: "courses_section" })}
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
                 >
-                  Start Learning
+                  Start Your Journey
                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -176,7 +175,7 @@ export function CoursesSection() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-white mb-1">
-                  {course.title}
+                  {course.outcomeTitle}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">{course.subtitle}</p>
                 <p className="text-gray-400 text-sm mb-6 flex-grow">
@@ -220,7 +219,7 @@ export function CoursesSection() {
                   href="/site/contact"
                   className="block w-full text-center py-3.5 rounded-full font-semibold text-sm transition-all duration-300 mt-auto bg-white/10 text-white hover:bg-white/20"
                 >
-                  Get Started
+                  Begin Your Pathway
                 </Link>
               </motion.div>
             </AnimateInView>

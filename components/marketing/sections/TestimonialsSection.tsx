@@ -39,6 +39,8 @@ export function TestimonialsSection() {
     return () => clearInterval(timer)
   }, [paused, next])
 
+  const t = testimonials[active]
+
   return (
     <section ref={sectionRef} className="relative py-32 bg-[#0a0a0a]">
       {/* Dot pattern */}
@@ -47,16 +49,16 @@ export function TestimonialsSection() {
         {/* Heading */}
         <AnimateInView className="text-center mb-16">
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Success Stories
+            Student Outcomes
           </p>
           <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
-            Hear From Our Students
+            From Kerala to Germany
           </h2>
         </AnimateInView>
 
         {/* Testimonial */}
         <div
-          className="relative min-h-[300px]"
+          className="relative min-h-[340px]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
@@ -75,24 +77,55 @@ export function TestimonialsSection() {
               className="relative z-10"
             >
               <blockquote className="text-xl sm:text-2xl text-gray-300 leading-relaxed mb-8 font-medium">
-                &ldquo;{testimonials[active].content}&rdquo;
+                &ldquo;{t.content}&rdquo;
               </blockquote>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mb-5">
                 <div className="w-14 h-14 bg-gradient-to-br from-primary to-orange-500 rounded-full flex items-center justify-center text-white text-lg font-bold">
-                  {testimonials[active].avatar}
+                  {t.avatar}
                 </div>
                 <div>
-                  <p className="font-semibold text-white">
-                    {testimonials[active].name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {testimonials[active].role}
-                  </p>
-                  <p className="text-sm text-primary font-medium">
-                    {testimonials[active].location}
-                  </p>
+                  <p className="font-semibold text-white">{t.name}</p>
+                  <p className="text-sm text-gray-500">From {t.fromCity}</p>
                 </div>
+              </div>
+
+              {/* Outcome chips */}
+              <div className="flex flex-wrap gap-2">
+                {t.course && (
+                  <span className="inline-flex items-center px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full border border-primary/20">
+                    {t.course}
+                  </span>
+                )}
+                {t.nowWorkingAs && (
+                  <span className="inline-flex items-center px-3 py-1 bg-white/[0.06] text-gray-300 text-xs font-medium rounded-full border border-white/[0.08]">
+                    {t.nowWorkingAs}
+                  </span>
+                )}
+                {t.inCity && (
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-white/[0.06] text-gray-300 text-xs font-medium rounded-full border border-white/[0.08]">
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                    {t.inCity}
+                  </span>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>

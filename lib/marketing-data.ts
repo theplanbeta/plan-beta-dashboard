@@ -28,9 +28,10 @@ export const courses = [
   {
     id: "a1-live",
     title: "German A1",
+    outcomeTitle: "A1 — Your Foundation for Germany",
     subtitle: "Beginner",
     description:
-      "Start from zero. Interactive live classes with expert instructors, 5 days a week.",
+      "The first step to your German life. Build the basics you need for visa applications, simple conversations, and your Goethe A1 exam.",
     duration: "8 weeks",
     level: "Beginner",
     features: [
@@ -45,9 +46,10 @@ export const courses = [
   {
     id: "a2-live",
     title: "German A2",
+    outcomeTitle: "A2 — Everyday Life in Germany",
     subtitle: "Elementary",
     description:
-      "Build conversation skills and grammar mastery. Prepare for everyday situations.",
+      "Handle daily life in Germany with confidence. From grocery shopping to doctor visits — the language skills you need to settle in.",
     duration: "10 weeks",
     level: "Elementary",
     features: [
@@ -62,9 +64,10 @@ export const courses = [
   {
     id: "b1-live",
     title: "German B1",
+    outcomeTitle: "B1 — The Level That Opens German Jobs",
     subtitle: "Intermediate",
     description:
-      "The level required for work visas. Achieve real conversational fluency.",
+      "The gateway to German work visas. B1 is required for most jobs — clear it and unlock nursing, IT, and engineering careers in Germany.",
     duration: "12 weeks",
     level: "Intermediate",
     features: [
@@ -79,9 +82,10 @@ export const courses = [
   {
     id: "b2-live",
     title: "German B2",
+    outcomeTitle: "B2 — Professional Recognition in Germany",
     subtitle: "Upper Intermediate",
     description:
-      "Professional-level fluency for healthcare, engineering, and academic careers in Germany.",
+      "The level that gets your qualifications recognised. Required for nursing registration, medical practice, and senior professional roles in Germany.",
     duration: "14 weeks",
     level: "Upper Intermediate",
     features: [
@@ -104,6 +108,10 @@ export const testimonials = [
       "Plan Beta transformed my career. The structured approach helped me clear B1 in just 8 months. Now I'm working as a nurse in Germany!",
     rating: 5,
     avatar: "A",
+    fromCity: "Kochi",
+    course: "A1 to B2",
+    nowWorkingAs: "Nurse at Klinikum rechts der Isar",
+    inCity: "Munich",
   },
   {
     name: "Rahul Krishnan",
@@ -113,6 +121,10 @@ export const testimonials = [
       "The live classes were exactly what I needed. Unlike other courses, here I could actually practice speaking. The teachers were always available.",
     rating: 5,
     avatar: "R",
+    fromCity: "Thiruvananthapuram",
+    course: "A1 to B1",
+    nowWorkingAs: "Software Developer at SAP",
+    inCity: "Berlin",
   },
   {
     name: "Sneha Thomas",
@@ -122,6 +134,10 @@ export const testimonials = [
       "I tried many apps before Plan Beta. The difference is the human touch — real teachers who understand Malayalam speakers' challenges with German.",
     rating: 5,
     avatar: "S",
+    fromCity: "Thrissur",
+    course: "A1 to B1",
+    nowWorkingAs: "Medical Student at Charité",
+    inCity: "Berlin",
   },
 ]
 
@@ -220,4 +236,51 @@ export const marqueeItems = [
   "Deepak started his engineering career in Stuttgart",
   "Priya cleared A2 in just 10 weeks",
   "Arjun is now a software developer in Frankfurt",
+]
+
+export const pathwaySteps = [
+  {
+    title: "Check Your Eligibility",
+    description:
+      "Take our free assessment to find out which German level you need for your career goal — nursing, IT, engineering, or studies.",
+    icon: "clipboard",
+    href: "/site/contact",
+  },
+  {
+    title: "Start Your German Course",
+    description:
+      "Join a live batch (A1–B2) with small class sizes, Mon–Fri sessions, and teachers who speak Malayalam.",
+    icon: "book",
+    href: "/site/courses",
+  },
+  {
+    title: "Pass Your Goethe/TELC Exam",
+    description:
+      "Our exam-focused curriculum has a 95% first-attempt pass rate. Get certified at the level German employers require.",
+    icon: "award",
+    href: "/site/courses",
+  },
+  {
+    title: "Get Your Visa & Job Offer",
+    description:
+      "With your certificate in hand, apply for work visas, Blue Cards, or university admission. Our alumni network helps with referrals.",
+    icon: "plane",
+    href: "/site/opportunities",
+  },
+  {
+    title: "Start Your Life in Germany",
+    description:
+      "Join 500+ PlanBeta alumni already in Germany. Get settling-in support, job leads, and community from day one.",
+    icon: "flag",
+    href: "/site/about",
+  },
+]
+
+export const alumniHighlights = [
+  { name: "Aiswarya M.", role: "Nurse", city: "Munich" },
+  { name: "Rahul K.", role: "Software Developer", city: "Berlin" },
+  { name: "Anjali R.", role: "Medical Student", city: "Hamburg" },
+  { name: "Deepak S.", role: "Mechanical Engineer", city: "Stuttgart" },
+  { name: "Priya V.", role: "Care Worker", city: "Frankfurt" },
+  { name: "Arjun N.", role: "Data Analyst", city: "Düsseldorf" },
 ]

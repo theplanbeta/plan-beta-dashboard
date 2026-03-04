@@ -12,10 +12,15 @@ export const metadata = generatePageMetadata({
 
 const team = [
   {
-    name: "Founder & Lead Instructor",
-    role: "German Language Expert",
-    bio: "With years of experience teaching German and helping students transition to life in Germany, our founder started Plan Beta with a simple mission: make quality German education accessible to everyone in Kerala.",
+    name: "Aparna Bose",
+    role: "Founder & Lead Instructor",
+    bio: "Certified German language instructor with 3+ years of teaching experience. Aparna has personally trained 150+ students and built PlanBeta from a 10-student batch into Kerala's most trusted German language institute. She teaches the self-paced A1 course in Malayalam and leads the Speaking Improvement programme.",
     image: "/team/founder.jpg",
+    stats: [
+      { label: "Students Taught", value: "150+" },
+      { label: "Years Teaching", value: "3+" },
+      { label: "Alumni in Germany", value: "500+" },
+    ],
   },
 ]
 
@@ -149,8 +154,51 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Our Values */}
+      {/* Founder */}
       <section className="py-20 bg-[#111]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="w-48 h-48 bg-gradient-to-br from-primary to-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-6xl font-bold text-white">AB</span>
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-[#111] rounded-full flex items-center justify-center border-4 border-[#111]">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
+                Meet the Founder
+              </p>
+              <h2 className="text-3xl font-bold text-white mb-2">{team[0].name}</h2>
+              <p className="text-gray-500 mb-4">{team[0].role}</p>
+              <p className="text-gray-400 leading-relaxed mb-8">{team[0].bio}</p>
+
+              <div className="flex flex-wrap gap-4">
+                {team[0].stats.map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="bg-white/[0.04] border border-white/[0.08] rounded-xl px-5 py-3 text-center"
+                  >
+                    <div className="text-xl font-bold text-primary">{stat.value}</div>
+                    <div className="text-xs text-gray-500">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Values */}
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-4">What We Stand For</h2>
@@ -193,7 +241,7 @@ export default function AboutPage() {
       </section>
 
       {/* Timeline */}
-      <section className="py-20 bg-[#0a0a0a]">
+      <section className="py-20 bg-[#111]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-white mb-4">Our Journey</h2>
@@ -236,7 +284,7 @@ export default function AboutPage() {
       </section>
 
       {/* What Makes Us Different */}
-      <section className="py-20 bg-[#111]">
+      <section className="py-20 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4 text-white">Why Students Choose Plan Beta</h2>

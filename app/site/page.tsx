@@ -4,16 +4,18 @@ import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 
 import { HeroSection } from "@/components/marketing/sections/HeroSection"
 import { SocialProofStrip } from "@/components/marketing/sections/SocialProofStrip"
+import { PathwaySection } from "@/components/marketing/sections/PathwaySection"
 import { WhyPlanBeta } from "@/components/marketing/sections/WhyPlanBeta"
 import { CoursesSection } from "@/components/marketing/sections/CoursesSection"
 import { GermanyOpportunity } from "@/components/marketing/sections/GermanyOpportunity"
 import { TestimonialsSection } from "@/components/marketing/sections/TestimonialsSection"
+import { AlumniSection } from "@/components/marketing/sections/AlumniSection"
 import { FAQSection } from "@/components/marketing/sections/FAQSection"
 import { CTASection } from "@/components/marketing/sections/CTASection"
 import { ExploreSection } from "@/components/marketing/sections/ExploreSection"
 
 export const metadata = generatePageMetadata({
-  title: "Learn German Online | Plan Beta - Best German Classes Kerala",
+  title: "Germany Pathway | Plan Beta — German Courses & Career Support from Kerala",
   description:
     "Master German with Kerala's premier language institute. Live online classes, expert instructors, A1 to B2 levels. 95% exam pass rate.",
   keywords: TARGET_KEYWORDS.home,
@@ -29,11 +31,13 @@ export default function HomePage() {
 
       <HeroSection />
       <SocialProofStrip />
+      <PathwaySection />
       <CoursesSection />
       <GermanyOpportunity />
       <ExploreSection />
       <WhyPlanBeta />
       <TestimonialsSection />
+      <AlumniSection />
       <FAQSection faqs={faqs} />
       <CTASection />
     </div>

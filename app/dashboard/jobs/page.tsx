@@ -26,15 +26,27 @@ interface JobPosting {
 }
 
 const PRESET_SOURCES = [
-  { name: "BA — Nursing Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Krankenpfleger" },
-  { name: "BA — Healthcare/Pflege", url: "https://www.arbeitsagentur.de/jobsuche?was=Pflege" },
-  { name: "BA — Engineering", url: "https://www.arbeitsagentur.de/jobsuche?was=Ingenieur" },
-  { name: "BA — IT Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Software%20Developer" },
-  { name: "BA — Nebenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Nebenjob" },
-  { name: "BA — Werkstudent", url: "https://www.arbeitsagentur.de/jobsuche?was=Werkstudent&arbeitszeit=tz" },
-  { name: "BA — Studentenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Studentenjob" },
-  { name: "BA — Mini-Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Minijob&arbeitszeit=mj" },
-  { name: "Arbeitnow — All Jobs", url: "https://www.arbeitnow.com/api/job-board-api" },
+  // Bundesagentur für Arbeit (API-based, reliable)
+  { name: "BA — Nursing Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Krankenpfleger", category: "healthcare" },
+  { name: "BA — Healthcare/Pflege", url: "https://www.arbeitsagentur.de/jobsuche?was=Pflege", category: "healthcare" },
+  { name: "BA — Engineering", url: "https://www.arbeitsagentur.de/jobsuche?was=Ingenieur", category: "skilled" },
+  { name: "BA — IT Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Software%20Developer", category: "skilled" },
+  { name: "BA — Hospitality", url: "https://www.arbeitsagentur.de/jobsuche?was=Gastronomie%20Hotel", category: "skilled" },
+  { name: "BA — Nebenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Nebenjob", category: "student" },
+  { name: "BA — Werkstudent", url: "https://www.arbeitsagentur.de/jobsuche?was=Werkstudent&arbeitszeit=tz", category: "student" },
+  { name: "BA — Studentenjobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Studentenjob", category: "student" },
+  { name: "BA — Mini-Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Minijob&arbeitszeit=mj", category: "student" },
+  { name: "BA — Internships/Trainee", url: "https://www.arbeitsagentur.de/jobsuche?was=Praktikum&angebotsart=34", category: "student" },
+  // Stellenwerk (university job boards, HTML+Gemini)
+  { name: "Stellenwerk — Berlin", url: "https://www.stellenwerk.de/berlin/", category: "student" },
+  { name: "Stellenwerk — Hamburg", url: "https://www.stellenwerk.de/hamburg/", category: "student" },
+  { name: "Stellenwerk — Munich", url: "https://www.stellenwerk.de/muenchen/", category: "student" },
+  { name: "Stellenwerk — Cologne", url: "https://www.stellenwerk.de/koeln/", category: "student" },
+  { name: "Stellenwerk — Frankfurt", url: "https://www.stellenwerk.de/frankfurt-am-main/", category: "student" },
+  { name: "Stellenwerk — Stuttgart", url: "https://www.stellenwerk.de/stuttgart/", category: "student" },
+  { name: "Stellenwerk — Düsseldorf", url: "https://www.stellenwerk.de/duesseldorf/", category: "student" },
+  // Arbeitnow (API-based)
+  { name: "Arbeitnow — All Jobs", url: "https://www.arbeitnow.com/api/job-board-api", category: "skilled" },
 ]
 
 export default function JobsDashboardPage() {
@@ -176,24 +188,34 @@ export default function JobsDashboardPage() {
           {/* Preset Quick-Add */}
           <div className="mb-4">
             <label className="block text-xs text-gray-500 mb-2">Quick Add (Presets)</label>
-            <div className="flex flex-wrap gap-2">
-              {PRESET_SOURCES
-                .filter((p) => !sources.some((s) => s.name === p.name))
-                .map((preset) => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => setNewSource({ name: preset.name, url: preset.url })}
-                    className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                      newSource.name === preset.name
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                        : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                    }`}
-                  >
-                    {preset.name}
-                  </button>
-                ))}
-            </div>
+            {(["student", "healthcare", "skilled"] as const).map((category) => {
+              const presets = PRESET_SOURCES
+                .filter((p) => p.category === category && !sources.some((s) => s.name === p.name))
+              if (presets.length === 0) return null
+              return (
+                <div key={category} className="mb-2">
+                  <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1 capitalize">
+                    {category === "student" ? "Student & Part-time" : category === "healthcare" ? "Healthcare & Nursing" : "Skilled Workers"}
+                  </p>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {presets.map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => setNewSource({ name: preset.name, url: preset.url })}
+                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                          newSource.name === preset.name
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                            : "border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           <form onSubmit={handleAddSource} className="flex gap-3 items-end">

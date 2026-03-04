@@ -16,6 +16,12 @@ const ALLOWED_REDIRECT_DOMAINS = [
   "youtube.com",
   "www.youtube.com",
   "shopify.com",
+  "stellenwerk.de",
+  "www.stellenwerk.de",
+  "arbeitsagentur.de",
+  "www.arbeitsagentur.de",
+  "jobware.de",
+  "www.jobware.de",
 ]
 
 function isAllowedRedirect(url: string): boolean {

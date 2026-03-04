@@ -25,6 +25,12 @@ interface JobPosting {
   source: { name: string }
 }
 
+interface ScrapeResult {
+  source: string
+  count: number
+  error?: string
+}
+
 const PRESET_SOURCES = [
   // Bundesagentur für Arbeit (API-based, reliable)
   { name: "BA — Nursing Jobs", url: "https://www.arbeitsagentur.de/jobsuche?was=Krankenpfleger", category: "healthcare" },
@@ -54,6 +60,7 @@ export default function JobsDashboardPage() {
   const [jobs, setJobs] = useState<JobPosting[]>([])
   const [loading, setLoading] = useState(true)
   const [scraping, setScraping] = useState<string | null>(null)
+  const [scrapeResults, setScrapeResults] = useState<ScrapeResult[] | null>(null)
   const [showAddSource, setShowAddSource] = useState(false)
   const [newSource, setNewSource] = useState({ name: "", url: "" })
   const [error, setError] = useState("")
@@ -85,6 +92,7 @@ export default function JobsDashboardPage() {
     setScraping(sourceId || "all")
     setError("")
     setSuccess("")
+    setScrapeResults(null)
 
     try {
       const res = await fetch("/api/jobs/scrape", {
@@ -93,14 +101,27 @@ export default function JobsDashboardPage() {
         body: JSON.stringify(sourceId ? { sourceId } : {}),
       })
       const data = await res.json()
+
       if (res.ok) {
-        setSuccess(`Scraped ${data.count || data.total || 0} jobs successfully`)
+        const total = data.count ?? data.total ?? 0
+        const results: ScrapeResult[] = data.results || []
+        const errors = results.filter((r: ScrapeResult) => r.error)
+
+        setScrapeResults(results)
+
+        if (total > 0) {
+          setSuccess(`Scraped ${total} jobs successfully`)
+        } else if (errors.length > 0) {
+          setError(`Scraping completed with errors (0 jobs found)`)
+        } else {
+          setSuccess("Scraping completed — no new jobs found")
+        }
         fetchData()
       } else {
         setError(data.error || "Scraping failed")
       }
     } catch {
-      setError("Scraping request failed")
+      setError("Scraping request failed — possible timeout. Try scraping one source at a time.")
     } finally {
       setScraping(null)
     }
@@ -160,10 +181,20 @@ export default function JobsDashboardPage() {
           </button>
           <button
             onClick={() => handleScrape()}
-            disabled={scraping !== null}
+            disabled={scraping !== null || sources.length === 0}
             className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            {scraping === "all" ? "Scraping..." : "Scrape All Sources"}
+            {scraping === "all" ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Scraping...
+              </span>
+            ) : (
+              "Scrape All Sources"
+            )}
           </button>
         </div>
       </div>
@@ -177,6 +208,35 @@ export default function JobsDashboardPage() {
       {success && (
         <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-sm">
           {success}
+        </div>
+      )}
+
+      {/* Per-Source Scrape Results */}
+      {scrapeResults && scrapeResults.length > 0 && (
+        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium mb-2">Scrape Results</h3>
+          <div className="space-y-1">
+            {scrapeResults.map((r, i) => (
+              <div key={i} className="flex items-center justify-between text-xs">
+                <span className="text-gray-600 dark:text-gray-400">{r.source}</span>
+                <span className="flex items-center gap-2">
+                  {r.error ? (
+                    <span className="text-red-500" title={r.error}>
+                      Failed: {r.error.length > 60 ? r.error.slice(0, 60) + "..." : r.error}
+                    </span>
+                  ) : (
+                    <span className="text-green-600 dark:text-green-400">{r.count} jobs</span>
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => setScrapeResults(null)}
+            className="mt-2 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
@@ -256,7 +316,13 @@ export default function JobsDashboardPage() {
         <h2 className="text-lg font-semibold mb-3">Job Sources ({sources.length})</h2>
         {sources.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-500 text-sm">No sources configured yet. Add one above.</p>
+            <p className="text-gray-500 text-sm mb-2">No sources configured yet.</p>
+            <button
+              onClick={() => setShowAddSource(true)}
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Add your first source
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -289,9 +355,19 @@ export default function JobsDashboardPage() {
                 <button
                   onClick={() => handleScrape(source.id)}
                   disabled={scraping !== null}
-                  className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
-                  {scraping === source.id ? "Scraping..." : "Scrape Now"}
+                  {scraping === source.id ? (
+                    <>
+                      <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Scraping...
+                    </>
+                  ) : (
+                    "Scrape Now"
+                  )}
                 </button>
               </div>
             ))}
@@ -304,7 +380,7 @@ export default function JobsDashboardPage() {
         <h2 className="text-lg font-semibold mb-3">Recent Job Postings ({jobs.length})</h2>
         {jobs.length === 0 ? (
           <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            <p className="text-gray-500 text-sm">No jobs yet. Add a source and scrape to populate.</p>
+            <p className="text-gray-500 text-sm">No jobs yet. Add sources and scrape to populate.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

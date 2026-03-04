@@ -65,12 +65,19 @@ export const TARGET_KEYWORDS = {
   ],
   jobs: [
     'jobs in germany for indians',
+    'student jobs germany',
+    'find student jobs in germany',
+    'werkstudent jobs',
+    'mini jobs germany',
+    'part time jobs germany students',
     'germany job portal',
     'nursing jobs germany',
     'IT jobs germany',
     'engineering jobs germany',
     'germany job vacancy',
     'german jobs visa sponsorship',
+    'ausbildung jobs germany',
+    'internship germany',
   ],
 }
 

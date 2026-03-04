@@ -29,10 +29,10 @@ export default function HomePage() {
 
       <HeroSection />
       <SocialProofStrip />
-      <WhyPlanBeta />
       <CoursesSection />
       <GermanyOpportunity />
       <ExploreSection />
+      <WhyPlanBeta />
       <TestimonialsSection />
       <FAQSection faqs={faqs} />
       <CTASection />

@@ -3,6 +3,9 @@ import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import { scrapeSource, scrapeAllSources } from "@/lib/job-scraper"
 
+// Allow up to 60s for scraping (requires Pro plan; Hobby defaults to 10s)
+export const maxDuration = 60
+
 // POST /api/jobs/scrape — Authenticated (FOUNDER only), triggers scraping
 // Accepts either:
 //   { sourceId } — triggers Node.js scraper for that source
@@ -80,17 +83,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, count: upsertCount })
     }
 
-    // Mode 2: Node.js scraper for a specific source (JSON API adapters)
+    // Mode 2: Node.js scraper for a specific source
     if (sourceId) {
       const result = await scrapeSource(sourceId)
-      return NextResponse.json({ success: true, ...result })
+      return NextResponse.json({
+        success: !result.error || result.count > 0,
+        ...result,
+        results: [{ source: "source", ...result }],
+      })
     }
 
     // Mode 3: Scrape all active sources
     const result = await scrapeAllSources()
-    return NextResponse.json({ success: true, ...result })
+    const hasErrors = result.results.some((r) => r.error)
+    return NextResponse.json({
+      success: result.total > 0 || !hasErrors,
+      ...result,
+    })
   } catch (error) {
-    console.error("[Jobs Scrape] Error:", error)
-    return NextResponse.json({ error: "Scraping failed" }, { status: 500 })
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.error("[Jobs Scrape] Error:", msg)
+    return NextResponse.json({ error: `Scraping failed: ${msg}` }, { status: 500 })
   }
 }

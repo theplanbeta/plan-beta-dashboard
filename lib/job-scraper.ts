@@ -1,11 +1,14 @@
 /**
  * Job Scraper — dual strategy:
- * 1. JSON API adapters for known sources (Arbeitnow, etc.) — fast, reliable, no AI
+ * 1. JSON API adapters for known sources (Arbeitsagentur, Arbeitnow) — fast, reliable, no AI
  * 2. Gemini fallback for unknown HTML sources — strips noise first, higher token limit
  */
 
 import { prisma } from "@/lib/prisma"
 import { generateContent } from "@/lib/gemini-client"
+
+// Timeout for API fetches — must be well within Vercel's function timeout
+const FETCH_TIMEOUT_MS = 9_000
 
 function isUrlAllowed(url: string): boolean {
   try {
@@ -68,17 +71,21 @@ async function fetchArbeitsagentur(url: string): Promise<ExtractedJob[]> {
         "X-API-Key": "jobboerse-jobsuche",
         Accept: "application/json",
       },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
 
     if (!res.ok) {
-      console.error(`[JobScraper:Arbeitsagentur] API returned ${res.status}`)
-      return []
+      const msg = `[JobScraper:Arbeitsagentur] API returned ${res.status} ${res.statusText}`
+      console.error(msg)
+      throw new Error(msg)
     }
 
     const data = await res.json()
     const jobs = data.stellenangebote || []
-    if (!Array.isArray(jobs)) return []
+    if (!Array.isArray(jobs)) {
+      console.error("[JobScraper:Arbeitsagentur] Unexpected response shape:", Object.keys(data))
+      return []
+    }
 
     console.log(`[JobScraper:Arbeitsagentur] Found ${data.maxErgebnisse || 0} total, fetched ${jobs.length}`)
 
@@ -106,8 +113,9 @@ async function fetchArbeitsagentur(url: string): Promise<ExtractedJob[]> {
       }
     }).filter((j: ExtractedJob) => j.title)
   } catch (error) {
-    console.error("[JobScraper:Arbeitsagentur] Fetch error:", error)
-    return []
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error("[JobScraper:Arbeitsagentur] Fetch error:", msg)
+    throw new Error(`Arbeitsagentur API failed: ${msg}`)
   }
 }
 
@@ -117,11 +125,20 @@ async function fetchArbeitsagentur(url: string): Promise<ExtractedJob[]> {
  */
 function inferGermanLevelFromBeruf(beruf: string, title: string): string | null {
   const text = `${beruf} ${title}`.toLowerCase()
-  // Nursing/healthcare in Germany typically requires B1-B2
-  if (text.match(/pflege|kranken|alten|hebamme|rettung/)) return "B1"
-  if (text.match(/arzt|ärztin|medizin|therap/)) return "B2"
+  // Healthcare/nursing — B1 for recognition, B2 for full license
+  if (text.match(/pflege|kranken|alten|hebamme|rettung|pflegefach/)) return "B1"
+  if (text.match(/arzt|ärztin|medizin|therap|pharma/)) return "B2"
+  // Engineering — B1 typically, B2 for client-facing
   if (text.match(/ingenieur|engineer/)) return "B1"
-  // Most jobs on BA require some German
+  // IT — often English-friendly
+  if (text.match(/software|developer|entwickler|devops|data|IT|programm/i)) return "A2"
+  // Hospitality — A2-B1
+  if (text.match(/gastro|hotel|koch|küche|restaurant|kellner/)) return "A2"
+  // Student jobs — A2 minimum
+  if (text.match(/werkstudent|minijob|nebenjob|aushilfe|praktik|studentisch/)) return "A2"
+  // Teaching — C1 typically
+  if (text.match(/lehrer|dozent|professor|pädagog/)) return "C1"
+  // Default for professional jobs on BA
   return "B1"
 }
 
@@ -139,11 +156,12 @@ async function fetchArbeitnow(url: string): Promise<ExtractedJob[]> {
   try {
     const res = await fetch(apiUrl, {
       headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
     if (!res.ok) {
-      console.error(`[JobScraper:Arbeitnow] API returned ${res.status}`)
-      return []
+      const msg = `[JobScraper:Arbeitnow] API returned ${res.status} ${res.statusText}`
+      console.error(msg)
+      throw new Error(msg)
     }
 
     const data = await res.json()
@@ -170,8 +188,9 @@ async function fetchArbeitnow(url: string): Promise<ExtractedJob[]> {
       }
     }).filter((j: ExtractedJob) => j.title)
   } catch (error) {
-    console.error("[JobScraper:Arbeitnow] Fetch error:", error)
-    return []
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error("[JobScraper:Arbeitnow] Fetch error:", msg)
+    throw new Error(`Arbeitnow API failed: ${msg}`)
   }
 }
 
@@ -192,13 +211,14 @@ function inferGermanLevel(tags: string[], title: string, description: string): s
 
 function inferProfession(tags: string[], title: string): string {
   const text = [...tags, title].join(" ").toLowerCase()
-  if (text.match(/nurs|pflege|krankenschwester/)) return "Nursing"
-  if (text.match(/software|developer|engineer.*software|devops|frontend|backend|fullstack|data.*sci/)) return "IT"
-  if (text.match(/engineer|ingenieur|mechanical|electrical|civil/)) return "Engineering"
-  if (text.match(/doctor|arzt|physio|therap|medic|health|gesundheit|pharma/)) return "Healthcare"
-  if (text.match(/hotel|restaurant|gastro|chef|cook|hospitality/)) return "Hospitality"
-  if (text.match(/account|finance|buchhal|steuer|audit/)) return "Accounting"
-  if (text.match(/teach|lehrer|tutor|professor|dozent/)) return "Teaching"
+  if (text.match(/nurs|pflege|krankenschwester|krankenpfleger|altenpflege|hebamme|pflegefach|pflegehilf/)) return "Nursing"
+  if (text.match(/software|developer|entwickler|devops|frontend|backend|fullstack|data.*sci|programm|web.*dev|java|python|react|angular/i)) return "IT"
+  if (text.match(/ingenieur|engineer|maschinenbau|mechanical|electrical|elektro|civil|bauingenieur|fahrzeug|verfahren/)) return "Engineering"
+  if (text.match(/arzt|ärztin|doctor|physio|therap|medizin|health|gesundheit|pharma|labor|rettung|sanitäter/)) return "Healthcare"
+  if (text.match(/hotel|restaurant|gastro|chef|cook|koch|küche|hospitality|kellner|rezeption|housekeep/)) return "Hospitality"
+  if (text.match(/account|finance|buchhal|steuer|audit|controlling|rechnungswesen|finanzbuchhal/)) return "Accounting"
+  if (text.match(/teach|lehrer|tutor|professor|dozent|pädagog|erzieh|erzieher/)) return "Teaching"
+  if (text.match(/werkstudent|studentisch|minijob|nebenjob|aushilfe|student.*job|praktik/)) return "Student Jobs"
   return "Other"
 }
 
@@ -321,7 +341,7 @@ async function fetchHtml(url: string): Promise<string | null> {
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
       },
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     })
 
     if (!res.ok) {
@@ -367,6 +387,7 @@ async function fetchJobsFromSource(url: string): Promise<ExtractedJob[]> {
 
 /**
  * Scrape a single source: fetch → extract → upsert to DB.
+ * Throws on fetch errors so callers get actionable error messages.
  */
 export async function scrapeSource(sourceId: string): Promise<{ count: number; error?: string }> {
   const source = await prisma.jobSource.findUnique({ where: { id: sourceId } })
@@ -376,22 +397,33 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
 
   console.log(`[JobScraper] Scraping source: ${source.name} (${source.url})`)
 
-  const jobs = await fetchJobsFromSource(source.url)
-  console.log(`[JobScraper] Extracted ${jobs.length} jobs from ${source.name}`)
-
-  if (jobs.length === 0) {
-    // Still update lastFetched so we know we tried
+  let jobs: ExtractedJob[]
+  try {
+    jobs = await fetchJobsFromSource(source.url)
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error)
+    console.error(`[JobScraper] Failed to fetch from ${source.name}:`, msg)
+    // Update lastFetched so we know we tried, but return the error
     await prisma.jobSource.update({
       where: { id: source.id },
       data: { lastFetched: new Date() },
     })
-    return { count: 0, error: "No jobs extracted" }
+    return { count: 0, error: msg }
+  }
+
+  console.log(`[JobScraper] Extracted ${jobs.length} jobs from ${source.name}`)
+
+  if (jobs.length === 0) {
+    await prisma.jobSource.update({
+      where: { id: source.id },
+      data: { lastFetched: new Date() },
+    })
+    return { count: 0, error: "No jobs found in response" }
   }
 
   let upsertCount = 0
   for (const job of jobs) {
     try {
-      // Dedup key: externalId if available, otherwise hash of title+company
       const externalId = job.externalId || `${source.id}-${job.title}-${job.company}`.slice(0, 200)
 
       await prisma.jobPosting.upsert({
@@ -448,17 +480,32 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
 }
 
 /**
- * Scrape all active sources.
+ * Scrape all active sources in parallel (up to 3 at a time).
  */
 export async function scrapeAllSources(): Promise<{ total: number; results: { source: string; count: number; error?: string }[] }> {
   const sources = await prisma.jobSource.findMany({ where: { active: true } })
   const results: { source: string; count: number; error?: string }[] = []
   let total = 0
 
-  for (const source of sources) {
-    const result = await scrapeSource(source.id)
-    results.push({ source: source.name, ...result })
-    total += result.count
+  // Process in batches of 3 to avoid overwhelming APIs
+  const BATCH_SIZE = 3
+  for (let i = 0; i < sources.length; i += BATCH_SIZE) {
+    const batch = sources.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.allSettled(
+      batch.map(async (source) => {
+        const result = await scrapeSource(source.id)
+        return { source: source.name, ...result }
+      })
+    )
+    for (const r of batchResults) {
+      if (r.status === "fulfilled") {
+        results.push(r.value)
+        total += r.value.count
+      } else {
+        const sourceName = batch[batchResults.indexOf(r)]?.name || "Unknown"
+        results.push({ source: sourceName, count: 0, error: r.reason?.message || "Unknown error" })
+      }
+    }
   }
 
   // Mark old jobs as inactive (posted > 30 days ago)

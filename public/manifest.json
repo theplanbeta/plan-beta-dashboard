@@ -1,8 +1,10 @@
 {
-  "name": "Plan Beta School Management",
+  "name": "Plan Beta — Learn German",
   "short_name": "Plan Beta",
-  "description": "School Management System for Plan Beta School of German",
-  "start_url": "/dashboard",
+  "description": "Learn German with Plan Beta. Find courses, track progress, and discover jobs in Germany.",
+  "id": "/site",
+  "start_url": "/site",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
@@ -12,13 +14,25 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
@@ -29,7 +43,20 @@
       "form_factor": "narrow"
     }
   ],
-  "categories": ["business", "education", "productivity"],
+  "share_target": {
+    "action": "/site/spot-a-job",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "photo",
+          "accept": ["image/jpeg", "image/png", "image/webp", "image/heic"]
+        }
+      ]
+    }
+  },
+  "categories": ["education", "business", "productivity"],
   "lang": "en",
   "dir": "ltr",
   "prefer_related_applications": false

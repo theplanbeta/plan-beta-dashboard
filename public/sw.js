@@ -1,13 +1,25 @@
-// Plan Beta Service Worker — Push Notifications + Basic Caching
+// Plan Beta Service Worker — Push Notifications + Caching + Offline + Background Sync
 
-const CACHE_NAME = "planbeta-v2"
+const CACHE_NAME = "planbeta-v3"
 
-// Install — skip waiting to activate immediately
-self.addEventListener("install", () => {
+// Pages to precache on install
+const PRECACHE_URLS = [
+  "/site",
+  "/site/courses",
+  "/site/contact",
+  "/site/about",
+  "/offline",
+]
+
+// Install — precache critical pages, skip waiting
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+  )
   self.skipWaiting()
 })
 
-// Activate — clean old caches
+// Activate — clean old caches, claim clients
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
@@ -19,30 +31,131 @@ self.addEventListener("activate", (event) => {
   self.clients.claim()
 })
 
-// Fetch — network first, cache fallback for site pages
+// Fetch — strategy based on request type
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url)
 
-  // Skip non-GET and API/dashboard requests
+  // Skip non-GET requests
   if (event.request.method !== "GET") return
+
+  // Skip API requests
   if (url.pathname.startsWith("/api/")) return
+
+  // Skip dashboard requests (auth-protected, shouldn't cache)
   if (url.pathname.startsWith("/dashboard")) return
 
-  // Only cache marketing site pages
-  if (!url.pathname.startsWith("/site")) return
-
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        if (response.ok) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        }
-        return response
+  // Static assets (JS, CSS, fonts with hashed names) — cache-first
+  if (
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/image") ||
+    url.pathname.match(/\.(js|css|woff2?|ttf|otf|ico|svg)$/)
+  ) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return response
+        })
       })
-      .catch(() => caches.match(event.request))
-  )
+    )
+    return
+  }
+
+  // Images from Vercel Blob — cache-first
+  if (url.hostname.includes("blob.vercel-storage.com")) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return response
+        })
+      })
+    )
+    return
+  }
+
+  // Marketing site pages — network-first with cache fallback and offline fallback
+  if (url.pathname.startsWith("/site") || url.pathname === "/offline") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return response
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => {
+            if (cached) return cached
+            // No cache — show offline fallback
+            return caches.match("/offline")
+          })
+        )
+    )
+    return
+  }
 })
+
+// Background Sync — retry failed SpotAJob uploads
+self.addEventListener("sync", (event) => {
+  if (event.tag === "spotajob-upload") {
+    event.waitUntil(retrySyncedUploads())
+  }
+})
+
+async function retrySyncedUploads() {
+  try {
+    const db = await openSyncDB()
+    const tx = db.transaction("uploads", "readonly")
+    const store = tx.objectStore("uploads")
+    const uploads = await getAllFromStore(store)
+
+    for (const upload of uploads) {
+      try {
+        const response = await fetch("/api/jobs/community", {
+          method: "POST",
+          body: upload.formData,
+        })
+        if (response.ok) {
+          const deleteTx = db.transaction("uploads", "readwrite")
+          deleteTx.objectStore("uploads").delete(upload.id)
+        }
+      } catch {
+        // Still offline, will retry next sync
+      }
+    }
+  } catch {
+    // IndexedDB not available or empty
+  }
+}
+
+function openSyncDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open("spotajob-sync", 1)
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore("uploads", { keyPath: "id", autoIncrement: true })
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
+
+function getAllFromStore(store) {
+  return new Promise((resolve, reject) => {
+    const request = store.getAll()
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
 
 // Push notification received
 self.addEventListener("push", (event) => {
@@ -57,8 +170,8 @@ self.addEventListener("push", (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || "/icon-192x192.png",
-    badge: "/icon-192x192.png",
+    icon: data.icon || "/icon-192.png",
+    badge: "/icon-192.png",
     data: { url: data.url || "/site" },
     vibrate: [200, 100, 200],
   }

@@ -11,6 +11,7 @@ import { trackEvent } from "@/lib/tracking"
 import CookieConsent from "@/components/marketing/CookieConsent"
 import ConsentAnalytics from "@/components/marketing/ConsentAnalytics"
 import TrackingProvider from "@/components/marketing/TrackingProvider"
+import PWAInstallPrompt from "@/components/PWAInstallPrompt"
 
 export default function MarketingLayout({
   children,
@@ -38,6 +39,7 @@ export default function MarketingLayout({
     { name: "For Nurses", href: "/site/nurses" },
     { name: "Eligibility", href: "/site/germany-pathway" },
     { name: "Jobs", href: "/site/jobs" },
+    { name: "SpotAJob", href: "/site/spot-a-job" },
     { name: "About", href: "/site/about" },
     { name: "Contact", href: "/site/contact" },
   ]
@@ -425,6 +427,9 @@ export default function MarketingLayout({
 
       {/* Push Notification Prompt */}
       <PushNotificationPrompt />
+
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
 
       {/* Tracking & Analytics */}
       <TrackingProvider />

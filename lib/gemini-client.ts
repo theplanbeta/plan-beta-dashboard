@@ -201,6 +201,77 @@ export async function generateContentStream(
 }
 
 /**
+ * Generate content with an image (Gemini Vision)
+ * Used for extracting information from photos (e.g., SpotAJob)
+ */
+export async function generateContentWithImage(
+  prompt: string,
+  imageBase64: string,
+  mimeType: string,
+  modelName: string = 'gemini-2.5-flash-lite',
+  options?: {
+    retries?: number
+    timeout?: number
+  }
+): Promise<{ success: boolean; content?: string; error?: string; tokenCount?: number }> {
+  const { retries = 2, timeout = 45000 } = options || {}
+
+  await waitForRateLimit()
+
+  const model = getGeminiModel(modelName)
+  if (!model) {
+    return {
+      success: false,
+      error: 'Gemini API not available. Please check configuration.',
+    }
+  }
+
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), timeout)
+      })
+
+      const result = await Promise.race([
+        model.generateContent([
+          { text: prompt },
+          { inlineData: { data: imageBase64, mimeType } },
+        ]),
+        timeoutPromise,
+      ])
+
+      const response = await result.response
+      const text = response.text()
+
+      const estimatedTokens = Math.ceil((prompt.length + text.length) / 4) + 1000 // image tokens
+
+      return {
+        success: true,
+        content: text.trim(),
+        tokenCount: estimatedTokens,
+      }
+    } catch (error) {
+      lastError = error as Error
+      console.error(`[Gemini Client] Vision attempt ${attempt + 1} failed:`, error)
+
+      if (error instanceof Error && error.message.includes('429')) {
+        await new Promise((resolve) => setTimeout(resolve, 10000))
+      } else if (attempt < retries) {
+        const waitTime = Math.pow(2, attempt) * 1000
+        await new Promise((resolve) => setTimeout(resolve, waitTime))
+      }
+    }
+  }
+
+  return {
+    success: false,
+    error: lastError?.message || 'Failed to process image',
+  }
+}
+
+/**
  * Check if Gemini API is available
  */
 export function isGeminiAvailable(): boolean {

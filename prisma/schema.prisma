@@ -1363,3 +1363,50 @@ model JobPosting {
   @@index([active])
   @@index([sourceId])
 }
+
+model CommunityJob {
+  id            String    @id @default(cuid())
+
+  // Photo
+  imageUrl      String
+  imageKey      String
+
+  // AI-extracted fields (from Gemini Vision)
+  title         String?
+  company       String?
+  location      String?
+  description   String?
+  contactInfo   String?
+  germanLevel   String?
+  jobType       String?
+  salaryInfo    String?
+
+  // EXIF/GPS data
+  latitude      Float?
+  longitude     Float?
+  photoTakenAt  DateTime?
+  cityName      String?
+
+  // Submission
+  submittedBy   String?
+  submitterType String   @default("anonymous")
+
+  // Moderation
+  status        String   @default("pending")
+  moderatedBy   String?
+  moderatedAt   DateTime?
+  moderationNote String?
+
+  // Engagement
+  viewCount     Int      @default(0)
+  reportCount   Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  expiresAt     DateTime?
+
+  @@index([status])
+  @@index([cityName])
+  @@index([createdAt])
+  @@index([status, createdAt])
+}

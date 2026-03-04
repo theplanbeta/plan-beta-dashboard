@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     if (location) where.location = { contains: location, mode: "insensitive" }
     if (jobType) where.jobType = jobType
 
-    const [jobs, totalCount] = await Promise.all([
+    const [jobs, totalCount, lastUpdatedJob] = await Promise.all([
       prisma.jobPosting.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -45,6 +45,11 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.jobPosting.count({ where }),
+      prisma.jobPosting.findFirst({
+        where: { active: true },
+        orderBy: { updatedAt: "desc" },
+        select: { updatedAt: true },
+      }),
     ])
 
     // Get available filter options for UI (from all active jobs, not just current page)
@@ -86,6 +91,7 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1,
       },
       total: jobs.length,
+      lastUpdated: lastUpdatedJob?.updatedAt || null,
     })
   } catch (error) {
     console.error("[Jobs API] Error:", error)

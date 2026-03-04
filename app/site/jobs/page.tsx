@@ -312,6 +312,7 @@ function JobsPageContent() {
   const [viewMode, setViewMode] = useState<"list" | "map">(initialView)
   const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
   const [mapLoaded, setMapLoaded] = useState(initialView === "map")
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
   // Debounce search input
   useEffect(() => {
@@ -345,6 +346,7 @@ function JobsPageContent() {
       setJobs(jobsData.jobs || [])
       setFilters(jobsData.filters || { professions: [], germanLevels: [], locations: [] })
       if (jobsData.pagination) setPagination(jobsData.pagination)
+      if (jobsData.lastUpdated) setLastUpdated(jobsData.lastUpdated)
 
       if (communityRes && communityRes.ok) {
         const communityData = await communityRes.json()
@@ -430,7 +432,10 @@ function JobsPageContent() {
             </p>
             {pagination.totalCount > 0 && (
               <p className="text-sm text-gray-500">
-                {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany &middot; Updated daily
+                {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany
+                {lastUpdated && (
+                  <> &middot; Last updated {formatDate(lastUpdated)}</>
+                )}
               </p>
             )}
             <div className="mt-6 flex items-center justify-center gap-4">

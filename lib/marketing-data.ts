@@ -76,6 +76,23 @@ export const courses = [
     popular: false,
     color: "from-purple-500 to-violet-600",
   },
+  {
+    id: "b2-live",
+    title: "German B2",
+    subtitle: "Upper Intermediate",
+    description:
+      "Professional-level fluency for healthcare, engineering, and academic careers in Germany.",
+    duration: "14 weeks",
+    level: "Upper Intermediate",
+    features: [
+      "Live classes 5x/week",
+      "Professional German",
+      "Medical/Technical vocab",
+      "B2 Goethe/TELC prep",
+    ],
+    popular: false,
+    color: "from-rose-500 to-red-600",
+  },
 ]
 
 export const testimonials = [
@@ -170,12 +187,12 @@ export const faqs = [
   {
     question: "What level of German will I achieve?",
     answer:
-      "Our courses follow the Common European Framework (CEFR). A1 takes you from zero to basic conversation. A2 enables simple everyday communication. B1 qualifies you for work permits and university admission in Germany.",
+      "Our courses follow the Common European Framework (CEFR). A1 takes you from zero to basic conversation. A2 enables simple everyday communication. B1 qualifies you for work permits and university admission. B2 gives you professional-level fluency required for healthcare, engineering, and academic roles in Germany.",
   },
   {
     question: "How long does it take to complete each level?",
     answer:
-      "With our live classes: A1 takes 8 weeks, A2 takes 10 weeks, and B1 takes 12 weeks. Self-paced courses give you 3-6 months of access to complete at your own speed.",
+      "With our live classes: A1 takes 8 weeks, A2 takes 10 weeks, B1 takes 12 weeks, and B2 takes 14 weeks. Self-paced courses give you 3-6 months of access to complete at your own speed.",
   },
   {
     question: "Do I need any prior knowledge of German?",

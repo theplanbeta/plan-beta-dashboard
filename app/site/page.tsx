@@ -1,6 +1,8 @@
+import { headers } from "next/headers"
 import { WebsiteSEO, FAQSchema } from "@/components/marketing/SEOStructuredData"
 import { faqs } from "@/lib/marketing-data"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
+import { getCurrencyFromCountry } from "@/lib/geo-pricing"
 
 import { HeroSection } from "@/components/marketing/sections/HeroSection"
 import { SocialProofStrip } from "@/components/marketing/sections/SocialProofStrip"
@@ -22,7 +24,11 @@ export const metadata = generatePageMetadata({
   path: "/site",
 })
 
-export default function HomePage() {
+export default async function HomePage() {
+  const headersList = await headers()
+  const country = headersList.get("x-vercel-ip-country")
+  const currency = getCurrencyFromCountry(country)
+
   return (
     <div className="overflow-hidden">
       {/* Structured Data for SEO */}
@@ -32,7 +38,7 @@ export default function HomePage() {
       <HeroSection />
       <SocialProofStrip />
       <PathwaySection />
-      <CoursesSection />
+      <CoursesSection currency={currency} />
       <GermanyOpportunity />
       <ExploreSection />
       <WhyPlanBeta />

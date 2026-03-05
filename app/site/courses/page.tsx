@@ -1,8 +1,10 @@
 import Link from "next/link"
+import { headers } from "next/headers"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema, CourseSchema } from "@/components/marketing/SEOStructuredData"
 import { prisma } from "@/lib/prisma"
-import { COURSE_INFO, COURSE_PRICING } from "@/lib/pricing"
+import { COURSE_INFO } from "@/lib/pricing"
+import { getCurrencyFromCountry, getMarketingPrice, type MarketingLevel } from "@/lib/geo-pricing"
 
 export const metadata = generatePageMetadata({
   title: "German Language Courses | Plan Beta - A1, A2, B1, B2 Levels",
@@ -101,6 +103,11 @@ const liveCourses = [
 ]
 
 export default async function CoursesPage() {
+  // Detect visitor country for pricing
+  const headersList = await headers()
+  const country = headersList.get("x-vercel-ip-country")
+  const currency = getCurrencyFromCountry(country)
+
   // Fetch upcoming batches from database
   const now = new Date()
   const upcomingBatches = await prisma.batch.findMany({
@@ -277,9 +284,7 @@ export default async function CoursesPage() {
                     </div>
                     <div className="text-right">
                       <div className="text-white font-bold text-2xl">
-                        {COURSE_PRICING[course.level]
-                          ? `₹${COURSE_PRICING[course.level].INR.toLocaleString("en-IN")}`
-                          : `${course.sessions} Sessions`}
+                        {getMarketingPrice(course.level, currency) || `${course.sessions} Sessions`}
                       </div>
                       <div className="text-white/70 text-xs">{course.sessions} sessions &middot; {course.sessionDuration} each</div>
                     </div>

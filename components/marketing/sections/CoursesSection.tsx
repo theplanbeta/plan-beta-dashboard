@@ -6,8 +6,16 @@ import Link from "next/link"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
 import { courses, selfPacedCourse } from "@/lib/marketing-data"
 import { trackEvent } from "@/lib/tracking"
+import { getMarketingPrice, type MarketingLevel } from "@/lib/geo-pricing"
 
-export function CoursesSection() {
+const COURSE_ID_TO_LEVEL: Record<string, MarketingLevel> = {
+  "a1-live": "A1",
+  "a2-live": "A2",
+  "b1-live": "B1",
+  "b2-live": "B2",
+}
+
+export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" }) {
   const sectionRef = useRef<HTMLElement>(null)
   const tracked = useRef(false)
 
@@ -182,7 +190,7 @@ export function CoursesSection() {
                   {course.description}
                 </p>
 
-                <div className="flex items-center gap-3 text-xs text-gray-500 mb-6">
+                <div className="flex items-center gap-3 text-xs text-gray-500 mb-4">
                   <span className="flex items-center gap-1">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,6 +200,12 @@ export function CoursesSection() {
                   <span className="w-1 h-1 bg-gray-600 rounded-full" />
                   <span>{course.level}</span>
                 </div>
+
+                {COURSE_ID_TO_LEVEL[course.id] && (
+                  <p className="text-xl font-bold text-white mb-6">
+                    {getMarketingPrice(COURSE_ID_TO_LEVEL[course.id], currency)}
+                  </p>
+                )}
 
                 <ul className="space-y-3 mb-8">
                   {course.features.map((feature) => (

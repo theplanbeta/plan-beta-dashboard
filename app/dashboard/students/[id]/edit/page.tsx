@@ -413,7 +413,14 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="space-y-4 border-t pt-6">
-          <h2 className="text-lg font-semibold text-foreground">Pricing & Payment</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Pricing & Payment
+            {formData.batchId && batches.length > 0 && (
+              <span className="ml-2 text-sm font-normal text-gray-500">
+                for {batches.find(b => b.id === formData.batchId)?.batchCode || 'selected batch'}
+              </span>
+            )}
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

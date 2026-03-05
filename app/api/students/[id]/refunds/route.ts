@@ -4,12 +4,14 @@ import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
 import { Prisma } from "@prisma/client"
 import { getEurEquivalent, EXCHANGE_RATE } from "@/lib/pricing"
+import { updateEnrollmentPaymentStatus } from "@/lib/enrollment-financials"
 
 const Decimal = Prisma.Decimal
 
 const refundSchema = z.object({
   refundAmount: z.number().min(0.01, "Refund amount must be greater than 0"),
   paymentId: z.string().optional(),
+  enrollmentId: z.string().optional(),
   refundMethod: z.enum(["BANK_TRANSFER", "UPI", "CASH", "CARD", "OTHER"]),
   refundReason: z.enum([
     "STUDENT_WITHDRAWAL",
@@ -138,6 +140,23 @@ export async function POST(
     console.log(`  - New Balance: ${newBalance.toString()}`)
     console.log(`  - New Payment Status: ${newPaymentStatus}`)
 
+    // Resolve enrollmentId: explicit > from payment > auto-resolve single enrollment
+    let enrollmentId = data.enrollmentId || null
+    if (!enrollmentId && data.paymentId) {
+      const payment = await prisma.payment.findUnique({
+        where: { id: data.paymentId },
+        select: { enrollmentId: true },
+      })
+      enrollmentId = payment?.enrollmentId || null
+    }
+    if (!enrollmentId) {
+      const enrollments = await prisma.batchEnrollment.findMany({
+        where: { studentId: id, status: { not: "DROPPED" } },
+        select: { id: true },
+      })
+      if (enrollments.length === 1) enrollmentId = enrollments[0].id
+    }
+
     // Process refund in a transaction
     const result = await prisma.$transaction(async (tx) => {
       // Create refund record
@@ -145,6 +164,7 @@ export async function POST(
         data: {
           studentId: id,
           paymentId: data.paymentId || null,
+          enrollmentId,
           refundAmount,
           currency: student.currency,
           refundMethod: data.refundMethod,
@@ -172,6 +192,11 @@ export async function POST(
 
       return { refund, student: updatedStudent }
     })
+
+    // Update enrollment-level financials
+    if (enrollmentId) {
+      await updateEnrollmentPaymentStatus(enrollmentId)
+    }
 
     return NextResponse.json(result.refund, { status: 201 })
   } catch (error) {

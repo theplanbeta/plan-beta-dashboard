@@ -45,6 +45,17 @@ export async function GET(
         students: {
           include: {
             payments: true,
+            enrollments: {
+              where: { batchId: id },
+              select: {
+                id: true,
+                finalPrice: true,
+                totalPaid: true,
+                balance: true,
+                paymentStatus: true,
+                currency: true,
+              },
+            },
           },
         },
         enrollments: {

@@ -211,20 +211,34 @@ model Batch {
 }
 
 model BatchEnrollment {
-  id             String           @id @default(cuid())
-  studentId      String
-  batchId        String
-  enrollmentDate DateTime         @default(now())
-  status         CompletionStatus @default(ACTIVE)
-  notes          String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  batch          Batch            @relation(fields: [batchId], references: [id])
+  id               String           @id @default(cuid())
+  studentId        String
+  batchId          String
+  enrollmentDate   DateTime         @default(now())
+  status           CompletionStatus @default(ACTIVE)
+  notes            String?
+  // Financial fields (source of truth for this enrollment)
+  originalPrice    Decimal          @default(0) @db.Decimal(10, 2)
+  discountApplied  Decimal          @default(0) @db.Decimal(10, 2)
+  finalPrice       Decimal          @default(0) @db.Decimal(10, 2)
+  currency         String           @default("EUR")
+  eurEquivalent    Decimal?         @db.Decimal(10, 2)
+  exchangeRateUsed Decimal?         @db.Decimal(10, 4)
+  totalPaid        Decimal          @default(0) @db.Decimal(10, 2)
+  totalPaidEur     Decimal?         @db.Decimal(10, 2)
+  balance          Decimal          @default(0) @db.Decimal(10, 2)
+  paymentStatus    PaymentStatus    @default(PENDING)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  student          Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch            Batch            @relation(fields: [batchId], references: [id])
+  payments         Payment[]
+  refunds          Refund[]
 
   @@unique([studentId, batchId])
   @@index([studentId])
   @@index([batchId])
+  @@index([paymentStatus])
 }
 
 model Attendance {
@@ -255,14 +269,17 @@ model Payment {
   invoiceSent   Boolean           @default(false)
   invoiceUrl    String?
   studentId     String
+  enrollmentId  String?
   notes         String?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
   student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment    BatchEnrollment?  @relation(fields: [enrollmentId], references: [id])
   receipts      Receipt[]
   refunds       Refund[]
 
   @@index([studentId])
+  @@index([enrollmentId])
   @@index([paymentDate])
   @@index([status])
   @@index([invoiceNumber])
@@ -308,26 +325,29 @@ model Receipt {
 }
 
 model Refund {
-  id                  String        @id @default(cuid())
+  id                  String           @id @default(cuid())
   studentId           String
   paymentId           String?
-  refundAmount        Decimal       @db.Decimal(10, 2)
-  currency            String        @default("EUR")
-  refundDate          DateTime      @default(now())
+  enrollmentId        String?
+  refundAmount        Decimal          @db.Decimal(10, 2)
+  currency            String           @default("EUR")
+  refundDate          DateTime         @default(now())
   refundMethod        PaymentMethod
   refundReason        RefundReason
   processedByUserId   String
   processedByUserName String
   transactionId       String?
-  status              RefundStatus  @default(PENDING)
+  status              RefundStatus     @default(PENDING)
   notes               String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  payment             Payment?      @relation(fields: [paymentId], references: [id])
-  student             Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  payment             Payment?         @relation(fields: [paymentId], references: [id])
+  student             Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment          BatchEnrollment? @relation(fields: [enrollmentId], references: [id])
 
   @@index([studentId])
   @@index([paymentId])
+  @@index([enrollmentId])
   @@index([refundDate])
   @@index([status])
   @@index([processedByUserId])

@@ -124,6 +124,23 @@ export async function POST(
         },
       })
 
+      // Create BatchEnrollment with financial fields
+      await tx.batchEnrollment.create({
+        data: {
+          studentId: student.id,
+          batchId,
+          enrollmentDate: new Date(),
+          originalPrice,
+          discountApplied: discountApplied || 0,
+          finalPrice,
+          currency,
+          eurEquivalent,
+          exchangeRateUsed,
+          balance: finalPrice,
+          paymentStatus: "PENDING",
+        },
+      })
+
       // Update lead as converted
       const updatedLead = await tx.lead.update({
         where: { id },

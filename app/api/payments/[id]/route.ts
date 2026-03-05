@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { convertToEUR, convertToINR } from "@/lib/pricing"
+import { updateEnrollmentPaymentStatus } from "@/lib/enrollment-financials"
 
 // GET /api/payments/[id] - Get single payment
 export async function GET(
@@ -35,6 +36,18 @@ export async function GET(
               select: {
                 id: true,
                 batchCode: true,
+              },
+            },
+          },
+        },
+        enrollment: {
+          select: {
+            id: true,
+            batch: {
+              select: {
+                id: true,
+                batchCode: true,
+                level: true,
               },
             },
           },
@@ -88,8 +101,12 @@ export async function PUT(
       },
     })
 
-    // Update student payment status
-    await updateStudentPaymentStatus(payment.studentId)
+    // Update enrollment (if linked) and student payment status
+    if (payment.enrollmentId) {
+      await updateEnrollmentPaymentStatus(payment.enrollmentId)
+    } else {
+      await updateStudentPaymentStatus(payment.studentId)
+    }
 
     return NextResponse.json(payment)
   } catch (error) {
@@ -123,12 +140,18 @@ export async function DELETE(
       return NextResponse.json({ error: "Payment not found" }, { status: 404 })
     }
 
+    const { studentId, enrollmentId } = payment
+
     await prisma.payment.delete({
       where: { id },
     })
 
-    // Update student payment status
-    await updateStudentPaymentStatus(payment.studentId)
+    // Update enrollment (if linked) and student payment status
+    if (enrollmentId) {
+      await updateEnrollmentPaymentStatus(enrollmentId)
+    } else {
+      await updateStudentPaymentStatus(studentId)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

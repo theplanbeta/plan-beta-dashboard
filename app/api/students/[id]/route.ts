@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { checkPermission } from "@/lib/api-permissions"
 import { Prisma } from "@prisma/client"
+import { syncStudentFinancials } from "@/lib/enrollment-financials"
+import { getEurEquivalent, EXCHANGE_RATE } from "@/lib/pricing"
 
 const Decimal = Prisma.Decimal
 
@@ -153,6 +155,34 @@ export async function PUT(
 
     const finalPrice = originalPrice.minus(discountApplied)
     const balance = finalPrice.minus(totalPaid)
+
+    // Also update the enrollment matching student's current batch
+    const currentBatchId = body.batchId || null
+    if (currentBatchId) {
+      const enrollment = await prisma.batchEnrollment.findUnique({
+        where: { studentId_batchId: { studentId: id, batchId: currentBatchId } },
+      })
+      if (enrollment) {
+        const currency = body.currency || "EUR"
+        const eurEquivalent = new Decimal(
+          getEurEquivalent(Number(finalPrice), currency as "EUR" | "INR").toFixed(2)
+        )
+        const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
+
+        await prisma.batchEnrollment.update({
+          where: { id: enrollment.id },
+          data: {
+            originalPrice,
+            discountApplied,
+            finalPrice,
+            balance: finalPrice.minus(new Decimal(enrollment.totalPaid.toString())),
+            currency,
+            eurEquivalent,
+            exchangeRateUsed,
+          },
+        })
+      }
+    }
 
     const student = await prisma.student.update({
       where: { id },

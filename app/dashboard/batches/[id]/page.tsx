@@ -46,6 +46,14 @@ type Batch = {
     classesAttended: number
     totalClasses: number
     attendanceRate: number | null
+    enrollments?: Array<{
+      id: string
+      finalPrice: number
+      totalPaid: number
+      balance: number
+      paymentStatus: string
+      currency: string | null
+    }>
   }>
 }
 
@@ -346,8 +354,14 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             ) : (
               <div className="space-y-3">
-                {batch.students.map((student) => (
-                  !isTeacher ? (
+                {batch.students.map((student) => {
+                  const enrollment = student.enrollments?.[0]
+                  const displayPaymentStatus = enrollment?.paymentStatus || student.paymentStatus
+                  const displayTotalPaid = Number(enrollment?.totalPaid ?? student.totalPaid ?? 0)
+                  const displayFinalPrice = Number(enrollment?.finalPrice ?? student.finalPrice ?? 0)
+                  const displayCurrency = normalizeCurrency(enrollment?.currency || student.currency)
+
+                  return !isTeacher ? (
                     <Link
                       key={student.id}
                       href={`/dashboard/students/${student.id}`}
@@ -367,21 +381,15 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
-                        <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(student.paymentStatus)}`}>
-                          {student.paymentStatus}
+                        <span className={`px-2 py-1 rounded text-xs ${getStatusBadge(displayPaymentStatus)}`}>
+                          {displayPaymentStatus}
                         </span>
                         <div className="text-right">
                           <div className="text-sm font-medium">
-                            {formatCurrency(
-                              Number(student.totalPaid ?? 0),
-                              normalizeCurrency(student.currency)
-                            )}
+                            {formatCurrency(displayTotalPaid, displayCurrency)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            of {formatCurrency(
-                              Number(student.finalPrice ?? 0),
-                              normalizeCurrency(student.currency)
-                            )}
+                            of {formatCurrency(displayFinalPrice, displayCurrency)}
                           </div>
                         </div>
                       </div>
@@ -406,7 +414,7 @@ export default function BatchDetailPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </div>
                   )
-                ))}
+                })}
               </div>
             )}
           </div>

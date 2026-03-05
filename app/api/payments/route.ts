@@ -7,6 +7,7 @@ import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 import { Prisma } from "@prisma/client"
 import { validateCurrencyAmount, validateCurrencyConsistency, type Currency } from "@/lib/currency-validator"
 import { convertToEUR, convertToINR } from "@/lib/pricing"
+import { updateEnrollmentPaymentStatus, syncStudentFinancials } from "@/lib/enrollment-financials"
 
 const limiter = rateLimit(RATE_LIMITS.MODERATE)
 const Decimal = Prisma.Decimal
@@ -14,6 +15,7 @@ const Decimal = Prisma.Decimal
 // Validation schema for payment creation
 const createPaymentSchema = z.object({
   studentId: z.string().min(1, 'Student ID required'),
+  enrollmentId: z.string().optional(),
   amount: z.number().positive('Amount must be positive').max(100000, 'Amount exceeds maximum'),
   method: z.enum(['CASH', 'BANK_TRANSFER', 'UPI', 'CARD', 'OTHER']),
   currency: z.enum(['EUR', 'INR']).optional(),
@@ -181,9 +183,23 @@ export async function POST(request: NextRequest) {
     // Use Decimal for amount to ensure precision
     const amount = new Decimal(validData.amount.toString())
 
+    // Resolve enrollmentId: explicit > auto-resolve from single active enrollment
+    let enrollmentId = validData.enrollmentId || null
+    if (!enrollmentId) {
+      const enrollments = await prisma.batchEnrollment.findMany({
+        where: { studentId: validData.studentId, status: { not: "DROPPED" } },
+        select: { id: true },
+      })
+      if (enrollments.length === 1) {
+        enrollmentId = enrollments[0].id
+      }
+      // If multiple or zero, leave null (student-level fallback)
+    }
+
     const payment = await prisma.payment.create({
       data: {
         studentId: validData.studentId,
+        enrollmentId,
         amount,
         method: validData.method,
         currency: validData.currency || student.currency || "EUR",
@@ -207,8 +223,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update student payment status
-    await updateStudentPaymentStatus(validData.studentId)
+    // Update enrollment and student payment status
+    if (enrollmentId) {
+      await updateEnrollmentPaymentStatus(enrollmentId)
+    } else {
+      await updateStudentPaymentStatus(validData.studentId)
+    }
 
     // Get updated student info
     const updatedStudent = await prisma.student.findUnique({

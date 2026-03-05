@@ -256,20 +256,42 @@ export async function POST(
         },
       })
 
-      // 7. Create payment record
+      // 7. Create BatchEnrollment with financial fields
+      const targetBatchId = batchId || invoice.lead!.batchId || null
+      let enrollmentRecord: { id: string } | null = null
+      if (targetBatchId) {
+        enrollmentRecord = await tx.batchEnrollment.create({
+          data: {
+            studentId: student.id,
+            batchId: targetBatchId,
+            enrollmentDate: new Date(),
+            originalPrice: finalPrice,
+            discountApplied: 0,
+            finalPrice,
+            currency: invoice.currency,
+            totalPaid: paidAmountDecimal,
+            totalPaidEur: invoice.currency === 'EUR' ? paidAmountDecimal : paidAmountDecimal.dividedBy(new Decimal(104.5)),
+            balance,
+            paymentStatus: balance.greaterThan(0) ? 'PARTIAL' : 'PAID',
+          },
+        })
+      }
+
+      // 8. Create payment record (linked to enrollment)
       const payment = await tx.payment.create({
         data: {
           studentId: student.id,
+          enrollmentId: enrollmentRecord?.id || null,
           amount: paidAmount,
           paymentDate: new Date(),
-          method: 'BANK_TRANSFER', // Default, can be customized
+          method: 'BANK_TRANSFER',
           status: 'COMPLETED',
           currency: invoice.currency,
           invoiceNumber: invoice.invoiceNumber,
         },
       })
 
-      // 8. Update batch enrollment count if batch assigned
+      // 9. Update batch enrollment count if batch assigned
       if (batchId || invoice.lead!.batchId) {
         const targetBatchId = batchId || invoice.lead!.batchId!
         await tx.batch.update({

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { Prisma } from "@prisma/client"
 import { checkPermission } from "@/lib/api-permissions"
+import { COURSE_PRICING, getEurEquivalent, EXCHANGE_RATE, type CourseLevel } from "@/lib/pricing"
+import { syncStudentFinancials } from "@/lib/enrollment-financials"
 
 // POST /api/students/:id/enroll - Enroll existing student in a new batch
 export async function POST(
@@ -13,7 +16,7 @@ export async function POST(
 
     const { id } = await params
     const body = await request.json()
-    const { batchId, notes } = body
+    const { batchId, notes, originalPrice: rawOriginalPrice, discountApplied: rawDiscount, currency: rawCurrency } = body
 
     if (!batchId) {
       return NextResponse.json(
@@ -25,7 +28,7 @@ export async function POST(
     // Verify student exists
     const student = await prisma.student.findUnique({
       where: { id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, currency: true },
     })
 
     if (!student) {
@@ -69,6 +72,20 @@ export async function POST(
       )
     }
 
+    // Determine pricing for the new enrollment
+    const Decimal = Prisma.Decimal
+    const currency = rawCurrency || student.currency || "EUR"
+    const levelKey = batch.level as CourseLevel
+    const pricing = COURSE_PRICING[levelKey]
+
+    const originalPrice = new Decimal((rawOriginalPrice ?? pricing?.[currency as "EUR" | "INR"] ?? 0).toString())
+    const discountApplied = new Decimal((rawDiscount ?? 0).toString())
+    const finalPrice = originalPrice.minus(discountApplied)
+    const eurEquivalent = new Decimal(
+      getEurEquivalent(Number(finalPrice), currency as "EUR" | "INR").toFixed(2)
+    )
+    const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
+
     // Create enrollment and update student's primary batch in a transaction
     const result = await prisma.$transaction(async (tx) => {
       const enrollment = await tx.batchEnrollment.create({
@@ -76,6 +93,14 @@ export async function POST(
           studentId: id,
           batchId,
           notes: notes || null,
+          originalPrice,
+          discountApplied,
+          finalPrice,
+          currency,
+          eurEquivalent,
+          exchangeRateUsed,
+          balance: finalPrice,
+          paymentStatus: "PENDING",
         },
         include: {
           batch: {
@@ -95,6 +120,9 @@ export async function POST(
 
       return enrollment
     })
+
+    // Sync student aggregates (new enrollment adds to total balance)
+    await syncStudentFinancials(id)
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

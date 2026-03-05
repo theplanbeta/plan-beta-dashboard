@@ -31,6 +31,14 @@ type Payment = {
       batchCode: string
     } | null
   }
+  enrollment: {
+    id: string
+    batch: {
+      id: string
+      batchCode: string
+      level: string
+    }
+  } | null
 }
 
 export default function PaymentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -667,6 +675,19 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                   </span>
                 </div>
               </div>
+              {payment.enrollment?.batch && (
+                <div>
+                  <div className="text-sm text-gray-600">Linked Enrollment</div>
+                  <div className="mt-1">
+                    <Link
+                      href={`/dashboard/batches/${payment.enrollment.batch.id}`}
+                      className="inline-flex items-center px-3 py-1 rounded text-sm bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition-colors"
+                    >
+                      {payment.enrollment.batch.batchCode} ({payment.enrollment.batch.level})
+                    </Link>
+                  </div>
+                </div>
+              )}
               {payment.transactionId && (
                 <div className="col-span-2">
                   <div className="text-sm text-gray-600">Transaction ID</div>

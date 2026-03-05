@@ -44,6 +44,11 @@ type Student = {
     id: string
     enrollmentDate: string
     status: string
+    finalPrice: number
+    totalPaid: number
+    balance: number
+    paymentStatus: string
+    currency: string
     batch: {
       id: string
       batchCode: string
@@ -733,7 +738,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
               </div>
             </div>
 
-            {student.enrollments && student.enrollments.length > 1 && (
+            {student.enrollments && student.enrollments.length > 0 && (
               <div className="mt-4 pt-4 border-t">
                 <div className="text-sm text-gray-600 mb-2 font-medium">Enrollment History</div>
                 <div className="overflow-x-auto">
@@ -743,7 +748,10 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                         <th className="pr-4 pb-1 font-medium">Batch</th>
                         <th className="pr-4 pb-1 font-medium">Level</th>
                         <th className="pr-4 pb-1 font-medium">Enrolled</th>
-                        <th className="pb-1 font-medium">Status</th>
+                        <th className="pr-4 pb-1 font-medium">Fee</th>
+                        <th className="pr-4 pb-1 font-medium">Paid</th>
+                        <th className="pr-4 pb-1 font-medium">Balance</th>
+                        <th className="pb-1 font-medium">Payment</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -756,13 +764,29 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                           </td>
                           <td className="pr-4 py-1.5">{enrollment.batch.level}</td>
                           <td className="pr-4 py-1.5">{formatDate(enrollment.enrollmentDate)}</td>
+                          <td className="pr-4 py-1.5">
+                            {Number(enrollment.finalPrice) > 0
+                              ? formatCurrency(Number(enrollment.finalPrice), (enrollment.currency || 'EUR') as 'EUR' | 'INR')
+                              : '—'}
+                          </td>
+                          <td className="pr-4 py-1.5 text-success">
+                            {Number(enrollment.totalPaid) > 0
+                              ? formatCurrency(Number(enrollment.totalPaid), (enrollment.currency || 'EUR') as 'EUR' | 'INR')
+                              : '—'}
+                          </td>
+                          <td className="pr-4 py-1.5 text-warning">
+                            {Number(enrollment.balance) > 0
+                              ? formatCurrency(Number(enrollment.balance), (enrollment.currency || 'EUR') as 'EUR' | 'INR')
+                              : '—'}
+                          </td>
                           <td className="py-1.5">
                             <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                              enrollment.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
-                              enrollment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' :
+                              enrollment.paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                              enrollment.paymentStatus === 'PARTIAL' ? 'bg-yellow-100 text-yellow-800' :
+                              enrollment.paymentStatus === 'OVERDUE' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {enrollment.status}
+                              {enrollment.paymentStatus || enrollment.status}
                             </span>
                           </td>
                         </tr>

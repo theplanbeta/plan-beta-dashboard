@@ -236,35 +236,40 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // Create initial payment record if totalPaid > 0
-      // This MUST succeed if student creation succeeded
-      if (totalPaid.greaterThan(0)) {
-        console.log(`[Student Creation] Creating payment record for student ${newStudent.id} with amount ${totalPaid.toString()} ${currency}`)
-
-        await tx.payment.create({
-          data: {
-            studentId: newStudent.id,
-            amount: totalPaid,
-            currency,
-            paymentDate: enrollmentDate,
-            method: "OTHER", // Default method for initial payments during enrollment
-            status: "COMPLETED",
-            notes: "Initial payment recorded during student enrollment",
-          },
-        })
-
-        console.log(`[Student Creation] Payment record created successfully for student ${newStudent.id}`)
-      } else {
-        console.log(`[Student Creation] Skipping payment record creation - totalPaid is ${totalPaid.toString()}`)
-      }
-
-      // Create BatchEnrollment record for initial batch assignment
+      // Create BatchEnrollment record for initial batch assignment (with financial fields)
+      let enrollmentRecord: { id: string } | null = null
       if (newStudent.batchId) {
-        await tx.batchEnrollment.create({
+        enrollmentRecord = await tx.batchEnrollment.create({
           data: {
             studentId: newStudent.id,
             batchId: newStudent.batchId,
             enrollmentDate,
+            originalPrice,
+            discountApplied,
+            finalPrice,
+            currency,
+            eurEquivalent,
+            exchangeRateUsed,
+            totalPaid,
+            totalPaidEur,
+            balance,
+            paymentStatus: data.paymentStatus || "PENDING",
+          },
+        })
+      }
+
+      // Create initial payment record if totalPaid > 0
+      if (totalPaid.greaterThan(0)) {
+        await tx.payment.create({
+          data: {
+            studentId: newStudent.id,
+            enrollmentId: enrollmentRecord?.id || null,
+            amount: totalPaid,
+            currency,
+            paymentDate: enrollmentDate,
+            method: "OTHER",
+            status: "COMPLETED",
+            notes: "Initial payment recorded during student enrollment",
           },
         })
       }

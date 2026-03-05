@@ -9,6 +9,21 @@ import { parseZodIssues } from "@/lib/form-errors"
 
 export const dynamic = 'force-dynamic'
 
+type Enrollment = {
+  id: string
+  batchId: string
+  finalPrice: number
+  totalPaid: number
+  balance: number
+  paymentStatus: string
+  currency: string
+  batch: {
+    id: string
+    batchCode: string
+    level: string
+  }
+}
+
 type Student = {
   id: string
   studentId: string
@@ -19,6 +34,7 @@ type Student = {
   balance: number
   paymentStatus: string
   currency: string
+  enrollments?: Enrollment[]
 }
 
 function NewPaymentForm() {
@@ -32,12 +48,15 @@ function NewPaymentForm() {
   const { addToast } = useToast()
   const [students, setStudents] = useState<Student[]>([])
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([])
+  const [selectedEnrollment, setSelectedEnrollment] = useState<Enrollment | null>(null)
 
   // Ref to prevent double-clicks (instant check, doesn't wait for React state)
   const isSubmittingRef = useRef(false)
 
   const [formData, setFormData] = useState({
     studentId: studentIdParam || "",
+    enrollmentId: "",
     amount: 0,
     method: "CASH",
     currency: "EUR",
@@ -161,16 +180,61 @@ function NewPaymentForm() {
     setIsDirty(true)
   }
 
-  const handleStudentChange = (studentId: string) => {
-    setFormData((prev) => ({ ...prev, studentId }))
+  const handleStudentChange = async (studentId: string) => {
+    setFormData((prev) => ({ ...prev, studentId, enrollmentId: "" }))
+    setSelectedEnrollment(null)
     const student = students.find((s) => s.id === studentId)
     if (student) {
       setSelectedStudent(student)
+      // Fetch enrollments for this student
+      try {
+        const res = await fetch(`/api/students/${studentId}`)
+        const data = await res.json()
+        const studentEnrollments: Enrollment[] = (data.enrollments || []).filter(
+          (e: any) => e.status !== "DROPPED" && Number(e.finalPrice) > 0
+        )
+        setEnrollments(studentEnrollments)
+
+        // Auto-select if only one enrollment
+        if (studentEnrollments.length === 1) {
+          const enrollment = studentEnrollments[0]
+          setSelectedEnrollment(enrollment)
+          setFormData((prev) => ({
+            ...prev,
+            enrollmentId: enrollment.id,
+            amount: Number(enrollment.balance),
+            currency: enrollment.currency || "EUR",
+          }))
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            amount: Number(student.balance),
+            currency: student.currency || "EUR",
+          }))
+        }
+      } catch {
+        setEnrollments([])
+        setFormData((prev) => ({
+          ...prev,
+          amount: Number(student.balance),
+          currency: student.currency || "EUR",
+        }))
+      }
+    }
+  }
+
+  const handleEnrollmentChange = (enrollmentId: string) => {
+    setFormData((prev) => ({ ...prev, enrollmentId }))
+    const enrollment = enrollments.find((e) => e.id === enrollmentId)
+    if (enrollment) {
+      setSelectedEnrollment(enrollment)
       setFormData((prev) => ({
         ...prev,
-        amount: Number(student.balance),
-        currency: student.currency || "EUR",
+        amount: Number(enrollment.balance),
+        currency: enrollment.currency || "EUR",
       }))
+    } else {
+      setSelectedEnrollment(null)
     }
   }
 
@@ -223,31 +287,68 @@ function NewPaymentForm() {
             )}
           </div>
 
+          {/* Enrollment picker (shown when student has multiple enrollments) */}
+          {selectedStudent && enrollments.length > 1 && (
+            <div>
+              <label className="form-label">
+                Pay for Enrollment <span className="text-error">*</span>
+              </label>
+              <select
+                name="enrollmentId"
+                value={formData.enrollmentId}
+                onChange={(e) => handleEnrollmentChange(e.target.value)}
+                className="select"
+              >
+                <option value="">Choose enrollment...</option>
+                {enrollments.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.batch.batchCode} ({e.batch.level}) — Balance: {formatCurrency(Number(e.balance), e.currency as 'EUR' | 'INR')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Financial summary — show enrollment-level if selected, else student-level */}
           {selectedStudent && (
             <div className="bg-gray-50 p-4 rounded-md">
+              {selectedEnrollment && (
+                <p className="text-xs text-gray-500 mb-2 font-medium">
+                  Showing for: {selectedEnrollment.batch.batchCode} ({selectedEnrollment.batch.level})
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-gray-600">Total Amount:</span>
                   <span className="font-semibold ml-2">
-                    {formatCurrency(Number(selectedStudent.finalPrice), selectedStudent.currency as 'EUR' | 'INR')}
+                    {formatCurrency(
+                      Number(selectedEnrollment?.finalPrice ?? selectedStudent.finalPrice),
+                      (selectedEnrollment?.currency || selectedStudent.currency) as 'EUR' | 'INR'
+                    )}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Paid:</span>
                   <span className="font-semibold ml-2 text-success">
-                    {formatCurrency(Number(selectedStudent.totalPaid), selectedStudent.currency as 'EUR' | 'INR')}
+                    {formatCurrency(
+                      Number(selectedEnrollment?.totalPaid ?? selectedStudent.totalPaid),
+                      (selectedEnrollment?.currency || selectedStudent.currency) as 'EUR' | 'INR'
+                    )}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Balance:</span>
                   <span className="font-semibold ml-2 text-warning">
-                    {formatCurrency(Number(selectedStudent.balance), selectedStudent.currency as 'EUR' | 'INR')}
+                    {formatCurrency(
+                      Number(selectedEnrollment?.balance ?? selectedStudent.balance),
+                      (selectedEnrollment?.currency || selectedStudent.currency) as 'EUR' | 'INR'
+                    )}
                   </span>
                 </div>
                 <div>
                   <span className="text-gray-600">Status:</span>
                   <span className="font-semibold ml-2">
-                    {selectedStudent.paymentStatus}
+                    {selectedEnrollment?.paymentStatus ?? selectedStudent.paymentStatus}
                   </span>
                 </div>
               </div>
@@ -390,7 +491,10 @@ function NewPaymentForm() {
             <div className="flex justify-between text-sm">
               <span className="text-gray-700">Remaining Balance After Payment:</span>
               <span className="font-semibold text-foreground">
-                {formatCurrency(Number(selectedStudent.balance) - formData.amount, selectedStudent.currency as 'EUR' | 'INR')}
+                {formatCurrency(
+                  Number(selectedEnrollment?.balance ?? selectedStudent.balance) - formData.amount,
+                  (selectedEnrollment?.currency || selectedStudent.currency) as 'EUR' | 'INR'
+                )}
               </span>
             </div>
           </div>

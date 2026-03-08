@@ -5,9 +5,7 @@ const SITE_URL = "https://theplanbeta.com"
 const KERALA_CITIES = [
   "kochi",
   "thiruvananthapuram",
-  "trivandrum",
   "kozhikode",
-  "calicut",
   "thrissur",
   "kollam",
   "palakkad",
@@ -21,6 +19,7 @@ const KERALA_CITIES = [
 const GERMAN_CITIES = [
   "berlin", "munich", "hamburg", "frankfurt", "stuttgart",
   "cologne", "dusseldorf", "nuremberg", "hannover", "dresden",
+  "leipzig", "bremen", "essen", "dortmund", "bonn",
 ]
 
 const JOB_NICHES = ["nursing", "engineering", "student-jobs"]
@@ -53,12 +52,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/about`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${SITE_URL}/opportunities`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.7,
@@ -108,22 +101,54 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   // Niche job pages
-  const nicheJobPages: MetadataRoute.Sitemap = [
-    ...JOB_NICHES.map((niche) => ({
-      url: `${SITE_URL}/jobs/${niche}`,
+  const nicheJobPages: MetadataRoute.Sitemap = JOB_NICHES.map((niche) => ({
+    url: `${SITE_URL}/jobs/${niche}`,
+    lastModified: new Date(),
+    changeFrequency: "daily" as const,
+    priority: 0.9,
+  }))
+
+  // Student jobs tool pages
+  const studentJobToolPages: MetadataRoute.Sitemap = [
+    {
+      url: `${SITE_URL}/jobs/student-jobs/werkstudent`,
       lastModified: new Date(),
       changeFrequency: "daily" as const,
-      priority: 0.9,
-    })),
-    {
-      url: `${SITE_URL}/jobs/india`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
       priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/jobs/student-jobs/minijob`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/jobs/student-jobs/salary-insights`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/jobs/student-jobs/work-hours`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/jobs/student-jobs/german-quiz`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    },
+    {
+      url: `${SITE_URL}/jobs/student-jobs/saved`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.5,
     },
   ]
 
-  // City x Niche job pages (30 pages)
+  // City x Niche job pages
   const cityJobPages: MetadataRoute.Sitemap = JOB_NICHES.flatMap((niche) =>
     GERMAN_CITIES.map((city) => ({
       url: `${SITE_URL}/jobs/${niche}/${city}`,
@@ -154,5 +179,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }))
 
-  return [...staticPages, ...nicheJobPages, ...cityJobPages, ...blogPosts, ...cityPages]
+  return [
+    ...staticPages,
+    ...nicheJobPages,
+    ...studentJobToolPages,
+    ...cityJobPages,
+    ...blogPosts,
+    ...cityPages,
+  ]
 }

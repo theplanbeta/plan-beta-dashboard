@@ -67,32 +67,42 @@ export async function POST(request: NextRequest) {
         const sub = await stripe.subscriptions.retrieve(subscriptionId)
         const periodEnd = getPeriodEnd(sub)
 
+        const tier = sub.items.data[0]?.price?.id === process.env.STRIPE_PREMIUM_PRICE_ID ? "premium" : "legacy"
+
         await prisma.jobSubscription.upsert({
           where: { email },
           create: {
             email,
             name: metadata.name || null,
+            whatsapp: metadata.whatsapp || null,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
             stripePriceId: sub.items.data[0]?.price?.id || null,
             currentPeriodEnd: periodEnd,
             status: "active",
+            tier,
             professions: metadata.professions ? metadata.professions.split(",").filter(Boolean) : [],
             germanLevels: metadata.germanLevels ? metadata.germanLevels.split(",").filter(Boolean) : [],
             locations: metadata.locations ? metadata.locations.split(",").filter(Boolean) : [],
             jobTypes: metadata.jobTypes ? metadata.jobTypes.split(",").filter(Boolean) : [],
+            whatsappAlerts: metadata.whatsappAlerts === "true",
+            pushAlerts: metadata.pushAlerts === "true",
           },
           update: {
             name: metadata.name || undefined,
+            whatsapp: metadata.whatsapp || undefined,
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,
             stripePriceId: sub.items.data[0]?.price?.id || null,
             currentPeriodEnd: periodEnd,
             status: "active",
+            tier,
             professions: metadata.professions ? metadata.professions.split(",").filter(Boolean) : [],
             germanLevels: metadata.germanLevels ? metadata.germanLevels.split(",").filter(Boolean) : [],
             locations: metadata.locations ? metadata.locations.split(",").filter(Boolean) : [],
             jobTypes: metadata.jobTypes ? metadata.jobTypes.split(",").filter(Boolean) : [],
+            whatsappAlerts: metadata.whatsappAlerts === "true",
+            pushAlerts: metadata.pushAlerts === "true",
           },
         })
 

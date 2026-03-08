@@ -2,6 +2,7 @@ interface NicheHeroProps {
   niche: "nursing" | "engineering" | "student-jobs"
   jobCount: number
   lastUpdated: string | null
+  newJobsToday?: number
 }
 
 const NICHE_CONFIG: Record<string, { title: string; highlight: string; subtitle: string; gradient: string }> = {
@@ -36,7 +37,7 @@ function formatDate(dateStr: string | null) {
   return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" })
 }
 
-export function NicheHero({ niche, jobCount, lastUpdated }: NicheHeroProps) {
+export function NicheHero({ niche, jobCount, lastUpdated, newJobsToday }: NicheHeroProps) {
   const config = NICHE_CONFIG[niche]
   if (!config) return null
 
@@ -59,10 +60,21 @@ export function NicheHero({ niche, jobCount, lastUpdated }: NicheHeroProps) {
           {config.subtitle}
         </p>
         {jobCount > 0 && (
-          <p className="text-sm text-gray-500">
-            {jobCount} active job{jobCount !== 1 ? "s" : ""}
-            {lastUpdated && <> &middot; Updated {formatDate(lastUpdated)}</>}
-          </p>
+          <div className="flex items-center justify-center gap-3 text-sm text-gray-500">
+            <span>{jobCount} active job{jobCount !== 1 ? "s" : ""}</span>
+            {newJobsToday && newJobsToday > 0 && (
+              <>
+                <span>&middot;</span>
+                <span className="text-emerald-400 font-medium">{newJobsToday} new today</span>
+              </>
+            )}
+            {lastUpdated && (
+              <>
+                <span>&middot;</span>
+                <span>Updated {formatDate(lastUpdated)}</span>
+              </>
+            )}
+          </div>
         )}
       </div>
     </section>

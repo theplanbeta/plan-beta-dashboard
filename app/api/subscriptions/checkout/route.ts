@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { stripe } from "@/lib/stripe"
+import { signPortalToken } from "@/lib/jobs-portal-auth"
 
 const checkoutSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1).optional(),
+  whatsapp: z.string().optional(),
   professions: z.array(z.string()).default([]),
   germanLevels: z.array(z.string()).default([]),
   locations: z.array(z.string()).default([]),
   jobTypes: z.array(z.string()).default([]),
+  whatsappAlerts: z.boolean().default(false),
+  pushAlerts: z.boolean().default(false),
 })
 
 // POST /api/subscriptions/checkout — Create a Stripe Checkout session for job alert subscription
@@ -20,7 +24,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  if (!process.env.STRIPE_PRICE_ID) {
+  // Use premium price if available, fall back to legacy price
+  const priceId = process.env.STRIPE_PREMIUM_PRICE_ID || process.env.STRIPE_PRICE_ID
+  if (!priceId) {
     return NextResponse.json(
       { error: "Subscription price not configured" },
       { status: 503 }
@@ -42,8 +48,11 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { email, name, professions, germanLevels, locations, jobTypes } = parsed.data
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://planbeta.app"
+  const { email, name, whatsapp, professions, germanLevels, locations, jobTypes, whatsappAlerts, pushAlerts } = parsed.data
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com"
+
+  // Pre-generate portal token for success redirect
+  const token = await signPortalToken(email, "premium")
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -52,19 +61,22 @@ export async function POST(request: NextRequest) {
       customer_email: email,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID,
+          price: priceId,
           quantity: 1,
         },
       ],
       metadata: {
         name: name || "",
+        whatsapp: whatsapp || "",
         professions: professions.join(","),
         germanLevels: germanLevels.join(","),
         locations: locations.join(","),
         jobTypes: jobTypes.join(","),
+        whatsappAlerts: String(whatsappAlerts),
+        pushAlerts: String(pushAlerts),
       },
-      success_url: `${appUrl}/opportunities?subscribed=true`,
-      cancel_url: `${appUrl}/opportunities`,
+      success_url: `${appUrl}/jobs/student-jobs?subscribed=true&token=${encodeURIComponent(token)}`,
+      cancel_url: `${appUrl}/jobs/student-jobs`,
     })
 
     return NextResponse.json({ url: session.url })

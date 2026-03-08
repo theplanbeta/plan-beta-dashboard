@@ -256,8 +256,22 @@ export function inferProfession(tags: string[], title: string): string {
   if (text.match(/hotel|restaurant|gastro|chef|cook|koch|küche|hospitality|kellner|rezeption|housekeep/)) return "Hospitality"
   if (text.match(/account|finance|buchhal|steuer|audit|controlling|rechnungswesen|finanzbuchhal/)) return "Accounting"
   if (text.match(/teach|lehrer|tutor|professor|dozent|pädagog|erzieh|erzieher/)) return "Teaching"
-  if (text.match(/werkstudent|studentisch|minijob|nebenjob|aushilfe|student.*job|praktik/)) return "Student Jobs"
+  // Expanded student jobs patterns
+  if (text.match(/werkstudent|studentisch|minijob|nebenjob|aushilfe|student.*job|praktik|studentische\s*hilfskraft|hiwi|450\s*euro|520\s*euro|538\s*euro|teilzeit.*student/)) return "Student Jobs"
   return "Other"
+}
+
+/**
+ * Generate a URL-friendly slug from job details
+ */
+export function generateJobSlug(title: string, company: string, location: string | null): string {
+  return [title, company, location]
+    .filter(Boolean)
+    .join("-")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80)
 }
 
 function mapJobType(types: string[], title?: string): string | null {
@@ -470,12 +484,20 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
   for (const job of jobs) {
     try {
       const externalId = job.externalId || `${source.id}-${job.title}-${job.company}`.slice(0, 200)
+      const slug = generateJobSlug(job.title, job.company, job.location || null)
+
+      // Check if slug already exists (to avoid unique constraint violation)
+      const existingSlug = await prisma.jobPosting.findUnique({ where: { slug }, select: { id: true, externalId: true } })
+      const finalSlug = existingSlug && existingSlug.externalId !== externalId
+        ? `${slug}-${externalId?.slice(-6) || Date.now().toString(36)}`
+        : slug
 
       await prisma.jobPosting.upsert({
         where: { externalId },
         create: {
           sourceId: source.id,
           externalId,
+          slug: finalSlug,
           title: job.title,
           company: job.company,
           location: job.location || null,
@@ -503,6 +525,8 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
           applyUrl: job.applyUrl || null,
           active: true,
           updatedAt: new Date(),
+          // Only set slug if not already set
+          ...(!existingSlug ? { slug: finalSlug } : {}),
         },
       })
       upsertCount++

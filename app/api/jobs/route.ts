@@ -18,6 +18,11 @@ export async function GET(request: NextRequest) {
     const location = searchParams.get("location")
     const city = searchParams.get("city")
     const jobType = searchParams.get("jobType")
+    const englishOk = searchParams.get("englishOk")
+    const salaryMin = searchParams.get("salaryMin")
+    const salaryMax = searchParams.get("salaryMax")
+    const postedAfter = searchParams.get("postedAfter")
+    const sort = searchParams.get("sort") || "newest"
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)))
     const skip = (page - 1) * limit
@@ -34,6 +39,27 @@ export async function GET(request: NextRequest) {
     if (germanLevel) where.germanLevel = germanLevel
     if (jobType) where.jobType = jobType
 
+    // English OK filter — jobs with no German requirement or "None" level
+    if (englishOk === "true") {
+      where.OR = [
+        { germanLevel: null },
+        { germanLevel: "None" },
+        { germanLevel: "A1" },
+      ]
+    }
+
+    // Salary range filters
+    if (salaryMin) where.salaryMin = { gte: parseInt(salaryMin, 10) }
+    if (salaryMax) where.salaryMax = { lte: parseInt(salaryMax, 10) }
+
+    // Posted after filter
+    if (postedAfter) {
+      const date = new Date(postedAfter)
+      if (!isNaN(date.getTime())) {
+        where.createdAt = { gte: date }
+      }
+    }
+
     // City filter: fuzzy match on location field
     if (city) {
       where.location = { contains: city, mode: "insensitive" }
@@ -41,14 +67,28 @@ export async function GET(request: NextRequest) {
       where.location = { contains: location, mode: "insensitive" }
     }
 
+    // Sort options
+    let orderBy: Record<string, string>
+    switch (sort) {
+      case "salary_desc":
+        orderBy = { salaryMax: "desc" }
+        break
+      case "salary_asc":
+        orderBy = { salaryMin: "asc" }
+        break
+      default:
+        orderBy = { createdAt: "desc" }
+    }
+
     const [jobs, totalCount, lastUpdatedJob] = await Promise.all([
       prisma.jobPosting.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         skip,
         take: limit,
         select: {
           id: true,
+          slug: true,
           title: true,
           company: true,
           location: true,

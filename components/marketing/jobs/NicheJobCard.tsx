@@ -1,11 +1,15 @@
 "use client"
 
+import Link from "next/link"
 import { trackEvent } from "@/lib/tracking"
 import { JobShareButton } from "./JobShareButton"
+import { SaveJobButton } from "./SaveJobButton"
+import { NewBadge } from "./NewBadge"
 
 interface NicheJobCardProps {
   job: {
     id: string
+    slug?: string | null
     title: string
     company: string
     location: string | null
@@ -21,6 +25,7 @@ interface NicheJobCardProps {
   }
   niche: "nursing" | "engineering" | "student-jobs"
   index: number
+  isPremium?: boolean
 }
 
 const NICHE_WA_MESSAGES: Record<string, (job: { title: string; company: string }) => string> = {
@@ -51,6 +56,11 @@ function formatDate(dateStr: string | null) {
   return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" })
 }
 
+function isNewJob(postedAt: string | null): boolean {
+  if (!postedAt) return false
+  return Date.now() - new Date(postedAt).getTime() < 24 * 60 * 60 * 1000
+}
+
 const JOB_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "Full Time",
   PART_TIME: "Part Time",
@@ -61,6 +71,7 @@ export function NicheJobCard({ job, niche, index }: NicheJobCardProps) {
   const waMessage = NICHE_WA_MESSAGES[niche](job)
   const waUrl = `https://wa.me/919028396035?text=${encodeURIComponent(waMessage)}`
   const levelCta = GERMAN_LEVEL_CTA[niche]
+  const detailUrl = `/jobs/student-jobs/job/${job.slug || job.id}`
 
   return (
     <div
@@ -70,16 +81,20 @@ export function NicheJobCard({ job, niche, index }: NicheJobCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-semibold truncate group-hover:text-primary transition-colors">
-            {job.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <Link href={detailUrl} className="text-white font-semibold truncate group-hover:text-primary transition-colors block">
+              {job.title}
+            </Link>
+            {isNewJob(job.postedAt) && <NewBadge />}
+          </div>
           <p className="text-gray-400 text-sm">{job.company}</p>
         </div>
-        {job.postedAt && (
-          <span className="text-xs text-gray-600 flex-shrink-0 ml-3">
-            {formatDate(job.postedAt)}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 flex-shrink-0 ml-3">
+          {job.postedAt && (
+            <span className="text-xs text-gray-600">{formatDate(job.postedAt)}</span>
+          )}
+          <SaveJobButton jobId={job.id} size="sm" />
+        </div>
       </div>
 
       {/* Badges */}
@@ -146,17 +161,13 @@ export function NicheJobCard({ job, niche, index }: NicheJobCardProps) {
 
       {/* Actions */}
       <div className="flex gap-2 pt-3 border-t border-white/[0.06]">
-        {job.applyUrl && (
-          <a
-            href={job.applyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title, niche })}
-            className="flex-1 text-center py-2.5 bg-white/5 border border-white/10 text-gray-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-all"
-          >
-            View Job
-          </a>
-        )}
+        <Link
+          href={detailUrl}
+          onClick={() => trackEvent("job_detail_click", { jobId: job.id, title: job.title, niche })}
+          className="flex-1 text-center py-2.5 bg-white/5 border border-white/10 text-gray-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-white/10 transition-all"
+        >
+          View Details
+        </Link>
         <a
           href={waUrl}
           target="_blank"

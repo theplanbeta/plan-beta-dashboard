@@ -4,10 +4,14 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { NicheJobCard } from "./NicheJobCard"
 import { NicheConversionCard } from "./NicheConversionCard"
+import { EnhancedFilters } from "./EnhancedFilters"
+import { JobListSkeleton } from "./JobCardSkeleton"
+import { usePortalAuth } from "./JobPortalAuthProvider"
 
 // Same Job type as API response
 interface Job {
   id: string
+  slug?: string | null
   title: string
   company: string
   location: string | null
@@ -47,6 +51,7 @@ interface NicheJobsListProps {
 export function NicheJobsList({ niche, initialJobs, initialPagination, initialFilters, city }: NicheJobsListProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { isPremium } = usePortalAuth()
 
   const [jobs, setJobs] = useState<Job[]>(initialJobs)
   const [pagination, setPagination] = useState<Pagination>(initialPagination)
@@ -57,6 +62,9 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
   const [currentPage, setCurrentPage] = useState(initialPage)
   const [selectedLevel, setSelectedLevel] = useState(searchParams.get("germanLevel") || "")
   const [selectedLocation, setSelectedLocation] = useState(searchParams.get("location") || "")
+  const [selectedJobType, setSelectedJobType] = useState(searchParams.get("jobType") || "")
+  const [englishOk, setEnglishOk] = useState(false)
+  const [sortBy, setSortBy] = useState("newest")
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
 
@@ -69,7 +77,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
   // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedLevel, selectedLocation, debouncedSearch])
+  }, [selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSearch])
 
   // Fetch jobs when page or filters change (skip initial load — SSR data used)
   const [isInitial, setIsInitial] = useState(true)
@@ -84,6 +92,9 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
       params.set("limit", "20")
       if (selectedLevel) params.set("germanLevel", selectedLevel)
       if (selectedLocation) params.set("location", selectedLocation)
+      if (selectedJobType) params.set("jobType", selectedJobType)
+      if (englishOk && isPremium) params.set("englishOk", "true")
+      if (sortBy !== "newest" && isPremium) params.set("sort", sortBy)
       if (city) params.set("city", city)
 
       const res = await fetch(`/api/jobs?${params}`)
@@ -99,7 +110,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
     } catch { /* silent */ } finally {
       setLoading(false)
     }
-  }, [currentPage, selectedLevel, selectedLocation, niche, city, isInitial])
+  }, [currentPage, selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, niche, city, isInitial, isPremium])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
@@ -120,8 +131,6 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
     window.scrollTo({ top: 400, behavior: "smooth" })
   }
 
-  const selectClasses = "px-3 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-
   // Build page numbers for pagination
   const buildPages = (): (number | "...")[] => {
     const pages: (number | "...")[] = []
@@ -140,48 +149,28 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
 
   return (
     <div>
-      {/* Filter Bar */}
-      <div className="sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-4 border-b border-white/[0.06] mb-8">
-        <div className="flex flex-wrap gap-3 items-center max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex-1 min-w-0 w-full sm:min-w-[200px] sm:w-auto">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search by title, company, or city..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-            />
-          </div>
-          <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className={selectClasses}>
-            <option value="">Any German Level</option>
-            {filters.germanLevels.map((l) => (
-              <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
-            ))}
-          </select>
-          {!city && filters.locations.length > 0 && (
-            <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className={selectClasses}>
-              <option value="">All Locations</option>
-              {filters.locations.map((l) => (
-                <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
-              ))}
-            </select>
-          )}
-        </div>
-      </div>
+      {/* Enhanced Filter Bar */}
+      <EnhancedFilters
+        filters={filters}
+        selectedLevel={selectedLevel}
+        selectedLocation={selectedLocation}
+        selectedJobType={selectedJobType}
+        englishOk={englishOk}
+        sortBy={sortBy}
+        searchQuery={searchQuery}
+        city={city}
+        onLevelChange={setSelectedLevel}
+        onLocationChange={setSelectedLocation}
+        onJobTypeChange={setSelectedJobType}
+        onEnglishOkChange={setEnglishOk}
+        onSortChange={setSortBy}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Job Listings */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="flex items-center gap-3 text-gray-400">
-            <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            Loading jobs...
-          </div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <JobListSkeleton count={6} />
         </div>
       ) : displayedJobs.length > 0 ? (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,13 +179,15 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {displayedJobs.map((job, i) => (
-              <>
-                <NicheJobCard key={job.id} job={job} niche={niche} index={i} />
-                {/* Insert conversion card after every 5th job */}
-                {(i + 1) % 5 === 0 && i < displayedJobs.length - 1 && (
-                  <NicheConversionCard key={`cta-${i}`} niche={niche} />
+              <div key={job.id}>
+                <NicheJobCard job={job} niche={niche} index={i} isPremium={isPremium} />
+                {/* Insert conversion card after every 5th job (not for premium) */}
+                {!isPremium && (i + 1) % 5 === 0 && i < displayedJobs.length - 1 && (
+                  <div className="mt-4">
+                    <NicheConversionCard niche={niche} />
+                  </div>
                 )}
-              </>
+              </div>
             ))}
           </div>
 
@@ -241,7 +232,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         <div className="text-center py-16 max-w-5xl mx-auto px-4">
           <p className="text-gray-400 text-sm mb-4">No jobs found matching your criteria.</p>
           <button
-            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSearchQuery("") }}
+            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSelectedJobType(""); setEnglishOk(false); setSortBy("newest"); setSearchQuery("") }}
             className="text-sm text-primary hover:text-primary-light transition-colors"
           >
             Clear all filters

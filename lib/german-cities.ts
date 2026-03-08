@@ -134,6 +134,11 @@ export const JOB_BOARD_CITIES = [
   { slug: "nuremberg", name: "Nuremberg", state: "Bavaria" },
   { slug: "hannover", name: "Hannover", state: "Lower Saxony" },
   { slug: "dresden", name: "Dresden", state: "Saxony" },
+  { slug: "leipzig", name: "Leipzig", state: "Saxony" },
+  { slug: "bremen", name: "Bremen", state: "Bremen" },
+  { slug: "essen", name: "Essen", state: "North Rhine-Westphalia" },
+  { slug: "dortmund", name: "Dortmund", state: "North Rhine-Westphalia" },
+  { slug: "bonn", name: "Bonn", state: "North Rhine-Westphalia" },
 ] as const
 
 export type JobBoardCity = (typeof JOB_BOARD_CITIES)[number]
@@ -158,6 +163,11 @@ export const CITY_NICHE_INTROS: Record<string, Record<string, string>> = {
     nuremberg: "Nuremberg's Klinikum is one of the largest municipal hospitals in Europe.",
     hannover: "Hannover's MHH (Medical University) is a major employer in northern Germany's healthcare sector.",
     dresden: "Dresden's university hospital is expanding, creating new opportunities for nursing professionals.",
+    leipzig: "Leipzig's growing healthcare sector offers competitive nursing positions at University Hospital Leipzig.",
+    bremen: "Bremen's Klinikum Bremen-Mitte and regional hospitals actively recruit international nurses.",
+    essen: "Essen's University Hospital is one of Germany's largest, with strong nursing recruitment programs.",
+    dortmund: "Dortmund's Klinikum offers nursing positions with competitive pay in the Ruhr area.",
+    bonn: "Bonn's University Hospital and surrounding clinics seek qualified nursing professionals.",
   },
   engineering: {
     berlin: "Berlin's startup ecosystem and established tech companies create strong demand for engineers.",
@@ -170,6 +180,11 @@ export const CITY_NICHE_INTROS: Record<string, Record<string, string>> = {
     nuremberg: "Nuremberg's Siemens presence and industrial base create steady engineering demand.",
     hannover: "Hannover's Continental AG and VW presence make it a key engineering hub in Lower Saxony.",
     dresden: "Dresden's semiconductor cluster (Infineon, Bosch, TSMC) is creating a boom in engineering jobs.",
+    leipzig: "Leipzig's growing tech scene and BMW plant create engineering opportunities in automotive and IT.",
+    bremen: "Bremen's Airbus facility and maritime engineering sector offer specialized roles.",
+    essen: "Essen's ThyssenKrupp headquarters and energy sector provide diverse engineering positions.",
+    dortmund: "Dortmund's TechnologieZentrum and industrial base offer engineering roles in automation and IT.",
+    bonn: "Bonn's Deutsche Telekom and international organizations create IT and engineering demand.",
   },
   "student-jobs": {
     berlin: "Berlin offers the most student jobs in Germany — cafes, startups, and universities all hire part-time.",
@@ -182,6 +197,11 @@ export const CITY_NICHE_INTROS: Record<string, Record<string, string>> = {
     nuremberg: "Nuremberg's lower cost of living makes student jobs stretch further than in larger cities.",
     hannover: "Hannover's large student population is served by university-adjacent part-time opportunities.",
     dresden: "Dresden offers affordable living with growing student job opportunities in its tech sector.",
+    leipzig: "Leipzig's booming cultural scene and low rents make it ideal for student workers.",
+    bremen: "Bremen's compact size and university-linked businesses offer convenient student employment.",
+    essen: "Essen's service sector and university partnerships provide accessible student positions.",
+    dortmund: "Dortmund's TU Dortmund area has plenty of HiWi and Werkstudent opportunities.",
+    bonn: "Bonn's international organizations and government offices offer unique English-friendly student roles.",
   },
 }
 

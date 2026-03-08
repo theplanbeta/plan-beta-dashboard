@@ -1365,6 +1365,10 @@ model JobSubscription {
   // Alert settings
   alertFrequency       String    @default("daily") // daily, weekly
   lastAlertSent        DateTime?
+  whatsappAlerts       Boolean   @default(false)
+  pushAlerts           Boolean   @default(false)
+  pushEndpoint         String?
+  tier                 String    @default("premium") // premium, legacy
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -1394,6 +1398,7 @@ model JobPosting {
   id          String    @id @default(cuid())
   sourceId    String
   externalId  String?   @unique
+  slug        String?   @unique
   title       String
   company     String
   location    String?
@@ -1408,14 +1413,18 @@ model JobPosting {
   applyUrl    String?
   postedAt    DateTime?
   active      Boolean   @default(true)
+  viewCount   Int       @default(0)
   source      JobSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  savedBy     SavedJob[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  @@index([slug])
   @@index([profession])
   @@index([germanLevel])
   @@index([active])
   @@index([sourceId])
+  @@index([createdAt, active])
 }
 
 model CommunityJob {
@@ -1465,4 +1474,29 @@ model CommunityJob {
   @@index([createdAt])
   @@index([status, createdAt])
   @@index([niche])
+}
+
+model SavedJob {
+  id              String     @id @default(cuid())
+  subscriberEmail String
+  jobPostingId    String
+  jobPosting      JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  createdAt       DateTime   @default(now())
+
+  @@unique([subscriberEmail, jobPostingId])
+  @@index([subscriberEmail])
+}
+
+model SavedSearch {
+  id              String    @id @default(cuid())
+  subscriberEmail String
+  name            String
+  filters         Json      // { germanLevels, locations, jobTypes, englishOk, salaryMin, search }
+  alertEnabled    Boolean   @default(true)
+  lastAlertSent   DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([subscriberEmail])
+  @@index([alertEnabled])
 }

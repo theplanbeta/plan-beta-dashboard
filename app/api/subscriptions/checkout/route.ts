@@ -95,6 +95,9 @@ export async function POST(request: NextRequest) {
     const stripeErr = error as { type?: string; message?: string; param?: string }
     console.error("[Stripe Checkout] Error:", stripeErr.type, stripeErr.message, "param:", stripeErr.param)
     console.error("[Stripe Checkout] appUrl:", appUrl, "priceId:", priceId)
-    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
+    return NextResponse.json({
+      error: "Failed to create checkout session",
+      debug: { type: stripeErr.type, message: stripeErr.message, param: stripeErr.param, appUrl }
+    }, { status: 500 })
   }
 }

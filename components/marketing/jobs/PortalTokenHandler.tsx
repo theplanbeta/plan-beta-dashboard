@@ -14,16 +14,29 @@ export function PortalTokenHandler() {
   const { login } = usePortalAuth()
 
   useEffect(() => {
-    const token = searchParams.get("token")
+    const sessionId = searchParams.get("session_id")
     const magic = searchParams.get("magic")
 
-    if (token) {
-      login(token)
-      // Clean URL
-      const url = new URL(window.location.href)
-      url.searchParams.delete("token")
-      url.searchParams.delete("subscribed")
-      window.history.replaceState({}, "", url.toString())
+    if (sessionId && searchParams.get("subscribed")) {
+      // Exchange Stripe session_id for a portal JWT
+      fetch("/api/subscriptions/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.token) {
+            login(data.token)
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          const url = new URL(window.location.href)
+          url.searchParams.delete("session_id")
+          url.searchParams.delete("subscribed")
+          window.history.replaceState({}, "", url.toString())
+        })
     } else if (magic) {
       // Verify magic link token and get portal token
       fetch(`/api/subscriptions/magic-link?token=${encodeURIComponent(magic)}`)

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { stripe } from "@/lib/stripe"
-import { signPortalToken } from "@/lib/jobs-portal-auth"
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -51,9 +50,6 @@ export async function POST(request: NextRequest) {
   const { email, name, whatsapp, professions, germanLevels, locations, jobTypes, whatsappAlerts, pushAlerts } = parsed.data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com"
 
-  // Pre-generate portal token for success redirect
-  const token = await signPortalToken(email, "premium")
-
   try {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -79,6 +75,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       metadata: {
+        portalEmail: email,
         name: name || "",
         whatsapp: whatsapp || "",
         professions: professions.join(","),
@@ -88,7 +85,8 @@ export async function POST(request: NextRequest) {
         whatsappAlerts: String(whatsappAlerts),
         pushAlerts: String(pushAlerts),
       },
-      success_url: `${appUrl}/jobs/student-jobs?subscribed=true&token=${encodeURIComponent(token)}`,
+      // Use {CHECKOUT_SESSION_ID} template — token generated on success page via /api/subscriptions/activate
+      success_url: `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/jobs/student-jobs`,
     })
 

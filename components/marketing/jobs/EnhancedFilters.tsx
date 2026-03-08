@@ -16,6 +16,8 @@ interface EnhancedFiltersProps {
   englishOk: boolean
   sortBy: string
   searchQuery: string
+  salaryMin: string
+  salaryMax: string
   city?: string
   onLevelChange: (v: string) => void
   onLocationChange: (v: string) => void
@@ -23,6 +25,8 @@ interface EnhancedFiltersProps {
   onEnglishOkChange: (v: boolean) => void
   onSortChange: (v: string) => void
   onSearchChange: (v: string) => void
+  onSalaryMinChange: (v: string) => void
+  onSalaryMaxChange: (v: string) => void
 }
 
 const selectClasses = "px-3 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
@@ -35,6 +39,8 @@ export function EnhancedFilters({
   englishOk,
   sortBy,
   searchQuery,
+  salaryMin,
+  salaryMax,
   city,
   onLevelChange,
   onLocationChange,
@@ -42,6 +48,8 @@ export function EnhancedFilters({
   onEnglishOkChange,
   onSortChange,
   onSearchChange,
+  onSalaryMinChange,
+  onSalaryMaxChange,
 }: EnhancedFiltersProps) {
   const { isPremium } = usePortalAuth()
 
@@ -109,6 +117,36 @@ export function EnhancedFilters({
             </PremiumGate>
           )}
 
+          {/* Salary range (premium) */}
+          {isPremium ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                type="number"
+                placeholder="Min EUR"
+                value={salaryMin}
+                onChange={(e) => onSalaryMinChange(e.target.value)}
+                className="w-24 px-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+              />
+              <span className="text-gray-600 text-xs">–</span>
+              <input
+                type="number"
+                placeholder="Max EUR"
+                value={salaryMax}
+                onChange={(e) => onSalaryMaxChange(e.target.value)}
+                className="w-24 px-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+              />
+            </div>
+          ) : (
+            <PremiumGate feature="Salary range filter">
+              <div className="flex items-center gap-1.5 opacity-60">
+                <div className="w-24 px-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-gray-500">Min EUR</div>
+                <span className="text-gray-600 text-xs">–</span>
+                <div className="w-24 px-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-gray-500">Max EUR</div>
+                <span className="text-[10px] text-primary font-semibold">PRO</span>
+              </div>
+            </PremiumGate>
+          )}
+
           {/* Sort (premium) */}
           {isPremium ? (
             <select value={sortBy} onChange={(e) => onSortChange(e.target.value)} className={selectClasses}>
@@ -119,7 +157,7 @@ export function EnhancedFilters({
           ) : (
             <PremiumGate feature="Sort options">
               <div className={`${selectClasses} opacity-60 cursor-pointer`}>
-                Sort ▾ <span className="text-[10px] text-primary font-semibold ml-1">PRO</span>
+                Sort <span className="text-[10px] text-primary font-semibold ml-1">PRO</span>
               </div>
             </PremiumGate>
           )}

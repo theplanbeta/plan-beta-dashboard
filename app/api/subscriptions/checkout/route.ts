@@ -59,6 +59,19 @@ export async function POST(request: NextRequest) {
       mode: "subscription",
       payment_method_types: ["card"],
       customer_email: email,
+      subscription_data: {
+        trial_period_days: 5,
+        metadata: {
+          name: name || "",
+          whatsapp: whatsapp || "",
+          professions: professions.join(","),
+          germanLevels: germanLevels.join(","),
+          locations: locations.join(","),
+          jobTypes: jobTypes.join(","),
+          whatsappAlerts: String(whatsappAlerts),
+          pushAlerts: String(pushAlerts),
+        },
+      },
       line_items: [
         {
           price: priceId,

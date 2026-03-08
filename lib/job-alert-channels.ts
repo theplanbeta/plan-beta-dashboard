@@ -1,6 +1,6 @@
 /**
  * Job Alert Multi-Channel Delivery
- * Sends alerts via email (Resend), WhatsApp, and Web Push
+ * Sends alerts via email (Resend), WhatsApp (template), and Web Push
  */
 
 import { sendJobAlertEmail } from "./job-alert-email"
@@ -67,31 +67,36 @@ export async function sendMultiChannelAlert(
     console.error(`[AlertChannels] Email failed for ${recipient.email}:`, error)
   }
 
-  // 2. WhatsApp (if enabled and configured)
+  // 2. WhatsApp (if enabled and configured) — uses template for proactive messaging
   if (recipient.whatsappAlerts && recipient.whatsapp) {
     try {
-      const { sendText: sendWhatsAppMessage } = await import("./whatsapp")
-      const topJobs = jobs.slice(0, 5)
+      const { sendTemplate } = await import("./whatsapp")
+      const topJobs = jobs.slice(0, 3)
       const subject = alertType === "saved-search"
-        ? `New jobs matching "${searchName}"`
+        ? `${jobs.length} new jobs matching "${searchName}"`
         : `${jobs.length} new student jobs today`
 
-      const jobLines = topJobs.map((j) => {
-        const salary = j.salaryMin ? ` | EUR ${j.salaryMin}${j.salaryMax ? `–${j.salaryMax}` : "+"}` : ""
-        return `• ${j.title} at ${j.company}${j.location ? ` (${j.location})` : ""}${salary}`
-      })
+      const jobSummary = topJobs.map((j) => {
+        const salary = j.salaryMin ? ` | €${j.salaryMin}${j.salaryMax ? `–${j.salaryMax}` : "+"}` : ""
+        return `${j.title} at ${j.company}${salary}`
+      }).join("\n")
 
-      const message = [
-        `*${subject}*`,
-        "",
-        ...jobLines,
-        jobs.length > 5 ? `\n...and ${jobs.length - 5} more` : "",
-        "",
-        `View all: ${APP_URL}/jobs/student-jobs`,
-      ].join("\n")
+      const moreText = jobs.length > 3 ? `\n+${jobs.length - 3} more` : ""
+      const viewUrl = `${APP_URL}/jobs/student-jobs`
 
-      await sendWhatsAppMessage(recipient.whatsapp, message)
-      result.whatsapp = true
+      // Template: job_alert_daily
+      // Parameters: {{1}}=name, {{2}}=subject, {{3}}=job list, {{4}}=view URL
+      const templateResult = await sendTemplate(
+        recipient.whatsapp,
+        "job_alert_daily",
+        [
+          recipient.name || "there",
+          subject,
+          jobSummary + moreText,
+          viewUrl,
+        ]
+      )
+      result.whatsapp = templateResult.success
     } catch (error) {
       console.error(`[AlertChannels] WhatsApp failed for ${recipient.email}:`, error)
     }

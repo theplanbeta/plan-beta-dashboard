@@ -21,6 +21,7 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
   const { login } = usePortalAuth()
   const [mode, setMode] = useState<"subscribe" | "restore">("subscribe")
   const [email, setEmail] = useState("")
+  const [whatsapp, setWhatsapp] = useState("")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState("")
 
@@ -33,6 +34,8 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
+          whatsapp: whatsapp || undefined,
+          whatsappAlerts: !!whatsapp,
           professions: ["Student Jobs", "Hospitality"],
           germanLevels: [],
           locations: [],
@@ -78,7 +81,7 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="bg-[#1a1a1a] border border-white/[0.1] rounded-2xl p-6 sm:p-8 max-w-md w-full relative"
+        className="bg-[#1a1a1a] border border-white/[0.1] rounded-2xl p-6 sm:p-8 max-w-md w-full relative max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
@@ -114,10 +117,11 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
               <p className="text-3xl font-bold text-white">
                 EUR 4.99<span className="text-lg text-gray-400 font-normal">/month</span>
               </p>
-              <p className="text-xs text-gray-500 mt-1">Cancel anytime. No commitment.</p>
+              <p className="text-xs text-emerald-400 font-medium mt-1">5 days free trial</p>
+              <p className="text-xs text-gray-500 mt-0.5">Cancel anytime. No commitment.</p>
             </div>
 
-            {/* Email input */}
+            {/* Form fields */}
             <div className="space-y-3">
               <input
                 type="email"
@@ -126,12 +130,22 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/[0.1] rounded-xl text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
               />
+              <div>
+                <input
+                  type="tel"
+                  placeholder="WhatsApp number (optional, e.g. +49 175...)"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#0a0a0a] border border-white/[0.1] rounded-xl text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                />
+                <p className="text-[10px] text-gray-600 mt-1 ml-1">Get job alerts directly on WhatsApp</p>
+              </div>
               <button
                 onClick={handleSubscribe}
                 disabled={!email || loading}
                 className="w-full py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all disabled:opacity-50"
               >
-                {loading ? "Loading..." : "Subscribe — EUR 4.99/mo"}
+                {loading ? "Loading..." : "Start free trial"}
               </button>
             </div>
 
@@ -174,7 +188,7 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
               onClick={() => { setMode("subscribe"); setMessage("") }}
               className="w-full text-center text-sm text-gray-500 hover:text-gray-300 mt-4 transition-colors"
             >
-              ← New subscriber? Subscribe
+              New subscriber? Subscribe
             </button>
           </>
         )}

@@ -66,18 +66,30 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
   const [englishOk, setEnglishOk] = useState(false)
   const [sortBy, setSortBy] = useState("newest")
   const [searchQuery, setSearchQuery] = useState("")
+  const [salaryMin, setSalaryMin] = useState("")
+  const [salaryMax, setSalaryMax] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [debouncedSalaryMin, setDebouncedSalaryMin] = useState("")
+  const [debouncedSalaryMax, setDebouncedSalaryMax] = useState("")
 
-  // Debounce search
+  // Debounce search and salary
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSalaryMin(salaryMin), 500)
+    return () => clearTimeout(timer)
+  }, [salaryMin])
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSalaryMax(salaryMax), 500)
+    return () => clearTimeout(timer)
+  }, [salaryMax])
 
   // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSearch])
+  }, [selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSearch, debouncedSalaryMin, debouncedSalaryMax])
 
   // Fetch jobs when page or filters change (skip initial load — SSR data used)
   const [isInitial, setIsInitial] = useState(true)
@@ -95,9 +107,15 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
       if (selectedJobType) params.set("jobType", selectedJobType)
       if (englishOk && isPremium) params.set("englishOk", "true")
       if (sortBy !== "newest" && isPremium) params.set("sort", sortBy)
+      if (debouncedSalaryMin && isPremium) params.set("salaryMin", debouncedSalaryMin)
+      if (debouncedSalaryMax && isPremium) params.set("salaryMax", debouncedSalaryMax)
       if (city) params.set("city", city)
 
-      const res = await fetch(`/api/jobs?${params}`)
+      const headers: Record<string, string> = {}
+      const token = isPremium ? localStorage.getItem("pb-jobs-token") : null
+      if (token) headers.Authorization = `Bearer ${token}`
+
+      const res = await fetch(`/api/jobs?${params}`, { headers })
       const data = await res.json()
       setJobs(data.jobs || [])
       if (data.pagination) setPagination(data.pagination)
@@ -110,7 +128,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
     } catch { /* silent */ } finally {
       setLoading(false)
     }
-  }, [currentPage, selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, niche, city, isInitial, isPremium])
+  }, [currentPage, selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSalaryMin, debouncedSalaryMax, niche, city, isInitial, isPremium])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
@@ -158,6 +176,8 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         englishOk={englishOk}
         sortBy={sortBy}
         searchQuery={searchQuery}
+        salaryMin={salaryMin}
+        salaryMax={salaryMax}
         city={city}
         onLevelChange={setSelectedLevel}
         onLocationChange={setSelectedLocation}
@@ -165,6 +185,8 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         onEnglishOkChange={setEnglishOk}
         onSortChange={setSortBy}
         onSearchChange={setSearchQuery}
+        onSalaryMinChange={setSalaryMin}
+        onSalaryMaxChange={setSalaryMax}
       />
 
       {/* Job Listings */}
@@ -232,7 +254,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         <div className="text-center py-16 max-w-5xl mx-auto px-4">
           <p className="text-gray-400 text-sm mb-4">No jobs found matching your criteria.</p>
           <button
-            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSelectedJobType(""); setEnglishOk(false); setSortBy("newest"); setSearchQuery("") }}
+            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSelectedJobType(""); setEnglishOk(false); setSortBy("newest"); setSearchQuery(""); setSalaryMin(""); setSalaryMax("") }}
             className="text-sm text-primary hover:text-primary-light transition-colors"
           >
             Clear all filters

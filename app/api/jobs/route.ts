@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { verifyPortalToken } from "@/lib/jobs-portal-auth"
 
 // Niche → profession mapping for niche-focused pages
 const NICHE_PROFESSIONS: Record<string, string[]> = {
@@ -58,6 +59,15 @@ export async function GET(request: NextRequest) {
       if (!isNaN(date.getTime())) {
         where.createdAt = { gte: date }
       }
+    }
+
+    // Premium check — free users don't see jobs from the last 6 hours
+    const premiumToken = request.headers.get("authorization")?.replace("Bearer ", "")
+    const premiumPayload = premiumToken ? await verifyPortalToken(premiumToken) : null
+    if (!premiumPayload) {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000)
+      const existing = (where.createdAt as Record<string, Date> | undefined) || {}
+      where.createdAt = { ...existing, lte: sixHoursAgo }
     }
 
     // City filter: fuzzy match on location field

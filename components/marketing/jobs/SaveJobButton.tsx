@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { usePortalAuth } from "./JobPortalAuthProvider"
 
 const SAVED_KEY = "pb-saved-jobs"
 
@@ -18,22 +19,60 @@ function setSavedJobs(ids: string[]) {
 }
 
 export function SaveJobButton({ jobId, size = "md" }: { jobId: string; size?: "sm" | "md" }) {
+  const { isPremium } = usePortalAuth()
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     setSaved(getSavedJobs().includes(jobId))
   }, [jobId])
 
-  const toggle = useCallback(() => {
+  const toggle = useCallback(async () => {
     const current = getSavedJobs()
-    if (current.includes(jobId)) {
+    const isSaved = current.includes(jobId)
+
+    // Update localStorage immediately for fast UI
+    if (isSaved) {
       setSavedJobs(current.filter((id) => id !== jobId))
       setSaved(false)
     } else {
       setSavedJobs([...current, jobId])
       setSaved(true)
     }
-  }, [jobId])
+
+    // Sync to DB for premium users
+    if (isPremium) {
+      const token = localStorage.getItem("pb-jobs-token")
+      if (!token) return
+      try {
+        if (isSaved) {
+          // Find the savedJob ID and delete it
+          const res = await fetch("/api/jobs/saved", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          if (res.ok) {
+            const data = await res.json()
+            const savedEntry = data.savedJobs?.find(
+              (s: { job: { id: string } }) => s.job.id === jobId
+            )
+            if (savedEntry) {
+              await fetch(`/api/jobs/saved/${savedEntry.id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` },
+              })
+            }
+          }
+        } else {
+          await fetch("/api/jobs/saved", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ jobPostingId: jobId }),
+          })
+        }
+      } catch {
+        // Silent — localStorage is the fallback
+      }
+    }
+  }, [jobId, isPremium])
 
   const iconSize = size === "sm" ? "w-4 h-4" : "w-5 h-5"
   const btnSize = size === "sm" ? "p-1.5" : "p-2"

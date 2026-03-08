@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
-import { scrapeSource, scrapeAllSources } from "@/lib/job-scraper"
+import { scrapeSource, scrapeAllSources, inferProfession } from "@/lib/job-scraper"
 
 // Allow up to 60s for scraping (requires Pro plan; Hobby defaults to 10s)
 export const maxDuration = 60
@@ -19,6 +19,37 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}))
     const sourceId = body.sourceId as string | undefined
     const preExtractedJobs = body.jobs as Array<Record<string, unknown>> | undefined
+
+    // Mode 0: Reclassify all active jobs (re-run inferProfession on existing data)
+    if (body.action === "reclassify") {
+      const jobs = await prisma.jobPosting.findMany({
+        where: { active: true },
+        select: { id: true, title: true, description: true, requirements: true, profession: true },
+      })
+
+      let updated = 0
+      const changes: Record<string, number> = {}
+      for (const job of jobs) {
+        const tags = [...(job.requirements || []), job.description || ""].filter(Boolean)
+        const newProfession = inferProfession(tags, job.title)
+        if (newProfession !== job.profession) {
+          await prisma.jobPosting.update({
+            where: { id: job.id },
+            data: { profession: newProfession },
+          })
+          const key = `${job.profession || "null"} → ${newProfession}`
+          changes[key] = (changes[key] || 0) + 1
+          updated++
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        total: jobs.length,
+        updated,
+        changes,
+      })
+    }
 
     // Mode 1: Pre-extracted jobs from Python script
     if (sourceId && preExtractedJobs && Array.isArray(preExtractedJobs)) {

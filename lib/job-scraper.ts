@@ -247,7 +247,7 @@ function inferGermanLevel(tags: string[], title: string, description: string): s
   return null
 }
 
-function inferProfession(tags: string[], title: string): string {
+export function inferProfession(tags: string[], title: string): string {
   const text = [...tags, title].join(" ").toLowerCase()
   if (text.match(/nurs|pflege|krankenschwester|krankenpfleger|altenpflege|hebamme|pflegefach|pflegehilf/)) return "Nursing"
   if (text.match(/software|developer|entwickler|devops|frontend|backend|fullstack|data.*sci|programm|web.*dev|java|python|react|angular/i)) return "IT"

@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { email, name, whatsapp, professions, germanLevels, locations, jobTypes, whatsappAlerts, pushAlerts } = parsed.data
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").replace(/\/+$/, "")
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").trim().replace(/\/+$/, "")
   const successUrl = `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/jobs/student-jobs`
   console.log("[Stripe Checkout] appUrl:", JSON.stringify(appUrl), "successUrl:", JSON.stringify(successUrl))
@@ -94,12 +94,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    const stripeErr = error as { type?: string; message?: string; param?: string }
-    console.error("[Stripe Checkout] Error:", stripeErr.type, stripeErr.message, "param:", stripeErr.param)
-    console.error("[Stripe Checkout] appUrl:", appUrl, "priceId:", priceId)
-    return NextResponse.json({
-      error: "Failed to create checkout session",
-      debug: { type: stripeErr.type, message: stripeErr.message, param: stripeErr.param, appUrl }
-    }, { status: 500 })
+    console.error("[Stripe Checkout] Error:", error)
+    return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
   }
 }

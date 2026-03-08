@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 
 const PROFESSION_OPTIONS = ["Nursing", "IT", "Engineering", "Healthcare", "Hospitality", "Teaching", "Student Jobs"]
@@ -8,6 +8,14 @@ const LEVEL_OPTIONS = ["A1", "A2", "B1", "B2", "C1"]
 const LOCATION_OPTIONS = ["Berlin", "Munich", "Hamburg", "Frankfurt", "Stuttgart", "Cologne", "Düsseldorf"]
 
 export default function JobAlertSubscription() {
+  return (
+    <Suspense fallback={null}>
+      <JobAlertSubscriptionInner />
+    </Suspense>
+  )
+}
+
+function JobAlertSubscriptionInner() {
   const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")

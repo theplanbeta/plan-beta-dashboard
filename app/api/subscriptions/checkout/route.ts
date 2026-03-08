@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
   }
 
   const { email, name, whatsapp, professions, germanLevels, locations, jobTypes, whatsappAlerts, pushAlerts } = parsed.data
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com"
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").replace(/\/+$/, "")
+  const successUrl = `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
+  const cancelUrl = `${appUrl}/jobs/student-jobs`
+  console.log("[Stripe Checkout] appUrl:", JSON.stringify(appUrl), "successUrl:", JSON.stringify(successUrl))
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -85,9 +88,8 @@ export async function POST(request: NextRequest) {
         whatsappAlerts: String(whatsappAlerts),
         pushAlerts: String(pushAlerts),
       },
-      // Use {CHECKOUT_SESSION_ID} template — token generated on success page via /api/subscriptions/activate
-      success_url: `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/jobs/student-jobs`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     })
 
     return NextResponse.json({ url: session.url })

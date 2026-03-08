@@ -1369,6 +1369,7 @@ model JobSubscription {
   pushAlerts           Boolean   @default(false)
   pushEndpoint         String?
   tier                 String    @default("premium") // premium, legacy
+  metadata             Json?     // Trial email tracking, etc.
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt

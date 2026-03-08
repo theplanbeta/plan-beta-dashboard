@@ -115,7 +115,7 @@ export function SubscriptionModal({ onClose, triggerFeature }: SubscriptionModal
             {/* Price */}
             <div className="text-center mb-6 p-4 bg-primary/5 border border-primary/10 rounded-xl">
               <p className="text-3xl font-bold text-white">
-                EUR 4.99<span className="text-lg text-gray-400 font-normal">/month</span>
+                EUR 1.99<span className="text-lg text-gray-400 font-normal">/month</span>
               </p>
               <p className="text-xs text-emerald-400 font-medium mt-1">5 days free trial</p>
               <p className="text-xs text-gray-500 mt-0.5">Cancel anytime. No commitment.</p>

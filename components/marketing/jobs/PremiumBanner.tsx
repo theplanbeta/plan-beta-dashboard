@@ -34,7 +34,7 @@ export function PremiumBanner() {
         <div className="bg-[#1a1a1a] border-t border-white/[0.1] px-4 py-3 flex items-center gap-3">
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">Get instant job alerts</p>
-            <p className="text-xs text-gray-400">EUR 4.99/mo — cancel anytime</p>
+            <p className="text-xs text-gray-400">EUR 1.99/mo — cancel anytime</p>
           </div>
           <button
             onClick={() => setShowModal(true)}

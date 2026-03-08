@@ -1340,6 +1340,40 @@ model LinkClick {
 }
 
 // ========================================
+// Job Subscription Models
+// ========================================
+
+model JobSubscription {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  name                 String?
+  whatsapp             String?
+
+  // Stripe
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  currentPeriodEnd     DateTime?
+  status               String    @default("inactive") // active, past_due, canceled, inactive
+
+  // Preferences
+  professions          String[]  // ["Nursing", "Engineering", "IT"]
+  germanLevels         String[]  // ["A1", "A2", "B1", "B2"]
+  locations            String[]  // ["Berlin", "Munich", "Hamburg"]
+  jobTypes             String[]  // ["FULL_TIME", "PART_TIME"]
+
+  // Alert settings
+  alertFrequency       String    @default("daily") // daily, weekly
+  lastAlertSent        DateTime?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([status])
+  @@index([alertFrequency])
+}
+
+// ========================================
 // Job Portal Models
 // ========================================
 

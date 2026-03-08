@@ -2,6 +2,7 @@ import Link from "next/link"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema, FAQSchema } from "@/components/marketing/SEOStructuredData"
 import CommunityJobsSection from "./CommunityJobsSection"
+import JobAlertSubscription from "./JobAlertSubscription"
 
 export const metadata = generatePageMetadata({
   title: "Opportunities in Germany | Plan Beta - Work & Study in Germany",
@@ -432,6 +433,9 @@ export default function OpportunitiesPage() {
           </div>
         </div>
       </section>
+
+      {/* Job Alert Subscription */}
+      <JobAlertSubscription />
 
       {/* Community Jobs */}
       <CommunityJobsSection />

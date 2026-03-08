@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").trim().replace(/\/+$/, "")
   const successUrl = `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/jobs/student-jobs`
-  console.log("[Stripe Checkout] appUrl:", JSON.stringify(appUrl), "successUrl:", JSON.stringify(successUrl))
 
   try {
     const session = await stripe.checkout.sessions.create({
@@ -94,7 +93,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
-    console.error("[Stripe Checkout] Error:", error)
+    const msg = error instanceof Error ? error.message : "Unknown error"
+    console.error("[Stripe Checkout] Error:", msg)
     return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 })
   }
 }

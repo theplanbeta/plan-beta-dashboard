@@ -69,7 +69,7 @@ export function GermanyOpportunity() {
 
             <AnimateInView delay={0.3}>
               <Link
-                href="/site/opportunities"
+                href="/opportunities"
                 className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-100 transition-all"
               >
                 Explore All Opportunities

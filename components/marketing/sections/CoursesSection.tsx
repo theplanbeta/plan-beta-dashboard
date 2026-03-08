@@ -121,7 +121,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
                 </ul>
 
                 <Link
-                  href="/site/contact"
+                  href="/contact"
                   onClick={() => trackEvent("cta_click", { label: "start_journey", location: "courses_section" })}
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
                 >
@@ -230,7 +230,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
                 </ul>
 
                 <Link
-                  href="/site/contact"
+                  href="/contact"
                   className="block w-full text-center py-3.5 rounded-full font-semibold text-sm transition-all duration-300 mt-auto bg-white/10 text-white hover:bg-white/20"
                 >
                   Begin Your Pathway
@@ -243,7 +243,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
         {/* View All */}
         <AnimateInView className="text-center mt-12">
           <Link
-            href="/site/courses"
+            href="/courses"
             className="group inline-flex items-center text-sm font-semibold text-gray-400 hover:text-white transition-colors"
           >
             View all courses

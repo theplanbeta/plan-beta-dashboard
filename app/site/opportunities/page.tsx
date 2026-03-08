@@ -9,7 +9,7 @@ export const metadata = generatePageMetadata({
   description:
     "Career opportunities in Germany for nursing, engineering, IT & medical professionals. Visa requirements, salaries & how to start.",
   keywords: TARGET_KEYWORDS.opportunities,
-  path: "/site/opportunities",
+  path: "/opportunities",
 })
 
 const sectors = [
@@ -162,8 +162,8 @@ export default function OpportunitiesPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "Opportunities", url: "https://theplanbeta.com/site/opportunities" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "Opportunities", url: "https://theplanbeta.com/opportunities" },
         ]}
       />
       <FAQSchema faqs={faqs} />
@@ -185,7 +185,7 @@ export default function OpportunitiesPage() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/site/contact"
+                href="/contact"
                 className="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all"
               >
                 Start Learning German
@@ -434,6 +434,31 @@ export default function OpportunitiesPage() {
         </div>
       </section>
 
+      {/* Niche Job Board Links */}
+      <section className="py-16 bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-white mb-2 text-center">Browse Jobs by Profession</h2>
+          <p className="text-gray-400 text-sm text-center mb-10">Explore real job listings from German employers</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Link href="/jobs/nursing" className="group bg-gradient-to-br from-rose-500/10 to-rose-500/5 border border-white/[0.06] hover:border-rose-500/30 rounded-xl p-6 transition-all">
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Nursing Jobs</h3>
+              <p className="text-gray-400 text-sm mb-4">Hospital, clinic, and elderly care positions across Germany.</p>
+              <span className="text-sm text-primary font-medium">Browse nursing jobs &rarr;</span>
+            </Link>
+            <Link href="/jobs/engineering" className="group bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-white/[0.06] hover:border-blue-500/30 rounded-xl p-6 transition-all">
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Engineering & IT Jobs</h3>
+              <p className="text-gray-400 text-sm mb-4">Blue Card eligible positions for engineers and IT professionals.</p>
+              <span className="text-sm text-primary font-medium">Browse engineering jobs &rarr;</span>
+            </Link>
+            <Link href="/jobs/student-jobs" className="group bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-white/[0.06] hover:border-emerald-500/30 rounded-xl p-6 transition-all">
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Student Jobs</h3>
+              <p className="text-gray-400 text-sm mb-4">Werkstudent, mini-jobs, and part-time work for international students.</p>
+              <span className="text-sm text-primary font-medium">Browse student jobs &rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Job Alert Subscription */}
       <JobAlertSubscription />
 
@@ -450,7 +475,7 @@ export default function OpportunitiesPage() {
             Whether you&apos;re a nurse, engineer, IT professional, or doctor - the first step is always the same: learn German.
           </p>
           <Link
-            href="/site/contact"
+            href="/contact"
             className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
           >
             Enquire Now

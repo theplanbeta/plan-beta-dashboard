@@ -21,7 +21,7 @@ export const metadata = generatePageMetadata({
   description:
     "Master German with Kerala's premier language institute. Live online classes, expert instructors, A1 to B2 levels. 95% exam pass rate.",
   keywords: TARGET_KEYWORDS.home,
-  path: "/site",
+  path: "",
 })
 
 export default async function HomePage() {

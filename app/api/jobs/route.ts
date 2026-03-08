@@ -1,23 +1,45 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Niche → profession mapping for niche-focused pages
+const NICHE_PROFESSIONS: Record<string, string[]> = {
+  nursing: ["Nursing", "Healthcare"],
+  engineering: ["Engineering", "IT"],
+  "student-jobs": ["Student Jobs", "Hospitality"],
+}
+
 // GET /api/jobs — Public, returns active job postings with filters + pagination
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const profession = searchParams.get("profession")
+    const niche = searchParams.get("niche")
     const germanLevel = searchParams.get("germanLevel")
     const location = searchParams.get("location")
+    const city = searchParams.get("city")
     const jobType = searchParams.get("jobType")
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10))
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)))
     const skip = (page - 1) * limit
 
     const where: Record<string, unknown> = { active: true }
-    if (profession) where.profession = profession
+
+    // Niche param maps to multiple professions
+    if (niche && NICHE_PROFESSIONS[niche]) {
+      where.profession = { in: NICHE_PROFESSIONS[niche] }
+    } else if (profession) {
+      where.profession = profession
+    }
+
     if (germanLevel) where.germanLevel = germanLevel
-    if (location) where.location = { contains: location, mode: "insensitive" }
     if (jobType) where.jobType = jobType
+
+    // City filter: fuzzy match on location field
+    if (city) {
+      where.location = { contains: city, mode: "insensitive" }
+    } else if (location) {
+      where.location = { contains: location, mode: "insensitive" }
+    }
 
     const [jobs, totalCount, lastUpdatedJob] = await Promise.all([
       prisma.jobPosting.findMany({
@@ -30,6 +52,7 @@ export async function GET(request: NextRequest) {
           title: true,
           company: true,
           location: true,
+          description: true,
           salaryMin: true,
           salaryMax: true,
           currency: true,
@@ -52,21 +75,26 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Get available filter options for UI (from all active jobs, not just current page)
+    // Get available filter options for UI (from active jobs within niche scope)
+    const filterWhere: Record<string, unknown> = { active: true }
+    if (niche && NICHE_PROFESSIONS[niche]) {
+      filterWhere.profession = { in: NICHE_PROFESSIONS[niche] }
+    }
+
     const [professions, levels, locations] = await Promise.all([
       prisma.jobPosting.groupBy({
         by: ["profession"],
-        where: { active: true, profession: { not: null } },
+        where: { ...filterWhere, profession: { not: null } },
         _count: true,
       }),
       prisma.jobPosting.groupBy({
         by: ["germanLevel"],
-        where: { active: true, germanLevel: { not: null } },
+        where: { ...filterWhere, germanLevel: { not: null } },
         _count: true,
       }),
       prisma.jobPosting.groupBy({
         by: ["location"],
-        where: { active: true, location: { not: null } },
+        where: { ...filterWhere, location: { not: null } },
         _count: true,
         orderBy: { _count: { location: "desc" } },
         take: 20,

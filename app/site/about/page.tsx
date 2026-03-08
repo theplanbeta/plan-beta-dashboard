@@ -7,7 +7,7 @@ export const metadata = generatePageMetadata({
   description:
     "Learn about Plan Beta's mission to help Keralites achieve their German dreams. Discover our story, our team, and what makes us different.",
   keywords: ["plan beta", "german language institute kerala", "about plan beta", "german school india"],
-  path: "/site/about",
+  path: "/about",
 })
 
 const team = [
@@ -61,8 +61,8 @@ export default function AboutPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "About", url: "https://theplanbeta.com/site/about" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "About", url: "https://theplanbeta.com/about" },
         ]}
       />
       <OrganizationSchema />
@@ -357,13 +357,13 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/site/contact"
+              href="/contact"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
             >
               Contact Us
             </Link>
             <Link
-              href="/site/courses"
+              href="/courses"
               className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white text-lg font-semibold rounded-xl hover:bg-white/10 transition-all"
             >
               Explore Courses

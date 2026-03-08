@@ -16,7 +16,7 @@ export const metadata = generatePageMetadata({
     "nursing in germany eligibility",
     "germany work visa requirements",
   ],
-  path: "/site/germany-pathway",
+  path: "/germany-pathway",
 })
 
 export default function PathwayLayout({
@@ -86,7 +86,7 @@ export default function PathwayLayout({
             "@context": "https://schema.org",
             "@type": "WebApplication",
             name: "Germany Eligibility Checker",
-            url: "https://theplanbeta.com/site/germany-pathway",
+            url: "https://theplanbeta.com/germany-pathway",
             applicationCategory: "UtilityApplication",
             operatingSystem: "Web",
             offers: {

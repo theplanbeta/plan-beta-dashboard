@@ -11,7 +11,7 @@ export const metadata = generatePageMetadata({
   description:
     "German A1 to B2 live online classes via Google Meet. Mon-Fri morning & evening batches. Goethe & TELC exam prep included.",
   keywords: TARGET_KEYWORDS.courses,
-  path: "/site/courses",
+  path: "/courses",
 })
 
 const WHATSAPP_NUMBER = "919028396035"
@@ -136,14 +136,14 @@ export default async function CoursesPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "Courses", url: "https://theplanbeta.com/site/courses" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "Courses", url: "https://theplanbeta.com/courses" },
         ]}
       />
       <CourseSchema
         name="German Language Courses - A1 to B2"
         description="Live online German courses via Google Meet. 40-60 sessions per level, Mon-Fri, morning and evening batches available."
-        url="https://theplanbeta.com/site/courses"
+        url="https://theplanbeta.com/courses"
         duration="8-12 weeks"
         level="All levels"
         rating={4.8}
@@ -628,7 +628,7 @@ export default async function CoursesPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/site/contact"
+              href="/contact"
               className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
             >
               Contact Us

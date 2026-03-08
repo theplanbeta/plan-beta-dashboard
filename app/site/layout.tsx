@@ -44,19 +44,19 @@ export default function MarketingLayout({
   }, [])
 
   const navigation = [
-    { name: "Courses", href: "/site/courses" },
-    { name: "For Nurses", href: "/site/nurses" },
-    { name: "Eligibility", href: "/site/germany-pathway" },
-    { name: "Jobs", href: "/site/jobs" },
-    { name: "SpotAJob", href: "/site/spot-a-job" },
-    { name: "About", href: "/site/about" },
-    { name: "Contact", href: "/site/contact" },
+    { name: "Courses", href: "/courses" },
+    { name: "For Nurses", href: "/nurses" },
+    { name: "Eligibility", href: "/germany-pathway" },
+    { name: "Jobs", href: "/jobs" },
+    { name: "SpotAJob", href: "/spot-a-job" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ]
 
   const bottomNav = [
     {
       name: "Home",
-      href: "/site",
+      href: "/",
       color: "text-white",
       inactiveColor: "text-gray-600",
       icon: (
@@ -67,7 +67,7 @@ export default function MarketingLayout({
     },
     {
       name: "Courses",
-      href: "/site/courses",
+      href: "/courses",
       color: "text-emerald-400",
       inactiveColor: "text-gray-600",
       icon: (
@@ -78,7 +78,7 @@ export default function MarketingLayout({
     },
     {
       name: "Contact",
-      href: "/site/contact",
+      href: "/contact",
       highlight: true,
       color: "text-primary",
       inactiveColor: "text-gray-600",
@@ -90,7 +90,7 @@ export default function MarketingLayout({
     },
     {
       name: "Jobs",
-      href: "/site/jobs",
+      href: "/jobs",
       color: "text-blue-400",
       inactiveColor: "text-gray-600",
       icon: (
@@ -113,7 +113,7 @@ export default function MarketingLayout({
     },
   ]
 
-  const isHome = pathname === "/site"
+  const isHome = pathname === "/"
   const navTransparent = isHome && !isScrolled
 
   return (
@@ -129,7 +129,7 @@ export default function MarketingLayout({
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Logo */}
-            <Link href="/site" className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center space-x-3">
               <Image
                 src="/blogo.png"
                 alt=""
@@ -179,14 +179,14 @@ export default function MarketingLayout({
                 Student Login
               </a>
               <Link
-                href="/site/contact"
+                href="/contact"
                 className="hidden md:inline-flex items-center px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 bg-primary text-white hover:bg-primary-dark shadow-lg shadow-primary/25"
               >
                 Contact Us
               </Link>
 
               <Link
-                href="/site/contact"
+                href="/contact"
                 className="md:hidden inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full bg-primary text-white"
               >
                 Contact
@@ -281,10 +281,10 @@ export default function MarketingLayout({
               </h3>
               <ul className="space-y-3">
                 {[
-                  ["A1 Foundation", "/site/courses"],
-                  ["A2 Live Classes", "/site/courses"],
-                  ["B1 Live Classes", "/site/courses"],
-                  ["Speaking Practice", "/site/courses"],
+                  ["A1 Foundation", "/courses"],
+                  ["A2 Live Classes", "/courses"],
+                  ["B1 Live Classes", "/courses"],
+                  ["Speaking Practice", "/courses"],
                 ].map(([name, href]) => (
                   <li key={name}>
                     <Link
@@ -305,12 +305,12 @@ export default function MarketingLayout({
               </h3>
               <ul className="space-y-3">
                 {[
-                  ["About Us", "/site/about"],
-                  ["For Nurses", "/site/nurses"],
-                  ["Opportunities", "/site/opportunities"],
-                  ["Eligibility Check", "/site/germany-pathway"],
-                  ["Jobs in Germany", "/site/jobs"],
-                  ["Contact", "/site/contact"],
+                  ["About Us", "/about"],
+                  ["For Nurses", "/nurses"],
+                  ["Opportunities", "/opportunities"],
+                  ["Eligibility Check", "/germany-pathway"],
+                  ["Jobs in Germany", "/jobs"],
+                  ["Contact", "/contact"],
                 ].map(([name, href]) => (
                   <li key={name}>
                     <Link
@@ -383,7 +383,7 @@ export default function MarketingLayout({
         <div className="bg-[#1a1a1a]/90 backdrop-blur-xl border border-white/[0.1] rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
           <div className="flex items-center justify-around h-14 px-1">
             {bottomNav.map((item) => {
-              const isActive = item.href === "/site" ? pathname === "/site" : pathname.startsWith(item.href)
+              const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
               const El = item.external ? "a" : Link
               const extraProps = item.external ? { target: "_blank", rel: "noopener noreferrer" } : {}
 

@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
         locations: locations.join(","),
         jobTypes: jobTypes.join(","),
       },
-      success_url: `${appUrl}/site/opportunities?subscribed=true`,
-      cancel_url: `${appUrl}/site/opportunities`,
+      success_url: `${appUrl}/opportunities?subscribed=true`,
+      cancel_url: `${appUrl}/opportunities`,
     })
 
     return NextResponse.json({ url: session.url })

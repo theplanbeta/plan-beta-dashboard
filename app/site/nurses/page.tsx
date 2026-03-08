@@ -29,7 +29,7 @@ export const metadata = generatePageMetadata({
     "fresher nurse germany",
     "gnm nurse jobs abroad",
   ],
-  path: "/site/nurses",
+  path: "/nurses",
 })
 
 const faqs = [
@@ -72,8 +72,8 @@ export default function NursesPage() {
     <div className="overflow-hidden">
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "Nursing Program", url: "https://theplanbeta.com/site/nurses" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "Nursing Program", url: "https://theplanbeta.com/nurses" },
         ]}
       />
       <FAQSchema faqs={faqs} />
@@ -156,6 +156,28 @@ export default function NursesPage() {
 
       <NurseEligibility />
       <NurseFAQ faqs={faqs} />
+
+      {/* Cross-link to nursing job board */}
+      <section className="py-12 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="bg-gradient-to-br from-rose-500/10 to-blue-500/10 border border-rose-500/20 rounded-2xl p-8">
+            <h2 className="text-2xl font-bold text-white mb-3">Browse Real Nursing Jobs in Germany</h2>
+            <p className="text-gray-400 text-sm mb-6 max-w-lg mx-auto">
+              See what hospitals are hiring right now. Live job listings from across Germany, updated daily.
+            </p>
+            <a
+              href="/jobs/nursing"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all"
+            >
+              View Nursing Jobs
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
       <NurseApplicationForm />
       <NurseCTA />
     </div>

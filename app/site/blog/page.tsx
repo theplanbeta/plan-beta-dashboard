@@ -7,7 +7,7 @@ export const metadata = generatePageMetadata({
   description:
     "Read our latest articles on learning German, career opportunities in Germany, exam preparation tips, and success stories from our students.",
   keywords: TARGET_KEYWORDS.blog,
-  path: "/site/blog",
+  path: "/blog",
 })
 
 // Blog posts data (in a real app, this would come from a CMS or database)
@@ -81,8 +81,8 @@ export default function BlogPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "Blog", url: "https://theplanbeta.com/site/blog" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "Blog", url: "https://theplanbeta.com/blog" },
         ]}
       />
 
@@ -246,7 +246,7 @@ export default function BlogPage() {
             Put what you&apos;ve learned into practice. Join our next batch and start speaking German.
           </p>
           <Link
-            href="/site/contact"
+            href="/contact"
             className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
           >
             Contact Us

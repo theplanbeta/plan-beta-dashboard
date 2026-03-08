@@ -417,7 +417,7 @@ export default function SEODashboard() {
             <p className="text-xs text-gray-500 mt-1">See all indexed pages</p>
           </a>
           <Link
-            href="/site/blog"
+            href="/blog"
             className="block p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
           >
             <h3 className="font-semibold text-sm">Write New Blog</h3>

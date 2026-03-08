@@ -75,10 +75,10 @@ export default function OfflinePage() {
         <div className="mt-8 text-sm text-gray-500 dark:text-gray-500">
           <p className="mb-2">Cached pages you can visit:</p>
           <div className="space-y-1">
-            <a href="/site" className="block text-blue-600 dark:text-blue-400 hover:underline">Home</a>
-            <a href="/site/courses" className="block text-blue-600 dark:text-blue-400 hover:underline">Courses</a>
-            <a href="/site/about" className="block text-blue-600 dark:text-blue-400 hover:underline">About</a>
-            <a href="/site/contact" className="block text-blue-600 dark:text-blue-400 hover:underline">Contact</a>
+            <a href="/" className="block text-blue-600 dark:text-blue-400 hover:underline">Home</a>
+            <a href="/courses" className="block text-blue-600 dark:text-blue-400 hover:underline">Courses</a>
+            <a href="/about" className="block text-blue-600 dark:text-blue-400 hover:underline">About</a>
+            <a href="/contact" className="block text-blue-600 dark:text-blue-400 hover:underline">Contact</a>
           </div>
         </div>
 

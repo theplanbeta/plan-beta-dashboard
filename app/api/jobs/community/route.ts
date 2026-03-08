@@ -18,13 +18,25 @@ const EXTRACTION_PROMPT = `Extract job posting details from this photo of a job 
   "contactInfo": "phone/email/website to apply or null",
   "germanLevel": "required German level (A1/A2/B1/B2/C1/C2) or null",
   "jobType": "full-time, part-time, mini-job, werkstudent, internship, or null",
-  "salaryInfo": "salary/wage info or null"
+  "salaryInfo": "salary/wage info or null",
+  "niche": "classify as one of: Nursing, Engineering, IT, Student Jobs, Hospitality, Healthcare, Other based on job content"
 }
 If the image is not a job posting, return {"error": "not_a_job_posting"}.
 If text is in German, translate field values to English where appropriate but keep company names and locations in original language.`
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]
+
+function inferNicheFromFields(job: { title?: string | null; description?: string | null; jobType?: string | null }): string | null {
+  const text = [job.title, job.description, job.jobType].filter(Boolean).join(" ").toLowerCase()
+  if (text.match(/nurs|pflege|kranken|alten|hebamme|pflegefach/)) return "Nursing"
+  if (text.match(/engineer|ingenieur|maschinenbau|elektro/)) return "Engineering"
+  if (text.match(/software|developer|entwickler|devops|frontend|backend|IT|programm/i)) return "IT"
+  if (text.match(/werkstudent|minijob|mini.?job|nebenjob|aushilfe|studentisch|praktik/)) return "Student Jobs"
+  if (text.match(/hotel|restaurant|gastro|cook|koch|küche|kellner/)) return "Hospitality"
+  if (text.match(/arzt|doctor|therap|medizin|health|gesundheit|pharma/)) return "Healthcare"
+  return null
+}
 
 export async function POST(request: NextRequest) {
   const rateLimited = await uploadLimiter(request)
@@ -118,6 +130,7 @@ export async function POST(request: NextRequest) {
         germanLevel: extractedData.germanLevel || null,
         jobType: extractedData.jobType || null,
         salaryInfo: extractedData.salaryInfo || null,
+        niche: extractedData.niche || inferNicheFromFields(extractedData),
         latitude,
         longitude,
         photoTakenAt,
@@ -145,6 +158,7 @@ export async function GET(request: NextRequest) {
     const cityName = searchParams.get("city")
     const jobType = searchParams.get("jobType")
     const germanLevel = searchParams.get("germanLevel")
+    const niche = searchParams.get("niche")
     const page = parseInt(searchParams.get("page") || "1")
     const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50)
 
@@ -165,6 +179,7 @@ export async function GET(request: NextRequest) {
     if (cityName) where.cityName = { contains: cityName, mode: "insensitive" }
     if (jobType) where.jobType = jobType
     if (germanLevel) where.germanLevel = germanLevel
+    if (niche) where.niche = niche
 
     const [jobs, total] = await Promise.all([
       prisma.communityJob.findMany({
@@ -182,6 +197,7 @@ export async function GET(request: NextRequest) {
           germanLevel: true,
           jobType: true,
           salaryInfo: true,
+          niche: true,
           viewCount: true,
           createdAt: true,
           status: true,

@@ -199,6 +199,41 @@ async function fetchArbeitnow(url: string): Promise<ExtractedJob[]> {
 
 function inferGermanLevel(tags: string[], title: string, description: string): string | null {
   const text = [...tags, title, description].join(" ").toLowerCase()
+
+  // German-language proficiency descriptions (check BEFORE simple level codes)
+  // These patterns are more specific and should take priority
+  const germanPatterns: { pattern: RegExp; level: string }[] = [
+    // Explicit CEFR level mentions with context
+    { pattern: /deutschkenntnisse.*?(c2|c1|b2|b1|a2|a1)/i, level: "" }, // extract from match
+    { pattern: /deutsch.*?niveau.*?(c2|c1|b2|b1|a2|a1)/i, level: "" },
+    { pattern: /sprachniveau.*?(c2|c1|b2|b1|a2|a1)/i, level: "" },
+    // Qualitative German descriptions → level mapping
+    { pattern: /deutsch.*?muttersprach/i, level: "C2" },
+    { pattern: /deutsch.*?(verhandlungssicher|perfekt)/i, level: "C2" },
+    { pattern: /deutsch.*?fließend/i, level: "C1" },
+    { pattern: /fließend.*?deutsch/i, level: "C1" },
+    { pattern: /sehr gute.*?deutschkenntnisse/i, level: "B2" },
+    { pattern: /sehr gute.*?deutsch.*?kenntnisse/i, level: "B2" },
+    { pattern: /gute.*?deutschkenntnisse/i, level: "B1" },
+    { pattern: /gute.*?deutsch.*?kenntnisse/i, level: "B1" },
+    { pattern: /grundkenntnisse.*?deutsch/i, level: "A2" },
+    { pattern: /deutsch.*?grundkenntnisse/i, level: "A2" },
+    { pattern: /basiskenntnisse.*?deutsch/i, level: "A1" },
+  ]
+
+  for (const { pattern, level } of germanPatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      if (level === "") {
+        // Extract CEFR level from the regex capture group
+        const extracted = match[1]?.toUpperCase()
+        if (extracted) return extracted
+      }
+      return level
+    }
+  }
+
+  // Simple CEFR level code detection (existing logic)
   if (text.includes("c2")) return "C2"
   if (text.includes("c1")) return "C1"
   if (text.includes("b2")) return "B2"

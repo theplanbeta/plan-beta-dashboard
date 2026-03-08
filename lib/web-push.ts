@@ -45,7 +45,7 @@ export async function sendPush(
       JSON.stringify({
         title: payload.title,
         body: payload.body,
-        url: payload.url || "/site",
+        url: payload.url || "/",
         icon: payload.icon || "/icon-192x192.png",
       })
     )

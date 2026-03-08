@@ -1,862 +1,192 @@
-"use client"
-
-import { useState, useEffect, useCallback, Suspense } from "react"
-import { motion } from "framer-motion"
 import Link from "next/link"
-import dynamic from "next/dynamic"
-import { useSearchParams, useRouter } from "next/navigation"
-import { trackEvent } from "@/lib/tracking"
+import { prisma } from "@/lib/prisma"
 
-const JobMap = dynamic(() => import("@/components/marketing/JobMap"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-[#0a0a0a] rounded-xl border border-white/[0.06]">
-      <div className="flex items-center gap-3 text-gray-400">
-        <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-        Loading map...
-      </div>
-    </div>
-  ),
-})
-
-interface Job {
-  id: string
-  title: string
-  company: string
-  location: string | null
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string
-  germanLevel: string | null
-  profession: string | null
-  jobType: string | null
-  requirements: string[]
-  applyUrl: string | null
-  postedAt: string | null
-  source: { name: string }
+const NICHE_PROFESSIONS: Record<string, string[]> = {
+  nursing: ["Nursing", "Healthcare"],
+  engineering: ["Engineering", "IT"],
+  "student-jobs": ["Student Jobs", "Hospitality"],
 }
 
-interface FilterOption {
-  value: string
-  count: number
-}
+const NICHES = [
+  {
+    slug: "nursing",
+    title: "Nursing & Healthcare",
+    description: "Hospital, clinic, and elderly care positions. Plan Beta handles your full journey: German training, Anerkennung, and hospital placement.",
+    gradient: "from-rose-500/20 to-rose-500/5",
+    border: "hover:border-rose-500/30",
+    icon: (
+      <svg className="w-8 h-8 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+      </svg>
+    ),
+    cta: "Browse Nursing Jobs",
+  },
+  {
+    slug: "engineering",
+    title: "Engineering & IT",
+    description: "Mechanical, electrical, software, and IT engineering positions. Blue Card eligible roles with visa sponsorship.",
+    gradient: "from-blue-500/20 to-blue-500/5",
+    border: "hover:border-blue-500/30",
+    icon: (
+      <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.42 15.17l-5.58 3.05a.9.9 0 01-1.27-.8V7.57a.9.9 0 01.46-.79l5.58-3.05a.9.9 0 01.82 0l5.58 3.05a.9.9 0 01.46.79v10.05a.9.9 0 01-1.27.8l-5.58-3.05a.9.9 0 00-.82 0z" />
+      </svg>
+    ),
+    cta: "Browse Engineering Jobs",
+  },
+  {
+    slug: "student-jobs",
+    title: "Student Jobs",
+    description: "Werkstudent positions, mini-jobs, and part-time work for international students in Germany.",
+    gradient: "from-emerald-500/20 to-emerald-500/5",
+    border: "hover:border-emerald-500/30",
+    icon: (
+      <svg className="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5" />
+      </svg>
+    ),
+    cta: "Browse Student Jobs",
+  },
+  {
+    slug: "india",
+    title: "From India to Germany",
+    description: "Everything you need to know about working in Germany as an Indian professional. Salary guides, visa pathways, and more.",
+    gradient: "from-amber-500/20 to-amber-500/5",
+    border: "hover:border-amber-500/30",
+    icon: (
+      <svg className="w-8 h-8 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+      </svg>
+    ),
+    cta: "Explore Pathways",
+  },
+]
 
-interface Pagination {
-  page: number
-  limit: number
-  totalCount: number
-  totalPages: number
-  hasNext: boolean
-  hasPrev: boolean
-}
-
-interface CommunityJob {
-  id: string
-  imageUrl: string
-  title: string | null
-  company: string | null
-  location: string | null
-  cityName: string | null
-  germanLevel: string | null
-  jobType: string | null
-  salaryInfo: string | null
-  viewCount: number
-  createdAt: string
-  status: string
-}
-
-const JOB_TYPE_LABELS: Record<string, string> = {
-  FULL_TIME: "Full Time",
-  PART_TIME: "Part Time",
-  CONTRACT: "Contract",
-}
-
-const PROFESSION_LABELS: Record<string, string> = {
-  Nursing: "Nursing & Healthcare",
-  IT: "IT & Software",
-  Engineering: "Engineering",
-  Healthcare: "Healthcare",
-  Hospitality: "Hospitality",
-  Accounting: "Finance & Accounting",
-  Teaching: "Teaching",
-  "Student Jobs": "Student Jobs",
-  Other: "Other",
-}
-
-function formatDate(dateStr: string | null) {
-  if (!dateStr) return null
-  const d = new Date(dateStr)
-  const now = new Date()
-  const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return "Today"
-  if (diff === 1) return "Yesterday"
-  if (diff < 7) return `${diff} days ago`
-  if (diff < 30) return `${Math.floor(diff / 7)} weeks ago`
-  return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" })
-}
-
-export default function JobsPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
-      <JobsPageContent />
-    </Suspense>
-  )
-}
-
-function CommunityJobCard({ job, index }: { job: CommunityJob; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
-      className="bg-[#1a1a1a] border border-white/[0.06] rounded-xl overflow-hidden hover:border-white/[0.12] transition-all group"
-    >
-      <div className="flex">
-        <div className="relative w-28 sm:w-36 flex-shrink-0 bg-white/5">
-          <img
-            src={job.imageUrl}
-            alt={job.title || "Job posting photo"}
-            className="w-full h-full object-cover min-h-[140px]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#1a1a1a]/30" />
-        </div>
-        <div className="flex-1 p-4 min-w-0">
-          <div className="flex items-start justify-between mb-2">
-            <h3 className="text-white font-semibold text-sm truncate group-hover:text-primary transition-colors">
-              {job.title || "Job Posting"}
-            </h3>
-            <span className="text-xs text-gray-600 flex-shrink-0 ml-2">
-              {formatDate(job.createdAt)}
-            </span>
-          </div>
-          {(job.company || job.location || job.cityName) && (
-            <p className="text-gray-400 text-xs mb-2 truncate">
-              {[job.company, job.location || job.cityName].filter(Boolean).join(" \u00B7 ")}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {job.germanLevel && (
-              <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
-                {job.germanLevel}
-              </span>
-            )}
-            {job.jobType && (
-              <span className="px-2 py-0.5 bg-white/5 rounded text-xs text-gray-400">
-                {job.jobType}
-              </span>
-            )}
-          </div>
-          {job.salaryInfo && (
-            <p className="text-xs text-emerald-400 font-medium truncate">{job.salaryInfo}</p>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function PaginationControls({
-  pagination,
-  onPageChange,
-}: {
-  pagination: Pagination
-  onPageChange: (page: number) => void
-}) {
-  if (pagination.totalPages <= 1) return null
-
-  // Build page numbers to show
-  const pages: (number | "...")[] = []
-  const { page, totalPages } = pagination
-
-  if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    if (page > 3) pages.push("...")
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-      pages.push(i)
-    }
-    if (page < totalPages - 2) pages.push("...")
-    pages.push(totalPages)
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-2 mt-10">
-      <button
-        onClick={() => onPageChange(page - 1)}
-        disabled={!pagination.hasPrev}
-        className="px-3 py-2 text-sm bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-gray-400 hover:text-white hover:border-white/[0.2] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        Previous
-      </button>
-
-      <div className="flex items-center gap-1">
-        {pages.map((p, i) =>
-          p === "..." ? (
-            <span key={`dots-${i}`} className="px-2 text-gray-600 text-sm">
-              ...
-            </span>
-          ) : (
-            <button
-              key={p}
-              onClick={() => onPageChange(p)}
-              className={`w-9 h-9 text-sm rounded-lg transition-all ${
-                p === page
-                  ? "bg-primary text-white font-semibold"
-                  : "bg-[#1a1a1a] border border-white/[0.1] text-gray-400 hover:text-white hover:border-white/[0.2]"
-              }`}
-            >
-              {p}
-            </button>
-          )
-        )}
-      </div>
-
-      <button
-        onClick={() => onPageChange(page + 1)}
-        disabled={!pagination.hasNext}
-        className="px-3 py-2 text-sm bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-gray-400 hover:text-white hover:border-white/[0.2] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-      >
-        Next
-      </button>
-    </div>
-  )
-}
-
-// ─── Compact job card for map split-view sidebar ────────────────────────────
-function MapJobCard({
-  job,
-  isHighlighted,
-  onHover,
-}: {
-  job: Job
-  isHighlighted: boolean
-  onHover: (id: string | null) => void
-}) {
-  return (
-    <div
-      onMouseEnter={() => onHover(job.id)}
-      onMouseLeave={() => onHover(null)}
-      className={`p-4 border-b border-white/[0.06] transition-all cursor-default ${
-        isHighlighted ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"
-      }`}
-    >
-      <h3 className="text-white font-semibold text-sm truncate mb-1">{job.title}</h3>
-      <p className="text-gray-400 text-xs mb-2">{job.company}</p>
-      <div className="flex flex-wrap gap-1.5 mb-2">
-        {job.location && (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-white/5 rounded text-[11px] text-gray-400">
-            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {job.location}
-          </span>
-        )}
-        {job.germanLevel && (
-          <span className="px-1.5 py-0.5 bg-primary/10 border border-primary/20 rounded text-[11px] text-primary font-medium">
-            {job.germanLevel}
-          </span>
-        )}
-      </div>
-      <div className="flex gap-2">
-        {job.applyUrl && (
-          <a
-            href={job.applyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title })}
-            className="px-3 py-1 bg-primary text-white text-xs font-medium rounded hover:bg-primary-dark transition-colors"
-          >
-            Apply
-          </a>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function JobsPageContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const initialProfession = searchParams.get("profession") || ""
-  const initialPage = parseInt(searchParams.get("page") || "1", 10)
-  const initialView = searchParams.get("view") === "map" ? "map" : "list"
-
-  const [jobs, setJobs] = useState<Job[]>([])
-  const [communityJobs, setCommunityJobs] = useState<CommunityJob[]>([])
-  const [filters, setFilters] = useState<{
-    professions: FilterOption[]
-    germanLevels: FilterOption[]
-    locations: FilterOption[]
-  }>({ professions: [], germanLevels: [], locations: [] })
-  const [pagination, setPagination] = useState<Pagination>({
-    page: initialPage,
-    limit: 20,
-    totalCount: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  })
-  const [loading, setLoading] = useState(true)
-
-  const [currentPage, setCurrentPage] = useState(initialPage)
-  const [selectedProfession, setSelectedProfession] = useState(initialProfession)
-  const [selectedLevel, setSelectedLevel] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [viewMode, setViewMode] = useState<"list" | "map">(initialView)
-  const [hoveredJobId, setHoveredJobId] = useState<string | null>(null)
-  const [mapLoaded, setMapLoaded] = useState(initialView === "map")
-  const [lastUpdated, setLastUpdated] = useState<string | null>(null)
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [selectedProfession, selectedLevel, selectedLocation, debouncedSearch])
-
-  // Fetch jobs from API with current filters + pagination
-  const fetchJobs = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      params.set("page", String(currentPage))
-      params.set("limit", "20")
-      if (selectedProfession) params.set("profession", selectedProfession)
-      if (selectedLevel) params.set("germanLevel", selectedLevel)
-      if (selectedLocation) params.set("location", selectedLocation)
-
-      const [jobsRes, communityRes] = await Promise.all([
-        fetch(`/api/jobs?${params}`),
-        currentPage === 1
-          ? fetch("/api/jobs/community?status=approved&limit=6")
-          : Promise.resolve(null),
-      ])
-      const jobsData = await jobsRes.json()
-      setJobs(jobsData.jobs || [])
-      setFilters(jobsData.filters || { professions: [], germanLevels: [], locations: [] })
-      if (jobsData.pagination) setPagination(jobsData.pagination)
-      if (jobsData.lastUpdated) setLastUpdated(jobsData.lastUpdated)
-
-      if (communityRes && communityRes.ok) {
-        const communityData = await communityRes.json()
-        setCommunityJobs(communityData.jobs || [])
-      }
-    } catch {
-      console.error("Failed to fetch jobs")
-    } finally {
-      setLoading(false)
-    }
-  }, [currentPage, selectedProfession, selectedLevel, selectedLocation])
-
-  useEffect(() => {
-    fetchJobs()
-  }, [fetchJobs])
-
-  // Client-side search filter (on top of server-side filters)
-  const displayedJobs = debouncedSearch
-    ? jobs.filter((job) => {
-        const q = debouncedSearch.toLowerCase()
-        return (
-          job.title.toLowerCase().includes(q) ||
-          job.company.toLowerCase().includes(q) ||
-          (job.location || "").toLowerCase().includes(q)
-        )
+async function getNicheCounts(): Promise<Record<string, number>> {
+  try {
+    const counts: Record<string, number> = {}
+    await Promise.all(
+      Object.entries(NICHE_PROFESSIONS).map(async ([niche, professions]) => {
+        counts[niche] = await prisma.jobPosting.count({
+          where: { active: true, profession: { in: professions } },
+        })
       })
-    : jobs
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    // Update URL without full navigation
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("page", String(page))
-    router.push(`/site/jobs?${params}`, { scroll: false })
-    // Scroll to top of job listings
-    window.scrollTo({ top: 300, behavior: "smooth" })
+    )
+    counts.total = await prisma.jobPosting.count({ where: { active: true } })
+    return counts
+  } catch {
+    return { nursing: 0, engineering: 0, "student-jobs": 0, total: 0 }
   }
+}
 
-  const handleViewToggle = (view: "list" | "map") => {
-    setViewMode(view)
-    if (view === "map") setMapLoaded(true)
-    trackEvent("job_view_toggle", { view })
-    // Update URL
-    const params = new URLSearchParams(searchParams.toString())
-    if (view === "map") {
-      params.set("view", "map")
-    } else {
-      params.delete("view")
-    }
-    router.push(`/site/jobs?${params}`, { scroll: false })
-  }
-
-  const clearFilters = () => {
-    setSelectedProfession("")
-    setSelectedLevel("")
-    setSelectedLocation("")
-    setSearchQuery("")
-    setCurrentPage(1)
-  }
-
-  const hasFilters = selectedProfession || selectedLevel || selectedLocation || searchQuery
-  const hasCommunityJobs = communityJobs.length > 0
-  const hasAnyContent = pagination.totalCount > 0 || hasCommunityJobs
-
-  const selectClasses =
-    "px-3 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+export default async function JobsHubPage() {
+  const counts = await getNicheCounts()
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <section className="relative pt-32 pb-16 overflow-hidden">
+      <section className="relative pt-32 pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-500/[0.06] via-transparent to-transparent" />
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
-              Find Your Job in{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Germany
-              </span>
-            </h1>
-            <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-4">
-              Browse real job listings from German employers — nursing, IT, engineering, student jobs, and more.
+          <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
+            Find Your Job in{" "}
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              Germany
+            </span>
+          </h1>
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-4">
+            Browse real job listings from German employers. Nursing, engineering, IT, student jobs &mdash; all in one place.
+          </p>
+          {counts.total > 0 && (
+            <p className="text-sm text-gray-500">
+              {counts.total} active jobs across Germany
             </p>
-            {pagination.totalCount > 0 && (
-              <p className="text-sm text-gray-500">
-                {pagination.totalCount} active job{pagination.totalCount !== 1 ? "s" : ""} across Germany
-                {lastUpdated && (
-                  <> &middot; Last updated {formatDate(lastUpdated)}</>
-                )}
-              </p>
-            )}
-            <div className="mt-6 flex items-center justify-center gap-4">
-              <Link
-                href="/site/germany-pathway"
-                className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-light transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Check your eligibility
-              </Link>
-            </div>
-          </motion.div>
+          )}
         </div>
       </section>
 
-      <section className={viewMode === "map" ? "pb-0" : "pb-20"}>
-        <div className={viewMode === "map" ? "" : "max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"}>
-
-          {/* ─── Filter Bar + View Toggle ──────────────────────────── */}
-          {pagination.totalCount > 0 && (
-            <div className={`sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-4 border-b border-white/[0.06] mb-0 ${viewMode === "map" ? "px-4 sm:px-6 lg:px-8" : ""}`}>
-              <div className="flex flex-wrap gap-3 items-center max-w-5xl mx-auto">
-                {viewMode === "list" && (
-                  <div className="relative flex-1 min-w-[200px]">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search by title, company, or city..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                    />
+      {/* Niche Cards */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {NICHES.map((niche) => {
+            const count = counts[niche.slug] || 0
+            return (
+              <Link
+                key={niche.slug}
+                href={`/jobs/${niche.slug}`}
+                className={`group bg-gradient-to-br ${niche.gradient} border border-white/[0.06] ${niche.border} rounded-2xl p-8 transition-all hover:shadow-lg`}
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="flex-shrink-0 p-3 bg-white/5 rounded-xl">
+                    {niche.icon}
                   </div>
-                )}
-
-                {viewMode === "list" && (
-                  <>
-                    <select value={selectedProfession} onChange={(e) => setSelectedProfession(e.target.value)} className={selectClasses}>
-                      <option value="">All Professions</option>
-                      {filters.professions.map((p) => (
-                        <option key={p.value} value={p.value}>
-                          {PROFESSION_LABELS[p.value] || p.value} ({p.count})
-                        </option>
-                      ))}
-                    </select>
-
-                    <select value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} className={selectClasses}>
-                      <option value="">Any German Level</option>
-                      {filters.germanLevels.map((l) => (
-                        <option key={l.value} value={l.value}>
-                          {l.value} ({l.count})
-                        </option>
-                      ))}
-                    </select>
-
-                    {filters.locations.length > 0 && (
-                      <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className={selectClasses}>
-                        <option value="">All Locations</option>
-                        {filters.locations.map((l) => (
-                          <option key={l.value} value={l.value}>
-                            {l.value} ({l.count})
-                          </option>
-                        ))}
-                      </select>
-                    )}
-
-                    {hasFilters && (
-                      <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition-colors">
-                        Clear filters
-                      </button>
-                    )}
-                  </>
-                )}
-
-                {/* View toggle */}
-                <div className={`flex items-center bg-[#1a1a1a] border border-white/[0.1] rounded-lg p-0.5 ${viewMode === "map" ? "ml-auto" : ""}`}>
-                  <button
-                    onClick={() => handleViewToggle("list")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      viewMode === "list"
-                        ? "bg-white/10 text-white"
-                        : "text-gray-500 hover:text-gray-300"
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                    </svg>
-                    List
-                  </button>
-                  <button
-                    onClick={() => handleViewToggle("map")}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                      viewMode === "map"
-                        ? "bg-white/10 text-white"
-                        : "text-gray-500 hover:text-gray-300"
-                    }`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    Map
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ─── MAP VIEW ──────────────────────────────────────────── */}
-          {viewMode === "map" && mapLoaded && (
-            <div className="flex flex-col lg:flex-row" style={{ height: "calc(100vh - 10rem)" }}>
-              {/* Left panel: scrollable job list */}
-              <div className="order-2 lg:order-1 lg:w-[380px] xl:w-[420px] flex-shrink-0 overflow-y-auto bg-[#0a0a0a] border-r border-white/[0.06] h-[40vh] lg:h-auto">
-                <div className="p-4 border-b border-white/[0.06]">
-                  <p className="text-sm text-gray-400">
-                    {displayedJobs.length} job{displayedJobs.length !== 1 ? "s" : ""} in view
-                  </p>
-                </div>
-                {loading ? (
-                  <div className="flex items-center justify-center py-20">
-                    <div className="flex items-center gap-3 text-gray-400 text-sm">
-                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Loading...
-                    </div>
-                  </div>
-                ) : displayedJobs.length > 0 ? (
-                  displayedJobs.map((job) => (
-                    <MapJobCard
-                      key={job.id}
-                      job={job}
-                      isHighlighted={hoveredJobId === job.id}
-                      onHover={setHoveredJobId}
-                    />
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-500 text-sm">
-                    No jobs to display
-                  </div>
-                )}
-              </div>
-
-              {/* Right panel: map */}
-              <div className="order-1 lg:order-2 flex-1" style={{ minHeight: "50vh" }}>
-                <JobMap
-                  onJobHover={setHoveredJobId}
-                  highlightedJobId={hoveredJobId}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* ─── LIST VIEW ─────────────────────────────────────────── */}
-          {viewMode === "list" && (
-            <div className="mt-8">
-              {/* Loading */}
-              {loading && (
-                <div className="flex items-center justify-center py-20">
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Loading jobs...
-                  </div>
-                </div>
-              )}
-
-              {/* ─── Job Listings ───────────────────────────────────── */}
-              {!loading && displayedJobs.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between mb-6">
-                    <p className="text-sm text-gray-500">
-                      {debouncedSearch
-                        ? `${displayedJobs.length} result${displayedJobs.length !== 1 ? "s" : ""} for "${debouncedSearch}"`
-                        : `Showing ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.totalCount)} of ${pagination.totalCount} jobs`}
-                    </p>
-                    {pagination.totalPages > 1 && !debouncedSearch && (
-                      <p className="text-xs text-gray-600">
-                        Page {pagination.page} of {pagination.totalPages}
-                      </p>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl font-bold text-white mb-1 group-hover:text-primary transition-colors">
+                      {niche.title}
+                    </h2>
+                    {count > 0 && (
+                      <span className="text-sm text-gray-500">
+                        {count} active job{count !== 1 ? "s" : ""}
+                      </span>
                     )}
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {displayedJobs.map((job, i) => (
-                      <motion.div
-                        key={job.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: Math.min(i * 0.03, 0.3) }}
-                        className="bg-[#1a1a1a] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-all group"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-white font-semibold truncate group-hover:text-primary transition-colors">
-                              {job.title}
-                            </h3>
-                            <p className="text-gray-400 text-sm">{job.company}</p>
-                          </div>
-                          {job.postedAt && (
-                            <span className="text-xs text-gray-600 flex-shrink-0 ml-3">
-                              {formatDate(job.postedAt)}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {job.location && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                              {job.location}
-                            </span>
-                          )}
-                          {job.germanLevel && (
-                            <span className="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-xs text-primary font-medium">
-                              German {job.germanLevel}
-                            </span>
-                          )}
-                          {job.profession && (
-                            <span className="px-2 py-1 bg-blue-500/10 rounded text-xs text-blue-400">
-                              {PROFESSION_LABELS[job.profession] || job.profession}
-                            </span>
-                          )}
-                          {job.jobType && (
-                            <span className="px-2 py-1 bg-white/5 rounded text-xs text-gray-400">
-                              {JOB_TYPE_LABELS[job.jobType] || job.jobType}
-                            </span>
-                          )}
-                        </div>
-
-                        {(job.salaryMin || job.salaryMax) && (
-                          <p className="text-sm text-emerald-400 font-medium mb-3">
-                            {job.currency} {job.salaryMin?.toLocaleString()}
-                            {job.salaryMax ? ` – ${job.salaryMax.toLocaleString()}` : "+"}
-                            /month
-                          </p>
-                        )}
-
-                        {job.requirements.length > 0 && (
-                          <ul className="space-y-1 mb-4">
-                            {job.requirements.slice(0, 3).map((req, j) => (
-                              <li key={j} className="text-xs text-gray-500 flex items-start gap-2">
-                                <span className="text-gray-700 mt-1">&#8226;</span>
-                                <span className="line-clamp-1">{req}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-
-                        <div className="flex gap-2 pt-3 border-t border-white/[0.06]">
-                          {job.applyUrl && (
-                            <a
-                              href={job.applyUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={() => trackEvent("job_apply_click", { jobId: job.id, title: job.title })}
-                              className="flex-1 text-center py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-all"
-                            >
-                              Apply
-                            </a>
-                          )}
-                          <Link
-                            href="/site/germany-pathway"
-                            onClick={() => trackEvent("job_eligibility_click", { jobId: job.id })}
-                            className="flex-1 text-center py-2 bg-white/5 border border-white/10 text-gray-300 text-sm font-medium rounded-lg hover:bg-white/10 transition-all"
-                          >
-                            Check Eligibility
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Pagination */}
-                  {!debouncedSearch && (
-                    <PaginationControls pagination={pagination} onPageChange={handlePageChange} />
-                  )}
-                </>
-              )}
-
-              {/* No results for current filters */}
-              {!loading && displayedJobs.length === 0 && pagination.totalCount > 0 && (
-                <div className="text-center py-12 mb-12">
-                  <p className="text-gray-400 text-sm mb-4">No matching jobs. Try adjusting your filters.</p>
-                  <button onClick={clearFilters} className="text-sm text-primary hover:text-primary-light transition-colors">
-                    Clear all filters
-                  </button>
                 </div>
-              )}
+                <p className="text-gray-400 text-sm mb-6">
+                  {niche.description}
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm text-primary font-medium group-hover:gap-3 transition-all">
+                  {niche.cta}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
 
-              {/* ─── Community-Spotted Jobs (page 1 only) ───────────── */}
-              {!loading && currentPage === 1 && hasCommunityJobs && (
-                <div className="mt-16 mb-12">
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">Community-Spotted Jobs</h2>
-                      <p className="text-gray-400 text-sm">
-                        Job postings photographed and shared by students in Germany
-                      </p>
-                    </div>
-                    <Link
-                      href="/site/spot-a-job"
-                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_community_section" })}
-                      className="hidden sm:inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium rounded-full hover:bg-emerald-500/20 transition-all"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Spot a Job
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {communityJobs.map((cj, i) => (
-                      <CommunityJobCard key={cj.id} job={cj} index={i} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ─── Empty State (no jobs at all) ───────────────────── */}
-              {!loading && !hasAnyContent && (
-                <div className="text-center py-16">
-                  <div className="flex items-center justify-center w-16 h-16 bg-blue-500/10 rounded-full mx-auto mb-6">
-                    <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold text-white mb-3">Job listings coming soon</h2>
-                  <p className="text-gray-400 max-w-md mx-auto mb-8">
-                    We&apos;re actively building our database of jobs in Germany — nursing, IT, engineering, student positions, and more. Check back soon.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                    <Link
-                      href="/site/spot-a-job"
-                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_empty" })}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Help by Spotting a Job
-                    </Link>
-                    <Link
-                      href="/site/germany-pathway"
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
-                    >
-                      Check Your Eligibility
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* ─── SpotAJob CTA (page 1 only, when there are jobs) ─ */}
-              {!loading && currentPage === 1 && hasAnyContent && (
-                <div className="my-12">
-                  <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-8 text-center">
-                    <div className="flex items-center justify-center w-14 h-14 bg-emerald-500/10 rounded-full mx-auto mb-4">
-                      <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-xl font-bold text-white mb-2">SpotAJob</h3>
-                    <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-                      Are you in Germany? Help fellow students by photographing job postings you see — at supermarkets, notice boards, shop windows. Our AI extracts the details automatically.
-                    </p>
-                    <Link
-                      href="/site/spot-a-job"
-                      onClick={() => trackEvent("spot_a_job_click", { from: "jobs_cta" })}
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      Spot a Job
-                    </Link>
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom CTA */}
-              {!loading && (
-                <div className="mt-4 text-center">
-                  <div className="bg-[#1a1a1a] border border-white/[0.06] rounded-2xl p-8">
-                    <h3 className="text-xl font-bold text-white mb-3">
-                      Want to maximize your chances?
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-                      Most German jobs require at least B1 German. Start learning now and unlock thousands more opportunities.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Link
-                        href="/site/courses"
-                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all"
-                      >
-                        View German Courses
-                      </Link>
-                      <Link
-                        href="/site/germany-pathway"
-                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-gray-300 font-medium rounded-full hover:bg-white/10 transition-all"
-                      >
-                        Check Your Eligibility
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
+      {/* Bottom CTAs */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* SpotAJob */}
+          <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-2xl p-8 text-center">
+            <div className="flex items-center justify-center w-14 h-14 bg-emerald-500/10 rounded-full mx-auto mb-4">
+              <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </div>
-          )}
+            <h3 className="text-xl font-bold text-white mb-2">SpotAJob</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              In Germany? Photograph job postings you see at supermarkets, notice boards, shop windows. Our AI extracts the details automatically.
+            </p>
+            <Link
+              href="/spot-a-job"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white font-semibold rounded-full hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-500/25"
+            >
+              Spot a Job
+            </Link>
+          </div>
+
+          {/* Eligibility */}
+          <div className="bg-gradient-to-br from-primary/10 to-rose-500/10 border border-primary/20 rounded-2xl p-8 text-center">
+            <div className="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-full mx-auto mb-4">
+              <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Check Your Eligibility</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              Find out which pathway suits you best &mdash; Blue Card, skilled worker visa, Ausbildung, or job seeker visa.
+            </p>
+            <Link
+              href="/germany-pathway"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/25"
+            >
+              Start Pathway Checker
+            </Link>
+          </div>
         </div>
       </section>
     </div>

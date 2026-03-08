@@ -12,7 +12,7 @@ export const metadata = generatePageMetadata({
     "earn by referring friends",
     "plan beta discount",
   ],
-  path: "/site/refer",
+  path: "/refer",
 })
 
 const faqItems = [
@@ -43,8 +43,8 @@ export default function ReferPage() {
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: "Refer a Friend", url: "https://theplanbeta.com/site/refer" },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: "Refer a Friend", url: "https://theplanbeta.com/refer" },
         ]}
       />
       <FAQSchema faqs={faqItems} />
@@ -64,7 +64,7 @@ export default function ReferPage() {
               Love learning German with us? Share the experience with your friends and earn rewards for every successful enrollment.
             </p>
             <Link
-              href="/site/contact"
+              href="/contact"
               className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white text-lg font-semibold rounded-xl hover:bg-primary-dark transition-all"
             >
               Get Started
@@ -149,7 +149,7 @@ export default function ReferPage() {
             Ask your friend who studies at Plan Beta for their referral code, or contact us to learn more about joining.
           </p>
           <Link
-            href="/site/contact"
+            href="/contact"
             className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
           >
             Contact Us

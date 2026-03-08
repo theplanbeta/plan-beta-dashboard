@@ -52,7 +52,7 @@ export default function CommunityJobsSection() {
             </p>
           </div>
           <Link
-            href="/site/spot-a-job"
+            href="/spot-a-job"
             className="mt-4 sm:mt-0 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +79,7 @@ export default function CommunityJobsSection() {
               No community jobs yet. Be the first to share!
             </p>
             <Link
-              href="/site/spot-a-job"
+              href="/spot-a-job"
               className="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Upload a Job Photo

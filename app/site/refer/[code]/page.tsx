@@ -48,7 +48,7 @@ export default function ReferralCodePage() {
           ...formData,
           whatsapp: formData.phone,
           referralCode: code,
-          landingPage: `/site/refer/${code}`,
+          landingPage: `/refer/${code}`,
           visitorId,
           ...tracking,
         }),
@@ -93,7 +93,7 @@ export default function ReferralCodePage() {
             We&apos;ve received your request{referrerName ? ` via ${referrerName}'s referral` : ""}. Our team will contact you within 24 hours.
           </p>
           <Link
-            href="/site/courses"
+            href="/courses"
             className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all"
           >
             Browse Courses

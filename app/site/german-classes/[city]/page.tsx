@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
       "learn german online kerala",
       "german A1 course kerala",
     ],
-    path: `/site/german-classes/${city}`,
+    path: `/german-classes/${city}`,
   })
 }
 
@@ -93,8 +93,8 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
     <div>
       <BreadcrumbSchema
         items={[
-          { name: "Home", url: "https://theplanbeta.com/site" },
-          { name: `German Classes in ${cityInfo.name}`, url: `https://theplanbeta.com/site/german-classes/${city}` },
+          { name: "Home", url: "https://theplanbeta.com" },
+          { name: `German Classes in ${cityInfo.name}`, url: `https://theplanbeta.com/german-classes/${city}` },
         ]}
       />
       <FAQSchema faqs={faqItems} />
@@ -116,13 +116,13 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/site/contact"
+                href="/contact"
                 className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white text-lg font-semibold rounded-xl hover:bg-primary-dark transition-all"
               >
                 Enquire Now
               </Link>
               <Link
-                href="/site/courses"
+                href="/courses"
                 className="inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 text-gray-700 text-lg font-semibold rounded-xl hover:bg-gray-50 transition-all"
               >
                 View All Courses
@@ -221,7 +221,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
                     )}
 
                     <Link
-                      href="/site/contact"
+                      href="/contact"
                       className="block text-center w-full px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors"
                     >
                       Enquire Now
@@ -271,7 +271,7 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
             Get in touch with us and start your German learning journey today.
           </p>
           <Link
-            href="/site/contact"
+            href="/contact"
             className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
           >
             Enquire Now

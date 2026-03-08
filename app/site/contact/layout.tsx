@@ -6,7 +6,7 @@ export const metadata = generatePageMetadata({
   description:
     "Get in touch with Plan Beta. Enquire about German courses, nursing programs, and career guidance. We respond within 24 hours.",
   keywords: ["contact plan beta", "german classes enquiry", "plan beta phone", "plan beta email"],
-  path: "/site/contact",
+  path: "/contact",
 })
 
 export default function ContactLayout({

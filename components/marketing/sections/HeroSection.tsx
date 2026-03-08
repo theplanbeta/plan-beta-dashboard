@@ -108,7 +108,7 @@ export function HeroSection() {
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Link
-                href="/site/germany-pathway"
+                href="/germany-pathway"
                 onClick={() => trackEvent("cta_click", { label: "check_eligibility", location: "hero" })}
                 className="group inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white rounded-full bg-primary hover:bg-primary-dark transition-all duration-300 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02]"
               >
@@ -128,7 +128,7 @@ export function HeroSection() {
                 </svg>
               </Link>
               <Link
-                href="/site/courses"
+                href="/courses"
                 onClick={() => trackEvent("cta_click", { label: "explore_courses", location: "hero" })}
                 className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white border border-white/20 rounded-full hover:bg-white/5 transition-all duration-300"
               >
@@ -171,19 +171,19 @@ export function HeroSection() {
                   {
                     label: "I'm a Nurse",
                     subtitle: "Hospital placement in Germany",
-                    href: "/site/nurses",
+                    href: "/nurses",
                     audience: "nurse",
                   },
                   {
                     label: "I'm in IT/Engineering",
                     subtitle: "Blue Card pathway",
-                    href: "/site/germany-pathway",
+                    href: "/germany-pathway",
                     audience: "it_engineering",
                   },
                   {
                     label: "I'm a Student",
                     subtitle: "A1 to B2 courses",
-                    href: "/site/courses",
+                    href: "/courses",
                     audience: "student",
                   },
                 ].map((btn) => (

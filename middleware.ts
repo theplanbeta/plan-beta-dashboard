@@ -8,17 +8,32 @@ export async function middleware(request: NextRequest) {
   const hostname = request.headers.get("host") || ""
 
   // ─── Domain-based routing ─────────────────────────────────────────────
-  // theplanbeta.com → marketing site (rewrite root to /site)
+  // theplanbeta.com → marketing site with clean URLs (no /site prefix)
   const isPublicDomain = hostname.includes("theplanbeta.com")
 
   if (isPublicDomain) {
-    // Root → /site (marketing homepage)
+    // 301 redirect /site/* → /* (tells Google the clean URL is canonical)
+    if (path === "/site" || path.startsWith("/site/")) {
+      const cleanPath = path === "/site" ? "/" : path.replace(/^\/site/, "")
+      return NextResponse.redirect(new URL(cleanPath, request.url), 301)
+    }
+
+    // Root → /site (homepage, internal rewrite)
     if (path === "/") {
       return NextResponse.rewrite(new URL("/site", request.url))
     }
+
     // Block dashboard/login/api access on public domain
     if (path.startsWith("/dashboard") || path === "/login" || path.startsWith("/api/auth")) {
-      return NextResponse.redirect(new URL("/site", request.url))
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+
+    // Rewrite clean URLs to /site/* internally
+    // Skip paths that are NOT marketing pages
+    const skipPrefixes = ["/api", "/_next", "/go", "/privacy", "/terms", "/offline", "/dashboard", "/login"]
+    const shouldSkip = skipPrefixes.some((p) => path === p || path.startsWith(p + "/"))
+    if (!shouldSkip) {
+      return NextResponse.rewrite(new URL("/site" + path, request.url))
     }
   }
 
@@ -88,5 +103,17 @@ export const config = {
     "/offline",
     "/privacy",
     "/terms",
+    // Clean URL paths (rewritten to /site/* internally on theplanbeta.com)
+    "/courses/:path*",
+    "/nurses/:path*",
+    "/about/:path*",
+    "/blog/:path*",
+    "/contact/:path*",
+    "/jobs/:path*",
+    "/opportunities/:path*",
+    "/germany-pathway/:path*",
+    "/spot-a-job/:path*",
+    "/refer/:path*",
+    "/german-classes/:path*",
   ],
 }

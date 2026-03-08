@@ -98,7 +98,7 @@ export function PathwaySection() {
         {/* CTA */}
         <AnimateInView className="text-center mt-14">
           <Link
-            href="/site/contact"
+            href="/contact"
             onClick={() =>
               trackEvent("cta_click", {
                 label: "begin_pathway",

@@ -121,6 +121,70 @@ export const GERMAN_CITIES: Record<string, [number, number]> = {
   "Troisdorf": [7.156, 50.816],
 }
 
+// ─── Job Board City Pages ───────────────────────────────────────────────────
+
+export const JOB_BOARD_CITIES = [
+  { slug: "berlin", name: "Berlin", state: "Berlin" },
+  { slug: "munich", name: "Munich", state: "Bavaria" },
+  { slug: "hamburg", name: "Hamburg", state: "Hamburg" },
+  { slug: "frankfurt", name: "Frankfurt", state: "Hesse" },
+  { slug: "stuttgart", name: "Stuttgart", state: "Baden-Württemberg" },
+  { slug: "cologne", name: "Cologne", state: "North Rhine-Westphalia" },
+  { slug: "dusseldorf", name: "Düsseldorf", state: "North Rhine-Westphalia" },
+  { slug: "nuremberg", name: "Nuremberg", state: "Bavaria" },
+  { slug: "hannover", name: "Hannover", state: "Lower Saxony" },
+  { slug: "dresden", name: "Dresden", state: "Saxony" },
+] as const
+
+export type JobBoardCity = (typeof JOB_BOARD_CITIES)[number]
+
+export function getJobBoardCityBySlug(slug: string): JobBoardCity | undefined {
+  return JOB_BOARD_CITIES.find((c) => c.slug === slug)
+}
+
+export function generateCityStaticParams() {
+  return JOB_BOARD_CITIES.map((city) => ({ city: city.slug }))
+}
+
+export const CITY_NICHE_INTROS: Record<string, Record<string, string>> = {
+  nursing: {
+    berlin: "Berlin's Charité and Vivantes hospital networks are among Germany's largest employers of nurses.",
+    munich: "Munich's university hospitals and private clinics offer some of the highest nursing salaries in Germany.",
+    hamburg: "Hamburg's UKE and Asklepios hospitals have a strong demand for international nurses.",
+    frankfurt: "Frankfurt's university hospital and surrounding clinics actively recruit international nursing staff.",
+    stuttgart: "Stuttgart's hospitals serve the densely populated Baden-Württemberg region with steady nurse demand.",
+    cologne: "Cologne's university hospital is one of Europe's largest, with ongoing nursing recruitment.",
+    dusseldorf: "Düsseldorf's healthcare sector benefits from the city's international business community.",
+    nuremberg: "Nuremberg's Klinikum is one of the largest municipal hospitals in Europe.",
+    hannover: "Hannover's MHH (Medical University) is a major employer in northern Germany's healthcare sector.",
+    dresden: "Dresden's university hospital is expanding, creating new opportunities for nursing professionals.",
+  },
+  engineering: {
+    berlin: "Berlin's startup ecosystem and established tech companies create strong demand for engineers.",
+    munich: "Munich is home to BMW, Siemens, and hundreds of engineering firms — Germany's top engineering hub.",
+    hamburg: "Hamburg's aerospace (Airbus) and logistics sectors drive engineering recruitment.",
+    frankfurt: "Frankfurt's infrastructure projects and financial sector need IT and civil engineers.",
+    stuttgart: "Stuttgart is Germany's engineering capital — Bosch, Daimler, and Porsche are headquartered here.",
+    cologne: "Cologne's diverse economy includes aerospace (DLR), automotive, and IT engineering roles.",
+    dusseldorf: "Düsseldorf's industrial sector and international companies hire engineers across specializations.",
+    nuremberg: "Nuremberg's Siemens presence and industrial base create steady engineering demand.",
+    hannover: "Hannover's Continental AG and VW presence make it a key engineering hub in Lower Saxony.",
+    dresden: "Dresden's semiconductor cluster (Infineon, Bosch, TSMC) is creating a boom in engineering jobs.",
+  },
+  "student-jobs": {
+    berlin: "Berlin offers the most student jobs in Germany — cafes, startups, and universities all hire part-time.",
+    munich: "Munich's high cost of living is offset by well-paying Werkstudent positions in tech and finance.",
+    hamburg: "Hamburg's media, logistics, and hospitality sectors offer diverse student job opportunities.",
+    frankfurt: "Frankfurt's financial sector and airport create unique part-time opportunities for students.",
+    stuttgart: "Stuttgart's automotive companies offer well-paid Werkstudent positions for engineering students.",
+    cologne: "Cologne's media industry and vibrant service sector have plenty of student job openings.",
+    dusseldorf: "Düsseldorf's international business community creates English-friendly student positions.",
+    nuremberg: "Nuremberg's lower cost of living makes student jobs stretch further than in larger cities.",
+    hannover: "Hannover's large student population is served by university-adjacent part-time opportunities.",
+    dresden: "Dresden offers affordable living with growing student job opportunities in its tech sector.",
+  },
+}
+
 /**
  * Resolve a job location string to [longitude, latitude].
  * Tries: exact match → substring match → first-word match.

@@ -86,7 +86,7 @@ export async function sendJobAlertEmail({
         </table>
 
         <div style="margin-top: 30px; text-align: center;">
-          <a href="${appUrl}/site/opportunities"
+          <a href="${appUrl}/opportunities"
              style="display: inline-block; background: #d2302c; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px;">
             View All Opportunities
           </a>

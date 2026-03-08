@@ -24,7 +24,7 @@ export function CTASection() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/site/contact"
+              href="/contact"
               onClick={() => trackEvent("cta_click", { label: "contact_us", location: "cta_section" })}
               className="group inline-flex items-center justify-center px-8 py-4 bg-primary text-white text-base font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:scale-[1.02]"
             >

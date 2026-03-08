@@ -1434,6 +1434,7 @@ model CommunityJob {
   germanLevel   String?
   jobType       String?
   salaryInfo    String?
+  niche         String?     // Auto-detected: Nursing, Engineering, IT, Student Jobs, Hospitality, Healthcare, Other
 
   // EXIF/GPS data
   latitude      Float?
@@ -1463,4 +1464,5 @@ model CommunityJob {
   @@index([cityName])
   @@index([createdAt])
   @@index([status, createdAt])
+  @@index([niche])
 }

@@ -583,7 +583,7 @@ export default function GermanyPathwayPage() {
                 <h3 className="text-lg font-semibold text-white mb-2">Browse Matching Jobs</h3>
                 <p className="text-gray-400 text-sm mb-4">See real German job listings matching your profession</p>
                 <Link
-                  href={`/site/jobs${formData.profession ? `?profession=${formData.profession}` : ""}`}
+                  href={`/jobs${formData.profession ? `?profession=${formData.profession}` : ""}`}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 border border-white/20 rounded-full text-white font-medium hover:bg-white/20 transition-all"
                 >
                   View Matching Jobs
@@ -614,7 +614,7 @@ export default function GermanyPathwayPage() {
                     Chat on WhatsApp
                   </a>
                   <Link
-                    href="/site/courses"
+                    href="/courses"
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all"
                   >
                     View Courses
@@ -688,7 +688,7 @@ export default function GermanyPathwayPage() {
               Chat on WhatsApp
             </a>
             <Link
-              href="/site/contact"
+              href="/contact"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white font-semibold rounded-full hover:bg-primary-dark transition-all shadow-lg shadow-primary/25"
             >
               Contact Us

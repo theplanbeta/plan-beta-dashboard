@@ -20,7 +20,7 @@ export const metadata = generatePageMetadata({
     "germany job vacancy",
     "german jobs visa sponsorship",
   ],
-  path: "/site/jobs",
+  path: "/jobs",
 })
 
 export default function JobsLayout({
@@ -39,7 +39,7 @@ export default function JobsLayout({
             name: "Find Student & Professional Jobs in Germany",
             description:
               "Find student jobs, Werkstudent positions, mini-jobs, and professional careers in Germany. Top job portals, community-spotted postings, and curated listings.",
-            url: "https://theplanbeta.com/site/jobs",
+            url: "https://theplanbeta.com/jobs",
             isPartOf: {
               "@type": "WebSite",
               name: "Plan Beta",

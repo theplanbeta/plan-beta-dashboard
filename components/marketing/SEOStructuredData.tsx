@@ -316,6 +316,109 @@ export function LocalBusinessSchema({
   )
 }
 
+type JobPostingSchemaProps = {
+  job: {
+    title: string
+    company: string
+    location?: string | null
+    description?: string | null
+    salaryMin?: number | null
+    salaryMax?: number | null
+    currency?: string
+    jobType?: string | null
+    applyUrl?: string | null
+    postedAt?: string | null
+    germanLevel?: string | null
+  }
+}
+
+export function JobPostingSchema({ job }: JobPostingSchemaProps) {
+  const schema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    hiringOrganization: {
+      "@type": "Organization",
+      name: job.company,
+    },
+    datePosted: job.postedAt || new Date().toISOString(),
+    description: job.description || job.title,
+  }
+
+  if (job.location) {
+    schema.jobLocation = {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: job.location,
+        addressCountry: "DE",
+      },
+    }
+  }
+
+  if (job.salaryMin || job.salaryMax) {
+    schema.baseSalary = {
+      "@type": "MonetaryAmount",
+      currency: job.currency || "EUR",
+      value: {
+        "@type": "QuantitativeValue",
+        ...(job.salaryMin && { minValue: job.salaryMin }),
+        ...(job.salaryMax && { maxValue: job.salaryMax }),
+        unitText: "MONTH",
+      },
+    }
+  }
+
+  if (job.jobType) {
+    const typeMap: Record<string, string> = {
+      FULL_TIME: "FULL_TIME",
+      PART_TIME: "PART_TIME",
+      CONTRACT: "CONTRACTOR",
+    }
+    schema.employmentType = typeMap[job.jobType] || job.jobType
+  }
+
+  if (job.applyUrl) {
+    schema.directApply = true
+  }
+
+  if (job.germanLevel) {
+    schema.qualifications = `German language level: ${job.germanLevel}`
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+type ItemListSchemaProps = {
+  name: string
+  description: string
+  url: string
+  itemCount: number
+}
+
+export function ItemListSchema({ name, description, url, itemCount }: ItemListSchemaProps) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name,
+    description,
+    url,
+    numberOfItems: itemCount,
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
 // Comprehensive page-level SEO with all relevant schemas
 export function WebsiteSEO() {
   return (

@@ -50,7 +50,7 @@ export default async function StudentJobsPage() {
   return (
     <JobPortalAuthProvider>
       <div className="min-h-screen bg-[#0a0a0a]">
-        <PortalTokenHandler />
+        <Suspense fallback={null}><PortalTokenHandler /></Suspense>
         <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} />
 
         {/* Tools navigation */}

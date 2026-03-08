@@ -8,7 +8,7 @@ const pages = [
   {
     title: "For Nurses",
     desc: "Dedicated pathway for Indian nurses to work in Germany. B1/B2 training, visa guidance, and job placement support.",
-    href: "/site/nurses",
+    href: "/nurses",
     color: "from-pink-500/20 to-rose-500/20",
     borderHover: "hover:border-pink-500/30",
     icon: (
@@ -20,7 +20,7 @@ const pages = [
   {
     title: "Eligibility Checker",
     desc: "Find out if you qualify to work in Germany. Get a personalized pathway with visa options and timeline.",
-    href: "/site/germany-pathway",
+    href: "/germany-pathway",
     color: "from-violet-500/20 to-purple-500/20",
     borderHover: "hover:border-violet-500/30",
     icon: (
@@ -32,7 +32,7 @@ const pages = [
   {
     title: "Jobs in Germany",
     desc: "Browse real job openings in Germany. Filter by profession, city, and German level required.",
-    href: "/site/jobs",
+    href: "/jobs",
     color: "from-blue-500/20 to-cyan-500/20",
     borderHover: "hover:border-blue-500/30",
     icon: (
@@ -44,7 +44,7 @@ const pages = [
   {
     title: "Opportunities",
     desc: "Discover career pathways in Germany across nursing, IT, engineering, and more.",
-    href: "/site/opportunities",
+    href: "/opportunities",
     color: "from-amber-500/20 to-orange-500/20",
     borderHover: "hover:border-amber-500/30",
     icon: (
@@ -56,7 +56,7 @@ const pages = [
   {
     title: "About Us",
     desc: "Meet the team behind Plan Beta. Our story, mission, and the journey so far.",
-    href: "/site/about",
+    href: "/about",
     color: "from-emerald-500/20 to-green-500/20",
     borderHover: "hover:border-emerald-500/30",
     icon: (
@@ -68,7 +68,7 @@ const pages = [
   {
     title: "Blog",
     desc: "Tips on learning German, life in Germany, visa updates, and student stories.",
-    href: "/site/blog",
+    href: "/blog",
     color: "from-teal-500/20 to-emerald-500/20",
     borderHover: "hover:border-teal-500/30",
     icon: (
@@ -90,7 +90,7 @@ export function ExploreSection() {
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Explore
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
             Everything You Need for Germany
           </h2>
           <p className="text-gray-400 text-lg mt-4 max-w-2xl mx-auto">
@@ -104,7 +104,7 @@ export function ExploreSection() {
               <Link
                 href={page.href}
                 onClick={() => trackEvent("explore_click", { page: page.title })}
-                className={`group relative block h-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-8 transition-all duration-300 ${page.borderHover} hover:bg-white/[0.04]`}
+                className={`group relative block h-full rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4 sm:p-6 lg:p-8 transition-all duration-300 ${page.borderHover} hover:bg-white/[0.04]`}
               >
                 {/* Gradient glow on hover */}
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${page.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />

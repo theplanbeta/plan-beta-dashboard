@@ -91,7 +91,7 @@ export function WhyPlanBeta() {
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Why Choose Us
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
             The Plan Beta Advantage
           </h2>
         </AnimateInView>

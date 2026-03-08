@@ -51,7 +51,7 @@ export function TestimonialsSection() {
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Student Outcomes
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight">
             From Kerala to Germany
           </h2>
         </AnimateInView>
@@ -63,7 +63,7 @@ export function TestimonialsSection() {
           onMouseLeave={() => setPaused(false)}
         >
           {/* Large decorative quote */}
-          <div className="absolute -top-8 left-0 text-[180px] leading-none text-white/[0.04] font-serif select-none pointer-events-none">
+          <div className="absolute -top-8 left-0 text-[100px] sm:text-[180px] leading-none text-white/[0.04] font-serif select-none pointer-events-none">
             &ldquo;
           </div>
 

@@ -47,7 +47,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Your Germany Pathway
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
             Choose Your Milestone
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
@@ -75,7 +75,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
 
             <div className="grid lg:grid-cols-2 gap-0">
               {/* Left — Content */}
-              <div className="p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
+              <div className="p-5 sm:p-10 lg:p-12 flex flex-col justify-center">
                 <div className="flex items-center gap-2 mb-5">
                   <span className="px-3 py-1 bg-orange-500/15 text-orange-400 text-xs font-medium rounded-full border border-orange-500/20">
                     Self-Paced
@@ -133,7 +133,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
               </div>
 
               {/* Right — Stats Grid */}
-              <div className="p-8 sm:p-10 lg:p-12 flex items-center">
+              <div className="p-5 sm:p-10 lg:p-12 flex items-center">
                 <div className="grid grid-cols-2 gap-4 w-full">
                   {[
                     { value: "100+", label: "Video Lessons", icon: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" },
@@ -144,7 +144,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
                     <motion.div
                       key={stat.label}
                       whileHover={{ scale: 1.03 }}
-                      className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 text-center hover:border-primary/20 transition-colors"
+                      className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-3 sm:p-6 text-center hover:border-primary/20 transition-colors"
                     >
                       <div className="w-10 h-10 mx-auto mb-3 bg-primary/10 rounded-xl flex items-center justify-center">
                         <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +174,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
               <motion.div
                 whileHover={{ y: -8 }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                className="relative group bg-white/[0.04] backdrop-blur-sm border border-white/10 rounded-3xl p-8 h-full flex flex-col"
+                className="relative group bg-white/[0.04] backdrop-blur-sm border border-white/10 rounded-3xl p-5 sm:p-8 h-full flex flex-col"
               >
                 <div
                   className={`w-12 h-12 bg-gradient-to-br ${course.color} rounded-2xl flex items-center justify-center text-white text-lg font-bold mb-6`}
@@ -182,7 +182,7 @@ export function CoursesSection({ currency = "EUR" }: { currency?: "EUR" | "INR" 
                   {course.level[0]}
                 </div>
 
-                <h3 className="text-2xl font-bold text-white mb-1">
+                <h3 className="text-lg sm:text-2xl font-bold text-white mb-1">
                   {course.outcomeTitle}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4">{course.subtitle}</p>

@@ -49,7 +49,7 @@ export function NicheHero({ niche, jobCount, lastUpdated }: NicheHeroProps) {
           <span>/</span>
           <span className="text-white">{niche === "student-jobs" ? "Student Jobs" : niche.charAt(0).toUpperCase() + niche.slice(1)}</span>
         </nav>
-        <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-6">
           {config.title}{" "}
           <span className="bg-gradient-to-r from-primary to-rose-400 bg-clip-text text-transparent">
             {config.highlight}

@@ -36,7 +36,7 @@ export function GermanyOpportunity() {
               <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
                 Opportunities
               </p>
-              <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-6">
                 Germany Needs{" "}
                 <span className="bg-gradient-to-r from-primary to-orange-500 bg-clip-text text-transparent">
                   You
@@ -52,8 +52,8 @@ export function GermanyOpportunity() {
             <div className="space-y-6 mb-10">
               {opportunities.map((opp, i) => (
                 <AnimateInView key={opp.title} delay={i * 0.1}>
-                  <div className="flex items-start gap-5 p-5 rounded-2xl hover:bg-white/[0.04] transition-colors">
-                    <div className="w-14 h-14 bg-white/[0.06] border border-white/[0.08] rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
+                  <div className="flex items-start gap-3 sm:gap-5 p-3 sm:p-5 rounded-2xl hover:bg-white/[0.04] transition-colors">
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/[0.06] border border-white/[0.08] rounded-xl sm:rounded-2xl flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
                       {opp.icon}
                     </div>
                     <div>
@@ -68,25 +68,33 @@ export function GermanyOpportunity() {
             </div>
 
             <AnimateInView delay={0.3}>
-              <Link
-                href="/opportunities"
-                className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-100 transition-all"
-              >
-                Explore All Opportunities
-                <svg
-                  className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/jobs"
+                  className="group inline-flex items-center px-6 py-3 bg-white text-gray-900 text-sm font-semibold rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
-              </Link>
+                  Browse Real Jobs
+                  <svg
+                    className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </Link>
+                <Link
+                  href="/opportunities"
+                  className="inline-flex items-center px-6 py-3 border border-white/20 text-white text-sm font-semibold rounded-full hover:bg-white/5 transition-all"
+                >
+                  Explore Pathways
+                </Link>
+              </div>
             </AnimateInView>
           </div>
 

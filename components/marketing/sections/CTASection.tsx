@@ -13,14 +13,14 @@ export function CTASection() {
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <AnimateInView direction="none">
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white tracking-tight mb-6">
             Ready to Start Your
             <br />
             German Journey?
           </h2>
           <p className="text-lg text-gray-400 mb-10 max-w-2xl mx-auto">
-            Join our next batch and start speaking German. Get in touch with our
-            team today.
+            Whether you&apos;re a nurse, engineer, or student — we&apos;ll get you trained,
+            certified, and placed in Germany.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -44,7 +44,7 @@ export function CTASection() {
               </svg>
             </Link>
             <a
-              href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I'm%20interested%20in%20learning%20German."
+              href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I%27m%20interested%20in%20your%20Germany%20pathway%20%E2%80%94%20German%20training%20and%20career%20support."
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackEvent("whatsapp_click", { location: "cta_section" })}

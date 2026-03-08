@@ -47,7 +47,7 @@ export function PathwaySection() {
           <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
             Your Germany Pathway
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">
             The PlanBeta Germany Pathway
           </h2>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
@@ -63,7 +63,7 @@ export function PathwaySection() {
           <div className="space-y-10">
             {pathwaySteps.map((step, index) => (
               <AnimateInView key={index} delay={index * 0.1}>
-                <div className="relative flex gap-6">
+                <div className="relative flex gap-4 sm:gap-6">
                   {/* Number circle */}
                   <div className="relative z-10 flex-shrink-0 w-12 h-12 bg-primary/10 border border-primary/30 rounded-full flex items-center justify-center">
                     <span className="text-primary font-bold text-lg">{index + 1}</span>

@@ -83,7 +83,7 @@ export function HeroSection() {
             {/* Headline — LCP element, no animation delay */}
             <motion.h1
               variants={lcpItem}
-              className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6"
+              className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6"
             >
               Your Journey to{" "}
               <span className="bg-gradient-to-r from-primary via-red-400 to-orange-400 bg-clip-text text-transparent">
@@ -98,8 +98,8 @@ export function HeroSection() {
               variants={item}
               className="text-lg sm:text-xl text-gray-400 mb-10 max-w-lg mx-auto lg:mx-0 leading-relaxed"
             >
-              Master German with Kerala&apos;s most trusted language institute.
-              Live classes. Expert teachers. Proven results.
+              German training, career support, and job placement — all in one place.
+              Live classes. Expert teachers. 500+ alumni now in Germany.
             </motion.p>
 
             {/* CTAs */}
@@ -141,7 +141,7 @@ export function HeroSection() {
               variants={item}
               className="flex flex-wrap items-center justify-center lg:justify-start gap-6 mt-10 text-sm text-gray-500"
             >
-              {["Expert teachers", "Small batches", "Flexible timings"].map(
+              {["500+ placed in Germany", "End-to-end career support", "95% exam pass rate"].map(
                 (text) => (
                   <div key={text} className="flex items-center gap-2">
                     <svg
@@ -193,7 +193,7 @@ export function HeroSection() {
                     onClick={() =>
                       trackEvent("audience_click", { audience: btn.audience })
                     }
-                    className="flex-1 text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] px-4 py-3 text-center transition-all duration-300"
+                    className="flex-1 min-w-[140px] text-sm rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] px-3 sm:px-4 py-3 text-center transition-all duration-300"
                   >
                     <span className="block text-white font-medium">
                       {btn.label}
@@ -218,10 +218,10 @@ export function HeroSection() {
               <div className="text-center mb-8">
                 <div className="text-5xl mb-3">🇩🇪</div>
                 <h3 className="text-xl font-bold text-white">
-                  From Zero to Fluent
+                  From Zero to Germany
                 </h3>
                 <p className="text-gray-500 text-sm mt-1">
-                  Your learning path
+                  Your career pathway
                 </p>
               </div>
 

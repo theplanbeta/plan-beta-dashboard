@@ -19,7 +19,7 @@ import { ExploreSection } from "@/components/marketing/sections/ExploreSection"
 export const metadata = generatePageMetadata({
   title: "Germany Pathway | Plan Beta — German Courses & Career Support from Kerala",
   description:
-    "Master German with Kerala's premier language institute. Live online classes, expert instructors, A1 to B2 levels. 95% exam pass rate.",
+    "Your complete Germany pathway — German training (A1 to B2), career support, and job placement. 500+ alumni now working in Germany. Live online classes from Kerala.",
   keywords: TARGET_KEYWORDS.home,
   path: "",
 })

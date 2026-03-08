@@ -182,9 +182,9 @@ export const features = [
     video: "/videos/bento-exam.mp4",
   },
   {
-    title: "Career Guidance",
+    title: "Career Placement Support",
     description:
-      "Mentorship from professionals already in Germany. We help beyond just language.",
+      "From job search to placement — we connect you with employers in Germany. Nurses get end-to-end support: training, Anerkennung, and hospital placement.",
     icon: "briefcase",
     span: 1,
     video: "/videos/bento-career.mp4",
@@ -223,7 +223,7 @@ export const faqs = [
   {
     question: "Will this help me get a job in Germany?",
     answer:
-      "Absolutely. B1 level is the minimum requirement for most work visas. Many of our students are now working in Germany in nursing, IT, engineering, and other fields.",
+      "Absolutely. We don't just teach German — we help you get placed. For nurses, we handle the full journey: A1→B2 training, Anerkennung (qualification recognition), and hospital placement. For engineers and IT professionals, we prepare you for Blue Card applications. 500+ of our alumni are now working in Germany.",
   },
 ]
 
@@ -244,35 +244,35 @@ export const pathwaySteps = [
     description:
       "Take our free assessment to find out which German level you need for your career goal — nursing, IT, engineering, or studies.",
     icon: "clipboard",
-    href: "/site/contact",
+    href: "/contact",
   },
   {
     title: "Start Your German Course",
     description:
       "Join a live batch (A1–B2) with small class sizes, Mon–Fri sessions, and teachers who speak Malayalam.",
     icon: "book",
-    href: "/site/courses",
+    href: "/courses",
   },
   {
     title: "Pass Your Goethe/TELC Exam",
     description:
       "Our exam-focused curriculum has a 95% first-attempt pass rate. Get certified at the level German employers require.",
     icon: "award",
-    href: "/site/courses",
+    href: "/courses",
   },
   {
-    title: "Get Your Visa & Job Offer",
+    title: "Get Placed in Germany",
     description:
-      "With your certificate in hand, apply for work visas, Blue Cards, or university admission. Our alumni network helps with referrals.",
+      "We connect you with employers. Nurses get end-to-end placement (training + Anerkennung + hospital job). Engineers get Blue Card guidance. Browse real openings on our job board.",
     icon: "plane",
-    href: "/site/opportunities",
+    href: "/jobs",
   },
   {
     title: "Start Your Life in Germany",
     description:
-      "Join 500+ PlanBeta alumni already in Germany. Get settling-in support, job leads, and community from day one.",
+      "Join 500+ Plan Beta alumni already in Germany. Get settling-in support, job leads, and community from day one.",
     icon: "flag",
-    href: "/site/about",
+    href: "/about",
   },
 ]
 

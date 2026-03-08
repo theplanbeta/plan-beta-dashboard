@@ -22,7 +22,7 @@ function FAQItem({
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between py-6 text-left group"
         >
-          <span className="text-lg font-semibold text-white pr-8 group-hover:text-primary transition-colors">
+          <span className="text-base sm:text-lg font-semibold text-white pr-4 sm:pr-8 group-hover:text-primary transition-colors">
             {faq.question}
           </span>
           <motion.div

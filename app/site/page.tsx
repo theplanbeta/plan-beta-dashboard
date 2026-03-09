@@ -14,6 +14,7 @@ import { TestimonialsSection } from "@/components/marketing/sections/Testimonial
 import { AlumniSection } from "@/components/marketing/sections/AlumniSection"
 import { FAQSection } from "@/components/marketing/sections/FAQSection"
 import { CTASection } from "@/components/marketing/sections/CTASection"
+import { JobPortalSection } from "@/components/marketing/sections/JobPortalSection"
 import { ExploreSection } from "@/components/marketing/sections/ExploreSection"
 
 export const metadata = generatePageMetadata({
@@ -40,6 +41,7 @@ export default async function HomePage() {
       <PathwaySection />
       <CoursesSection currency={currency} />
       <GermanyOpportunity />
+      <JobPortalSection />
       <ExploreSection />
       <WhyPlanBeta />
       <TestimonialsSection />

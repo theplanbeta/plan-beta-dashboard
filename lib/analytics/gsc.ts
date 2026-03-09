@@ -8,9 +8,14 @@ function getSearchConsole() {
   ) {
     return null
   }
+  // Handle private key: Vercel may store literal \n or actual newlines
+  let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+  if (privateKey.includes("\\n")) {
+    privateKey = privateKey.split("\\n").join("\n")
+  }
   const auth = new google.auth.JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    key: privateKey,
     scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
   })
   return google.searchconsole({ version: "v1", auth })

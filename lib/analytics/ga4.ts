@@ -8,10 +8,15 @@ function getClient(): BetaAnalyticsDataClient | null {
   ) {
     return null
   }
+  // Handle private key: Vercel may store literal \n or actual newlines
+  let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+  if (privateKey.includes("\\n")) {
+    privateKey = privateKey.split("\\n").join("\n")
+  }
   return new BetaAnalyticsDataClient({
     credentials: {
       client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      private_key: privateKey,
     },
   })
 }

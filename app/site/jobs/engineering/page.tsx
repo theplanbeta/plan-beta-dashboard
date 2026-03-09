@@ -11,7 +11,8 @@ const PROFESSIONS = ["Engineering", "IT"]
 async function getInitialData() {
   try {
     const where = { active: true, profession: { in: PROFESSIONS } }
-    const [jobs, totalCount, lastUpdatedJob, germanLevels, locations] = await Promise.all([
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+    const [jobs, totalCount, lastUpdatedJob, newJobsToday, germanLevels, locations] = await Promise.all([
       prisma.jobPosting.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -24,6 +25,7 @@ async function getInitialData() {
       }),
       prisma.jobPosting.count({ where }),
       prisma.jobPosting.findFirst({ where, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
+      prisma.jobPosting.count({ where: { ...where, createdAt: { gte: todayStart } } }),
       prisma.jobPosting.groupBy({ by: ["germanLevel"], where: { ...where, germanLevel: { not: null } }, _count: true }),
       prisma.jobPosting.groupBy({ by: ["location"], where: { ...where, location: { not: null } }, _count: true, orderBy: { _count: { location: "desc" } }, take: 20 }),
     ])
@@ -31,13 +33,14 @@ async function getInitialData() {
       jobs: jobs.map(j => ({ ...j, salaryMin: j.salaryMin ? Number(j.salaryMin) : null, salaryMax: j.salaryMax ? Number(j.salaryMax) : null, postedAt: j.postedAt?.toISOString() ?? null })),
       totalCount,
       lastUpdated: lastUpdatedJob?.updatedAt?.toISOString() || null,
+      newJobsToday,
       filters: {
         germanLevels: germanLevels.map(l => ({ value: l.germanLevel!, count: l._count })),
         locations: locations.map(l => ({ value: l.location!, count: l._count })),
       },
     }
   } catch {
-    return { jobs: [], totalCount: 0, lastUpdated: null, filters: { germanLevels: [], locations: [] } }
+    return { jobs: [], totalCount: 0, lastUpdated: null, newJobsToday: 0, filters: { germanLevels: [], locations: [] } }
   }
 }
 
@@ -45,7 +48,7 @@ export default async function EngineeringJobsPage() {
   const data = await getInitialData()
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
-      <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} />
+      <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} newJobsToday={data.newJobsToday} />
       <GermanLevelGapBanner niche={NICHE} jobCount={data.totalCount} />
       <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading jobs...</div>}>
         <NicheJobsList

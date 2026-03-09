@@ -30,10 +30,15 @@ function formatDate(dateStr: string | null) {
   if (!dateStr) return null
   const d = new Date(dateStr)
   const now = new Date()
-  const diff = Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff === 0) return "Today"
-  if (diff === 1) return "Yesterday"
-  if (diff < 7) return `${diff} days ago`
+  const diffMs = now.getTime() - d.getTime()
+  const diffMin = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffMin < 1) return "just now"
+  if (diffMin < 60) return `${diffMin} min ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return "Yesterday"
+  if (diffDays < 7) return `${diffDays} days ago`
   return d.toLocaleDateString("en-IN", { month: "short", day: "numeric" })
 }
 

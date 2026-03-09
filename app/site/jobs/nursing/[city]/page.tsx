@@ -45,7 +45,8 @@ async function getInitialData(cityName: string) {
       profession: { in: PROFESSIONS },
       location: { contains: cityName, mode: "insensitive" as const },
     }
-    const [jobs, totalCount, lastUpdatedJob, germanLevels, locations] =
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+    const [jobs, totalCount, lastUpdatedJob, newJobsToday, germanLevels, locations] =
       await Promise.all([
         prisma.jobPosting.findMany({
           where,
@@ -74,6 +75,7 @@ async function getInitialData(cityName: string) {
           orderBy: { updatedAt: "desc" },
           select: { updatedAt: true },
         }),
+        prisma.jobPosting.count({ where: { ...where, createdAt: { gte: todayStart } } }),
         prisma.jobPosting.groupBy({
           by: ["germanLevel"],
           where: { ...where, germanLevel: { not: null } },
@@ -96,6 +98,7 @@ async function getInitialData(cityName: string) {
       })),
       totalCount,
       lastUpdated: lastUpdatedJob?.updatedAt?.toISOString() || null,
+      newJobsToday,
       filters: {
         germanLevels: germanLevels.map((l) => ({
           value: l.germanLevel!,
@@ -112,6 +115,7 @@ async function getInitialData(cityName: string) {
       jobs: [],
       totalCount: 0,
       lastUpdated: null,
+      newJobsToday: 0,
       filters: { germanLevels: [], locations: [] },
     }
   }
@@ -142,6 +146,7 @@ export default async function NursingCityPage({ params }: Props) {
         niche={NICHE}
         jobCount={data.totalCount}
         lastUpdated={data.lastUpdated}
+        newJobsToday={data.newJobsToday}
       />
       {intro && (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 mb-8">

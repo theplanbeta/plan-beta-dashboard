@@ -46,7 +46,8 @@ async function getInitialData(cityName: string) {
       profession: { in: PROFESSIONS },
       location: { contains: cityName, mode: "insensitive" as const },
     }
-    const [jobs, totalCount, lastUpdatedJob, germanLevels, locations] = await Promise.all([
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+    const [jobs, totalCount, lastUpdatedJob, newJobsToday, germanLevels, locations] = await Promise.all([
       prisma.jobPosting.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -59,6 +60,7 @@ async function getInitialData(cityName: string) {
       }),
       prisma.jobPosting.count({ where }),
       prisma.jobPosting.findFirst({ where, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
+      prisma.jobPosting.count({ where: { ...where, createdAt: { gte: todayStart } } }),
       prisma.jobPosting.groupBy({ by: ["germanLevel"], where: { ...where, germanLevel: { not: null } }, _count: true }),
       prisma.jobPosting.groupBy({ by: ["location"], where: { ...where, location: { not: null } }, _count: true, orderBy: { _count: { location: "desc" } }, take: 20 }),
     ])
@@ -66,13 +68,14 @@ async function getInitialData(cityName: string) {
       jobs: jobs.map(j => ({ ...j, salaryMin: j.salaryMin ? Number(j.salaryMin) : null, salaryMax: j.salaryMax ? Number(j.salaryMax) : null, postedAt: j.postedAt?.toISOString() ?? null })),
       totalCount,
       lastUpdated: lastUpdatedJob?.updatedAt?.toISOString() || null,
+      newJobsToday,
       filters: {
         germanLevels: germanLevels.map(l => ({ value: l.germanLevel!, count: l._count })),
         locations: locations.map(l => ({ value: l.location!, count: l._count })),
       },
     }
   } catch {
-    return { jobs: [], totalCount: 0, lastUpdated: null, filters: { germanLevels: [], locations: [] } }
+    return { jobs: [], totalCount: 0, lastUpdated: null, newJobsToday: 0, filters: { germanLevels: [], locations: [] } }
   }
 }
 
@@ -95,7 +98,7 @@ export default async function StudentJobsCityPage({ params }: Props) {
         ]}
       />
 
-      <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} />
+      <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} newJobsToday={data.newJobsToday} />
 
       {/* City-specific intro */}
       {cityIntro && (

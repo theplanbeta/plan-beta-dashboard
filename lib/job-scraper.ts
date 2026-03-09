@@ -278,14 +278,14 @@ function mapJobType(types: string[], title?: string): string | null {
   const t = [...types, title || ""].join(" ").toLowerCase()
   // Part-time checks (German + English)
   if (t.includes("teilzeit") || t.includes("part-time") || t.includes("part time") || t.includes("minijob") || t.includes("mini-job") || t.includes("geringfügig")) return "PART_TIME"
-  // Student/working student → part-time
-  if (t.includes("werkstudent") || t.includes("working student")) return "PART_TIME"
+  // Working student
+  if (t.includes("werkstudent") || t.includes("working student")) return "WORKING_STUDENT"
+  // Internship
+  if (t.includes("praktik") || t.includes("internship")) return "INTERNSHIP"
   // Full-time checks
   if (t.includes("vollzeit") || t.includes("full-time") || t.includes("full time") || types.some(v => v.toLowerCase() === "full-time")) return "FULL_TIME"
   // Contract/freelance
   if (t.includes("contract") || t.includes("freelance") || t.includes("freiberuf") || t.includes("befristet")) return "CONTRACT"
-  // Internship → part-time
-  if (t.includes("praktik") || t.includes("internship")) return "PART_TIME"
   return null
 }
 

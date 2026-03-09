@@ -5,8 +5,8 @@ import { sendMultiChannelAlert } from "@/lib/job-alert-channels"
 
 export const maxDuration = 60
 
-// GET /api/cron/job-alerts — Send daily/saved-search job alerts via email + WhatsApp + push
-// Runs at 8 AM UTC (9 AM CET) daily, after the 7 AM scrape completes
+// GET /api/cron/job-alerts — Send job alerts via email + WhatsApp + push
+// Runs at 8 AM + 8 PM UTC, after each scrape cycle (configured in vercel.json)
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

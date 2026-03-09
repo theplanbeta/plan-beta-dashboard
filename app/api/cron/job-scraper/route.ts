@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { scrapeAllSources } from "@/lib/job-scraper"
+import { scrapeAllSources, generateJobSlug } from "@/lib/job-scraper"
 import { verifyCronSecret } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import { sendText } from "@/lib/whatsapp"
 
 export const maxDuration = 60
 
-// GET /api/cron/job-scraper — Daily job scraping cron (protected by CRON_SECRET)
-// Runs at 6 AM UTC daily (configured in vercel.json)
+// GET /api/cron/job-scraper — Job scraping cron (protected by CRON_SECRET)
+// Runs at 6 AM + 6 PM UTC (configured in vercel.json)
 export async function GET(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -31,17 +31,65 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Backfill slugs for any jobs missing them
+    const slugsBackfilled = await backfillSlugs()
+
     // Check if Kimi Claw has pushed data in the last 36 hours
     await checkKimiClawStaleness()
 
     return NextResponse.json({
       success: true,
       ...result,
+      slugsBackfilled,
     })
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
     console.error("[Cron] Job scraper error:", msg)
     return NextResponse.json({ error: `Scraping failed: ${msg}` }, { status: 500 })
+  }
+}
+
+/**
+ * Backfill slugs for jobs that have slug IS NULL.
+ * Runs each cron cycle until all jobs have slugs.
+ */
+async function backfillSlugs(): Promise<number> {
+  try {
+    const jobsWithoutSlug = await prisma.jobPosting.findMany({
+      where: { slug: null },
+      select: { id: true, externalId: true, title: true, company: true, location: true },
+      take: 200, // Process in batches to stay within function timeout
+    })
+
+    if (jobsWithoutSlug.length === 0) return 0
+
+    let updated = 0
+    for (const job of jobsWithoutSlug) {
+      try {
+        const slug = generateJobSlug(job.title, job.company, job.location)
+        const existing = await prisma.jobPosting.findUnique({
+          where: { slug },
+          select: { id: true },
+        })
+        const finalSlug = existing && existing.id !== job.id
+          ? `${slug}-${(job.externalId || job.id).slice(-6)}`
+          : slug
+
+        await prisma.jobPosting.update({
+          where: { id: job.id },
+          data: { slug: finalSlug },
+        })
+        updated++
+      } catch (error) {
+        console.error(`[Cron] Failed to backfill slug for job ${job.id}:`, error)
+      }
+    }
+
+    console.log(`[Cron] Backfilled slugs for ${updated}/${jobsWithoutSlug.length} jobs`)
+    return updated
+  } catch (error) {
+    console.error("[Cron] Slug backfill failed:", error)
+    return 0
   }
 }
 

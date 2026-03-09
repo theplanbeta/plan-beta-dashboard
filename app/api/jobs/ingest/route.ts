@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { verifyCronSecret } from "@/lib/api-permissions"
+import { generateJobSlug, inferProfession } from "@/lib/job-scraper"
 
 const jobSchema = z.object({
   title: z.string().min(1),
@@ -63,14 +64,43 @@ export async function POST(request: NextRequest) {
       update: {},
     })
 
+    // Detect generic career page URLs
+    const GENERIC_CAREER_PATTERNS = /\/(jobs\.html|karriere\/?|career\/?|careers\/?|stellenangebote\/?|jobs\/?)$/i
+
     let upsertCount = 0
+    let genericUrlCount = 0
     for (const job of jobs) {
       try {
+        // Warn if applyUrl matches source URL or looks like a generic career page
+        if (job.applyUrl) {
+          const isGeneric = job.applyUrl === sourceUrl || GENERIC_CAREER_PATTERNS.test(job.applyUrl)
+          if (isGeneric) {
+            genericUrlCount++
+            console.warn(`[Ingest] Generic career URL for "${job.title}" at ${job.company}: ${job.applyUrl}`)
+          }
+        }
+
+        // Infer profession if missing or "Other"
+        const profession = (!job.profession || job.profession === "Other")
+          ? inferProfession(job.requirements || [], job.title)
+          : job.profession
+
+        // Generate slug
+        const slug = generateJobSlug(job.title, job.company, job.location || null)
+        const existingSlug = await prisma.jobPosting.findUnique({
+          where: { slug },
+          select: { id: true, externalId: true },
+        })
+        const finalSlug = existingSlug && existingSlug.externalId !== job.externalId
+          ? `${slug}-${job.externalId.slice(-6)}`
+          : slug
+
         await prisma.jobPosting.upsert({
           where: { externalId: job.externalId },
           create: {
             sourceId: jobSource.id,
             externalId: job.externalId,
+            slug: finalSlug,
             title: job.title,
             company: job.company,
             location: job.location || null,
@@ -79,7 +109,7 @@ export async function POST(request: NextRequest) {
             salaryMax: job.salaryMax || null,
             currency: job.currency,
             germanLevel: job.germanLevel || null,
-            profession: job.profession || null,
+            profession,
             jobType: job.jobType || null,
             requirements: job.requirements,
             applyUrl: job.applyUrl || null,
@@ -94,7 +124,7 @@ export async function POST(request: NextRequest) {
             salaryMin: job.salaryMin || null,
             salaryMax: job.salaryMax || null,
             germanLevel: job.germanLevel || null,
-            profession: job.profession || null,
+            profession,
             jobType: job.jobType || null,
             requirements: job.requirements,
             applyUrl: job.applyUrl || null,
@@ -106,6 +136,10 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error(`[Ingest] Failed to upsert job "${job.title}":`, error)
       }
+    }
+
+    if (genericUrlCount > 0) {
+      console.warn(`[Ingest] ${genericUrlCount}/${jobs.length} jobs from ${sourceName} have generic career page URLs — update Kimi Claw config to extract specific job URLs`)
     }
 
     // Update source metadata

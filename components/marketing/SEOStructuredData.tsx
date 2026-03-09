@@ -374,6 +374,8 @@ export function JobPostingSchema({ job }: JobPostingSchemaProps) {
       FULL_TIME: "FULL_TIME",
       PART_TIME: "PART_TIME",
       CONTRACT: "CONTRACTOR",
+      INTERNSHIP: "INTERN",
+      WORKING_STUDENT: "PART_TIME",
     }
     schema.employmentType = typeMap[job.jobType] || job.jobType
   }

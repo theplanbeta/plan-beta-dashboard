@@ -91,9 +91,11 @@ export function EnhancedFilters({
           {/* Job type (free) */}
           <select value={selectedJobType} onChange={(e) => onJobTypeChange(e.target.value)} className={selectClasses}>
             <option value="">All Job Types</option>
-            <option value="PART_TIME">Part Time / Werkstudent</option>
+            <option value="PART_TIME">Part Time</option>
             <option value="FULL_TIME">Full Time</option>
-            <option value="CONTRACT">Contract / Internship</option>
+            <option value="CONTRACT">Contract</option>
+            <option value="INTERNSHIP">Internship</option>
+            <option value="WORKING_STUDENT">Working Student</option>
           </select>
 
           {/* English OK toggle (premium) */}

@@ -98,7 +98,7 @@ export default async function JobPage({ params }: Props) {
           },
         }
       : {}),
-    employmentType: data.job.jobType === "FULL_TIME" ? "FULL_TIME" : data.job.jobType === "PART_TIME" ? "PART_TIME" : data.job.jobType === "CONTRACT" ? "CONTRACTOR" : undefined,
+    employmentType: ({ FULL_TIME: "FULL_TIME", PART_TIME: "PART_TIME", CONTRACT: "CONTRACTOR", INTERNSHIP: "INTERN", WORKING_STUDENT: "PART_TIME" } as Record<string, string>)[data.job.jobType || ""] || undefined,
   }
 
   return (

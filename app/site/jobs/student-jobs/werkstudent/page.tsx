@@ -13,7 +13,7 @@ async function getWerkstudentData() {
         { title: { contains: "werkstudent", mode: "insensitive" as const } },
         { title: { contains: "working student", mode: "insensitive" as const } },
         { title: { contains: "studentische", mode: "insensitive" as const } },
-        { jobType: "PART_TIME" },
+        { jobType: { in: ["PART_TIME", "WORKING_STUDENT"] } },
       ],
     }
 

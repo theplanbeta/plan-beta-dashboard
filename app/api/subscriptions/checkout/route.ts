@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
   const appUrl = rawAppUrl.startsWith("https://") ? rawAppUrl.trim().replace(/\/+$/, "") : "https://theplanbeta.com"
   const successUrl = `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/jobs/student-jobs`
-  console.log("[Stripe Checkout] success_url:", successUrl)
 
   try {
     const session = await stripe.checkout.sessions.create({

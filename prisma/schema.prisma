@@ -1501,3 +1501,16 @@ model SavedSearch {
   @@index([subscriberEmail])
   @@index([alertEnabled])
 }
+
+model AnalyticsCache {
+  id        String   @id @default(cuid())
+  source    String   // "ga4", "gsc", "clarity", "vercel_web", "vercel_vitals"
+  dateRange String   // "7d", "30d", "90d"
+  data      Json
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@unique([source, dateRange])
+  @@index([source])
+  @@index([expiresAt])
+}

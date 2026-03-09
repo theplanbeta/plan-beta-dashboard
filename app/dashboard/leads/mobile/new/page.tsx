@@ -93,10 +93,10 @@ export default function MobileNewLeadPage() {
       <div className="sticky top-0 bg-white dark:bg-gray-800 panel-section shadow-sm z-10">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">Add New Lead</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Add New Lead</h1>
             <Link
               href="/dashboard/leads"
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             >
               Cancel
             </Link>
@@ -116,10 +116,10 @@ export default function MobileNewLeadPage() {
 
         {/* Contact Information Section */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Contact Info</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-2">Contact Info</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Name <span className="text-red-600">*</span>
             </label>
             <input
@@ -129,7 +129,7 @@ export default function MobileNewLeadPage() {
               onChange={handleChange}
               required
               placeholder="Enter full name"
-              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErrors.name ? "border-red-500" : "border-gray-300"}`}
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
             />
             {fieldErrors.name && (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>
@@ -137,7 +137,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               WhatsApp Number <span className="text-red-600">*</span>
             </label>
             <input
@@ -147,7 +147,7 @@ export default function MobileNewLeadPage() {
               onChange={handleChange}
               required
               placeholder="+919876543210"
-              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${fieldErrors.whatsapp ? "border-red-500" : "border-gray-300"}`}
+              className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.whatsapp ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
             />
             {fieldErrors.whatsapp ? (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.whatsapp}</p>
@@ -157,7 +157,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email (Optional)
             </label>
             <input
@@ -166,17 +166,17 @@ export default function MobileNewLeadPage() {
               value={formData.email}
               onChange={handleChange}
               placeholder="email@example.com"
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
         </div>
 
         {/* Lead Classification */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Classification</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-2">Classification</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Source <span className="text-red-600">*</span>
             </label>
             <select
@@ -184,7 +184,7 @@ export default function MobileNewLeadPage() {
               value={formData.source}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="INSTAGRAM">Instagram</option>
               <option value="META_ADS">Meta Ads</option>
@@ -196,7 +196,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Quality
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -205,8 +205,8 @@ export default function MobileNewLeadPage() {
                 onClick={() => setFormData({ ...formData, quality: "HOT" })}
                 className={`py-3 px-4 rounded-lg font-medium text-sm border-2 transition-all ${
                   formData.quality === "HOT"
-                    ? "bg-red-50 border-red-500 text-red-700"
-                    : "bg-white border-gray-200 text-gray-600"
+                    ? "bg-red-50 border-red-500 text-red-700 dark:bg-red-900/30 dark:border-red-400 dark:text-red-300"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                 }`}
               >
                 🔥 Hot
@@ -216,8 +216,8 @@ export default function MobileNewLeadPage() {
                 onClick={() => setFormData({ ...formData, quality: "WARM" })}
                 className={`py-3 px-4 rounded-lg font-medium text-sm border-2 transition-all ${
                   formData.quality === "WARM"
-                    ? "bg-orange-50 border-orange-500 text-orange-700"
-                    : "bg-white border-gray-200 text-gray-600"
+                    ? "bg-orange-50 border-orange-500 text-orange-700 dark:bg-orange-900/30 dark:border-orange-400 dark:text-orange-300"
+                    : "bg-white border-gray-200 text-gray-600 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200"
                 }`}
               >
                 ☀️ Warm
@@ -239,10 +239,10 @@ export default function MobileNewLeadPage() {
 
         {/* Course Interest */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 border-b pb-2">Booking Details</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-2">Booking Details</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Booked Level
             </label>
             <select
@@ -261,7 +261,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Course Package
             </label>
             <select
@@ -288,7 +288,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Booked Month
             </label>
             <select
@@ -305,7 +305,7 @@ export default function MobileNewLeadPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Preferred Time
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -337,7 +337,7 @@ export default function MobileNewLeadPage() {
 
         {/* Notes */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-5">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Notes (Optional)
           </label>
           <textarea
@@ -346,7 +346,7 @@ export default function MobileNewLeadPage() {
             onChange={handleChange}
             rows={4}
             placeholder="Any additional information..."
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
       </form>

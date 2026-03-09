@@ -186,7 +186,7 @@ export default function NewOfferLetterPage() {
             value={teacherId}
             onChange={(e) => setTeacherId(e.target.value)}
             required
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.teacherId ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.teacherId ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
           >
             <option value="">-- Select Teacher --</option>
             {teachers.map((teacher) => (
@@ -211,7 +211,7 @@ export default function NewOfferLetterPage() {
             required
             rows={3}
             placeholder="Enter full address with street, city, state, and PIN"
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.teacherAddress ? "border-red-500" : "border-gray-300"}`}
+            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.teacherAddress ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
           />
           {fieldErrors.teacherAddress ? (
             <p className="text-red-500 text-xs mt-1">{fieldErrors.teacherAddress}</p>
@@ -233,7 +233,7 @@ export default function NewOfferLetterPage() {
               value={offerDate}
               onChange={(e) => setOfferDate(e.target.value)}
               required
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.offerDate ? "border-red-500" : "border-gray-300"}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.offerDate ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
             />
             {fieldErrors.offerDate && (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.offerDate}</p>
@@ -248,7 +248,7 @@ export default function NewOfferLetterPage() {
               value={acceptanceDeadline}
               onChange={(e) => setAcceptanceDeadline(e.target.value)}
               required
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary ${fieldErrors.acceptanceDeadline ? "border-red-500" : "border-gray-300"}`}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${fieldErrors.acceptanceDeadline ? "border-red-500" : "border-gray-300 dark:border-gray-600"}`}
             />
             {fieldErrors.acceptanceDeadline && (
               <p className="text-red-500 text-xs mt-1">{fieldErrors.acceptanceDeadline}</p>
@@ -268,9 +268,9 @@ export default function NewOfferLetterPage() {
                 value="PART_TIME"
                 checked={positionType === "PART_TIME"}
                 onChange={(e) => setPositionType(e.target.value as "PART_TIME")}
-                className="w-4 h-4 text-primary border-gray-300 focus:ring-2 focus:ring-primary"
+                className="w-4 h-4 text-primary border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary"
               />
-              <span className="text-sm">Part-Time</span>
+              <span className="text-sm dark:text-gray-300">Part-Time</span>
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -278,9 +278,9 @@ export default function NewOfferLetterPage() {
                 value="FULL_TIME"
                 checked={positionType === "FULL_TIME"}
                 onChange={(e) => setPositionType(e.target.value as "FULL_TIME")}
-                className="w-4 h-4 text-primary border-gray-300 focus:ring-2 focus:ring-primary"
+                className="w-4 h-4 text-primary border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary"
               />
-              <span className="text-sm">Full-Time</span>
+              <span className="text-sm dark:text-gray-300">Full-Time</span>
             </label>
           </div>
         </div>
@@ -309,12 +309,12 @@ export default function NewOfferLetterPage() {
                     value={batch.level}
                     onChange={(e) => handleBatchChange(index, "level", e.target.value)}
                     placeholder="e.g., A1, A2, B1, B2"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div className="flex-1">
                   <div className="relative">
-                    <span className="absolute left-3 top-2 text-gray-500">₹</span>
+                    <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">₹</span>
                     <input
                       type="number"
                       value={batch.rate || ""}
@@ -322,7 +322,7 @@ export default function NewOfferLetterPage() {
                       placeholder="Rate per hour"
                       min="0"
                       step="50"
-                      className="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                      className="w-full pl-7 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
                 </div>
@@ -356,12 +356,12 @@ export default function NewOfferLetterPage() {
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="Add any internal notes about this offer (not shown in PDF)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
 
         {/* Submit Button */}
-        <div className="flex items-center gap-3 pt-4 border-t">
+        <div className="flex items-center gap-3 pt-4 border-t dark:border-gray-700">
           <button
             type="submit"
             disabled={submitting}

@@ -79,18 +79,27 @@ const DESTINATIONS = [
   { group: "Pages", items: [
     { value: "/site", label: "Homepage" },
     { value: "/site/contact", label: "Contact Page" },
-    { value: "/site/nurses", label: "Nurses Page" },
     { value: "/site/courses", label: "Courses Page" },
+    { value: "/site/nurses", label: "Nurses Page" },
     { value: "/site/opportunities", label: "Opportunities Page" },
+    { value: "/site/germany-pathway", label: "Germany Pathway" },
     { value: "/site/about", label: "About Page" },
     { value: "/site/blog", label: "Blog" },
     { value: "/site/refer", label: "Referral Page" },
+    { value: "/site/spot-a-job", label: "Spot a Job" },
   ]},
   { group: "Course Levels", items: [
     { value: "/site/courses#a1", label: "A1 Course" },
     { value: "/site/courses#a2", label: "A2 Course" },
     { value: "/site/courses#b1", label: "B1 Course" },
     { value: "/site/courses#b2", label: "B2 Course" },
+  ]},
+  { group: "Jobs", items: [
+    { value: "/site/jobs", label: "Jobs Hub" },
+    { value: "/site/jobs/student-jobs", label: "Student Jobs Portal" },
+    { value: "/site/jobs/nursing", label: "Nursing Jobs" },
+    { value: "/site/jobs/engineering", label: "Engineering Jobs" },
+    { value: "/site/jobs/india", label: "Jobs in India" },
   ]},
   { group: "WhatsApp CTAs", items: [
     { value: "wa:custom", label: "WhatsApp — Custom Message" },

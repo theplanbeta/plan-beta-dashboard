@@ -243,11 +243,11 @@ function NewPaymentForm() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Record Payment</h1>
-          <p className="mt-2 text-gray-600">Add a new payment record</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Add a new payment record</p>
         </div>
         <Link
           href="/dashboard/payments"
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300"
         >
           Cancel
         </Link>
@@ -311,15 +311,15 @@ function NewPaymentForm() {
 
           {/* Financial summary — show enrollment-level if selected, else student-level */}
           {selectedStudent && (
-            <div className="bg-gray-50 p-4 rounded-md">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-md">
               {selectedEnrollment && (
-                <p className="text-xs text-gray-500 mb-2 font-medium">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
                   Showing for: {selectedEnrollment.batch.batchCode} ({selectedEnrollment.batch.level})
                 </p>
               )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Total Amount:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Total Amount:</span>
                   <span className="font-semibold ml-2">
                     {formatCurrency(
                       Number(selectedEnrollment?.finalPrice ?? selectedStudent.finalPrice),
@@ -328,7 +328,7 @@ function NewPaymentForm() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Paid:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Paid:</span>
                   <span className="font-semibold ml-2 text-success">
                     {formatCurrency(
                       Number(selectedEnrollment?.totalPaid ?? selectedStudent.totalPaid),
@@ -337,7 +337,7 @@ function NewPaymentForm() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Balance:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Balance:</span>
                   <span className="font-semibold ml-2 text-warning">
                     {formatCurrency(
                       Number(selectedEnrollment?.balance ?? selectedStudent.balance),
@@ -346,7 +346,7 @@ function NewPaymentForm() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-600">Status:</span>
+                  <span className="text-gray-600 dark:text-gray-400">Status:</span>
                   <span className="font-semibold ml-2">
                     {selectedEnrollment?.paymentStatus ?? selectedStudent.paymentStatus}
                   </span>
@@ -357,7 +357,7 @@ function NewPaymentForm() {
         </div>
 
         {/* Payment Details */}
-        <div className="space-y-4 border-t pt-6">
+        <div className="space-y-4 border-t dark:border-gray-700 pt-6">
           <h2 className="text-lg font-semibold text-foreground">Payment Details</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -439,14 +439,14 @@ function NewPaymentForm() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Payment Status
               </label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="COMPLETED">Completed</option>
                 <option value="PENDING">Pending</option>
@@ -455,7 +455,7 @@ function NewPaymentForm() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Transaction ID (Optional)
               </label>
               <input
@@ -464,15 +464,15 @@ function NewPaymentForm() {
                 value={formData.transactionId}
                 onChange={handleChange}
                 placeholder="e.g., TXN123456789"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
           </div>
         </div>
 
         {/* Notes */}
-        <div className="border-t pt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="border-t dark:border-gray-700 pt-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Notes (Optional)
           </label>
           <textarea
@@ -480,7 +480,7 @@ function NewPaymentForm() {
             value={formData.notes}
             onChange={handleChange}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             placeholder="Any additional information about this payment..."
           />
         </div>
@@ -489,7 +489,7 @@ function NewPaymentForm() {
         {selectedStudent && formData.amount > 0 && (
           <div className="bg-info/10 border border-info p-4 rounded-md">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-700">Remaining Balance After Payment:</span>
+              <span className="text-gray-700 dark:text-gray-300">Remaining Balance After Payment:</span>
               <span className="font-semibold text-foreground">
                 {formatCurrency(
                   Number(selectedEnrollment?.balance ?? selectedStudent.balance) - formData.amount,
@@ -501,10 +501,10 @@ function NewPaymentForm() {
         )}
 
         {/* Submit */}
-        <div className="flex justify-end space-x-4 border-t pt-6">
+        <div className="flex justify-end space-x-4 border-t dark:border-gray-700 pt-6">
           <Link
             href="/dashboard/payments"
-            className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-300"
           >
             Cancel
           </Link>
@@ -528,7 +528,7 @@ export default function NewPaymentPage() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
           </div>
         </div>
       </div>

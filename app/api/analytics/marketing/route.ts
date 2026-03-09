@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { checkPermission } from "@/lib/api-permissions"
 
 // GET /api/analytics/marketing - Get marketing analytics
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const check = await checkPermission("analytics", "read")
+    if (!check.authorized) return check.response
 
     const { searchParams } = new URL(request.url)
     const period = searchParams.get("period") || "30" // days
@@ -192,7 +188,7 @@ export async function GET(request: NextRequest) {
       .map(([campaign, data]) => ({
         campaign,
         leads: data.total,
-        converted: data.converted,
+        conversions: data.converted,
         conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
       }))
       .sort((a, b) => b.leads - a.leads)
@@ -211,7 +207,7 @@ export async function GET(request: NextRequest) {
       .map(([page, data]) => ({
         page,
         leads: data.total,
-        converted: data.converted,
+        conversions: data.converted,
         conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
       }))
       .sort((a, b) => b.leads - a.leads)
@@ -226,10 +222,10 @@ export async function GET(request: NextRequest) {
       deviceMap.set(device, entry)
     }
     const deviceBreakdown = Array.from(deviceMap.entries())
-      .map(([device, data]) => ({
-        device,
+      .map(([deviceType, data]) => ({
+        deviceType,
         leads: data.total,
-        converted: data.converted,
+        conversions: data.converted,
         conversionRate: data.total > 0 ? (data.converted / data.total) * 100 : 0,
       }))
       .sort((a, b) => b.leads - a.leads)

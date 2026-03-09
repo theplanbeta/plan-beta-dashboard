@@ -21,6 +21,12 @@ const KERALA_CITIES: Record<string, { name: string; region: string }> = {
   ernakulam: { name: "Ernakulam", region: "Central Kerala" },
 }
 
+// Aliases that should canonicalize to primary city slug
+const CITY_ALIASES: Record<string, string> = {
+  trivandrum: "thiruvananthapuram",
+  calicut: "kozhikode",
+}
+
 export function generateStaticParams() {
   return Object.keys(KERALA_CITIES).map((city) => ({ city }))
 }
@@ -29,6 +35,9 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
   const { city } = await params
   const cityInfo = KERALA_CITIES[city]
   if (!cityInfo) return {}
+
+  // Use canonical slug for aliases (e.g., trivandrum → thiruvananthapuram)
+  const canonicalSlug = CITY_ALIASES[city] || city
 
   return generatePageMetadata({
     title: `German Language Classes in ${cityInfo.name} | Plan Beta`,
@@ -42,7 +51,7 @@ export async function generateMetadata({ params }: { params: Promise<{ city: str
       "learn german online kerala",
       "german A1 course kerala",
     ],
-    path: `/german-classes/${city}`,
+    path: `/german-classes/${canonicalSlug}`,
   })
 }
 

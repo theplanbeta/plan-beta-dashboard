@@ -213,9 +213,8 @@ export function JobDetailPage({ job, similarJobs }: { job: JobDetail; similarJob
           </a>
         </div>
 
-        {/* Source + views */}
-        <div className="flex items-center justify-between mt-4 text-xs text-gray-600">
-          <span>Source: {job.source.name}</span>
+        {/* Views */}
+        <div className="flex items-center justify-end mt-4 text-xs text-gray-600">
           <span>{job.viewCount.toLocaleString()} views</span>
         </div>
       </div>

@@ -192,7 +192,7 @@ export default function UtmLinksPage() {
   const [expandedCountries, setExpandedCountries] = useState<Set<string>>(new Set())
   const { addToast } = useToast()
 
-  const fetchLinks = useCallback(async () => {
+  const fetchLinks = useCallback(async (silent = false) => {
     try {
       const res = await fetch("/api/utm-links")
       if (!res.ok) throw new Error()
@@ -200,14 +200,14 @@ export default function UtmLinksPage() {
       setLinks(data.links)
       setTotals(data.totals)
     } catch {
-      addToast("Failed to load links", { type: "error" })
+      if (!silent) addToast("Failed to load links", { type: "error" })
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }, [addToast])
 
-  const fetchAnalytics = useCallback(async (days: number) => {
-    setAnalyticsLoading(true)
+  const fetchAnalytics = useCallback(async (days: number, silent = false) => {
+    if (!silent) setAnalyticsLoading(true)
     try {
       const res = await fetch(`/api/utm-links/analytics?period=${days}`)
       if (!res.ok) throw new Error()
@@ -276,9 +276,9 @@ export default function UtmLinksPage() {
 
       setAnalyticsData(transformed)
     } catch {
-      addToast("Failed to load analytics", { type: "error" })
+      if (!silent) addToast("Failed to load analytics", { type: "error" })
     } finally {
-      setAnalyticsLoading(false)
+      if (!silent) setAnalyticsLoading(false)
     }
   }, [addToast])
 
@@ -289,6 +289,32 @@ export default function UtmLinksPage() {
   useEffect(() => {
     fetchAnalytics(period)
   }, [period, fetchAnalytics])
+
+  // Auto-refresh every 5s when tab is visible
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    const start = () => {
+      if (interval) return
+      interval = setInterval(() => {
+        fetchLinks(true)
+        fetchAnalytics(period, true)
+      }, 5000)
+    }
+
+    const stop = () => {
+      if (interval) { clearInterval(interval); interval = null }
+    }
+
+    const onVisibility = () => {
+      if (document.hidden) stop()
+      else start()
+    }
+
+    if (!document.hidden) start()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisibility) }
+  }, [fetchLinks, fetchAnalytics, period])
 
   const handlePeriodChange = (days: number) => {
     setPeriod(days)

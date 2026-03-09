@@ -7,6 +7,7 @@ import { NicheFAQ } from "@/components/marketing/jobs/NicheFAQ"
 import { JobPortalAuthProvider } from "@/components/marketing/jobs/JobPortalAuthProvider"
 import { PremiumBanner } from "@/components/marketing/jobs/PremiumBanner"
 import { PortalTokenHandler } from "@/components/marketing/jobs/PortalTokenHandler"
+import { PortalAccountBar } from "@/components/marketing/jobs/PortalAccountBar"
 import Link from "next/link"
 
 const NICHE = "student-jobs" as const
@@ -52,6 +53,11 @@ export default async function StudentJobsPage() {
       <div className="min-h-screen bg-[#0a0a0a]">
         <Suspense fallback={null}><PortalTokenHandler /></Suspense>
         <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} />
+
+        {/* Account bar */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <PortalAccountBar />
+        </div>
 
         {/* Tools navigation */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

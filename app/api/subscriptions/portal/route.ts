@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://planbeta.app"
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").trim().replace(/\/+$/, "")
 
     const session = await stripe.billingPortal.sessions.create({
       customer: subscription.stripeCustomerId,

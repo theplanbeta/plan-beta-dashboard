@@ -7,6 +7,7 @@ import { getConsent } from "@/components/marketing/CookieConsent"
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+const CLARITY_PROJECT_ID = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID
 
 // Debug helper — check console on production to verify GA4 is working
 function dbg(msg: string, data?: Record<string, unknown>) {
@@ -193,6 +194,22 @@ export default function TrackingProvider() {
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Load Clarity when consented
+  useEffect(() => {
+    if (!CLARITY_PROJECT_ID || !consented) return
+    if ((window as any).clarity) return // Already loaded
+
+    const script = document.createElement("script")
+    script.async = true
+    script.src = `https://www.clarity.ms/tag/${CLARITY_PROJECT_ID}`
+    document.head.appendChild(script)
+
+    // Initialize clarity inline
+    ;(window as any).clarity = (window as any).clarity || function () {
+      ;((window as any).clarity.q = (window as any).clarity.q || []).push(arguments)
+    }
+  }, [consented])
 
   // Load Meta Pixel when consented
   useEffect(() => {

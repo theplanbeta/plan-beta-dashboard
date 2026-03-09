@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Use premium price if available, fall back to legacy price
-  const priceId = process.env.STRIPE_PREMIUM_PRICE_ID || process.env.STRIPE_PRICE_ID
+  const priceId = (process.env.STRIPE_PREMIUM_PRICE_ID || process.env.STRIPE_PRICE_ID || "").trim()
   if (!priceId) {
     return NextResponse.json(
       { error: "Subscription price not configured" },

@@ -48,9 +48,12 @@ export async function POST(request: NextRequest) {
   }
 
   const { email, name, whatsapp, professions, germanLevels, locations, jobTypes, whatsappAlerts, pushAlerts } = parsed.data
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com").trim().replace(/\/+$/, "")
+  // Use NEXT_PUBLIC_APP_URL or hardcoded fallback — must be clean HTTPS URL
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || ""
+  const appUrl = rawAppUrl.startsWith("https://") ? rawAppUrl.trim().replace(/\/+$/, "") : "https://theplanbeta.com"
   const successUrl = `${appUrl}/jobs/student-jobs?subscribed=true&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/jobs/student-jobs`
+  console.log("[Stripe Checkout] success_url:", successUrl)
 
   try {
     const session = await stripe.checkout.sessions.create({

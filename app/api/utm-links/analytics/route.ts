@@ -102,6 +102,25 @@ export async function GET(request: NextRequest) {
     }
     const hourly = hourlyBuckets.map((clicks, hour) => ({ hour, clicks }))
 
+    // City aggregation (flat, across all countries)
+    const cityMap = new Map<string, { clicks: number; country: string }>()
+    for (const click of clicks) {
+      if (click.city) {
+        const key = click.city
+        const existing = cityMap.get(key)
+        if (existing) {
+          existing.clicks++
+        } else {
+          cityMap.set(key, { clicks: 1, country: click.country || "Unknown" })
+        }
+      }
+    }
+    const topCities = Array.from(cityMap.entries())
+      .map(([city, data]) => ({ city, country: data.country, clicks: data.clicks }))
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 15)
+    const topCity = topCities[0] || null
+
     // === GEOGRAPHY (with cities) ===
     const geographyMap = new Map<string, { clicks: number; cities: Map<string, number> }>()
     for (const click of clicks) {
@@ -210,9 +229,12 @@ export async function GET(request: NextRequest) {
         topCountry,
         topDevice,
         topBrowser,
+        topCity: topCity ? topCity.city : null,
+        topCityCountry: topCity ? topCity.country : null,
         clicksByDay,
       },
       geography,
+      topCities,
       devices,
       browsers,
       operatingSystems,

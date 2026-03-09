@@ -28,6 +28,7 @@ interface AnalyticsData {
   totalClicks: number
   uniqueCountries: number
   topCountry: { code: string; clicks: number } | null
+  topCity: { name: string; country: string; clicks: number } | null
   topDevice: { type: string; clicks: number } | null
   topBrowser: { name: string; clicks: number } | null
   clicksByDay: Array<{ date: string; value: number }>
@@ -39,6 +40,7 @@ interface AnalyticsData {
     clicks: number
     cities: Array<{ name: string; clicks: number }>
   }>
+  topCities: Array<{ city: string; country: string; clicks: number }>
   referrers: Array<{ domain: string; clicks: number }>
   peakHours: Array<{ hour: number; clicks: number }>
   topLinks: Array<{
@@ -226,6 +228,9 @@ export default function UtmLinksPage() {
         topCountry: summary.topCountry
           ? { code: summary.topCountry, clicks: topCountryData?.clicks || 0 }
           : null,
+        topCity: summary.topCity
+          ? { name: summary.topCity, country: summary.topCityCountry || "", clicks: (raw.topCities || [])[0]?.clicks || 0 }
+          : null,
         topDevice: summary.topDevice
           ? { type: summary.topDevice, clicks: topDeviceData?.clicks || 0 }
           : null,
@@ -255,6 +260,11 @@ export default function UtmLinksPage() {
             name: c.city,
             clicks: c.clicks,
           })),
+        })),
+        topCities: (raw.topCities || []).map((c: { city: string; country: string; clicks: number }) => ({
+          city: c.city,
+          country: c.country,
+          clicks: c.clicks,
         })),
         referrers: (raw.referrers || []).map((r: { referrer: string; clicks: number }) => ({
           domain: r.referrer,
@@ -414,13 +424,13 @@ export default function UtmLinksPage() {
 
         {/* 1. Summary Cards */}
         {analyticsLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 5 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : analyticsData ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
               <p className="text-sm text-gray-500 dark:text-gray-400">Total Clicks</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
@@ -443,6 +453,17 @@ export default function UtmLinksPage() {
               {analyticsData.topCountry && (
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   {analyticsData.topCountry.clicks} clicks
+                </p>
+              )}
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+              <p className="text-sm text-gray-500 dark:text-gray-400">Top City</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {analyticsData.topCity?.name || "—"}
+              </p>
+              {analyticsData.topCity && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {getCountryFlag(analyticsData.topCity.country)} {analyticsData.topCity.clicks} clicks
                 </p>
               )}
             </div>
@@ -615,6 +636,48 @@ export default function UtmLinksPage() {
             </div>
           </div>
         ) : null}
+
+        {/* 4b. Top Cities (flat) */}
+        {!analyticsLoading && analyticsData && analyticsData.topCities.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+              Top Cities
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400">City</th>
+                    <th className="text-left p-3 font-medium text-gray-500 dark:text-gray-400">Country</th>
+                    <th className="text-right p-3 font-medium text-gray-500 dark:text-gray-400">Clicks</th>
+                    <th className="text-right p-3 font-medium text-gray-500 dark:text-gray-400">% of Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analyticsData.topCities.map((c) => (
+                    <tr
+                      key={`${c.city}-${c.country}`}
+                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    >
+                      <td className="p-3 font-medium text-gray-900 dark:text-white">{c.city}</td>
+                      <td className="p-3 text-gray-600 dark:text-gray-400">
+                        {getCountryFlag(c.country)} {getCountryName(c.country)}
+                      </td>
+                      <td className="p-3 text-right font-mono font-medium text-gray-900 dark:text-white">
+                        {c.clicks}
+                      </td>
+                      <td className="p-3 text-right text-gray-500 dark:text-gray-400">
+                        {analyticsData.totalClicks > 0
+                          ? `${((c.clicks / analyticsData.totalClicks) * 100).toFixed(1)}%`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* 5. Top Referrers */}
         {analyticsLoading ? (

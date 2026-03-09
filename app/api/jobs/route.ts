@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
     const professionFilter = { ...baseFilter, ...levelFilter }
     if (germanLevel) professionFilter.germanLevel = germanLevel
 
-    const [professions, levels, locations] = await Promise.all([
+    const [professions, levels, locations, noLocationCount] = await Promise.all([
       prisma.jobPosting.groupBy({
         by: ["profession"],
         where: { ...professionFilter, profession: { not: null } },
@@ -166,18 +166,29 @@ export async function GET(request: NextRequest) {
         where: { ...locationFilter, location: { not: null } },
         _count: true,
         orderBy: { _count: { location: "desc" } },
-        take: 20,
+        take: 50,
       }),
+      prisma.jobPosting.count({ where: { ...locationFilter, OR: [{ location: null }, { location: "" }] } }),
     ])
 
+    // Sum displayed location counts to calculate "Other" remainder
+    const displayedLocationTotal = locations.reduce((sum, l) => sum + l._count, 0)
+    const allLocationCount = await prisma.jobPosting.count({ where: locationFilter })
+    const otherLocationCount = allLocationCount - displayedLocationTotal - noLocationCount
+
     const totalPages = Math.ceil(totalCount / limit)
+
+    const locationEntries = locations.map((l) => ({ value: l.location!, count: l._count }))
+    if (otherLocationCount > 0) {
+      locationEntries.push({ value: "Other", count: otherLocationCount })
+    }
 
     return NextResponse.json({
       jobs,
       filters: {
         professions: professions.map((p) => ({ value: p.profession!, count: p._count })),
         germanLevels: levels.map((l) => ({ value: l.germanLevel!, count: l._count })),
-        locations: locations.map((l) => ({ value: l.location!, count: l._count })),
+        locations: locationEntries,
       },
       pagination: {
         page,

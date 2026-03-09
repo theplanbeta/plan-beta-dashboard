@@ -86,7 +86,7 @@ async function getInitialData(cityName: string) {
           where: { ...where, location: { not: null } },
           _count: true,
           orderBy: { _count: { location: "desc" } },
-          take: 20,
+          take: 50,
         }),
       ])
     return {

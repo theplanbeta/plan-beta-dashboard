@@ -1415,6 +1415,8 @@ model JobPosting {
   postedAt    DateTime?
   active      Boolean   @default(true)
   viewCount   Int       @default(0)
+  grade       String?   // A=Hot, B=Warm, C=Standard, D=Cold (from Kimi Claw)
+  gradeReason String?   // e.g. "Date:B, Lang:C"
   source      JobSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   savedBy     SavedJob[]
   createdAt   DateTime  @default(now())
@@ -1426,6 +1428,7 @@ model JobPosting {
   @@index([active])
   @@index([sourceId])
   @@index([createdAt, active])
+  @@index([grade])
 }
 
 model CommunityJob {

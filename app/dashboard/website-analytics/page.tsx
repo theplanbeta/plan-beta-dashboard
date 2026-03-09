@@ -6,6 +6,7 @@ import OverviewTab from "./components/OverviewTab"
 import SearchTab from "./components/SearchTab"
 import PerformanceTab from "./components/PerformanceTab"
 import AttributionTab from "./components/AttributionTab"
+import InsightsTab from "./components/InsightsTab"
 import RealtimeBadge from "./components/RealtimeBadge"
 
 const TABS = [
@@ -13,6 +14,7 @@ const TABS = [
   { id: "search", label: "Search", icon: "🔍" },
   { id: "performance", label: "Performance", icon: "⚡" },
   { id: "attribution", label: "Attribution", icon: "🎯" },
+  { id: "insights", label: "Insights", icon: "🧠" },
 ] as const
 
 type TabId = (typeof TABS)[number]["id"]
@@ -37,6 +39,7 @@ export default function WebsiteAnalyticsPage() {
         search: `/api/analytics/website/gsc?period=${period}`,
         performance: `/api/analytics/website/vercel?period=${period}`,
         attribution: `/api/analytics/website/first-party?period=${period}`,
+        insights: `/api/analytics/marketing-insights`,
       }
 
       try {
@@ -134,6 +137,9 @@ export default function WebsiteAnalyticsPage() {
       )}
       {activeTab === "attribution" && (
         <AttributionTab data={current.data} loading={current.loading} error={current.error} />
+      )}
+      {activeTab === "insights" && (
+        <InsightsTab data={current.data} loading={current.loading} error={current.error} />
       )}
     </div>
   )

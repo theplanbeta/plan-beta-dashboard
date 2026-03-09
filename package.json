@@ -17,6 +17,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google-analytics/data": "^5.2.1",
     "@google/generative-ai": "^0.24.1",

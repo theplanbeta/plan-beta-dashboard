@@ -5,9 +5,9 @@ import { verifyCronSecret } from "@/lib/api-permissions"
 import { generateJobSlug, inferProfession } from "@/lib/job-scraper"
 
 const jobSchema = z.object({
-  title: z.string().min(1),
-  company: z.string().min(1),
-  location: z.string().nullish(),
+  title: z.string().min(1).max(200),
+  company: z.string().min(1).max(100),
+  location: z.string().max(50).nullish(),
   salaryMin: z.number().nullish(),
   salaryMax: z.number().nullish(),
   currency: z.string().default("EUR"),
@@ -15,9 +15,11 @@ const jobSchema = z.object({
   profession: z.string().nullish(),
   jobType: z.string().nullish(),
   requirements: z.array(z.string()).default([]),
-  applyUrl: z.string().url().nullish(),
-  externalId: z.string().min(1),
-  description: z.string().nullish(),
+  applyUrl: z.string().max(500).nullish(),
+  externalId: z.string().min(1).max(100),
+  description: z.string().max(500).nullish(),
+  grade: z.enum(["A", "B", "C", "D"]).nullish(),
+  gradeReason: z.string().max(200).nullish(),
 })
 
 const ingestPayloadSchema = z.object({
@@ -113,6 +115,8 @@ export async function POST(request: NextRequest) {
             jobType: job.jobType || null,
             requirements: job.requirements,
             applyUrl: job.applyUrl || null,
+            grade: job.grade || null,
+            gradeReason: job.gradeReason || null,
             postedAt: new Date(),
             active: true,
           },
@@ -128,6 +132,8 @@ export async function POST(request: NextRequest) {
             jobType: job.jobType || null,
             requirements: job.requirements,
             applyUrl: job.applyUrl || null,
+            grade: job.grade || null,
+            gradeReason: job.gradeReason || null,
             active: true,
             updatedAt: new Date(),
           },

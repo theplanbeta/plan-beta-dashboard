@@ -125,26 +125,45 @@ export async function GET(request: NextRequest) {
       }),
     ])
 
-    // Get available filter options for UI (from active jobs within niche scope)
-    const filterWhere: Record<string, unknown> = { active: true }
+    // Get available filter options — cross-filtered so counts reflect active selections
+    // Each filter dimension excludes its own selection but includes all others
+    const baseFilter: Record<string, unknown> = { active: true }
     if (niche && NICHE_PROFESSIONS[niche]) {
-      filterWhere.profession = { in: NICHE_PROFESSIONS[niche] }
+      baseFilter.profession = { in: NICHE_PROFESSIONS[niche] }
     }
+    // Include premium/time restriction in counts too
+    if (where.createdAt) baseFilter.createdAt = where.createdAt
+
+    // Location counts: apply germanLevel + jobType (but NOT city itself)
+    const locationFilter = { ...baseFilter }
+    if (germanLevel) locationFilter.germanLevel = germanLevel
+    if (jobType) locationFilter.jobType = jobType
+    if (englishOk === "true") locationFilter.OR = where.OR
+
+    // Level counts: apply city + jobType (but NOT germanLevel itself)
+    const levelFilter = { ...baseFilter }
+    if (city) levelFilter.location = { contains: city, mode: "insensitive" }
+    else if (location) levelFilter.location = { contains: location, mode: "insensitive" }
+    if (jobType) levelFilter.jobType = jobType
+
+    // Profession counts: apply city + germanLevel + jobType
+    const professionFilter = { ...baseFilter, ...levelFilter }
+    if (germanLevel) professionFilter.germanLevel = germanLevel
 
     const [professions, levels, locations] = await Promise.all([
       prisma.jobPosting.groupBy({
         by: ["profession"],
-        where: { ...filterWhere, profession: { not: null } },
+        where: { ...professionFilter, profession: { not: null } },
         _count: true,
       }),
       prisma.jobPosting.groupBy({
         by: ["germanLevel"],
-        where: { ...filterWhere, germanLevel: { not: null } },
+        where: { ...levelFilter, germanLevel: { not: null } },
         _count: true,
       }),
       prisma.jobPosting.groupBy({
         by: ["location"],
-        where: { ...filterWhere, location: { not: null } },
+        where: { ...locationFilter, location: { not: null } },
         _count: true,
         orderBy: { _count: { location: "desc" } },
         take: 20,

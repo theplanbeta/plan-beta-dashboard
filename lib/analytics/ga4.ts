@@ -1,25 +1,34 @@
 import { BetaAnalyticsDataClient } from "@google-analytics/data"
 
-function getClient(): BetaAnalyticsDataClient | null {
-  if (
-    !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-    !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY ||
-    !process.env.GA4_PROPERTY_ID
-  ) {
-    return null
+function getServiceAccountCredentials(): { client_email: string; private_key: string } | null {
+  // Prefer base64-encoded full JSON (most reliable on Vercel)
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64) {
+    try {
+      const json = JSON.parse(Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64, "base64").toString("utf8"))
+      return { client_email: json.client_email, private_key: json.private_key }
+    } catch {
+      console.error("[GA4] Failed to parse GOOGLE_SERVICE_ACCOUNT_JSON_B64")
+    }
   }
-  // Handle private key: Vercel may store literal \n or actual newlines
-  let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-  if (privateKey.includes("\\n")) {
-    privateKey = privateKey.split("\\n").join("\n")
+  // Fallback to individual env vars
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+    let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
+    if (privateKey.includes("\\n")) {
+      privateKey = privateKey.split("\\n").join("\n")
+    }
+    return { client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL, private_key: privateKey }
   }
-  return new BetaAnalyticsDataClient({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: privateKey,
-    },
-  })
+  return null
 }
+
+function getClient(): BetaAnalyticsDataClient | null {
+  if (!process.env.GA4_PROPERTY_ID) return null
+  const creds = getServiceAccountCredentials()
+  if (!creds) return null
+  return new BetaAnalyticsDataClient({ credentials: creds })
+}
+
+export { getServiceAccountCredentials }
 
 function getPropertyId(): string {
   return `properties/${process.env.GA4_PROPERTY_ID || ""}`

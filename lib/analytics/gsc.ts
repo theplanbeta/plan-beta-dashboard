@@ -1,21 +1,13 @@
 import { google } from "googleapis"
+import { getServiceAccountCredentials } from "./ga4"
 
 function getSearchConsole() {
-  if (
-    !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
-    !process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY ||
-    !process.env.GSC_SITE_URL
-  ) {
-    return null
-  }
-  // Handle private key: Vercel may store literal \n or actual newlines
-  let privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY
-  if (privateKey.includes("\\n")) {
-    privateKey = privateKey.split("\\n").join("\n")
-  }
+  if (!process.env.GSC_SITE_URL) return null
+  const creds = getServiceAccountCredentials()
+  if (!creds) return null
   const auth = new google.auth.JWT({
-    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    key: privateKey,
+    email: creds.client_email,
+    key: creds.private_key,
     scopes: ["https://www.googleapis.com/auth/webmasters.readonly"],
   })
   return google.searchconsole({ version: "v1", auth })

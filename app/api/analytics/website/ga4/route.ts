@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { checkPermission } from "@/lib/api-permissions"
 import { getCachedOrFetch } from "@/lib/analytics/cache"
-import { fetchAllGA4Data } from "@/lib/analytics/ga4"
+import { fetchAllGA4Data, getServiceAccountCredentials } from "@/lib/analytics/ga4"
 import { BetaAnalyticsDataClient } from "@google-analytics/data"
 
 export async function GET(request: NextRequest) {
@@ -13,30 +13,20 @@ export async function GET(request: NextRequest) {
     const debug = request.nextUrl.searchParams.get("debug") === "1"
 
     if (debug) {
-      // Direct raw GA4 call with full error surfacing
-      const keyRaw = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY || ""
-      let privateKey = keyRaw
-      if (privateKey.includes("\\n")) {
-        privateKey = privateKey.split("\\n").join("\n")
-      }
+      const hasB64 = !!process.env.GOOGLE_SERVICE_ACCOUNT_JSON_B64
+      const creds = getServiceAccountCredentials()
       const envCheck = {
-        hasEmail: !!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        hasKey: !!keyRaw,
+        hasB64,
+        hasEmail: !!creds?.client_email,
+        hasKey: !!creds?.private_key,
         hasPropertyId: !!process.env.GA4_PROPERTY_ID,
-        keyLength: keyRaw.length,
-        keyStart: keyRaw.substring(0, 40),
-        keyHasLiteralBackslashN: keyRaw.includes("\\n"),
-        keyHasRealNewline: keyRaw.includes("\n"),
-        parsedKeyStart: privateKey.substring(0, 40),
+        keyLength: creds?.private_key?.length || 0,
+        keyStart: creds?.private_key?.substring(0, 40) || "",
+        email: creds?.client_email || "",
       }
 
       try {
-        const client = new BetaAnalyticsDataClient({
-          credentials: {
-            client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: privateKey,
-          },
-        })
+        const client = new BetaAnalyticsDataClient({ credentials: creds! })
         const [response] = await client.runReport({
           property: `properties/${process.env.GA4_PROPERTY_ID}`,
           dateRanges: [{ startDate: `${period}daysAgo`, endDate: "today" }],

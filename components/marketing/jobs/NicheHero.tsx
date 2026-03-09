@@ -21,7 +21,7 @@ const NICHE_CONFIG: Record<string, { title: string; highlight: string; subtitle:
   "student-jobs": {
     title: "Student Jobs in",
     highlight: "Germany",
-    subtitle: "Werkstudent positions, mini-jobs, and part-time work for international students. Better German = better opportunities.",
+    subtitle: "A free community initiative by Plan Beta — helping international students find Werkstudent positions, mini-jobs, and part-time work across Germany.",
     gradient: "from-emerald-500/[0.08] via-transparent to-transparent",
   },
 }

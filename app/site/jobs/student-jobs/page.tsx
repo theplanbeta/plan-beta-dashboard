@@ -101,12 +101,12 @@ export default async function StudentJobsPage() {
                 <InstagramEmbed
                   url="https://www.instagram.com/reel/DHI2V82Skah/"
                   title="Guide to finding part-time jobs in Germany"
-                  maxWidth={360}
+
                 />
                 <InstagramEmbed
                   url="https://www.instagram.com/reel/DC6muywSIVe/"
                   title="Part-time jobs guide for students in Germany"
-                  maxWidth={360}
+
                 />
               </div>
             </div>

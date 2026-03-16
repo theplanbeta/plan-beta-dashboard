@@ -286,7 +286,6 @@ export default function GermanyPathwayPage() {
             <InstagramEmbed
               url="https://www.instagram.com/reel/DB3MI2NRCEM/"
               title="Guide to renting a Wohnung in Germany"
-              maxWidth={320}
             />
             <div>
               <span className="px-3 py-1 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">

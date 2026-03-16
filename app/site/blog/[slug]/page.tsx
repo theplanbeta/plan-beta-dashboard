@@ -176,21 +176,26 @@ export default async function BlogPostPage({
       <article className="py-12">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div
-            className="blog-content prose prose-invert max-w-none
-              prose-headings:text-white prose-headings:font-bold
-              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-              prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-4
-              prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-              prose-strong:text-white
-              prose-ul:text-gray-300 prose-ul:my-4
-              prose-ol:text-gray-300 prose-ol:my-4
-              prose-li:mb-2 prose-li:leading-relaxed
-              prose-blockquote:border-primary prose-blockquote:text-gray-400
-              prose-code:text-primary prose-code:bg-white/[0.06] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-              prose-hr:border-white/[0.08]"
+            className="blog-content"
             dangerouslySetInnerHTML={{ __html: htmlContent }}
           />
+          <style>{`
+            .blog-content { color: #d1d5db; line-height: 1.75; }
+            .blog-content h2 { color: #fff; font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 1rem; }
+            .blog-content h3 { color: #fff; font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; }
+            .blog-content p { margin-bottom: 1rem; }
+            .blog-content a { color: #ef4444; text-decoration: none; }
+            .blog-content a:hover { text-decoration: underline; }
+            .blog-content strong { color: #fff; }
+            .blog-content ul, .blog-content ol { margin: 1rem 0; padding-left: 1.5rem; }
+            .blog-content ul { list-style-type: disc; }
+            .blog-content ol { list-style-type: decimal; }
+            .blog-content li { margin-bottom: 0.5rem; }
+            .blog-content blockquote { border-left: 3px solid #ef4444; padding-left: 1rem; margin: 1.5rem 0; color: #9ca3af; font-style: italic; }
+            .blog-content code { color: #ef4444; background: rgba(255,255,255,0.06); padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+            .blog-content hr { border-color: rgba(255,255,255,0.08); margin: 2rem 0; }
+            .blog-content img { border-radius: 0.75rem; margin: 1.5rem 0; }
+          `}</style>
 
           {/* Tags */}
           {post.tags.length > 0 && (

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { generatePageMetadata } from "@/lib/seo"
 import { BreadcrumbSchema, OrganizationSchema } from "@/components/marketing/SEOStructuredData"
+import { InstagramEmbed } from "@/components/marketing/InstagramEmbed"
 
 export const metadata = generatePageMetadata({
   title: "About Us | Plan Beta - Kerala's Premier German Language Institute",
@@ -159,18 +160,11 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center">
-              <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
-                <iframe
-                  src="https://www.instagram.com/p/DCmDIZIoe0J/embed"
-                  width="328"
-                  height="420"
-                  frameBorder="0"
-                  scrolling="no"
-                  allowTransparency={true}
-                  loading="lazy"
-                  title="Aparna Bose - Founder of Plan Beta"
-                />
-              </div>
+              <InstagramEmbed
+                url="https://www.instagram.com/p/DCmDIZIoe0J/"
+                title="Aparna Bose — Founder of Plan Beta"
+                maxWidth={350}
+              />
             </div>
 
             <div>

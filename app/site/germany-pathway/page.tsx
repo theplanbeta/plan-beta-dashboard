@@ -4,6 +4,7 @@ import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { getTrackingData, getVisitorId, trackEvent } from "@/lib/tracking"
+import { InstagramEmbed } from "@/components/marketing/InstagramEmbed"
 
 const countries = [
   "India", "Nepal", "Sri Lanka", "Bangladesh", "Pakistan",
@@ -282,18 +283,11 @@ export default function GermanyPathwayPage() {
       <section className="py-12 border-t border-white/[0.06]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
-            <div className="rounded-xl overflow-hidden border border-white/[0.08] shrink-0">
-              <iframe
-                src="https://www.instagram.com/reel/DB3MI2NRCEM/embed"
-                width="280"
-                height="360"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                loading="lazy"
-                title="Guide to renting a Wohnung in Germany"
-              />
-            </div>
+            <InstagramEmbed
+              url="https://www.instagram.com/reel/DB3MI2NRCEM/"
+              title="Guide to renting a Wohnung in Germany"
+              maxWidth={320}
+            />
             <div>
               <span className="px-3 py-1 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">
                 Life in Germany

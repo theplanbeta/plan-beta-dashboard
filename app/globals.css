@@ -406,3 +406,18 @@ a {
 .blog-content hr { border-color: rgba(255,255,255,0.08); margin: 2rem 0; }
 .blog-content img { border-radius: 0.75rem; margin: 1.5rem 0; }
 
+/* Instagram Embed — responsive + dark theme */
+.instagram-embed-container {
+  container-type: inline-size;
+}
+.instagram-embed-container .instagram-media {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+.instagram-embed-container iframe {
+  max-width: 100% !important;
+}
+

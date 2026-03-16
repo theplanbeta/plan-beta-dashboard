@@ -1,4 +1,5 @@
 import { generatePageMetadata } from "@/lib/seo"
+import { InstagramEmbed } from "@/components/marketing/InstagramEmbed"
 import { BreadcrumbSchema, FAQSchema } from "@/components/marketing/SEOStructuredData"
 import { NurseHero } from "@/components/marketing/sections/NurseHero"
 import { NurseStats } from "@/components/marketing/sections/NurseStats"
@@ -130,18 +131,10 @@ export default function NursesPage() {
             </p>
           </div>
           <div className="flex justify-center">
-            <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
-              <iframe
-                src="https://www.instagram.com/reel/DUI3c0okhnL/embed"
-                width="400"
-                height="520"
-                frameBorder="0"
-                scrolling="no"
-                allowTransparency={true}
-                loading="lazy"
-                title="Plan Beta Nursing Recruitment"
-              />
-            </div>
+            <InstagramEmbed
+              url="https://www.instagram.com/reel/DUI3c0okhnL/"
+              title="Plan Beta Nursing Recruitment"
+            />
           </div>
         </div>
       </section>

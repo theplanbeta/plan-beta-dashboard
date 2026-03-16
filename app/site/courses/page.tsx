@@ -2,6 +2,7 @@ import Link from "next/link"
 import { headers } from "next/headers"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema, CourseSchema } from "@/components/marketing/SEOStructuredData"
+import { InstagramEmbed } from "@/components/marketing/InstagramEmbed"
 import { prisma } from "@/lib/prisma"
 import { COURSE_INFO } from "@/lib/pricing"
 import { getCurrencyFromCountry, getMarketingPrice, type MarketingLevel } from "@/lib/geo-pricing"
@@ -245,18 +246,10 @@ export default async function CoursesPage() {
             </div>
 
             <div className="flex justify-center">
-              <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
-                <iframe
-                  src="https://www.instagram.com/reel/DM5Dc3VyjPv/embed"
-                  width="400"
-                  height="520"
-                  frameBorder="0"
-                  scrolling="no"
-                  allowTransparency={true}
-                  loading="lazy"
-                  title="A1 Foundation Course — Taught by Aparna Bose"
-                />
-              </div>
+              <InstagramEmbed
+                url="https://www.instagram.com/reel/DM5Dc3VyjPv/"
+                title="A1 Foundation Course — Taught by Aparna Bose"
+              />
             </div>
           </div>
         </div>

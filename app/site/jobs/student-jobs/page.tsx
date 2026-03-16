@@ -86,6 +86,34 @@ export default async function StudentJobsPage() {
           </div>
         </div>
 
+        {/* Part-time jobs guide reel */}
+        <section className="py-8">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
+              <div className="rounded-xl overflow-hidden border border-white/[0.08] shrink-0">
+                <iframe
+                  src="https://www.instagram.com/reel/DHI2V82Skah/embed"
+                  width="280"
+                  height="360"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  loading="lazy"
+                  title="Guide to finding part-time jobs in Germany"
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  How to Find Part-Time Jobs in Germany
+                </h3>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Watch our quick guide on finding student jobs, Werkstudent positions, and Minijobs in Germany. Tips on where to look, what documents you need, and how to stand out as an international student.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <GermanLevelGapBanner niche={NICHE} jobCount={data.totalCount} />
         <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading jobs...</div>}>
           <NicheJobsList

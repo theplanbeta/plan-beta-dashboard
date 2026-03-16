@@ -214,6 +214,38 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
       )
     }
 
+    // --- Humanizing Pass ---
+    const humanizeResponse = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      system: `You are an editor who humanizes AI-written blog content for Plan Beta, a German language school for Indian students.
+
+Your job is to take the draft blog post and rewrite it to feel authentic and human. Rules:
+
+1. Add 1-2 personal anecdotes from student experiences ("One of our students from Kochi...", "A common thing we hear from our B1 batch...")
+2. Use conversational Indian English — not overly formal, not slangy. Like talking to a friend over chai.
+3. Replace vague claims with specific numbers (actual costs in INR and EUR, real timelines, specific cities)
+4. Add rhetorical questions to break up text ("Sound familiar?", "So what does this actually look like?")
+5. Add honest opinions ("Honestly, most coaching centers get this wrong...", "Here's what nobody tells you...")
+6. REMOVE these AI-sounding phrases completely: "In this comprehensive guide", "It's important to note", "Let's dive in", "In conclusion", "Whether you're a...", "In today's world", "Look no further", "Navigate the complexities"
+7. Keep all markdown formatting, internal links, headings, and structure intact
+8. Keep the same length (800-1500 words) — don't pad or trim significantly
+9. Make the CTA feel personal, not salesy ("Drop us a message — we'll help you figure out the right batch")
+
+Return ONLY the rewritten markdown content. No JSON wrapper, no explanation — just the markdown.`,
+      messages: [
+        {
+          role: "user",
+          content: `Humanize this blog post:\n\n${postData.content}`,
+        },
+      ],
+    })
+
+    const humanizedContent = humanizeResponse.content.find((c) => c.type === "text")
+    if (humanizedContent && humanizedContent.type === "text") {
+      postData.content = humanizedContent.text.trim()
+    }
+
     // Ensure slug uniqueness
     const existingSlug = await prisma.blogPost.findUnique({
       where: { slug: postData.slug },

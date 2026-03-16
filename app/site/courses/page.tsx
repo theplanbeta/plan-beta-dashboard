@@ -244,13 +244,18 @@ export default async function CoursesPage() {
               </a>
             </div>
 
-            <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-primary/10 to-orange-500/5 rounded-2xl border border-white/[0.08] flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="text-7xl mb-4">📚</div>
-                  <p className="text-xl font-semibold text-white">Learn at Your Own Pace</p>
-                  <p className="text-gray-400 mt-2">100+ lessons in Malayalam</p>
-                </div>
+            <div className="flex justify-center">
+              <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
+                <iframe
+                  src="https://www.instagram.com/reel/DM5Dc3VyjPv/embed"
+                  width="400"
+                  height="520"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  loading="lazy"
+                  title="A1 Foundation Course — Taught by Aparna Bose"
+                />
               </div>
             </div>
           </div>

@@ -159,17 +159,17 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="flex justify-center">
-              <div className="relative">
-                <div className="w-48 h-48 bg-gradient-to-br from-primary to-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-6xl font-bold text-white">AB</span>
-                </div>
-                <div className="absolute -bottom-2 -right-2 w-16 h-16 bg-[#111] rounded-full flex items-center justify-center border-4 border-[#111]">
-                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </div>
-                </div>
+              <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
+                <iframe
+                  src="https://www.instagram.com/p/DCmDIZIoe0J/embed"
+                  width="328"
+                  height="420"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  loading="lazy"
+                  title="Aparna Bose - Founder of Plan Beta"
+                />
               </div>
             </div>
 

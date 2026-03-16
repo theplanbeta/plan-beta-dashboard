@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Ensure consistent URLs for SEO (no trailing slash duplicates)
+  trailingSlash: false,
   // Dashboard is a dynamic app - build will skip problematic static pages
   eslint: {
     // Disable ESLint during production builds

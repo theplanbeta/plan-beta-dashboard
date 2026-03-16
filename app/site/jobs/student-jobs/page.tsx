@@ -107,8 +107,20 @@ export default async function StudentJobsPage() {
                   How to Find Part-Time Jobs in Germany
                 </h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  Watch our quick guide on finding student jobs, Werkstudent positions, and Minijobs in Germany. Tips on where to look, what documents you need, and how to stand out as an international student.
+                  Watch our quick guides on finding student jobs, Werkstudent positions, and Minijobs in Germany. Tips on where to look, what documents you need, and how to stand out as an international student.
                 </p>
+              </div>
+              <div className="rounded-xl overflow-hidden border border-white/[0.08] shrink-0">
+                <iframe
+                  src="https://www.instagram.com/reel/DC6muywSIVe/embed"
+                  width="280"
+                  height="360"
+                  frameBorder="0"
+                  scrolling="no"
+                  allowTransparency={true}
+                  loading="lazy"
+                  title="Part-time jobs guide for students in Germany"
+                />
               </div>
             </div>
           </div>

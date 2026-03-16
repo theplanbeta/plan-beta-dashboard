@@ -1517,3 +1517,27 @@ model AnalyticsCache {
   @@index([source])
   @@index([expiresAt])
 }
+
+model BlogPost {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  excerpt         String    // 1-2 sentence summary for listing cards
+  content         String    // Full markdown content
+  category        String    // Career, Learning Tips, Exam Prep, Visa & Immigration, Student Life, Job Market
+  tags            String[]  // SEO tags
+  metaTitle       String?   // Custom SEO title (falls back to title)
+  metaDescription String?   // Custom meta description (falls back to excerpt)
+  targetKeyword   String?   // Primary target keyword for SEO
+  readTime        Int       @default(5) // Estimated read time in minutes
+  published       Boolean   @default(false)
+  featured        Boolean   @default(false)
+  publishedAt     DateTime?
+  author          String    @default("Plan Beta")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([category])
+  @@index([slug])
+}

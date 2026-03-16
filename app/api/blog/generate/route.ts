@@ -1,0 +1,250 @@
+import { NextRequest, NextResponse } from "next/server"
+import { checkPermission } from "@/lib/api-permissions"
+import { prisma } from "@/lib/prisma"
+import Anthropic from "@anthropic-ai/sdk"
+
+const BLOG_CATEGORIES = [
+  "Career",
+  "Learning Tips",
+  "Exam Prep",
+  "Visa & Immigration",
+  "Student Life",
+  "Job Market",
+]
+
+async function getAutoTopic(): Promise<{
+  topic: string
+  category: string
+  targetKeyword: string
+}> {
+  // Check which categories have fewer posts
+  const categoryCounts = await prisma.blogPost.groupBy({
+    by: ["category"],
+    _count: { id: true },
+  })
+
+  const countMap: Record<string, number> = {}
+  for (const c of categoryCounts) {
+    countMap[c.category] = c._count.id
+  }
+
+  // Find least-covered category
+  let minCategory = BLOG_CATEGORIES[0]
+  let minCount = Infinity
+  for (const cat of BLOG_CATEGORIES) {
+    const count = countMap[cat] || 0
+    if (count < minCount) {
+      minCount = count
+      minCategory = cat
+    }
+  }
+
+  // Check recent job postings for trending topics
+  let trendingProfession = ""
+  let trendingLocation = ""
+  try {
+    const recentJobs = await prisma.jobPosting.findMany({
+      where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+      select: { profession: true, location: true },
+      take: 50,
+    })
+
+    if (recentJobs.length > 0) {
+      const professionCounts: Record<string, number> = {}
+      const locationCounts: Record<string, number> = {}
+      for (const job of recentJobs) {
+        if (job.profession) {
+          professionCounts[job.profession] = (professionCounts[job.profession] || 0) + 1
+        }
+        if (job.location) {
+          locationCounts[job.location] = (locationCounts[job.location] || 0) + 1
+        }
+      }
+      trendingProfession =
+        Object.entries(professionCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || ""
+      trendingLocation =
+        Object.entries(locationCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || ""
+    }
+  } catch {
+    // JobPosting table may not exist; proceed without trending data
+  }
+
+  // Seasonal relevance
+  const month = new Date().getMonth()
+  let seasonalContext = ""
+  if (month >= 2 && month <= 4) {
+    seasonalContext = "spring semester, university admissions opening, Sommersemester applications"
+  } else if (month >= 5 && month <= 7) {
+    seasonalContext = "summer internships, work experience, Wintersemester planning"
+  } else if (month >= 8 && month <= 10) {
+    seasonalContext = "Wintersemester starts, new batch enrollments, settling in Germany"
+  } else {
+    seasonalContext = "new year career planning, German language resolutions, Sommersemester preparation"
+  }
+
+  // Topic selection based on category
+  const topicPrompts: Record<string, string> = {
+    Career: `career opportunities in Germany for Indian professionals${trendingProfession ? `, especially in ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}`,
+    "Learning Tips": "practical tips for learning German efficiently, study methods, common mistakes to avoid",
+    "Exam Prep": "preparing for Goethe-Zertifikat or telc exams, test strategies, practice resources",
+    "Visa & Immigration": `German visa processes, Blue Card, work permits, Aufenthaltstitel, ${seasonalContext}`,
+    "Student Life": `life in Germany for Indian students, cultural tips, practical advice, ${seasonalContext}`,
+    "Job Market": `German job market trends${trendingProfession ? `, demand for ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}, salary expectations`,
+  }
+
+  const keywordMap: Record<string, string> = {
+    Career: "career in germany for indians",
+    "Learning Tips": "learn german tips",
+    "Exam Prep": "goethe exam preparation",
+    "Visa & Immigration": "germany work visa",
+    "Student Life": "student life in germany",
+    "Job Market": "jobs in germany",
+  }
+
+  return {
+    topic: topicPrompts[minCategory] || topicPrompts["Career"],
+    category: minCategory,
+    targetKeyword: keywordMap[minCategory] || "learn german",
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const auth = await checkPermission("content", "create")
+  if (!auth.authorized) return auth.response
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "ANTHROPIC_API_KEY not configured" },
+      { status: 500 }
+    )
+  }
+
+  let body: { topic?: string; category?: string; targetKeyword?: string } = {}
+  try {
+    body = await request.json()
+  } catch {
+    // Empty body is fine — auto-select topic
+  }
+
+  const autoTopic = await getAutoTopic()
+  const topic = body.topic || autoTopic.topic
+  const category = body.category || autoTopic.category
+  const targetKeyword = body.targetKeyword || autoTopic.targetKeyword
+
+  const client = new Anthropic({ apiKey })
+
+  const systemPrompt = `You are a blog content writer for Plan Beta, a German language school based in India that helps Indian students and professionals learn German (A1, A2, B1, B2 levels) before relocating to Germany.
+
+Target audience: Indian professionals and students aged 20-35 interested in moving to Germany for work, study, or career growth.
+
+Tone: Informative, encouraging, practical, and conversational. Write like a knowledgeable friend who has been through the process.
+
+Guidelines:
+- Write in English
+- 800-1500 words
+- Use H2 (##) and H3 (###) headings to structure the content
+- Include bullet points and numbered lists for practical tips
+- Include the target keyword "${targetKeyword}" naturally 3-5 times in the content
+- Include internal links using markdown:
+  - [German courses](/courses) — when mentioning learning German
+  - [student jobs in Germany](/jobs/student-jobs) — when mentioning student work
+  - [nursing jobs in Germany](/jobs/nursing) — when mentioning nursing careers
+  - [contact us](/contact) — when suggesting the reader take action
+  - [German classes in Kerala](/german-classes/kochi) — when mentioning local classes
+- End with a clear CTA (call to action) encouraging the reader to contact Plan Beta or enroll in a course
+- Do NOT use generic filler content — provide specific, actionable information
+- Reference real German institutions, programs, or processes where relevant (Goethe-Institut, DAAD, Auslanderamt, etc.)
+- Mention specific German language levels (A1, A2, B1, B2) where relevant
+
+You must respond with valid JSON only (no markdown code fences). The JSON must have these fields:
+{
+  "title": "SEO-optimized blog post title (60-70 chars ideal)",
+  "slug": "url-friendly-slug-with-hyphens",
+  "excerpt": "1-2 sentence compelling summary for blog listing cards (150-160 chars)",
+  "content": "Full markdown content of the blog post",
+  "category": "${category}",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "targetKeyword": "${targetKeyword}",
+  "metaTitle": "SEO meta title (50-60 chars, include target keyword)",
+  "metaDescription": "SEO meta description (150-160 chars, include target keyword and CTA)",
+  "readTime": estimated_read_time_in_minutes_as_number
+}`
+
+  try {
+    const message = await client.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content: `Write a blog post about: ${topic}\n\nCategory: ${category}\nTarget keyword: ${targetKeyword}\n\nMake it highly relevant to Indian students and professionals looking to learn German and move to Germany.`,
+        },
+      ],
+      system: systemPrompt,
+    })
+
+    const textContent = message.content.find((c) => c.type === "text")
+    if (!textContent || textContent.type !== "text") {
+      return NextResponse.json(
+        { error: "No text content in Claude response" },
+        { status: 500 }
+      )
+    }
+
+    let postData: {
+      title: string
+      slug: string
+      excerpt: string
+      content: string
+      category: string
+      tags: string[]
+      targetKeyword: string
+      metaTitle: string
+      metaDescription: string
+      readTime: number
+    }
+
+    try {
+      postData = JSON.parse(textContent.text)
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to parse Claude response as JSON", raw: textContent.text },
+        { status: 500 }
+      )
+    }
+
+    // Ensure slug uniqueness
+    const existingSlug = await prisma.blogPost.findUnique({
+      where: { slug: postData.slug },
+    })
+    if (existingSlug) {
+      postData.slug = `${postData.slug}-${Date.now().toString(36)}`
+    }
+
+    const blogPost = await prisma.blogPost.create({
+      data: {
+        slug: postData.slug,
+        title: postData.title,
+        excerpt: postData.excerpt,
+        content: postData.content,
+        category: postData.category || category,
+        tags: postData.tags || [],
+        metaTitle: postData.metaTitle,
+        metaDescription: postData.metaDescription,
+        targetKeyword: postData.targetKeyword || targetKeyword,
+        readTime: postData.readTime || 5,
+        published: false,
+        author: "Plan Beta",
+      },
+    })
+
+    return NextResponse.json({ success: true, post: blogPost })
+  } catch (error) {
+    console.error("Blog generation error:", error)
+    return NextResponse.json(
+      { error: "Failed to generate blog post" },
+      { status: 500 }
+    )
+  }
+}

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema } from "@/components/marketing/SEOStructuredData"
+import { prisma } from "@/lib/prisma"
 
 export const metadata = generatePageMetadata({
   title: "Blog | Plan Beta - German Learning Tips & Career Advice",
@@ -10,73 +11,69 @@ export const metadata = generatePageMetadata({
   path: "/blog",
 })
 
-// Blog posts data (in a real app, this would come from a CMS or database)
-const blogPosts = [
-  {
-    id: "impact-of-learning-german-tourism-hospitality",
-    title: "The Impact of Learning German on Tourism and Hospitality Careers in Germany",
-    excerpt: "Explore how German language proficiency enables career opportunities in Germany's tourism and hospitality sector, highlighting the nation's rich cultural heritage and world-renowned hospitality.",
-    date: "June 4, 2024",
-    category: "Career",
-    readTime: "5 min read",
-    image: "/blog/tourism.jpg",
-  },
-  {
-    id: "healthcare-opportunities-germany",
-    title: "Healthcare Opportunities in Germany: How Your Language Skills Can Make a Difference",
-    excerpt: "Discover how medical professionals can leverage German language abilities to advance healthcare careers in Germany's renowned healthcare system.",
-    date: "May 30, 2024",
-    category: "Healthcare",
-    readTime: "6 min read",
-    image: "/blog/healthcare.jpg",
-  },
-  {
-    id: "german-skills-engineering-career",
-    title: "The Role of German Language Skills in Advancing Your Engineering Career in Germany",
-    excerpt: "Learn how German language proficiency opens doors for engineers in one of the world's leading industrial nations.",
-    date: "April 29, 2024",
-    category: "Engineering",
-    readTime: "5 min read",
-    image: "/blog/engineering.jpg",
-  },
-  {
-    id: "navigating-visa-requirements",
-    title: "Navigating Visa Requirements: Your Guide to Working or Studying in Germany",
-    excerpt: "A comprehensive guide to visa procedures for those planning to relocate to Germany for employment or education purposes.",
-    date: "April 23, 2024",
-    category: "Visa & Immigration",
-    readTime: "8 min read",
-    image: "/blog/visa.jpg",
-  },
-  {
-    id: "power-of-persistence-language-learning",
-    title: "The Power of Persistence: How Consistency Leads to Language Learning Success",
-    excerpt: "Discover why dedication and consistent practice are essential for mastering German and achieving your language learning goals.",
-    date: "March 30, 2024",
-    category: "Learning Tips",
-    readTime: "4 min read",
-    image: "/blog/persistence.jpg",
-  },
-  {
-    id: "goethe-zertifikat-preparation-strategies",
-    title: "A Pathway to Success: Ace the Goethe-Zertifikat with These Preparation Strategies",
-    excerpt: "Expert preparation techniques for the Goethe-Zertifikat exam, the gold standard for German language proficiency certification.",
-    date: "March 19, 2024",
-    category: "Exam Prep",
-    readTime: "7 min read",
-    image: "/blog/goethe.jpg",
-  },
-]
+export const revalidate = 3600
 
-const categories = [
-  { name: "All", count: blogPosts.length },
-  { name: "Career", count: 3 },
-  { name: "Learning Tips", count: 2 },
-  { name: "Exam Prep", count: 1 },
-  { name: "Visa & Immigration", count: 1 },
-]
+const CATEGORY_EMOJI: Record<string, string> = {
+  Career: "💼",
+  Healthcare: "🏥",
+  Engineering: "⚙️",
+  "Visa & Immigration": "✈️",
+  "Learning Tips": "💡",
+  "Exam Prep": "📝",
+  "Student Life": "🎓",
+  "Job Market": "📊",
+}
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const [posts, categoryCounts] = await Promise.all([
+    prisma.blogPost.findMany({
+      where: { published: true },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        category: true,
+        readTime: true,
+        published: true,
+        featured: true,
+        publishedAt: true,
+        author: true,
+      },
+      orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
+    }),
+    prisma.blogPost.groupBy({
+      by: ["category"],
+      where: { published: true },
+      _count: { id: true },
+    }),
+  ])
+
+  // Build category list
+  const categoryMap: Record<string, number> = {}
+  for (const c of categoryCounts) {
+    categoryMap[c.category] = c._count.id
+  }
+  const categories = [
+    { name: "All", count: posts.length },
+    ...Object.entries(categoryMap)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count })),
+  ]
+
+  // Featured post: first featured post, or first post
+  const featuredPost = posts.find((p) => p.featured) || posts[0]
+  const gridPosts = posts.filter((p) => p.id !== featuredPost?.id)
+
+  const formatDate = (date: Date | null) => {
+    if (!date) return ""
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
   return (
     <div>
       <BreadcrumbSchema
@@ -95,7 +92,8 @@ export default function BlogPage() {
               Plan Beta <span className="text-primary">Blog</span>
             </h1>
             <p className="text-xl text-gray-400">
-              Tips for learning German, career advice, exam preparation strategies, and inspiring success stories.
+              Tips for learning German, career advice, exam preparation
+              strategies, and inspiring success stories.
             </p>
           </div>
         </div>
@@ -105,17 +103,17 @@ export default function BlogPage() {
       <section className="py-8 bg-[#0a0a0a] border-b border-white/[0.06]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-3">
-            {categories.map((category) => (
-              <button
+            {categories.map((category, idx) => (
+              <span
                 key={category.name}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  category.name === "All"
+                  idx === 0
                     ? "bg-primary text-white"
                     : "bg-white/[0.06] text-gray-400 hover:bg-white/[0.1]"
                 }`}
               >
                 {category.name} ({category.count})
-              </button>
+              </span>
             ))}
           </div>
         </div>
@@ -124,89 +122,113 @@ export default function BlogPage() {
       {/* Blog Posts */}
       <section className="py-16 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Featured Post */}
-          <div className="mb-16">
-            <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl overflow-hidden">
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="aspect-video lg:aspect-auto bg-gradient-to-br from-white/[0.06] to-white/[0.03] flex items-center justify-center">
-                  <div className="text-6xl">📚</div>
-                </div>
-                <div className="p-8 lg:py-12">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
-                      Featured
-                    </span>
-                    <span className="text-gray-500 text-sm">{blogPosts[0].date}</span>
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                    {blogPosts[0].title}
-                  </h2>
-                  <p className="text-gray-400 mb-6">{blogPosts[0].excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">{blogPosts[0].readTime}</span>
-                    <Link
-                      href={`/blog/${blogPosts[0].id}`}
-                      className="inline-flex items-center text-primary font-semibold hover:underline"
-                    >
-                      Read More
-                      <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </Link>
-                  </div>
-                </div>
-              </div>
+          {posts.length === 0 ? (
+            <div className="text-center py-16">
+              <p className="text-gray-400 text-lg">
+                No blog posts yet. Check back soon!
+              </p>
             </div>
-          </div>
-
-          {/* Post Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.slice(1).map((post) => (
-              <article
-                key={post.id}
-                className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:border-primary/20 transition-colors"
-              >
-                <div className="aspect-video bg-gradient-to-br from-white/[0.06] to-white/[0.03] flex items-center justify-center">
-                  <div className="text-4xl">
-                    {post.category === "Healthcare" && "🏥"}
-                    {post.category === "Engineering" && "⚙️"}
-                    {post.category === "Visa & Immigration" && "✈️"}
-                    {post.category === "Learning Tips" && "💡"}
-                    {post.category === "Exam Prep" && "📝"}
-                    {post.category === "Career" && "💼"}
+          ) : (
+            <>
+              {/* Featured Post */}
+              {featuredPost && (
+                <div className="mb-16">
+                  <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl overflow-hidden">
+                    <div className="grid lg:grid-cols-2 gap-8">
+                      <div className="aspect-video lg:aspect-auto bg-gradient-to-br from-white/[0.06] to-white/[0.03] flex items-center justify-center">
+                        <div className="text-6xl">
+                          {CATEGORY_EMOJI[featuredPost.category] || "📚"}
+                        </div>
+                      </div>
+                      <div className="p-8 lg:py-12">
+                        <div className="flex items-center gap-3 mb-4">
+                          <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full">
+                            Featured
+                          </span>
+                          <span className="text-gray-500 text-sm">
+                            {formatDate(featuredPost.publishedAt)}
+                          </span>
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+                          {featuredPost.title}
+                        </h2>
+                        <p className="text-gray-400 mb-6">
+                          {featuredPost.excerpt}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">
+                            {featuredPost.readTime} min read
+                          </span>
+                          <Link
+                            href={`/blog/${featuredPost.slug}`}
+                            className="inline-flex items-center text-primary font-semibold hover:underline"
+                          >
+                            Read More
+                            <svg
+                              className="w-4 h-4 ml-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 8l4 4m0 0l-4 4m4-4H3"
+                              />
+                            </svg>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="px-2 py-1 bg-white/[0.06] text-gray-400 text-xs font-medium rounded">
-                      {post.category}
-                    </span>
-                    <span className="text-gray-600 text-xs">{post.date}</span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
-                    {post.title}
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-4 line-clamp-2">{post.excerpt}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">{post.readTime}</span>
-                    <Link
-                      href={`/blog/${post.id}`}
-                      className="text-primary text-sm font-medium hover:underline"
-                    >
-                      Read More
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
+              )}
 
-          {/* Load More */}
-          <div className="text-center mt-12">
-            <button className="px-6 py-3 border border-white/[0.1] rounded-lg font-medium text-gray-400 hover:bg-white/[0.04] transition-colors">
-              Load More Articles
-            </button>
-          </div>
+              {/* Post Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {gridPosts.map((post) => (
+                  <article
+                    key={post.id}
+                    className="bg-white/[0.04] border border-white/[0.08] rounded-xl overflow-hidden hover:border-primary/20 transition-colors"
+                  >
+                    <div className="aspect-video bg-gradient-to-br from-white/[0.06] to-white/[0.03] flex items-center justify-center">
+                      <div className="text-4xl">
+                        {CATEGORY_EMOJI[post.category] || "📄"}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="px-2 py-1 bg-white/[0.06] text-gray-400 text-xs font-medium rounded">
+                          {post.category}
+                        </span>
+                        <span className="text-gray-600 text-xs">
+                          {formatDate(post.publishedAt)}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {post.readTime} min read
+                        </span>
+                        <Link
+                          href={`/blog/${post.slug}`}
+                          className="text-primary text-sm font-medium hover:underline"
+                        >
+                          Read More
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -215,7 +237,8 @@ export default function BlogPage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">Stay Updated</h2>
           <p className="text-gray-400 mb-8">
-            Get the latest articles, learning tips, and course updates delivered to your inbox.
+            Get the latest articles, learning tips, and course updates delivered
+            to your inbox.
           </p>
           <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <input
@@ -243,7 +266,8 @@ export default function BlogPage() {
             Ready to Start Learning?
           </h2>
           <p className="text-red-100 mb-8">
-            Put what you&apos;ve learned into practice. Join our next batch and start speaking German.
+            Put what you&apos;ve learned into practice. Join our next batch and
+            start speaking German.
           </p>
           <Link
             href="/contact"

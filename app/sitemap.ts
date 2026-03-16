@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next"
+import { prisma } from "@/lib/prisma"
 
 const SITE_URL = "https://theplanbeta.com"
 
@@ -24,7 +25,7 @@ const GERMAN_CITIES = [
 
 const JOB_NICHES = ["nursing", "engineering", "student-jobs"]
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,
@@ -59,8 +60,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${SITE_URL}/blog`,
       lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.6,
+      changeFrequency: "daily",
+      priority: 0.8,
     },
     {
       url: `${SITE_URL}/refer`,
@@ -158,18 +159,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }))
   )
 
-  const blogPosts: MetadataRoute.Sitemap = [
-    { slug: "impact-of-learning-german-tourism-hospitality", date: "2024-06-04" },
-    { slug: "healthcare-opportunities-germany", date: "2024-05-30" },
-    { slug: "german-skills-engineering-career", date: "2024-04-29" },
-    { slug: "navigating-visa-requirements", date: "2024-04-23" },
-    { slug: "power-of-persistence-language-learning", date: "2024-03-30" },
-    { slug: "goethe-zertifikat-preparation-strategies", date: "2024-03-19" },
-  ].map((post) => ({
+  // Dynamic blog posts from database
+  const dbPosts = await prisma.blogPost.findMany({
+    where: { published: true },
+    select: { slug: true, updatedAt: true },
+    orderBy: { publishedAt: "desc" },
+  })
+
+  const blogPosts: MetadataRoute.Sitemap = dbPosts.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
+    lastModified: post.updatedAt,
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
   }))
 
   const cityPages: MetadataRoute.Sitemap = KERALA_CITIES.map((city) => ({

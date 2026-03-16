@@ -49,6 +49,7 @@ export default function MarketingLayout({
     { name: "Eligibility", href: "/germany-pathway" },
     { name: "Jobs", href: "/jobs" },
     { name: "SpotAJob", href: "/spot-a-job" },
+    { name: "Blog", href: "/blog" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
@@ -310,6 +311,7 @@ export default function MarketingLayout({
                   ["Opportunities", "/opportunities"],
                   ["Eligibility Check", "/germany-pathway"],
                   ["Jobs in Germany", "/jobs"],
+                  ["Blog", "/blog"],
                   ["Contact", "/contact"],
                 ].map(([name, href]) => (
                   <li key={name}>

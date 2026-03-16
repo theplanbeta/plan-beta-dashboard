@@ -142,12 +142,14 @@ export default function AboutPage() {
                 </p>
               </div>
             </div>
-            <div className="flex justify-center">
-              <InstagramEmbed
-                url="https://www.instagram.com/reel/DB3MI2NRCEM/"
-                title="Life in Germany — Finding your first Wohnung"
-                thumbnail="/instagram/wohnung-guide.jpg"
-              />
+            <div className="relative">
+              <div className="aspect-square bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center">
+                <div className="text-center p-8">
+                  <div className="text-8xl mb-4">🎓</div>
+                  <p className="text-xl font-semibold text-white">Transforming Lives</p>
+                  <p className="text-gray-400 mt-2">One student at a time</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

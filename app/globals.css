@@ -406,9 +406,5 @@ a {
 .blog-content hr { border-color: rgba(255,255,255,0.08); margin: 2rem 0; }
 .blog-content img { border-radius: 0.75rem; margin: 1.5rem 0; }
 
-/* Instagram Embed — responsive iframe */
-.ig-embed iframe {
-  width: 100% !important;
-  max-width: 100% !important;
-}
+
 

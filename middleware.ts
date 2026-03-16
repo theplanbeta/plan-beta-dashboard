@@ -77,12 +77,12 @@ export async function middleware(request: NextRequest) {
   // Content Security Policy
   const cspDirectives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://connect.facebook.net https://www.googletagmanager.com https://checkout.razorpay.com https://www.clarity.ms https://www.instagram.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://va.vercel-scripts.com https://connect.facebook.net https://www.googletagmanager.com https://checkout.razorpay.com https://www.clarity.ms",
     "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
     "img-src 'self' data: https: https://*.public.blob.vercel-storage.com",
     "font-src 'self' data:",
     "connect-src 'self' https://api.resend.com https://sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com https://www.facebook.com https://www.google-analytics.com https://region1.google-analytics.com https://lumberjack.razorpay.com https://api.razorpay.com https://*.public.blob.vercel-storage.com https://tiles.openfreemap.org https://www.clarity.ms https://*.clarity.ms",
-    "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://www.instagram.com",
+    "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",

@@ -248,7 +248,8 @@ export default async function CoursesPage() {
             <div className="flex justify-center">
               <InstagramEmbed
                 url="https://www.instagram.com/reel/DM5Dc3VyjPv/"
-                title="A1 Foundation Course — Taught by Aparna Bose"
+                title="Watch: A1 Foundation Course by Aparna Bose"
+                thumbnail="/instagram/a1-foundation.jpg"
               />
             </div>
           </div>

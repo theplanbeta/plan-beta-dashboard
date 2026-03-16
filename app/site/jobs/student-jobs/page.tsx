@@ -97,16 +97,16 @@ export default async function StudentJobsPage() {
               <p className="text-gray-400 text-sm leading-relaxed mb-6">
                 Watch our quick guides on finding student jobs, Werkstudent positions, and Minijobs in Germany. Tips on where to look, what documents you need, and how to stand out as an international student.
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-w-2xl">
                 <InstagramEmbed
                   url="https://www.instagram.com/reel/DHI2V82Skah/"
-                  title="Guide to finding part-time jobs in Germany"
-
+                  title="Finding part-time jobs"
+                  thumbnail="/instagram/parttime-jobs-1.jpg"
                 />
                 <InstagramEmbed
                   url="https://www.instagram.com/reel/DC6muywSIVe/"
-                  title="Part-time jobs guide for students in Germany"
-
+                  title="Student job tips"
+                  thumbnail="/instagram/parttime-jobs-2.jpg"
                 />
               </div>
             </div>

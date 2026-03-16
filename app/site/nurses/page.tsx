@@ -133,7 +133,8 @@ export default function NursesPage() {
           <div className="flex justify-center">
             <InstagramEmbed
               url="https://www.instagram.com/reel/DUI3c0okhnL/"
-              title="Plan Beta Nursing Recruitment"
+              title="Watch: How we help nurses get to Germany"
+              thumbnail="/instagram/nursing-recruitment.jpg"
             />
           </div>
         </div>

@@ -285,7 +285,8 @@ export default function GermanyPathwayPage() {
           <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
             <InstagramEmbed
               url="https://www.instagram.com/reel/DB3MI2NRCEM/"
-              title="Guide to renting a Wohnung in Germany"
+              title="How to find an apartment in Germany"
+              thumbnail="/instagram/wohnung-guide.jpg"
             />
             <div>
               <span className="px-3 py-1 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">

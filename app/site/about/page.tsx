@@ -163,6 +163,8 @@ export default function AboutPage() {
               <InstagramEmbed
                 url="https://www.instagram.com/p/DCmDIZIoe0J/"
                 title="Aparna Bose — Founder of Plan Beta"
+                thumbnail="/instagram/aparna-founder.jpg"
+                isVideo={false}
               />
             </div>
 

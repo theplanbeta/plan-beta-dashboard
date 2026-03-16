@@ -4,7 +4,6 @@ import { useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { getTrackingData, getVisitorId, trackEvent } from "@/lib/tracking"
-import { InstagramEmbed } from "@/components/marketing/InstagramEmbed"
 
 const countries = [
   "India", "Nepal", "Sri Lanka", "Bangladesh", "Pakistan",
@@ -275,30 +274,6 @@ export default function GermanyPathwayPage() {
                 <p className="text-gray-400 text-sm">{item.desc}</p>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Practical Tip — Renting in Germany */}
-      <section className="py-12 border-t border-white/[0.06]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6">
-            <InstagramEmbed
-              url="https://www.instagram.com/reel/DB3MI2NRCEM/"
-              title="How to find an apartment in Germany"
-              thumbnail="/instagram/wohnung-guide.jpg"
-            />
-            <div>
-              <span className="px-3 py-1 bg-blue-500/15 text-blue-400 text-xs font-medium rounded-full border border-blue-500/20">
-                Life in Germany
-              </span>
-              <h3 className="text-lg font-semibold text-white mt-3 mb-2">
-                How to Find an Apartment (Wohnung) in Germany
-              </h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                One of the biggest challenges after arriving in Germany — finding a place to live. Watch our guide on navigating the rental market, understanding Warmmiete vs Kaltmiete, and tips to secure your first Wohnung.
-              </p>
-            </div>
           </div>
         </div>
       </section>

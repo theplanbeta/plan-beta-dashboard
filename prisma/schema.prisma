@@ -1541,3 +1541,25 @@ model BlogPost {
   @@index([category])
   @@index([slug])
 }
+
+model InstagramInsight {
+  id               String   @id @default(cuid())
+  date             DateTime // Report date
+  postsAnalyzed    Int
+  avgLikes         Float
+  avgComments      Float
+  avgReelViews     Float
+  engagementRate   Float
+  bestFormat       String   // reel, image, carousel
+  bestDays         String[] // ["Monday", "Thursday"]
+  bestTimes        String[] // ["6PM IST", "9AM IST"]
+  topHashtags      String[]
+  dropHashtags     String[]
+  topThemes        String[]
+  retireThemes     String[]
+  weeklyActionItems String[]
+  fullReport       String   // Full markdown analysis
+  createdAt        DateTime @default(now())
+
+  @@index([date])
+}

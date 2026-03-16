@@ -117,6 +117,35 @@ export default function NursesPage() {
       </section>
 
       <NurseStats />
+
+      {/* Recruitment Reel */}
+      <section className="py-12 bg-[#0a0a0a]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+              See How We Help Nurses Get to Germany
+            </h2>
+            <p className="text-gray-400">
+              Watch how our recruitment process works — from language training to hospital placement.
+            </p>
+          </div>
+          <div className="flex justify-center">
+            <div className="rounded-2xl overflow-hidden border border-white/[0.08] bg-white/[0.04]">
+              <iframe
+                src="https://www.instagram.com/reel/DUI3c0okhnL/embed"
+                width="400"
+                height="520"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency={true}
+                loading="lazy"
+                title="Plan Beta Nursing Recruitment"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <NurseLifeInGermany />
 
       {/* Inline Apply CTA */}

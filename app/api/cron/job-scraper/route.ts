@@ -4,7 +4,7 @@ import { verifyCronSecret } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import { sendText } from "@/lib/whatsapp"
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 // GET /api/cron/job-scraper — Job scraping cron (protected by CRON_SECRET)
 // Runs at 6 AM + 6 PM UTC (configured in vercel.json)

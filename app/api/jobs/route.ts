@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyPortalToken } from "@/lib/jobs-portal-auth"
+import { geocodeCity, GERMAN_CITIES } from "@/lib/german-cities"
 
 // Niche → profession mapping for niche-focused pages
 const NICHE_PROFESSIONS: Record<string, string[]> = {
@@ -18,6 +19,8 @@ export async function GET(request: NextRequest) {
     const germanLevel = searchParams.get("germanLevel")
     const location = searchParams.get("location")
     const city = searchParams.get("city")
+    const nearCity = searchParams.get("nearCity")
+    const radius = Math.min(200, Math.max(5, parseInt(searchParams.get("radius") || "50", 10)))
     const jobType = searchParams.get("jobType")
     const englishOk = searchParams.get("englishOk")
     const salaryMin = searchParams.get("salaryMin")
@@ -70,8 +73,22 @@ export async function GET(request: NextRequest) {
       where.createdAt = { ...existing, lte: sixHoursAgo }
     }
 
-    // City filter: fuzzy match on location field
-    if (city) {
+    // Location filter: radius-based or fuzzy match
+    if (nearCity) {
+      const origin = geocodeCity(nearCity)
+      if (origin) {
+        // Find all known cities within the radius
+        const nearbyCities = Object.entries(GERMAN_CITIES)
+          .filter(([, coords]) => haversineKm(origin[1], origin[0], coords[1], coords[0]) <= radius)
+          .map(([name]) => name)
+        if (nearbyCities.length > 0) {
+          // Use AND to combine with any existing OR (e.g., englishOk)
+          const locationOr = nearbyCities.map((c) => ({ location: { contains: c, mode: "insensitive" as const } }))
+          const existing = where.AND as unknown[] || []
+          where.AND = [...existing, { OR: locationOr }]
+        }
+      }
+    } else if (city) {
       where.location = { contains: city, mode: "insensitive" }
     } else if (location) {
       where.location = { contains: location, mode: "insensitive" }
@@ -205,4 +222,15 @@ export async function GET(request: NextRequest) {
     console.error("[Jobs API] Error:", error)
     return NextResponse.json({ error: "Failed to fetch jobs" }, { status: 500 })
   }
+}
+
+/** Haversine distance in km between two lat/lng points */
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLon = (lon2 - lon1) * Math.PI / 180
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }

@@ -71,6 +71,9 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [debouncedSalaryMin, setDebouncedSalaryMin] = useState("")
   const [debouncedSalaryMax, setDebouncedSalaryMax] = useState("")
+  const [nearCity, setNearCity] = useState("")
+  const [radiusKm, setRadiusKm] = useState("50")
+  const [debouncedNearCity, setDebouncedNearCity] = useState("")
 
   // Debounce search and salary
   useEffect(() => {
@@ -85,11 +88,15 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
     const timer = setTimeout(() => setDebouncedSalaryMax(salaryMax), 500)
     return () => clearTimeout(timer)
   }, [salaryMax])
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedNearCity(nearCity), 500)
+    return () => clearTimeout(timer)
+  }, [nearCity])
 
   // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1)
-  }, [selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSearch, debouncedSalaryMin, debouncedSalaryMax])
+  }, [selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSearch, debouncedSalaryMin, debouncedSalaryMax, debouncedNearCity, radiusKm])
 
   // Fetch jobs when page or filters change (skip initial load — SSR data used)
   const [isInitial, setIsInitial] = useState(true)
@@ -109,6 +116,10 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
       if (sortBy !== "newest" && isPremium) params.set("sort", sortBy)
       if (debouncedSalaryMin && isPremium) params.set("salaryMin", debouncedSalaryMin)
       if (debouncedSalaryMax && isPremium) params.set("salaryMax", debouncedSalaryMax)
+      if (debouncedNearCity) {
+        params.set("nearCity", debouncedNearCity)
+        params.set("radius", radiusKm)
+      }
       if (city) params.set("city", city)
 
       const headers: Record<string, string> = {}
@@ -128,7 +139,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
     } catch { /* silent */ } finally {
       setLoading(false)
     }
-  }, [currentPage, selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSalaryMin, debouncedSalaryMax, niche, city, isInitial, isPremium])
+  }, [currentPage, selectedLevel, selectedLocation, selectedJobType, englishOk, sortBy, debouncedSalaryMin, debouncedSalaryMax, debouncedNearCity, radiusKm, niche, city, isInitial, isPremium])
 
   useEffect(() => { fetchJobs() }, [fetchJobs])
 
@@ -187,6 +198,10 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         onSearchChange={setSearchQuery}
         onSalaryMinChange={setSalaryMin}
         onSalaryMaxChange={setSalaryMax}
+        nearCity={nearCity}
+        radiusKm={radiusKm}
+        onNearCityChange={setNearCity}
+        onRadiusChange={setRadiusKm}
       />
 
       {/* Job Listings */}
@@ -254,7 +269,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
         <div className="text-center py-16 max-w-5xl mx-auto px-4">
           <p className="text-gray-400 text-sm mb-4">No jobs found matching your criteria.</p>
           <button
-            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSelectedJobType(""); setEnglishOk(false); setSortBy("newest"); setSearchQuery(""); setSalaryMin(""); setSalaryMax("") }}
+            onClick={() => { setSelectedLevel(""); setSelectedLocation(""); setSelectedJobType(""); setEnglishOk(false); setSortBy("newest"); setSearchQuery(""); setSalaryMin(""); setSalaryMax(""); setNearCity(""); setRadiusKm("50") }}
             className="text-sm text-primary hover:text-primary-light transition-colors"
           >
             Clear all filters

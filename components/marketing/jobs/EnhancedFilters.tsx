@@ -27,6 +27,10 @@ interface EnhancedFiltersProps {
   onSearchChange: (v: string) => void
   onSalaryMinChange: (v: string) => void
   onSalaryMaxChange: (v: string) => void
+  nearCity: string
+  radiusKm: string
+  onNearCityChange: (v: string) => void
+  onRadiusChange: (v: string) => void
 }
 
 const selectClasses = "px-3 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
@@ -50,6 +54,10 @@ export function EnhancedFilters({
   onSearchChange,
   onSalaryMinChange,
   onSalaryMaxChange,
+  nearCity,
+  radiusKm,
+  onNearCityChange,
+  onRadiusChange,
 }: EnhancedFiltersProps) {
   const { isPremium } = usePortalAuth()
 
@@ -86,8 +94,36 @@ export function EnhancedFilters({
           )}
         </div>
 
-        {/* Row 2: Job type + premium filters */}
+        {/* Row 2: Near city + Job type + premium filters */}
         <div className="flex flex-wrap gap-3 items-center">
+          {/* Near city + radius (free) */}
+          {!city && (
+            <div className="flex items-center gap-1.5">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Your city..."
+                  value={nearCity}
+                  onChange={(e) => onNearCityChange(e.target.value)}
+                  className="w-36 pl-8 pr-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                />
+              </div>
+              {nearCity && (
+                <select value={radiusKm} onChange={(e) => onRadiusChange(e.target.value)} className={`${selectClasses} w-24`}>
+                  <option value="10">10 km</option>
+                  <option value="25">25 km</option>
+                  <option value="50">50 km</option>
+                  <option value="100">100 km</option>
+                  <option value="200">200 km</option>
+                </select>
+              )}
+            </div>
+          )}
+
           {/* Job type (free) */}
           <select value={selectedJobType} onChange={(e) => onJobTypeChange(e.target.value)} className={selectClasses}>
             <option value="">All Job Types</option>

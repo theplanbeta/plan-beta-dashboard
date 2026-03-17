@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth.authorized) return auth.response
 
   const sources = await prisma.jobSource.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { lastFetched: "desc" },
     include: {
       _count: {
         select: { jobs: { where: { active: true } } },

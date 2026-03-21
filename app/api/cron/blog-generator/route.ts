@@ -200,11 +200,12 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
 
     const postData = JSON.parse(textContent.text)
 
-    // --- Humanizing Pass ---
-    const humanizeResponse = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      system: `You are an editor who humanizes AI-written blog content for Plan Beta, a German language school for Indian students.
+    // --- Humanizing Pass + slug check in parallel ---
+    const [humanizeResponse, existingSlug] = await Promise.all([
+      client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
+        system: `You are an editor who humanizes AI-written blog content for Plan Beta, a German language school for Indian students.
 
 Your job is to take the draft blog post and rewrite it to feel authentic and human. Rules:
 
@@ -219,23 +220,23 @@ Your job is to take the draft blog post and rewrite it to feel authentic and hum
 9. Make the CTA feel personal, not salesy ("Drop us a message — we'll help you figure out the right batch")
 
 Return ONLY the rewritten markdown content. No JSON wrapper, no explanation — just the markdown.`,
-      messages: [
-        {
-          role: "user",
-          content: `Humanize this blog post:\n\n${postData.content}`,
-        },
-      ],
-    })
+        messages: [
+          {
+            role: "user",
+            content: `Humanize this blog post:\n\n${postData.content}`,
+          },
+        ],
+      }),
+      prisma.blogPost.findUnique({
+        where: { slug: postData.slug },
+      }),
+    ])
 
     const humanizedContent = humanizeResponse.content.find((c) => c.type === "text")
     if (humanizedContent && humanizedContent.type === "text") {
       postData.content = humanizedContent.text.trim()
     }
 
-    // Ensure slug uniqueness
-    const existingSlug = await prisma.blogPost.findUnique({
-      where: { slug: postData.slug },
-    })
     if (existingSlug) {
       postData.slug = `${postData.slug}-${Date.now().toString(36)}`
     }

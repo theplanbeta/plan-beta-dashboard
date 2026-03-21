@@ -3,6 +3,8 @@ import { verifyCronSecret } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
 
+export const maxDuration = 60
+
 // Schema for Kimi Claw blog topic suggestions
 interface TopicSuggestion {
   title: string
@@ -187,21 +189,22 @@ You must respond with valid JSON only (no markdown code fences):
     }
     const postData = JSON.parse(jsonStr)
 
-    // Step 2: Humanize
-    const humanizeResponse = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      system: HUMANIZE_PROMPT,
-      messages: [{ role: "user", content: `Humanize this blog post:\n\n${postData.content}` }],
-    })
+    // Step 2: Humanize + slug check in parallel
+    const [humanizeResponse, existingSlug] = await Promise.all([
+      client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4096,
+        system: HUMANIZE_PROMPT,
+        messages: [{ role: "user", content: `Humanize this blog post:\n\n${postData.content}` }],
+      }),
+      prisma.blogPost.findUnique({ where: { slug: postData.slug } }),
+    ])
 
     const humanized = humanizeResponse.content.find((c) => c.type === "text")
     if (humanized && humanized.type === "text") {
       postData.content = humanized.text.trim()
     }
 
-    // Ensure slug uniqueness
-    const existingSlug = await prisma.blogPost.findUnique({ where: { slug: postData.slug } })
     if (existingSlug) {
       postData.slug = `${postData.slug}-${Date.now().toString(36)}`
     }

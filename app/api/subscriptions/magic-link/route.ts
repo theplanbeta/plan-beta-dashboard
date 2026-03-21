@@ -3,8 +3,10 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { signPortalToken, signMagicLinkToken } from "@/lib/jobs-portal-auth"
 import { Resend } from "resend"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const limiter = rateLimit(RATE_LIMITS.STRICT)
 
 const schema = z.object({
   email: z.string().email(),
@@ -12,6 +14,8 @@ const schema = z.object({
 
 // POST /api/subscriptions/magic-link — Send a magic link to restore premium session
 export async function POST(request: NextRequest) {
+  const rateLimited = await limiter(request)
+  if (rateLimited) return rateLimited
   let body: unknown
   try {
     body = await request.json()

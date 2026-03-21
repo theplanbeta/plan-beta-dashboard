@@ -6,6 +6,9 @@ import { fetchAllGSCData } from "@/lib/analytics/gsc"
 import { fetchAllFirstPartyData } from "@/lib/analytics/first-party"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const aiLimiter = rateLimit(RATE_LIMITS.AI)
 
 // --- Types ---
 
@@ -194,6 +197,9 @@ const CACHE_SOURCE = "marketing-insights"
 const CACHE_TTL_MINUTES = 720 // 12 hours
 
 export async function GET(request: NextRequest) {
+  const rateLimited = await aiLimiter(request)
+  if (rateLimited) return rateLimited
+
   try {
     const check = await checkPermission("analytics", "read")
     if (!check.authorized) return check.response

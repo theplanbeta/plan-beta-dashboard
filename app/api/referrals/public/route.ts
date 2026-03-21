@@ -5,6 +5,9 @@ import { validateReferralCode } from "@/lib/referral-codes"
 import { createNotification, NOTIFICATION_TYPES } from "@/lib/notifications"
 import { sendTemplate, WHATSAPP_TEMPLATES } from "@/lib/whatsapp"
 import { trackServerLead } from "@/lib/meta-capi"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const limiter = rateLimit(RATE_LIMITS.MODERATE)
 
 const referralLeadSchema = z.object({
   name: z.string().min(1, "Name required"),
@@ -19,6 +22,9 @@ const referralLeadSchema = z.object({
 
 // POST /api/referrals/public — Create a lead with referral attribution (no auth, rate-limited)
 export async function POST(request: NextRequest) {
+  const rateLimited = await limiter(request)
+  if (rateLimited) return rateLimited
+
   try {
     const body = await request.json()
     const validation = referralLeadSchema.safeParse(body)

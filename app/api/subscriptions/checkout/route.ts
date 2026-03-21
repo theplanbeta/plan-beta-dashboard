@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { stripe } from "@/lib/stripe"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const limiter = rateLimit(RATE_LIMITS.MODERATE)
 
 const checkoutSchema = z.object({
   email: z.string().email(),
@@ -16,6 +19,9 @@ const checkoutSchema = z.object({
 
 // POST /api/subscriptions/checkout — Create a Stripe Checkout session for job alert subscription
 export async function POST(request: NextRequest) {
+  const rateLimited = await limiter(request)
+  if (rateLimited) return rateLimited
+
   if (!stripe) {
     return NextResponse.json(
       { error: "Stripe is not configured" },

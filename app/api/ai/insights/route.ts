@@ -3,8 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isGeminiAvailable, generateContent } from '@/lib/gemini-client'
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 import fs from 'fs'
 import path from 'path'
+
+const aiLimiter = rateLimit(RATE_LIMITS.AI)
 
 // Simple in-memory cache (in production, use Redis or DB)
 const insightsCache: Map<string, { data: string; timestamp: number }> = new Map()
@@ -320,6 +323,9 @@ async function aggregateBusinessData(period: number = 30) {
 
 // GET /api/ai/insights - Get AI-powered insights
 export async function GET(request: NextRequest) {
+  const rateLimited = await aiLimiter(request)
+  if (rateLimited) return rateLimited
+
   try {
     const session = await getServerSession(authOptions)
     if (!session) {
@@ -390,6 +396,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/ai/insights - Ask a specific question
 export async function POST(request: NextRequest) {
+  const rateLimited = await aiLimiter(request)
+  if (rateLimited) return rateLimited
+
   try {
     const session = await getServerSession(authOptions)
     if (!session) {

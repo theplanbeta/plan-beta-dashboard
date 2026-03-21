@@ -3,8 +3,11 @@ import Anthropic from "@anthropic-ai/sdk"
 import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import { COURSE_PRICING, EXCHANGE_RATE } from "@/lib/pricing"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
 
 export const maxDuration = 60
+
+const limiter = rateLimit(RATE_LIMITS.AI)
 
 const CFO_SYSTEM_PROMPT = `You are the Virtual CFO of Plan Beta School of German — an online German language school based in Kerala, India, teaching students who want to work, study, or immigrate to Germany.
 
@@ -281,6 +284,9 @@ interface ChatMessage {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimited = await limiter(request)
+  if (rateLimited) return rateLimited
+
   const auth = await checkPermission("insights", "read")
   if (!auth.authorized) return auth.response
 

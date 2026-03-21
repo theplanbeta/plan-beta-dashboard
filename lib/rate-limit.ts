@@ -101,4 +101,7 @@ export const RATE_LIMITS = {
 
   // Lenient: 100 requests per minute (for read operations)
   LENIENT: { windowMs: 60000, maxRequests: 100 },
+
+  // AI: 5 requests per minute (for expensive AI API calls — Claude, Gemini)
+  AI: { windowMs: 60000, maxRequests: 5 },
 }

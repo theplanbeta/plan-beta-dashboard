@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server"
 import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const aiLimiter = rateLimit(RATE_LIMITS.AI)
 
 const BLOG_CATEGORIES = [
   "Career",
@@ -109,6 +112,9 @@ async function getAutoTopic(): Promise<{
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimited = await aiLimiter(request)
+  if (rateLimited) return rateLimited
+
   const auth = await checkPermission("content", "create")
   if (!auth.authorized) return auth.response
 

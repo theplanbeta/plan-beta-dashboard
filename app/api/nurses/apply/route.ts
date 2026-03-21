@@ -1,5 +1,8 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { Resend } from "resend"
+import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+
+const limiter = rateLimit(RATE_LIMITS.STRICT)
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -40,7 +43,10 @@ const GERMAN_LEVEL_LABELS: Record<string, string> = {
   b2: "B2",
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const rateLimited = await limiter(request)
+  if (rateLimited) return rateLimited
+
   try {
     const formData = await request.formData()
 

@@ -406,6 +406,60 @@ export const GERMAN_CITIES: Record<string, [number, number]> = {
   "Merzig": [6.636, 49.442],
   "Sankt Wendel": [7.169, 49.468],
   "Dillingen": [6.729, 49.357],
+
+  // ─── University towns (missing from above) ──────────────────────────────
+
+  // Lower Saxony
+  "Clausthal-Zellerfeld": [10.338, 51.803],   // TU Clausthal
+  "Vechta": [8.286, 52.726],                  // Uni Vechta
+
+  // Bavaria
+  "Eichstätt": [11.184, 48.892],              // KU Eichstätt-Ingolstadt
+  "Neubiberg": [11.661, 48.076],              // Uni der Bundeswehr München
+  "Weihenstephan": [11.724, 48.397],          // TUM Weihenstephan (Freising area)
+
+  // Baden-Württemberg
+  "Furtwangen": [8.207, 48.051],              // HS Furtwangen
+  "Nürtingen": [9.341, 48.626],              // HfWU Nürtingen-Geislingen
+  "Geislingen": [9.828, 48.624],             // HfWU campus
+  "Schwetzingen": [8.577, 49.383],           // near HS Mannheim/Heidelberg
+  "Kehl": [7.815, 48.573],                   // HS Kehl (public admin)
+  "Weingarten": [9.641, 47.810],             // PH/RWU Weingarten
+
+  // North Rhine-Westphalia
+  "Kleve": [6.140, 51.789],                  // HS Rhein-Waal
+  "Kamp-Lintfort": [6.535, 51.505],          // HS Rhein-Waal campus
+  "Lemgo": [8.899, 52.028],                  // TH OWL
+  "Höxter": [9.381, 51.775],                // TH OWL campus
+  "Meschede": [8.284, 51.350],              // FH Südwestfalen
+  "Gummersbach": [7.565, 51.026],           // TH Köln campus
+  "Rheinbach": [6.949, 50.627],             // H-BRS campus
+  "Steinfurt": [7.335, 52.145],             // FH Münster campus
+  "Soest": [8.106, 51.571],                 // FH Südwestfalen campus
+  "Mülheim an der Ruhr": [6.884, 51.433],   // HRW
+
+  // Saxony
+  "Mittweida": [12.978, 50.986],            // HS Mittweida
+  "Zittau": [14.808, 50.896],              // HS Zittau/Görlitz
+
+  // Saxony-Anhalt
+  "Köthen": [11.971, 51.751],              // HS Anhalt
+
+  // Thuringia
+  "Schmalkalden": [10.452, 50.723],         // HS Schmalkalden
+
+  // Brandenburg
+  "Wildau": [13.632, 52.319],              // TH Wildau
+
+  // Rhineland-Palatinate
+  "Vallendar": [7.618, 50.394],            // WHU Otto Beisheim School of Management
+  "Birkenfeld": [7.163, 49.650],           // Umwelt-Campus Birkenfeld (HS Trier)
+
+  // Hesse
+  "Geisenheim": [7.968, 49.985],           // HS Geisenheim (viticulture/wine)
+  "Idstein": [8.268, 50.221],              // HS Fresenius
+  "Rüdesheim": [7.925, 49.977],            // near HS Geisenheim
+
 }
 
 // ─── Job Board City Pages ───────────────────────────────────────────────────

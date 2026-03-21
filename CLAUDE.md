@@ -20,77 +20,8 @@ A comprehensive school management platform for Plan Beta, a German language scho
 npm run dev          # Start development server (localhost:3000)
 npm run build        # Build for production (runs prisma generate first)
 npm run lint         # Run ESLint
-npm run db:seed      # Seed database with initial data
-npm run backup       # Backup database to JSON
-npm run restore      # Restore database from backup
-npm run import       # Bulk import data
 npx prisma studio    # Open Prisma Studio GUI
-npx prisma migrate dev   # Run database migrations
-npx prisma db push   # Push schema changes without migration
-```
-
-## Project Structure
-
-```
-app/
-  api/                    # API routes
-    auth/                 # NextAuth endpoints
-    batches/              # Batch management
-    cron/                 # Scheduled tasks (backup, reminders)
-    students/             # Student CRUD
-    teachers/             # Teacher management
-    payments/             # Payment processing
-    leads/                # Lead management
-      public/             # Unauthenticated lead intake from website
-    analytics/
-      marketing/          # Marketing analytics with UTM/campaign breakdowns
-  site/                   # Public marketing website (planbeta.in/site)
-    layout.tsx            # Nav + footer + WhatsApp button + chatbot + cookie consent
-    page.tsx              # Homepage (8 section components)
-    courses/              # Course catalog
-    about/                # About page with timeline
-    opportunities/        # Germany opportunities
-    blog/                 # Blog listing
-    contact/              # Contact form (creates leads via /api/leads/public)
-    sitemap.ts            # Dynamic sitemap generation
-    robots.ts             # Robots.txt
-  dashboard/              # Main dashboard pages (auth required)
-    batches/              # Batch management UI
-    students/             # Student management UI
-    teachers/             # Teacher management UI
-    payments/             # Payment tracking
-    marketing/            # Marketing dashboard
-    content-lab/          # Content ideas from Reddit
-    instagram/            # Instagram integration
-
-components/
-  marketing/              # Marketing site components
-    sections/             # Homepage sections (HeroSection, CTASection, etc.)
-    SEOStructuredData.tsx  # JSON-LD structured data (Organization, Course, FAQ, etc.)
-    CookieConsent.tsx     # GDPR cookie consent banner
-    ConsentAnalytics.tsx  # Consent-gated Vercel Analytics
-    TrackingProvider.tsx  # UTM capture + Meta Pixel + GA4 injection
-    AIChatbot.tsx         # AI-powered chatbot
-    AnimateInView.tsx     # Scroll animation wrapper (framer-motion)
-  ui/                     # Shared UI components
-
-lib/
-  prisma.ts              # Prisma client instance
-  email.ts               # Email templates and sending
-  api-permissions.ts     # Role-based API access control
-  auth.ts                # NextAuth configuration
-  seo.ts                 # SEO utilities (generatePageMetadata, TARGET_KEYWORDS)
-  tracking.ts            # Client-side tracking (UTM capture, visitor ID, event tracking)
-  marketing-data.ts      # Marketing site content (testimonials, FAQs, stats)
-  attribution-tracking.ts # Content → Lead → Enrollment attribution
-
-prisma/
-  schema.prisma          # Database schema
-  seed.ts                # Database seeding script
-
-scripts/                 # Utility scripts
-  backup-database.ts     # Database backup
-  restore-database.ts    # Database restore
+npx prisma db push   # Push schema changes (NOT migrate dev — history is out of sync)
 ```
 
 ## Key Conventions
@@ -140,82 +71,23 @@ PLANNING -> FILLING -> FULL -> RUNNING -> COMPLETED
 - Event tracking fires to Meta Pixel (`fbq`) and GA4 (`gtag`) when configured + consented
 
 ### Email Templates
-Add new templates in `lib/email.ts` in the `EMAIL_TEMPLATES` object. Templates include:
-- `welcome`, `payment-received`, `payment-reminder`
-- `teacher-hours-reminder`, `consecutive-absence-alert`
-
-## Scheduled Tasks
-
-### Vercel Crons (vercel.json)
-- Daily backup: 2 AM UTC
-- Consecutive absence alerts: 10 PM UTC
-
-### GitHub Actions (.github/workflows/)
-- Teacher hours reminder: 6 PM UTC (7 PM CET) weekdays
-
-## Environment Variables
-
-Required in `.env`:
-```
-DATABASE_URL=           # Neon PostgreSQL connection string
-NEXTAUTH_SECRET=        # NextAuth secret key
-NEXTAUTH_URL=           # App URL (http://localhost:3000 for dev)
-RESEND_API_KEY=         # Resend API key for emails
-CRON_SECRET=            # Secret for authenticating cron endpoints
-```
-
-Optional (tracking pixels — system works without these):
-```
-NEXT_PUBLIC_META_PIXEL_ID=        # Meta/Facebook Pixel ID
-NEXT_PUBLIC_GA_MEASUREMENT_ID=    # Google Analytics 4 Measurement ID
-```
-
-## Database Models Overview
-
-### Core Entities
-- **User**: Staff accounts (founders, marketing, teachers)
-- **Student**: Enrolled students with payment and attendance tracking
-- **Batch**: Class groups (A1, A2, B1, B2) with teacher assignment
-- **Lead**: Prospective students before enrollment
-
-### Financial
-- **Payment**: Payment records linked to students
-- **Receipt**: Generated receipt documents
-- **Invoice**: Invoices for leads and students
-- **Refund**: Refund tracking
-
-### Operations
-- **Attendance**: Daily attendance records per student
-- **TeacherHours**: Teacher work hours for payroll (30-day past logging limit, bulk approve/reject supported)
-- **Referral**: Student referral program tracking
-
-### Content & Marketing
-- **ContentPerformance**: Social media metrics
-- **ContentIdea**: Generated content ideas from Reddit
-- **RedditPost**: Saved Reddit posts for inspiration
-
-### Tracking (on Lead model)
-- UTM fields: `utmSource`, `utmMedium`, `utmCampaign`, `utmContent`, `utmTerm`
-- Attribution: `firstTouchpoint`, `referrerUrl`, `landingPage`, `deviceType`, `visitorId`
-- Instagram: `instagramHandle`, `sourceReelId`, `sourceReelUrl`, `socialEngagement` (JSON)
-- Scoring: `leadScore`, `contentInteractions` (JSON)
+Add new templates in `lib/email.ts` in the `EMAIL_TEMPLATES` object.
 
 ## Security
 
-- **Middleware** (`middleware.ts`): Applies CSP, X-Frame-Options, HSTS, Permissions-Policy to all matched routes
-- **Matcher**: `/dashboard/:path*`, `/login`, `/site/:path*`, `/privacy`, `/terms`
+- **Middleware** (`middleware.ts`): Applies CSP, X-Frame-Options, Permissions-Policy to all matched routes
 - **CSP**: Allows `self`, Vercel Analytics/Scripts domains, Meta Pixel + GA4 domains (when configured)
 - **next.config.ts**: Global HSTS, X-DNS-Prefetch-Control, X-Content-Type-Options, Referrer-Policy headers
+- `unsafe-eval` is required by Next.js at runtime — do NOT remove it
 
-## Important Notes
+## Coding Gotchas
 
-1. **Time Zones**: Classes run Mon-Fri at 7 AM and 5 PM CET (Central European Time)
-2. **Google Meet**: Classes conducted via Google Meet with batch-specific links stored in `Batch.meetLink`
-3. **Multi-currency**: Support EUR and INR; always store EUR equivalent for reporting
-4. **Teacher Exclusions**: Founders who teach (like Aparna) are excluded from hour reminders via email exclusion list in cron routes
-5. **Marketing Site**: Served at `/site` path. The site layout is a client component; use `layout.tsx` wrappers for server-side metadata
-6. **Cookie Consent**: All analytics (Vercel, Meta, GA4) are consent-gated. Never load tracking scripts before consent
-7. **Teacher Hours**: Teachers can only log hours up to 30 days in the past. Founders can bulk approve/reject via `/api/teacher-hours/bulk-approve`. Teacher salary costs auto-feed into Insights P&L.
-8. **Charts**: All chart components (`components/charts/`) limit decimal display to 2 places. API responses for financial data should be rounded before returning.
-9. **Notification Bell**: Dropdown uses fixed positioning on mobile (full-width below header) and `left-0` on desktop (extends over main content) to avoid clipping inside the sidebar.
-10. **Domain**: Primary domain is `theplanbeta.com` (non-www). `www` redirects via 308. Google Search Console is set up with sitemap submitted.
+1. **Multi-currency**: Always store EUR equivalent for reporting. Use `lib/pricing.ts` and `lib/currency.ts`.
+2. **Marketing Site metadata**: Site layout is `"use client"` — use a `layout.tsx` server wrapper for `generatePageMetadata()`.
+3. **Cookie Consent**: All analytics (Vercel, Meta, GA4) are consent-gated. Never load tracking scripts before consent.
+4. **Teacher Hours**: 30-day past logging limit. Bulk approve/reject via `/api/teacher-hours/bulk-approve`. Costs auto-feed into Insights P&L.
+5. **Charts**: All chart components (`components/charts/`) limit decimal display to 2 places. API responses for financial data should be rounded before returning.
+6. **Notification Bell**: Dropdown uses fixed positioning on mobile (full-width below header) and `left-0` on desktop to avoid sidebar clipping.
+7. **Job scraper**: `maxDuration = 300` on cron route. Kimi Claw sources are push-only (skipped by scraper). Location filter uses haversine against `lib/german-cities.ts`.
+8. **Instagram embeds**: Use static thumbnails (`InstagramEmbed.tsx`), NOT iframes or embed.js. Thumbnails in `public/instagram/`.
+9. **Blog content**: Uses `.blog-content` CSS class in `globals.css` for dark-theme rendering. No Tailwind Typography plugin.

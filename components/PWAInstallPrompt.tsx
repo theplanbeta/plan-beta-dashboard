@@ -8,7 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const DISMISS_KEY = "pb-pwa-install-dismissed"
-const DISMISS_DAYS = 7
+const DISMISS_DAYS = 30
 
 export default function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
@@ -32,7 +32,7 @@ export default function PWAInstallPrompt() {
       e.preventDefault()
       const promptEvent = e as BeforeInstallPromptEvent
       setDeferredPrompt(promptEvent)
-      setTimeout(() => setShowInstallPrompt(true), 3000)
+      setTimeout(() => setShowInstallPrompt(true), 15000)
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)

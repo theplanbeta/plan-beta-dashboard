@@ -13,10 +13,15 @@ export default function PushNotificationPrompt() {
     // Don't show if no service worker support or already subscribed
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return
     if (Notification.permission === "granted" || Notification.permission === "denied") return
-    if (sessionStorage.getItem("pb-push-dismissed")) return
+    // Persist dismiss for 30 days
+    const dismissedAt = localStorage.getItem("pb-push-dismissed")
+    if (dismissedAt) {
+      const daysSince = (Date.now() - new Date(dismissedAt).getTime()) / (1000 * 60 * 60 * 24)
+      if (daysSince < 30) return
+    }
 
-    // Show after 30 seconds on page
-    const timer = setTimeout(() => setShow(true), 30000)
+    // Show after 60 seconds (staggered from PWA install prompt)
+    const timer = setTimeout(() => setShow(true), 60000)
     return () => clearTimeout(timer)
   }, [])
 
@@ -59,7 +64,7 @@ export default function PushNotificationPrompt() {
   const handleDismiss = () => {
     setDismissed(true)
     setShow(false)
-    sessionStorage.setItem("pb-push-dismissed", "1")
+    localStorage.setItem("pb-push-dismissed", new Date().toISOString())
   }
 
   if (!show || dismissed) return null

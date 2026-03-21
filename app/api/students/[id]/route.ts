@@ -156,19 +156,19 @@ export async function PUT(
     const finalPrice = originalPrice.minus(discountApplied)
     const balance = finalPrice.minus(totalPaid)
 
-    // Also update the enrollment matching student's current batch
+    // Also update (or create) the enrollment matching student's current batch
     const currentBatchId = body.batchId || null
     if (currentBatchId) {
+      const currency = body.currency || "EUR"
+      const eurEquivalent = new Decimal(
+        getEurEquivalent(Number(finalPrice), currency as "EUR" | "INR").toFixed(2)
+      )
+      const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
+
       const enrollment = await prisma.batchEnrollment.findUnique({
         where: { studentId_batchId: { studentId: id, batchId: currentBatchId } },
       })
       if (enrollment) {
-        const currency = body.currency || "EUR"
-        const eurEquivalent = new Decimal(
-          getEurEquivalent(Number(finalPrice), currency as "EUR" | "INR").toFixed(2)
-        )
-        const exchangeRateUsed = currency === "INR" ? new Decimal(EXCHANGE_RATE) : null
-
         await prisma.batchEnrollment.update({
           where: { id: enrollment.id },
           data: {
@@ -179,6 +179,25 @@ export async function PUT(
             currency,
             eurEquivalent,
             exchangeRateUsed,
+          },
+        })
+      } else {
+        // Create enrollment if student is being assigned to a batch without one
+        await prisma.batchEnrollment.create({
+          data: {
+            studentId: id,
+            batchId: currentBatchId,
+            enrollmentDate: new Date(),
+            originalPrice,
+            discountApplied,
+            finalPrice,
+            currency,
+            eurEquivalent,
+            exchangeRateUsed,
+            totalPaid,
+            totalPaidEur: new Decimal(getEurEquivalent(Number(totalPaid), currency as "EUR" | "INR").toFixed(2)),
+            balance,
+            paymentStatus: currentStudent.paymentStatus,
           },
         })
       }

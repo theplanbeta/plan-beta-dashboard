@@ -78,16 +78,19 @@ export async function GET(
     const fillRate = batch.totalSeats > 0 ? (enrolledCount / batch.totalSeats) * 100 : 0
     const batchCurrency: SupportedCurrency = normalizeCurrency(batch.currency)
 
+    // Use enrollment-specific data for revenue (consistent with roster display)
     const revenueActual = batch.students.reduce((sum, student) => {
-      const paid = Number(student.totalPaid ?? 0)
-      const studentCurrency = normalizeCurrency((student as any).currency)
-      return sum + convertAmount(paid, studentCurrency, batchCurrency)
+      const enrollment = (student as any).enrollments?.[0]
+      const paid = Number(enrollment?.totalPaid ?? student.totalPaid ?? 0)
+      const currency = normalizeCurrency(enrollment?.currency || (student as any).currency)
+      return sum + convertAmount(paid, currency, batchCurrency)
     }, 0)
 
     const revenuePotential = batch.students.reduce((sum, student) => {
-      const finalPrice = Number(student.finalPrice ?? 0)
-      const studentCurrency = normalizeCurrency((student as any).currency)
-      return sum + convertAmount(finalPrice, studentCurrency, batchCurrency)
+      const enrollment = (student as any).enrollments?.[0]
+      const price = Number(enrollment?.finalPrice ?? student.finalPrice ?? 0)
+      const currency = normalizeCurrency(enrollment?.currency || (student as any).currency)
+      return sum + convertAmount(price, currency, batchCurrency)
     }, 0)
 
     const teacherCost = convertAmount(

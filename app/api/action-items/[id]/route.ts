@@ -6,9 +6,11 @@ import { z } from "zod"
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional().nullable(),
+  category: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
-  dueDate: z.string().datetime().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  assignedToId: z.string().optional().nullable(),
 })
 
 // PATCH /api/action-items/[id]
@@ -34,13 +36,23 @@ export async function PATCH(
     const updateData: Record<string, unknown> = {}
     if (data.title !== undefined) updateData.title = data.title
     if (data.description !== undefined) updateData.description = data.description
+    if (data.category !== undefined) updateData.category = data.category
     if (data.priority !== undefined) updateData.priority = data.priority
-    if (data.status !== undefined) updateData.status = data.status
     if (data.dueDate !== undefined) updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null
+    if (data.assignedToId !== undefined) updateData.assignedToId = data.assignedToId || null
+
+    if (data.status !== undefined) {
+      updateData.status = data.status
+      updateData.completedAt = data.status === "DONE" ? new Date() : null
+    }
 
     const item = await prisma.actionItem.update({
       where: { id },
       data: updateData,
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true } },
+      },
     })
 
     return NextResponse.json(item)

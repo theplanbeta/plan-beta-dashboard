@@ -56,7 +56,7 @@ export const PERMISSIONS: Record<
     adSpend: { read: false, create: false, update: false, delete: false },
     utmLinks: { read: true, create: true, update: true, delete: true },
     jobs: { read: false, create: false, update: false, delete: false },
-    actionItems: { read: false, create: false, update: false, delete: false },
+    actionItems: { read: true, create: true, update: true, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -100,9 +100,9 @@ export const NAVIGATION: NavItem[] = [
     roles: ['FOUNDER'],
   },
   {
-    name: 'Action Items',
+    name: 'Tasks',
     href: '/dashboard/action-items',
-    roles: ['FOUNDER'],
+    roles: ['FOUNDER', 'MARKETING'],
   },
   {
     name: 'Outreach',

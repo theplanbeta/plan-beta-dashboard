@@ -3,12 +3,16 @@ import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
+const CATEGORIES = ["General", "Marketing", "Operations", "Finance", "Content", "Growth", "Technical"]
+
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
-  source: z.string().default("CFO Agent"),
+  source: z.string().default("Manual"),
+  category: z.string().default("General"),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
-  dueDate: z.string().datetime().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  assignedToId: z.string().optional().nullable(),
 })
 
 // GET /api/action-items
@@ -19,16 +23,19 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
-    const priority = searchParams.get("priority")
+    const category = searchParams.get("category")
 
     const where: Record<string, unknown> = {}
     if (status && status !== "all") where.status = status
-    if (priority && priority !== "all") where.priority = priority
+    if (category && category !== "all") where.category = category
 
     const items = await prisma.actionItem.findMany({
       where,
       orderBy: [{ status: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
-      include: { createdBy: { select: { name: true } } },
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true } },
+      },
     })
 
     return NextResponse.json(items)
@@ -59,9 +66,15 @@ export async function POST(request: NextRequest) {
         title: data.title,
         description: data.description || null,
         source: data.source,
+        category: CATEGORIES.includes(data.category) ? data.category : "General",
         priority: data.priority,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
         createdById: check.session!.user.id,
+        assignedToId: data.assignedToId || null,
+      },
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        assignedTo: { select: { id: true, name: true } },
       },
     })
 

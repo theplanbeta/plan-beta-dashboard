@@ -60,6 +60,7 @@ export default function CfoPage() {
           title,
           description: content.slice(0, 2000),
           source: "CFO Agent",
+          category: "Finance",
           priority: "MEDIUM",
         }),
       })

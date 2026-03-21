@@ -44,7 +44,8 @@ model User {
   offerLetters          OfferLetter[]   @relation("TeacherOffers")
   teacherHours          TeacherHours[]  @relation("TeacherHours")
   teacherReviews        TeacherReview[] @relation("TeacherReviewer")
-  actionItems           ActionItem[]
+  createdActionItems    ActionItem[]   @relation("ActionItemCreator")
+  assignedActionItems   ActionItem[]   @relation("ActionItemAssignee")
 
   @@index([email])
   @@index([role])
@@ -1579,19 +1580,24 @@ enum ActionItemPriority {
 }
 
 model ActionItem {
-  id          String             @id @default(cuid())
-  title       String
-  description String?            @db.Text
-  source      String             @default("CFO Agent")
-  priority    ActionItemPriority @default(MEDIUM)
-  status      ActionItemStatus   @default(TODO)
-  dueDate     DateTime?
-  createdById String
-  createdBy   User               @relation(fields: [createdById], references: [id])
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  id           String             @id @default(cuid())
+  title        String
+  description  String?            @db.Text
+  source       String             @default("Manual")
+  category     String             @default("General")
+  priority     ActionItemPriority @default(MEDIUM)
+  status       ActionItemStatus   @default(TODO)
+  dueDate      DateTime?
+  createdById  String
+  createdBy    User               @relation("ActionItemCreator", fields: [createdById], references: [id])
+  assignedToId String?
+  assignedTo   User?              @relation("ActionItemAssignee", fields: [assignedToId], references: [id])
+  completedAt  DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   @@index([createdById])
+  @@index([assignedToId])
   @@index([status])
-  @@index([priority])
+  @@index([category])
 }

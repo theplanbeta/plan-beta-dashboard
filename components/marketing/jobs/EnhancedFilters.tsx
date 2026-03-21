@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { usePortalAuth } from "./JobPortalAuthProvider"
 import { PremiumGate } from "./PremiumGate"
 
@@ -60,32 +61,110 @@ export function EnhancedFilters({
   onRadiusChange,
 }: EnhancedFiltersProps) {
   const { isPremium } = usePortalAuth()
+  const [showFilters, setShowFilters] = useState(false)
+
+  const activeFilterCount = [selectedLevel, selectedLocation, selectedJobType, nearCity].filter(Boolean).length
+    + (englishOk ? 1 : 0)
 
   return (
-    <div className="sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-4 border-b border-white/[0.06] mb-8">
+    <div className="sticky top-16 md:top-20 z-30 bg-[#0a0a0a]/90 backdrop-blur-xl py-3 sm:py-4 border-b border-white/[0.06] mb-6 sm:mb-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
-        {/* Row 1: Search + basic filters */}
-        <div className="flex flex-wrap gap-3 items-center">
-          <div className="relative flex-1 min-w-0 w-full sm:min-w-[200px] sm:w-auto">
+        {/* Row 1: Search + filter toggle (mobile) / inline filters (desktop) */}
+        <div className="flex gap-2 sm:gap-3 items-center">
+          <div className="relative flex-1 min-w-0">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
-              placeholder="Search by title, company, or city..."
+              placeholder="Search jobs..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
-          <select value={selectedLevel} onChange={(e) => onLevelChange(e.target.value)} className={selectClasses}>
-            <option value="">Any German Level</option>
-            {filters.germanLevels.map((l) => (
-              <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
-            ))}
-          </select>
+
+          {/* Mobile: filter toggle button */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="sm:hidden flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-gray-400 hover:text-white transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* Desktop: inline German level + location selects */}
+          <div className="hidden sm:contents">
+            <select value={selectedLevel} onChange={(e) => onLevelChange(e.target.value)} className={selectClasses}>
+              <option value="">Any German Level</option>
+              {filters.germanLevels.map((l) => (
+                <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
+              ))}
+            </select>
+            {!city && filters.locations.length > 0 && (
+              <select value={selectedLocation} onChange={(e) => onLocationChange(e.target.value)} className={selectClasses}>
+                <option value="">All Locations</option>
+                {filters.locations.map((l) => (
+                  <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+
+        {/* Mobile filter panel (collapsible) */}
+        <div className={`sm:hidden space-y-2 ${showFilters ? "block" : "hidden"}`}>
+          <div className="grid grid-cols-2 gap-2">
+            <select value={selectedLevel} onChange={(e) => onLevelChange(e.target.value)} className={`${selectClasses} w-full`}>
+              <option value="">German Level</option>
+              {filters.germanLevels.map((l) => (
+                <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
+              ))}
+            </select>
+            <select value={selectedJobType} onChange={(e) => onJobTypeChange(e.target.value)} className={`${selectClasses} w-full`}>
+              <option value="">Job Type</option>
+              <option value="PART_TIME">Part Time</option>
+              <option value="FULL_TIME">Full Time</option>
+              <option value="CONTRACT">Contract</option>
+              <option value="INTERNSHIP">Internship</option>
+              <option value="WORKING_STUDENT">Working Student</option>
+            </select>
+          </div>
+          {!city && (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Your city..."
+                  value={nearCity}
+                  onChange={(e) => onNearCityChange(e.target.value)}
+                  className="w-full pl-8 pr-2 py-2 bg-[#1a1a1a] border border-white/[0.1] rounded-lg text-sm text-white placeholder:text-gray-600 focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                />
+              </div>
+              {nearCity && (
+                <select value={radiusKm} onChange={(e) => onRadiusChange(e.target.value)} className={`${selectClasses} w-24`}>
+                  <option value="10">10 km</option>
+                  <option value="25">25 km</option>
+                  <option value="50">50 km</option>
+                  <option value="100">100 km</option>
+                  <option value="200">200 km</option>
+                </select>
+              )}
+            </div>
+          )}
           {!city && filters.locations.length > 0 && (
-            <select value={selectedLocation} onChange={(e) => onLocationChange(e.target.value)} className={selectClasses}>
+            <select value={selectedLocation} onChange={(e) => onLocationChange(e.target.value)} className={`${selectClasses} w-full`}>
               <option value="">All Locations</option>
               {filters.locations.map((l) => (
                 <option key={l.value} value={l.value}>{l.value} ({l.count})</option>
@@ -94,9 +173,9 @@ export function EnhancedFilters({
           )}
         </div>
 
-        {/* Row 2: Near city + Job type + premium filters */}
-        <div className="flex flex-wrap gap-3 items-center">
-          {/* Near city + radius (free) */}
+        {/* Row 2 (desktop): Near city + Job type + premium filters */}
+        <div className="hidden sm:flex flex-wrap gap-3 items-center">
+          {/* Near city + radius */}
           {!city && (
             <div className="flex items-center gap-1.5">
               <div className="relative">
@@ -124,7 +203,7 @@ export function EnhancedFilters({
             </div>
           )}
 
-          {/* Job type (free) */}
+          {/* Job type */}
           <select value={selectedJobType} onChange={(e) => onJobTypeChange(e.target.value)} className={selectClasses}>
             <option value="">All Job Types</option>
             <option value="PART_TIME">Part Time</option>

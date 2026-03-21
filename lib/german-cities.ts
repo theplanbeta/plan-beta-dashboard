@@ -119,6 +119,41 @@ export const GERMAN_CITIES: Record<string, [number, number]> = {
   "Viersen": [6.397, 51.253],
   "Gladbeck": [6.985, 51.570],
   "Troisdorf": [7.156, 50.816],
+
+  // Stuttgart metro / Baden-Württemberg smaller cities
+  "Ludwigsburg": [9.192, 48.897],
+  "Bietigheim-Bissingen": [9.131, 48.963],
+  "Bietigheim": [9.131, 48.963],
+  "Böblingen": [9.015, 48.686],
+  "Sindelfingen": [9.003, 48.713],
+  "Waiblingen": [9.317, 48.830],
+  "Fellbach": [9.276, 48.810],
+  "Göppingen": [9.651, 48.703],
+  "Schwäbisch Gmünd": [9.798, 48.800],
+  "Schwäbisch Hall": [9.739, 49.112],
+  "Aalen": [10.093, 48.838],
+  "Neckarsulm": [9.224, 49.191],
+  "Weinheim": [8.668, 49.549],
+  "Rastatt": [8.204, 48.858],
+  "Offenburg": [7.943, 48.473],
+  "Villingen-Schwenningen": [8.455, 48.062],
+  "Friedrichshafen": [9.479, 47.654],
+  "Ravensburg": [9.612, 47.781],
+  "Lörrach": [7.661, 47.616],
+
+  // Other commonly searched smaller cities
+  "Rosenheim": [12.133, 47.857],
+  "Schweinfurt": [10.227, 50.049],
+  "Coburg": [10.967, 50.259],
+  "Plauen": [12.134, 50.496],
+  "Zwickau": [12.497, 50.718],
+  "Görlitz": [14.988, 51.152],
+  "Greifswald": [13.384, 54.093],
+  "Wetzlar": [8.504, 50.560],
+  "Gießen": [8.677, 50.584],
+  "Hanau": [8.919, 50.126],
+  "Rüsselsheim": [8.411, 49.990],
+  "Bad Homburg": [8.618, 50.227],
 }
 
 // ─── Job Board City Pages ───────────────────────────────────────────────────

@@ -87,6 +87,9 @@ export async function GET(request: NextRequest) {
           const existing = where.AND as unknown[] || []
           where.AND = [...existing, { OR: locationOr }]
         }
+      } else {
+        // City not in geocoding DB — fall back to text search
+        where.location = { contains: nearCity, mode: "insensitive" }
       }
     } else if (city) {
       where.location = { contains: city, mode: "insensitive" }

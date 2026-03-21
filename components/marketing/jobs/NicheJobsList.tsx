@@ -214,7 +214,7 @@ export function NicheJobsList({ niche, initialJobs, initialPagination, initialFi
           <p className="text-sm text-gray-500 mb-6">
             Showing {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.totalCount)} of {pagination.totalCount} jobs
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             {displayedJobs.map((job, i) => (
               <div key={job.id}>
                 <NicheJobCard job={job} niche={niche} index={i} isPremium={isPremium} />

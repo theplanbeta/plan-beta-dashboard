@@ -44,6 +44,7 @@ model User {
   offerLetters          OfferLetter[]   @relation("TeacherOffers")
   teacherHours          TeacherHours[]  @relation("TeacherHours")
   teacherReviews        TeacherReview[] @relation("TeacherReviewer")
+  actionItems           ActionItem[]
 
   @@index([email])
   @@index([role])
@@ -1562,4 +1563,35 @@ model InstagramInsight {
   createdAt        DateTime @default(now())
 
   @@index([date])
+}
+
+enum ActionItemStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum ActionItemPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model ActionItem {
+  id          String             @id @default(cuid())
+  title       String
+  description String?            @db.Text
+  source      String             @default("CFO Agent")
+  priority    ActionItemPriority @default(MEDIUM)
+  status      ActionItemStatus   @default(TODO)
+  dueDate     DateTime?
+  createdById String
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([createdById])
+  @@index([status])
+  @@index([priority])
 }

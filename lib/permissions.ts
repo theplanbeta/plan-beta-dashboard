@@ -34,6 +34,7 @@ export const PERMISSIONS: Record<
     adSpend: { read: true, create: true, update: true, delete: true },
     utmLinks: { read: true, create: true, update: true, delete: true },
     jobs: { read: true, create: true, update: true, delete: true },
+    actionItems: { read: true, create: true, update: true, delete: true },
   },
   MARKETING: {
     students: { read: true, create: true, update: true, delete: false },
@@ -55,6 +56,7 @@ export const PERMISSIONS: Record<
     adSpend: { read: false, create: false, update: false, delete: false },
     utmLinks: { read: true, create: true, update: true, delete: true },
     jobs: { read: false, create: false, update: false, delete: false },
+    actionItems: { read: false, create: false, update: false, delete: false },
   },
   TEACHER: {
     students: { read: true, create: false, update: true, delete: false },
@@ -74,6 +76,7 @@ export const PERMISSIONS: Record<
     expenses: { read: false, create: false, update: false, delete: false },
     adSpend: { read: false, create: false, update: false, delete: false },
     jobs: { read: false, create: false, update: false, delete: false },
+    actionItems: { read: false, create: false, update: false, delete: false },
   },
 }
 
@@ -94,6 +97,11 @@ export const NAVIGATION: NavItem[] = [
   {
     name: 'CFO',
     href: '/dashboard/cfo',
+    roles: ['FOUNDER'],
+  },
+  {
+    name: 'Action Items',
+    href: '/dashboard/action-items',
     roles: ['FOUNDER'],
   },
   {

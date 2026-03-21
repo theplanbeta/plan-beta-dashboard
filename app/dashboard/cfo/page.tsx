@@ -24,6 +24,8 @@ export default function CfoPage() {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [savedActions, setSavedActions] = useState<Set<number>>(new Set())
+  const [savingAction, setSavingAction] = useState<number | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -42,6 +44,34 @@ export default function CfoPage() {
       inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`
     }
   }, [input])
+
+  const saveAsActionItem = async (msgIndex: number, content: string) => {
+    setSavingAction(msgIndex)
+    try {
+      // Extract title: first non-empty, non-header line, truncated
+      const lines = content.split("\n").filter(l => l.trim() && !l.startsWith("#"))
+      let title = lines[0] || "CFO Action Item"
+      title = title.replace(/^\*\*/g, "").replace(/\*\*$/g, "").replace(/^[-•]\s*/, "").slice(0, 120)
+
+      const res = await fetch("/api/action-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          description: content.slice(0, 2000),
+          source: "CFO Agent",
+          priority: "MEDIUM",
+        }),
+      })
+      if (res.ok) {
+        setSavedActions(prev => new Set(prev).add(msgIndex))
+      }
+    } catch {
+      // silent
+    } finally {
+      setSavingAction(null)
+    }
+  }
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim()
@@ -167,6 +197,23 @@ export default function CfoPage() {
                   <div className="text-sm whitespace-pre-wrap leading-relaxed cfo-response">
                     {formatCfoResponse(msg.content)}
                   </div>
+                  {msg.role === "assistant" && (
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-100 dark:border-white/[0.04]">
+                      <button
+                        onClick={() => saveAsActionItem(i, msg.content)}
+                        disabled={savedActions.has(i) || savingAction === i}
+                        className="text-[11px] text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 disabled:opacity-50 transition-colors flex items-center gap-1"
+                      >
+                        {savedActions.has(i) ? (
+                          <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> Saved</>
+                        ) : savingAction === i ? (
+                          "Saving..."
+                        ) : (
+                          <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg> Save as action item</>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -92,6 +92,11 @@ export const NAVIGATION: NavItem[] = [
     roles: ['FOUNDER', 'MARKETING'],
   },
   {
+    name: 'CFO',
+    href: '/dashboard/cfo',
+    roles: ['FOUNDER'],
+  },
+  {
     name: 'Outreach',
     href: '/dashboard/outreach',
     roles: ['FOUNDER'],

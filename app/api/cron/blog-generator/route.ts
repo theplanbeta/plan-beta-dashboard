@@ -200,6 +200,30 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
 
     const postData = JSON.parse(textContent.text)
 
+    // --- Dedup check: verify generated post doesn't overlap with recent posts ---
+    const recentForDedup = await prisma.blogPost.findMany({
+      select: { title: true, targetKeyword: true },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    })
+    const generatedKw = (postData.targetKeyword || targetKeyword).toLowerCase()
+    const generatedTitle = postData.title.toLowerCase()
+    const titleWords = generatedTitle.split(/\s+/).filter((w: string) => w.length > 3)
+
+    const isDuplicate = recentForDedup.some((p) => {
+      const existingKw = (p.targetKeyword || "").toLowerCase()
+      const existingTitle = p.title.toLowerCase()
+      const keywordOverlap = existingKw === generatedKw || existingKw.includes(generatedKw) || generatedKw.includes(existingKw)
+      const matchCount = titleWords.filter((w: string) => existingTitle.includes(w)).length
+      const titleOverlap = matchCount >= Math.ceil(titleWords.length * 0.5)
+      return keywordOverlap || titleOverlap
+    })
+
+    if (isDuplicate) {
+      console.log(`[BlogCron] Skipped duplicate topic: "${postData.title}"`)
+      return NextResponse.json({ skipped: true, reason: "Topic already covered recently", title: postData.title })
+    }
+
     // --- Humanizing Pass + slug check in parallel ---
     const [humanizeResponse, existingSlug] = await Promise.all([
       client.messages.create({

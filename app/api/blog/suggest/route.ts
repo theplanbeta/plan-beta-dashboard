@@ -80,8 +80,25 @@ export async function POST(request: NextRequest) {
   const topic = sorted.find((t) => {
     const kw = t.targetKeyword.toLowerCase()
     const title = t.title.toLowerCase()
-    return !recentKeywords.includes(kw) && !recentTitles.some((rt) => rt.includes(title.slice(0, 30)))
-  }) || sorted[0]
+    // Check keyword overlap (exact or substring match)
+    const keywordDupe = recentKeywords.some(
+      (rk) => rk === kw || rk.includes(kw) || kw.includes(rk)
+    )
+    // Check title overlap (significant word overlap)
+    const titleWords = title.split(/\s+/).filter((w) => w.length > 3)
+    const titleDupe = recentTitles.some((rt) => {
+      const matchCount = titleWords.filter((w) => rt.includes(w)).length
+      return matchCount >= Math.ceil(titleWords.length * 0.5)
+    })
+    return !keywordDupe && !titleDupe
+  })
+
+  if (!topic) {
+    return NextResponse.json(
+      { error: "All suggested topics already covered recently", skipped: sorted.map((t) => t.title) },
+      { status: 409 }
+    )
+  }
 
   // Map to a category
   const categoryMap: Record<string, string> = {

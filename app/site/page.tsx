@@ -16,6 +16,7 @@ import { FAQSection } from "@/components/marketing/sections/FAQSection"
 import { CTASection } from "@/components/marketing/sections/CTASection"
 import { JobPortalSection } from "@/components/marketing/sections/JobPortalSection"
 import { ExploreSection } from "@/components/marketing/sections/ExploreSection"
+import { LatestBlogSection } from "@/components/marketing/sections/LatestBlogSection"
 
 export const metadata = generatePageMetadata({
   title: "Germany Pathway | Plan Beta — German Courses & Career Support from Kerala",
@@ -43,6 +44,7 @@ export default async function HomePage() {
       <GermanyOpportunity />
       <JobPortalSection />
       <ExploreSection />
+      <LatestBlogSection />
       <WhyPlanBeta />
       <TestimonialsSection />
       <AlumniSection />

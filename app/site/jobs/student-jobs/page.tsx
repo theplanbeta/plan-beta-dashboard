@@ -84,6 +84,12 @@ export default async function StudentJobsPage() {
             <Link href="/jobs/student-jobs/minijob" className="px-3 py-1.5 bg-white/5 border border-white/[0.08] rounded-lg text-xs text-gray-400 hover:text-white hover:border-white/[0.15] transition-all">
               Minijob Guide
             </Link>
+            <Link href="/blog/germany-blocked-account-amount-2026-guide" className="px-3 py-1.5 bg-white/5 border border-white/[0.08] rounded-lg text-xs text-gray-400 hover:text-white hover:border-white/[0.15] transition-all">
+              Blocked Account Guide
+            </Link>
+            <Link href="/blog/chancenkarte-germany-for-indians-2026-guide" className="px-3 py-1.5 bg-white/5 border border-white/[0.08] rounded-lg text-xs text-gray-400 hover:text-white hover:border-white/[0.15] transition-all">
+              Chancenkarte Guide
+            </Link>
           </div>
         </div>
 

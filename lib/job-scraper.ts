@@ -23,6 +23,18 @@ function isUrlAllowed(url: string): boolean {
   } catch { return false }
 }
 
+/**
+ * Clean job title: collapse whitespace, strip leftover HTML artifacts, trim.
+ */
+export function cleanJobTitle(title: string): string {
+  return title
+    .replace(/\s+/g, " ")       // collapse all whitespace (newlines, tabs, multiple spaces)
+    .replace(/<[^>]*>/g, "")     // strip any remaining HTML tags
+    .replace(/\s*\n\s*/g, " ")   // leftover newlines
+    .trim()
+    .slice(0, 200)               // enforce max length
+}
+
 interface ExtractedJob {
   title: string
   company: string
@@ -483,8 +495,10 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
   let upsertCount = 0
   for (const job of jobs) {
     try {
-      const externalId = job.externalId || `${source.id}-${job.title}-${job.company}`.slice(0, 200)
-      const slug = generateJobSlug(job.title, job.company, job.location || null)
+      const title = cleanJobTitle(job.title)
+      const company = cleanJobTitle(job.company)
+      const externalId = job.externalId || `${source.id}-${title}-${company}`.slice(0, 200)
+      const slug = generateJobSlug(title, company, job.location || null)
 
       // Check if slug already exists (to avoid unique constraint violation)
       const existingSlug = await prisma.jobPosting.findUnique({ where: { slug }, select: { id: true, externalId: true } })
@@ -498,8 +512,8 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
           sourceId: source.id,
           externalId,
           slug: finalSlug,
-          title: job.title,
-          company: job.company,
+          title,
+          company,
           location: job.location || null,
           salaryMin: job.salaryMin || null,
           salaryMax: job.salaryMax || null,
@@ -513,8 +527,8 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
           active: true,
         },
         update: {
-          title: job.title,
-          company: job.company,
+          title,
+          company,
           location: job.location || null,
           salaryMin: job.salaryMin || null,
           salaryMax: job.salaryMax || null,

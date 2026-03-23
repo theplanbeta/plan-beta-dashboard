@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { verifyCronSecret } from "@/lib/api-permissions"
-import { generateJobSlug, inferProfession } from "@/lib/job-scraper"
+import { generateJobSlug, inferProfession, cleanJobTitle } from "@/lib/job-scraper"
 
 const jobSchema = z.object({
   title: z.string().min(1).max(200),
@@ -87,8 +87,12 @@ export async function POST(request: NextRequest) {
           ? inferProfession(job.requirements || [], job.title)
           : job.profession
 
+        // Clean title/company before storing
+        const title = cleanJobTitle(job.title)
+        const company = cleanJobTitle(job.company)
+
         // Generate slug
-        const slug = generateJobSlug(job.title, job.company, job.location || null)
+        const slug = generateJobSlug(title, company, job.location || null)
         const existingSlug = await prisma.jobPosting.findUnique({
           where: { slug },
           select: { id: true, externalId: true },
@@ -103,8 +107,8 @@ export async function POST(request: NextRequest) {
             sourceId: jobSource.id,
             externalId: job.externalId,
             slug: finalSlug,
-            title: job.title,
-            company: job.company,
+            title,
+            company,
             location: job.location || null,
             description: job.description || null,
             salaryMin: job.salaryMin || null,
@@ -121,8 +125,8 @@ export async function POST(request: NextRequest) {
             active: true,
           },
           update: {
-            title: job.title,
-            company: job.company,
+            title,
+            company,
             location: job.location || null,
             description: job.description || null,
             salaryMin: job.salaryMin || null,

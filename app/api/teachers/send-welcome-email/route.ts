@@ -116,7 +116,9 @@ export async function POST(req: NextRequest) {
       }
 
       try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'
+        // Must use NEXTAUTH_URL (planbeta.app) — NOT NEXT_PUBLIC_APP_URL (theplanbeta.com)
+        // because /auth/welcome-login only exists on the dashboard app
+        const baseUrl = (process.env.NEXTAUTH_URL || 'https://planbeta.app').replace(/\s+$/, '')
         const welcomeUrl = `${baseUrl}/auth/welcome-login?token=${welcomeToken}`
 
         const emailData = {

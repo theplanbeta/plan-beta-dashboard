@@ -11,7 +11,7 @@ export const metadata = generatePageMetadata({
   path: "/blog",
 })
 
-export const revalidate = 3600
+export const revalidate = 300 // 5 min — new posts appear quickly
 
 const CATEGORY_EMOJI: Record<string, string> = {
   Career: "💼",

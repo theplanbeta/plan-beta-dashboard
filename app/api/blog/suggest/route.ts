@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { verifyCronSecret } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
@@ -217,6 +218,11 @@ Respond with valid JSON only (no markdown code fences):
     })
 
     console.log(`[BlogSuggest] Generated from Kimi Claw research: "${blogPost.title}" [${blogPost.slug}]`)
+
+    // Bust cache so new post appears immediately
+    revalidatePath("/blog", "page")
+    revalidatePath(`/blog/${blogPost.slug}`, "page")
+    revalidatePath("/", "page") // homepage LatestBlogSection
 
     return NextResponse.json({
       success: true,

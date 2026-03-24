@@ -200,8 +200,9 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
 
     const postData = JSON.parse(textContent.text)
 
-    // --- Dedup check: verify generated post doesn't overlap with recent posts ---
+    // --- Dedup check: verify generated post doesn't overlap with recent published posts ---
     const recentForDedup = await prisma.blogPost.findMany({
+      where: { published: true },
       select: { title: true, targetKeyword: true },
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -213,7 +214,8 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
     const isDuplicate = recentForDedup.some((p) => {
       const existingKw = (p.targetKeyword || "").toLowerCase()
       const existingTitle = p.title.toLowerCase()
-      const keywordOverlap = existingKw === generatedKw || existingKw.includes(generatedKw) || generatedKw.includes(existingKw)
+      // Exact keyword match only — substring matching causes too many false positives
+      const keywordOverlap = existingKw === generatedKw
       const matchCount = titleWords.filter((w: string) => existingTitle.includes(w)).length
       const titleOverlap = matchCount >= Math.ceil(titleWords.length * 0.5)
       return keywordOverlap || titleOverlap

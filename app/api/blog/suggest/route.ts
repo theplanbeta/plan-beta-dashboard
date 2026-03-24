@@ -67,8 +67,9 @@ export async function POST(request: NextRequest) {
     (a, b) => (b.relevanceScore || 5) - (a.relevanceScore || 5)
   )
 
-  // Check against recent posts to avoid duplicates
+  // Check against recent published posts to avoid duplicates
   const recentPosts = await prisma.blogPost.findMany({
+    where: { published: true },
     select: { title: true, targetKeyword: true },
     orderBy: { createdAt: "desc" },
     take: 20,
@@ -80,10 +81,8 @@ export async function POST(request: NextRequest) {
   const topic = sorted.find((t) => {
     const kw = t.targetKeyword.toLowerCase()
     const title = t.title.toLowerCase()
-    // Check keyword overlap (exact or substring match)
-    const keywordDupe = recentKeywords.some(
-      (rk) => rk === kw || rk.includes(kw) || kw.includes(rk)
-    )
+    // Exact keyword match only — substring causes false positives
+    const keywordDupe = recentKeywords.some((rk) => rk === kw)
     // Check title overlap (significant word overlap)
     const titleWords = title.split(/\s+/).filter((w) => w.length > 3)
     const titleDupe = recentTitles.some((rt) => {

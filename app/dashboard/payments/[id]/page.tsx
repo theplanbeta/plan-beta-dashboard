@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { generateReceiptPDF, generateReceiptJPGBlob } from "@/lib/receipt-generator"
 import type { ReceiptData } from "@/lib/receipt-types"
@@ -44,9 +45,14 @@ type Payment = {
 export default function PaymentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
+  const { data: session } = useSession()
+  const isFounder = session?.user?.role === 'FOUNDER'
   const [payment, setPayment] = useState<Payment | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editData, setEditData] = useState({ amount: 0, currency: "INR", method: "CASH", status: "COMPLETED", notes: "" })
   const [generatingReceipt, setGeneratingReceipt] = useState(false)
   const [existingReceipt, setExistingReceipt] = useState<any>(null)
   const [showReceiptForm, setShowReceiptForm] = useState(false)
@@ -100,6 +106,37 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       alert("Failed to delete payment")
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const startEditing = () => {
+    if (!payment) return
+    setEditData({
+      amount: Number(payment.amount),
+      currency: payment.currency,
+      method: payment.method,
+      status: payment.status,
+      notes: payment.notes || "",
+    })
+    setEditing(true)
+  }
+
+  const handleSaveEdit = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/payments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editData),
+      })
+      if (!res.ok) throw new Error("Failed to update payment")
+      setEditing(false)
+      fetchPayment()
+    } catch (error) {
+      console.error("Error updating payment:", error)
+      alert("Failed to update payment")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -602,6 +639,14 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
               </button>
             </div>
           )}
+          {isFounder && !editing && (
+            <button
+              onClick={startEditing}
+              className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+            >
+              Edit Payment
+            </button>
+          )}
           <button
             onClick={handleDelete}
             disabled={deleting}
@@ -647,12 +692,58 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Payment Information</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-foreground">Payment Information</h2>
+              {editing && (
+                <div className="flex gap-2">
+                  <button onClick={() => setEditing(false)} className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-foreground">Cancel</button>
+                  <button onClick={handleSaveEdit} disabled={saving} className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+                </div>
+              )}
+            </div>
+            {editing ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Amount</label>
+                  <input type="number" step="0.01" value={editData.amount} onChange={(e) => setEditData({ ...editData, amount: parseFloat(e.target.value) || 0 })} className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Currency</label>
+                  <select value={editData.currency} onChange={(e) => setEditData({ ...editData, currency: e.target.value })} className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground">
+                    <option value="EUR">EUR (€)</option>
+                    <option value="INR">INR (₹)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Method</label>
+                  <select value={editData.method} onChange={(e) => setEditData({ ...editData, method: e.target.value })} className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground">
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="UPI">UPI</option>
+                    <option value="CARD">Card</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Status</label>
+                  <select value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground">
+                    <option value="COMPLETED">Completed</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="FAILED">Failed</option>
+                    <option value="REFUNDED">Refunded</option>
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Notes</label>
+                  <textarea value={editData.notes} onChange={(e) => setEditData({ ...editData, notes: e.target.value })} rows={2} className="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground" />
+                </div>
+              </div>
+            ) : (
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <div className="text-sm text-gray-600">Amount</div>
                 <div className="text-2xl font-bold text-foreground mt-1">
-                  {formatCurrency(Number(payment.amount))}
+                  {formatCurrency(Number(payment.amount), payment.currency as 'EUR' | 'INR')}
                 </div>
               </div>
               <div>
@@ -695,8 +786,9 @@ export default function PaymentDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               )}
             </div>
+            )}
 
-            {payment.notes && (
+            {!editing && payment.notes && (
               <div className="mt-6 pt-6 border-t">
                 <div className="text-sm text-gray-600 mb-1">Notes</div>
                 <div className="text-sm">{payment.notes}</div>

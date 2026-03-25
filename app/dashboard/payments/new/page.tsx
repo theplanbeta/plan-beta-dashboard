@@ -53,6 +53,10 @@ function NewPaymentForm() {
 
   // Ref to prevent double-clicks (instant check, doesn't wait for React state)
   const isSubmittingRef = useRef(false)
+  const pendingSubmitRef = useRef(false)
+  const [showCurrencyConfirm, setShowCurrencyConfirm] = useState(false)
+  const [currencyConfirmMsg, setCurrencyConfirmMsg] = useState("")
+  const [altCurrency, setAltCurrency] = useState<"EUR" | "INR">("INR")
 
   const [formData, setFormData] = useState({
     studentId: studentIdParam || "",
@@ -114,48 +118,34 @@ function NewPaymentForm() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Instant double-click prevention using ref (doesn't wait for React state)
-    if (isSubmittingRef.current) {
-      console.log("Prevented duplicate submission")
-      return
-    }
-    isSubmittingRef.current = true
-
+  const executeSubmit = async (data: typeof formData) => {
     setLoading(true)
     setError("")
-
     try {
       const res = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       })
-
       if (!res.ok) {
         try {
-          const data = await res.json()
-          if (Array.isArray(data?.details)) {
-            setFieldErrors(parseZodIssues(data.details))
-            setError(data?.error || 'Validation failed')
+          const d = await res.json()
+          if (Array.isArray(d?.details)) {
+            setFieldErrors(parseZodIssues(d.details))
+            setError(d?.error || 'Validation failed')
             return
           }
-          setError(data?.error || 'Failed to record payment')
+          setError(d?.error || 'Failed to record payment')
           return
         } catch {
           setError('Failed to record payment')
           return
         }
       }
-
-      const data = await res.json()
+      const d = await res.json()
       addToast('Payment recorded successfully! You can now generate a receipt.', { type: 'success' })
-
-      // Redirect to the payment detail page where they can generate receipt
-      if (data?.id) {
-        router.push(`/dashboard/payments/${data.id}`)
+      if (d?.id) {
+        router.push(`/dashboard/payments/${d.id}`)
       } else {
         router.push("/dashboard/payments")
       }
@@ -166,7 +156,40 @@ function NewPaymentForm() {
     } finally {
       setLoading(false)
       isSubmittingRef.current = false
+      pendingSubmitRef.current = false
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Instant double-click prevention using ref (doesn't wait for React state)
+    if (isSubmittingRef.current) {
+      console.log("Prevented duplicate submission")
+      return
+    }
+    isSubmittingRef.current = true
+
+    // Currency mismatch check (skip if user already confirmed)
+    if (!pendingSubmitRef.current) {
+      if (formData.currency === "EUR" && formData.amount >= 1000) {
+        setCurrencyConfirmMsg(`You entered €${formData.amount.toLocaleString()}. Did you mean ₹${formData.amount.toLocaleString()} (INR)? High EUR amounts are unusual for course fees.`)
+        setAltCurrency("INR")
+        setShowCurrencyConfirm(true)
+        isSubmittingRef.current = false
+        return
+      }
+      if (formData.currency === "INR" && formData.amount > 0 && formData.amount < 50) {
+        setCurrencyConfirmMsg(`You entered ₹${formData.amount}. Did you mean €${formData.amount} (EUR)? Very low INR amounts are unusual.`)
+        setAltCurrency("EUR")
+        setShowCurrencyConfirm(true)
+        isSubmittingRef.current = false
+        return
+      }
+    }
+    pendingSubmitRef.current = false
+
+    await executeSubmit(formData)
   }
 
   const handleChange = (
@@ -240,6 +263,46 @@ function NewPaymentForm() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Currency mismatch confirmation dialog */}
+      {showCurrencyConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">⚠️</span>
+              <h3 className="text-lg font-semibold text-foreground">Check Currency</h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-300">{currencyConfirmMsg}</p>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  setShowCurrencyConfirm(false)
+                  pendingSubmitRef.current = true
+                  isSubmittingRef.current = false
+                  // Re-trigger submit with current currency
+                  executeSubmit(formData)
+                }}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-foreground"
+              >
+                Keep {formData.currency}
+              </button>
+              <button
+                onClick={() => {
+                  setShowCurrencyConfirm(false)
+                  pendingSubmitRef.current = true
+                  isSubmittingRef.current = false
+                  const switched = { ...formData, currency: altCurrency }
+                  setFormData(switched)
+                  executeSubmit(switched)
+                }}
+                className="flex-1 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+              >
+                Switch to {altCurrency}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Record Payment</h1>

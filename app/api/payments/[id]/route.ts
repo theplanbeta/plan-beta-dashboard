@@ -29,6 +29,8 @@ export async function GET(
             name: true,
             whatsapp: true,
             email: true,
+            address: true,
+            gstNumber: true,
             finalPrice: true,
             totalPaid: true,
             balance: true,

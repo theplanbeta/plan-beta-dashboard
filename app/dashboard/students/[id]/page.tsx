@@ -34,6 +34,8 @@ type Student = {
   attendanceRate: number
   completionStatus: string
   notes: string | null
+  address: string | null
+  gstNumber: string | null
   createdAt: string
   batch: {
     id: string
@@ -481,6 +483,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         date: formatDate(payment.paymentDate),
         currency: normalizeCurrency(student.currency) as 'EUR' | 'INR',
         studentName: student.name,
+        studentAddress: student.address || undefined,
+        studentGst: student.gstNumber || undefined,
         studentEmail: student.email || undefined,
         studentPhone: student.whatsapp,
         items: [{

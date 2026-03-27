@@ -226,6 +226,8 @@ export async function PUT(
         trialDate: body.trialDate ? new Date(body.trialDate) : null,
         completionStatus: body.completionStatus,
         notes: body.notes || null,
+        address: body.address || null,
+        gstNumber: body.gstNumber || null,
       },
       include: {
         batch: {

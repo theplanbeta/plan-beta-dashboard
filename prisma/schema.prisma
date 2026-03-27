@@ -96,6 +96,8 @@ model Student {
   // Demographics for smart outreach filtering
   city                 String?
   profession           String?
+  address              String?
+  gstNumber            String?
   dateOfBirth          DateTime?
   age                  Int?
   // Germany Relocation Support

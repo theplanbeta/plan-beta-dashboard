@@ -179,6 +179,10 @@ export async function generateReceiptPDF(data: ReceiptData): Promise<jsPDF> {
     doc.text(data.studentAddress, 15, yPos)
     yPos += 4
   }
+  if (data.studentGst) {
+    doc.text(`GST: ${data.studentGst}`, 15, yPos)
+    yPos += 4
+  }
   if (data.studentEmail) {
     doc.text(`Email: ${data.studentEmail}`, 15, yPos)
     yPos += 4
@@ -541,6 +545,7 @@ export async function generateReceiptJPGBlob(data: ReceiptData): Promise<Blob> {
           <h3 style="margin: 0; font-size: 13px; color: #16a34a;">RECEIVED FROM</h3>
           <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${escapeHtml(data.studentName)}</p>
           ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</p>` : ''}
+          ${data.studentGst ? `<p style="margin: 3px 0 0 0; font-size: 10px; color: #505050;"><strong>GST: ${escapeHtml(data.studentGst)}</strong></p>` : ''}
         </div>
       </div>
 

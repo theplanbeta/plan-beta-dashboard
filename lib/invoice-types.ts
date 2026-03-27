@@ -10,6 +10,7 @@ export interface InvoiceData {
   // Student information
   studentName: string
   studentAddress?: string
+  studentGst?: string
   studentEmail?: string
   studentPhone?: string
 

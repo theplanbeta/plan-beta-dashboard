@@ -12,6 +12,7 @@ export interface ReceiptData {
   // Student information
   studentName: string
   studentAddress?: string
+  studentGst?: string
   studentEmail?: string
   studentPhone?: string
 

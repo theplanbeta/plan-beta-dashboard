@@ -30,6 +30,7 @@ export interface InvoiceData {
   // Student info
   studentName: string
   studentAddress?: string
+  studentGst?: string
   studentEmail: string
   studentPhone: string
 
@@ -165,6 +166,10 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   doc.setTextColor(...textGray)
   if (data.studentAddress) {
     doc.text(data.studentAddress, 15, yPos)
+    yPos += 4
+  }
+  if (data.studentGst) {
+    doc.text(`GST: ${data.studentGst}`, 15, yPos)
     yPos += 4
   }
   doc.text(`Email: ${data.studentEmail}`, 15, yPos)
@@ -456,6 +461,7 @@ export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
           <h3 style="margin: 0; font-size: 13px; color: #d2302c;">BILL TO</h3>
           <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${escapeHtml(data.studentName)}</p>
           ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</p>` : ''}
+          ${data.studentGst ? `<p style="margin: 3px 0 0 0; font-size: 10px; color: #505050;"><strong>GST: ${escapeHtml(data.studentGst)}</strong></p>` : ''}
         </div>
       </div>
 

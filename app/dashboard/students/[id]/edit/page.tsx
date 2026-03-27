@@ -23,6 +23,8 @@ type Student = {
   trialAttended: boolean
   completionStatus: string
   notes: string | null
+  address: string | null
+  gstNumber: string | null
 }
 
 type Batch = {
@@ -62,6 +64,8 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
     trialAttended: false,
     completionStatus: "ACTIVE",
     notes: "",
+    address: "",
+    gstNumber: "",
   })
 
   useEffect(() => {
@@ -102,6 +106,8 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
         trialAttended: data.trialAttended,
         completionStatus: data.completionStatus,
         notes: data.notes || "",
+        address: data.address || "",
+        gstNumber: data.gstNumber || "",
       })
     } catch (err) {
       setError("Failed to load student")
@@ -511,6 +517,37 @@ export default function EditStudentPage({ params }: { params: Promise<{ id: stri
             <p className="text-xs text-gray-500 mt-1">
               Auto-calculated from payment records and due dates
             </p>
+          </div>
+        </div>
+
+        {/* Billing / Invoice Details */}
+        <div className="border-t pt-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Billing Details (for Invoices)</h2>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Address
+            </label>
+            <textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows={2}
+              placeholder="Full billing address for invoices"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              GST Number
+            </label>
+            <input
+              type="text"
+              name="gstNumber"
+              value={formData.gstNumber}
+              onChange={handleChange}
+              placeholder="e.g. 29ABCDE1234F1ZP"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
           </div>
         </div>
 

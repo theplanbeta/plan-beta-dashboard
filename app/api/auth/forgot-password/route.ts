@@ -83,10 +83,18 @@ export async function POST(req: NextRequest) {
     )
 
     // Send password reset email
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://plan-beta-dashboard.vercel.app'}/reset-password?token=${resetToken}`
+    // Use NEXTAUTH_URL (planbeta.app) — reset-password page lives on the dashboard, not marketing site
+    const baseUrl = (process.env.NEXTAUTH_URL || 'https://planbeta.app').replace(/\s+$/, '')
+    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`
+
+    // For non-receiving emails (admin@planbeta.in etc.), redirect to hello@planbeta.in
+    const NON_RECEIVING_EMAILS = ['admin@planbeta.in', 'marketing@planbeta.in']
+    const deliveryEmail = NON_RECEIVING_EMAILS.includes(user.email.toLowerCase())
+      ? (process.env.SUPPORT_EMAIL || 'hello@planbeta.in')
+      : user.email
 
     const emailResult = await sendEmail('password-reset', {
-      to: user.email,
+      to: deliveryEmail,
       userName: user.name,
       resetUrl: resetUrl,
     })
@@ -95,7 +103,7 @@ export async function POST(req: NextRequest) {
       console.error('Failed to send password reset email:', emailResult.error)
       // Don't fail the request if email fails - user can try again
     } else {
-      console.log(`✅ Password reset email sent to ${user.email}`)
+      console.log(`✅ Password reset email sent to ${deliveryEmail}${deliveryEmail !== user.email ? ` (on behalf of ${user.email})` : ''}`)
     }
 
     // Return success message

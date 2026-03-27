@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       // Course items
       items: customItems || [
         {
-          level: student.currentLevel,
+          level: student.batch?.level || student.currentLevel,
           description: 'German Language Course',
           // FIX #4: Use enrollment date for month
           month: new Date(student.enrollmentDate).toLocaleString('default', {

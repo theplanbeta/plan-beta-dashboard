@@ -173,15 +173,15 @@ function buildInvoiceHTML(
         <tbody>
           ${data.items.map((item) => `
             <tr style="border-bottom: 1px solid #f0f0f0;">
-              <td style="padding: 14px 0; font-size: 12px; color: #333; font-weight: 400;">
+              <td style="padding: 14px 0; font-size: 12px; color: #333; font-weight: 400; vertical-align: middle;">
                 ${escapeHtml(item.description)}<br/>
                 <span style="font-size: 10px; color: #999;">Batch: ${escapeHtml(item.batch)}</span>
               </td>
-              <td style="padding: 14px 0;">
-                <span style="background: #c62828; color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">${escapeHtml(item.level)}</span>
+              <td style="padding: 14px 0; vertical-align: middle;">
+                <span style="background: #c62828; color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; line-height: 1;">${escapeHtml(item.level)}</span>
               </td>
-              <td style="padding: 14px 0; font-size: 12px; color: #555;">${escapeHtml(item.month)}</td>
-              <td style="padding: 14px 0; text-align: right; font-size: 14px; font-weight: 600; color: #1a1a1a;">${fmt(item.amount)}</td>
+              <td style="padding: 14px 0; font-size: 12px; color: #555; vertical-align: middle;">${escapeHtml(item.month)}</td>
+              <td style="padding: 14px 0; text-align: right; font-size: 14px; font-weight: 600; color: #1a1a1a; vertical-align: middle;">${fmt(item.amount)}</td>
             </tr>
           `).join('')}
         </tbody>

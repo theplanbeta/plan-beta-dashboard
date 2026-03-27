@@ -1,7 +1,23 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas'
-import { SCHOOL_INFO, BANK_DETAILS, CURRENCY_SYMBOLS, COURSE_INFO, type Currency } from './pricing'
+import { SCHOOL_INFO, BANK_DETAILS, CURRENCY_SYMBOLS, type Currency } from './pricing'
+
+/** Format amount with proper locale: ₹14,000 or €134.00 */
+function fmtAmt(amount: number, currency: string): string {
+  if (currency === 'INR') {
+    return '₹' + amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })
+  }
+  return '€' + amount.toLocaleString('en-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+/** Same but for PDF (no ₹ support in Helvetica) */
+function fmtAmtPdf(amount: number, currency: string): string {
+  if (currency === 'INR') {
+    return 'Rs. ' + amount.toLocaleString('en-IN', { maximumFractionDigits: 0 })
+  }
+  return 'EUR ' + amount.toLocaleString('en-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 
 function escapeHtml(str: string | number | null | undefined): string {
   if (str == null) return ''
@@ -71,17 +87,13 @@ async function loadImageAsBase64(imagePath: string): Promise<string> {
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<jsPDF> {
   const doc = new jsPDF()
-  // jsPDF's default Helvetica doesn't support ₹, use "Rs." for PDF
-  const currencySymbol = data.currency === 'INR' ? 'Rs.' : CURRENCY_SYMBOLS[data.currency]
-
   // Plan Beta brand color - red
   const brandRed: [number, number, number] = [210, 48, 44] // #d2302c
   const textDark: [number, number, number] = [31, 41, 55]
   const textGray: [number, number, number] = [107, 114, 128]
   const darkRed: [number, number, number] = [139, 0, 0]
 
-  // Helper function to format currency
-  const formatAmount = (amount: number) => `${currencySymbol}${amount.toFixed(2)}`
+  const formatAmount = (amount: number) => fmtAmtPdf(amount, data.currency)
 
   // Load logo
   let logoBase64 = ''
@@ -426,133 +438,158 @@ export async function previewInvoice(data: InvoiceData): Promise<string> {
 
 // JPG Generation using html2canvas
 export async function generateInvoiceJPG(data: InvoiceData): Promise<void> {
-  const currencySymbol = CURRENCY_SYMBOLS[data.currency]
-  const total = (data.payableNow + data.remainingAmount).toFixed(2)
-  const payableNow = data.payableNow.toFixed(2)
-  const remaining = data.remainingAmount.toFixed(2)
+  const total = data.payableNow + data.remainingAmount
+  const fmt = (n: number) => fmtAmt(n, data.currency)
+  const cleanGst = (s: string) => s.replace(/^GST:\s*/i, '')
 
-  // Create invoice preview div for screenshot
+  // Load Outfit font
+  const fontLink = document.createElement('link')
+  fontLink.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap'
+  fontLink.rel = 'stylesheet'
+  document.head.appendChild(fontLink)
+  await new Promise(r => setTimeout(r, 300)) // let font load
+
   const invoicePreview = document.createElement('div')
   invoicePreview.style.position = 'absolute'
   invoicePreview.style.left = '-10000px'
-  invoicePreview.style.width = '794px' // A4 width in pixels at 96 DPI
+  invoicePreview.style.width = '794px'
   invoicePreview.style.backgroundColor = '#ffffff'
-  invoicePreview.style.fontFamily = 'Arial, sans-serif'
+  invoicePreview.style.fontFamily = "'Outfit', system-ui, sans-serif"
 
   invoicePreview.innerHTML = `
-    <div style="background: #d2302c; padding: 40px 30px; color: white; position: relative;">
-      <div style="display: flex; align-items: flex-start; gap: 20px;">
-        <img src="/blogo.png" style="width: 70px; height: 70px;" crossorigin="anonymous" />
+    <style>
+      * { box-sizing: border-box; }
+      .inv-font { font-family: 'Outfit', system-ui, sans-serif; }
+    </style>
+
+    <!-- Header -->
+    <div class="inv-font" style="background: linear-gradient(135deg, #c62828 0%, #d32f2f 50%, #b71c1c 100%); padding: 36px 40px; color: white; display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <img src="/blogo.png" style="width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);" crossorigin="anonymous" />
         <div>
-          <h1 style="margin: 0; font-size: 32px; font-weight: bold;">PLAN BETA</h1>
-          <p style="margin: 5px 0 0 0; font-size: 14px; font-style: italic;">School of German</p>
+          <div style="font-size: 26px; font-weight: 700; letter-spacing: 1.5px;">PLAN BETA</div>
+          <div style="font-size: 11px; font-weight: 300; letter-spacing: 2px; opacity: 0.85; margin-top: 2px;">SCHOOL OF GERMAN</div>
         </div>
       </div>
-      <div style="position: absolute; top: 30px; right: 30px; background: white; padding: 15px; border-radius: 8px;">
-        <div style="color: #787878; font-size: 10px;">INVOICE NUMBER</div>
-        <div style="color: #d2302c; font-size: 16px; font-weight: bold; margin-top: 5px;">#${escapeHtml(data.invoiceNumber)}</div>
-        <div style="color: #646464; font-size: 11px; margin-top: 5px;">Date: ${data.date}</div>
+      <div style="text-align: right; font-size: 11px; font-weight: 300; line-height: 1.7; opacity: 0.9;">
+        ${SCHOOL_INFO.phone}<br/>
+        ${SCHOOL_INFO.email}<br/>
+        <span style="font-weight: 500;">GST: ${SCHOOL_INFO.gst}</span>
       </div>
     </div>
 
-    <div style="padding: 30px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
+    <div class="inv-font" style="padding: 36px 40px;">
+
+      <!-- Invoice title bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #f0f0f0;">
         <div>
-          <h3 style="margin: 0; font-size: 13px;">${SCHOOL_INFO.name}</h3>
-          <p style="margin: 8px 0 0 0; font-size: 11px; line-height: 1.5; color: #505050;">
-            ${SCHOOL_INFO.address}<br/>
-            ${SCHOOL_INFO.city}<br/>
-            ${SCHOOL_INFO.state}<br/>
-            <strong>GST: ${SCHOOL_INFO.gst}</strong>
-          </p>
+          <div style="font-size: 28px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.5px;">INVOICE</div>
         </div>
         <div style="text-align: right;">
-          <h3 style="margin: 0; font-size: 13px; color: #d2302c;">BILL TO</h3>
-          <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: bold;">${escapeHtml(data.studentName)}</p>
-          ${data.studentAddress ? `<p style="margin: 5px 0 0 0; font-size: 10px; color: #505050;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</p>` : ''}
-          ${data.studentGst ? `<p style="margin: 3px 0 0 0; font-size: 10px; color: #505050;"><strong>GST: ${escapeHtml(data.studentGst.replace(/^GST:\s*/i, ''))}</strong></p>` : ''}
+          <div style="font-size: 14px; font-weight: 600; color: #c62828;">#${escapeHtml(data.invoiceNumber)}</div>
+          <div style="font-size: 12px; color: #888; margin-top: 4px; font-weight: 400;">Date: ${data.date}</div>
         </div>
       </div>
 
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <!-- Bill To / From -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 32px;">
+        <div style="max-width: 48%;">
+          <div style="font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">From</div>
+          <div style="font-size: 13px; font-weight: 600; color: #1a1a1a;">${SCHOOL_INFO.name}</div>
+          <div style="font-size: 11px; color: #666; line-height: 1.6; margin-top: 4px;">
+            ${SCHOOL_INFO.address}<br/>
+            ${SCHOOL_INFO.city}, ${SCHOOL_INFO.state}
+          </div>
+        </div>
+        <div style="text-align: right; max-width: 48%;">
+          <div style="font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;">Bill To</div>
+          <div style="font-size: 13px; font-weight: 600; color: #1a1a1a;">${escapeHtml(data.studentName)}</div>
+          ${data.studentAddress ? `<div style="font-size: 11px; color: #666; line-height: 1.6; margin-top: 4px;">${escapeHtml(data.studentAddress).replace(/\n/g, '<br/>')}</div>` : ''}
+          ${data.studentGst ? `<div style="font-size: 11px; color: #555; margin-top: 4px; font-weight: 500;">GST: ${escapeHtml(cleanGst(data.studentGst))}</div>` : ''}
+          ${data.studentEmail ? `<div style="font-size: 11px; color: #888; margin-top: 4px;">${escapeHtml(data.studentEmail)}</div>` : ''}
+          ${data.studentPhone ? `<div style="font-size: 11px; color: #888;">${escapeHtml(data.studentPhone)}</div>` : ''}
+        </div>
+      </div>
+
+      <!-- Course table -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 28px;">
         <thead>
-          <tr style="background: #d2302c; color: white;">
-            <th style="padding: 10px; text-align: left; font-size: 10px;">DESCRIPTION</th>
-            <th style="padding: 10px; text-align: left; font-size: 10px;">LEVEL</th>
-            <th style="padding: 10px; text-align: left; font-size: 10px;">MONTH</th>
-            <th style="padding: 10px; text-align: right; font-size: 10px;">AMOUNT</th>
+          <tr style="border-bottom: 2px solid #1a1a1a;">
+            <th style="padding: 12px 0; text-align: left; font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px;">Description</th>
+            <th style="padding: 12px 0; text-align: left; font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px;">Level</th>
+            <th style="padding: 12px 0; text-align: left; font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px;">Period</th>
+            <th style="padding: 12px 0; text-align: right; font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1px;">Amount</th>
           </tr>
         </thead>
         <tbody>
-          ${data.items.map((item, idx) => {
-            const levelColor = COURSE_INFO[item.level as keyof typeof COURSE_INFO]?.color || '#6b7280'
-            return `
-              <tr style="background: ${idx % 2 === 0 ? '#fafcfe' : '#fff'}; border-bottom: 1px solid #eee;">
-                <td style="padding: 12px 10px; font-size: 11px;">${escapeHtml(item.description)}</td>
-                <td style="padding: 12px 10px;">
-                  <span style="background-color: ${levelColor}; color: #ffffff; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; min-width: 50px; text-align: center;">${escapeHtml(item.level)}</span>
-                </td>
-                <td style="padding: 12px 10px; font-size: 11px;">${escapeHtml(item.month)}</td>
-                <td style="padding: 12px 10px; text-align: right; font-weight: bold; font-size: 12px;">${currencySymbol}${parseFloat(item.amount.toString()).toFixed(2)}</td>
-              </tr>
-            `
-          }).join('')}
+          ${data.items.map((item) => `
+            <tr style="border-bottom: 1px solid #f0f0f0;">
+              <td style="padding: 14px 0; font-size: 12px; color: #333; font-weight: 400;">
+                ${escapeHtml(item.description)}<br/>
+                <span style="font-size: 10px; color: #999;">Batch: ${escapeHtml(item.batch)}</span>
+              </td>
+              <td style="padding: 14px 0;">
+                <span style="background: #c62828; color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;">${escapeHtml(item.level)}</span>
+              </td>
+              <td style="padding: 14px 0; font-size: 12px; color: #555;">${escapeHtml(item.month)}</td>
+              <td style="padding: 14px 0; text-align: right; font-size: 14px; font-weight: 600; color: #1a1a1a;">${fmt(item.amount)}</td>
+            </tr>
+          `).join('')}
         </tbody>
       </table>
 
-      <div style="background: #fffcfc; border: 2px solid #d2302c; border-radius: 6px; padding: 15px; margin-left: auto; width: 280px;">
-        <div style="background: #d2302c; color: white; padding: 10px; margin: -15px -15px 12px -15px;">
-          <div style="font-size: 11px; font-weight: bold;">TOTAL AMOUNT</div>
-          <div style="font-size: 18px; font-weight: bold; margin-top: 3px;">${currencySymbol}${total}</div>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span style="font-weight: bold; color: #16a34a; font-size: 11px;">Payable Now</span>
-          <span style="font-weight: bold; color: #16a34a; font-size: 14px;">${currencySymbol}${payableNow}</span>
-        </div>
-        ${parseFloat(remaining) > 0 ? `
-          <div style="display: flex; justify-content: space-between;">
-            <span style="font-weight: bold; color: #ef4444; font-size: 11px;">Remaining</span>
-            <span style="font-weight: bold; color: #ef4444; font-size: 14px;">${currencySymbol}${remaining}</span>
+      <!-- Summary -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 32px;">
+        <div style="width: 280px;">
+          <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <span style="font-size: 12px; color: #888;">Total Course Fee</span>
+            <span style="font-size: 14px; font-weight: 600; color: #1a1a1a;">${fmt(total)}</span>
           </div>
-        ` : ''}
-      </div>
-
-      <div style="background: #fafbfd; border: 1px solid #d2d2d2; border-radius: 6px; padding: 15px; margin-top: 20px;">
-        <h3 style="margin: 0 0 10px 0; font-size: 12px; color: #d2302c;">BANK DETAILS FOR PAYMENT</h3>
-        <div style="font-size: 10px;">
-          Account: <strong>${BANK_DETAILS.accountName}</strong> | A/C: <strong>${BANK_DETAILS.accountNumber}</strong> | IFSC: <strong>${BANK_DETAILS.ifscCode}</strong><br/>
-          UPI ID: <strong style="color: #d2302c;">${BANK_DETAILS.upiId}</strong>
+          ${data.payableNow > 0 ? `
+          <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0;">
+            <span style="font-size: 12px; color: #888;">Payable Now</span>
+            <span style="font-size: 14px; font-weight: 600; color: #16a34a;">${fmt(data.payableNow)}</span>
+          </div>` : ''}
+          ${data.remainingAmount > 0 ? `
+          <div style="display: flex; justify-content: space-between; padding: 10px 0;">
+            <span style="font-size: 12px; color: #888;">Remaining</span>
+            <span style="font-size: 14px; font-weight: 600; color: #ef4444;">${fmt(data.remainingAmount)}</span>
+          </div>` : ''}
+          <div style="background: #1a1a1a; color: white; padding: 14px 16px; border-radius: 8px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Amount Due</span>
+            <span style="font-size: 20px; font-weight: 700;">${fmt(data.payableNow || total)}</span>
+          </div>
         </div>
       </div>
 
-      <div style="background: #fee2e2; border: 2px solid #d2302c; border-radius: 4px; padding: 15px; margin-top: 20px;">
-        <div style="color: #d2302c; font-size: 13px; font-weight: bold; margin-bottom: 8px;">⚠ IMPORTANT: NO REFUND POLICY</div>
-        <div style="color: #8b0000; font-size: 10px; font-weight: bold; margin-bottom: 8px;">Once classes begin, ALL FEES ARE 100% NON-REFUNDABLE regardless of attendance</div>
+      <!-- Bank details -->
+      <div style="background: #fafafa; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+        <div style="font-size: 9px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;">Payment Details</div>
+        <div style="display: flex; gap: 40px; font-size: 11px; color: #555;">
+          <div><span style="color: #999;">Account:</span> <strong>${BANK_DETAILS.accountName}</strong></div>
+          <div><span style="color: #999;">A/C No:</span> <strong>${BANK_DETAILS.accountNumber}</strong></div>
+          <div><span style="color: #999;">IFSC:</span> <strong>${BANK_DETAILS.ifscCode}</strong></div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #555;"><span style="color: #999;">UPI:</span> <strong style="color: #c62828;">${BANK_DETAILS.upiId}</strong></div>
       </div>
 
-      <div style="border-left: 4px solid #d2302c; padding-left: 15px; margin-top: 15px; margin-bottom: 15px;">
-        <h3 style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #d2302c;">PAYMENT TERMS & REFUND POLICY</h3>
-        <p style="margin: 0; font-size: 9px; line-height: 1.6; color: #323232;">
-          Full payment is due today. By making this payment, you acknowledge and accept our refund policy: Once the first class of the batch has commenced, all fees are <strong style="color: #d2302c;">non-refundable</strong> <strong style="color: #d2302c;">regardless of attendance</strong>. This policy exists because our small group batches begin with committed class sizes and instructor compensation is allocated accordingly from the course fees. This term is <strong style="color: #d2302c;">binding and non-negotiable</strong> upon payment.
+      <!-- Refund policy — compact -->
+      <div style="border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+        <div style="font-size: 10px; font-weight: 600; color: #c62828; margin-bottom: 6px;">Terms & Refund Policy</div>
+        <p style="margin: 0; font-size: 9px; line-height: 1.7; color: #666;">
+          Full payment is due today. Once the first class of the batch has commenced, all fees are <strong style="color: #333;">non-refundable regardless of attendance</strong>. This term is binding and non-negotiable upon payment.
         </p>
       </div>
 
-      <div style="background: #f5f5f5; border: 1px solid #c8c8c8; border-radius: 4px; padding: 10px; font-size: 9px; font-style: italic; color: #505050;">
-        By signing/accepting this invoice, I confirm that I have read and understood the refund policy stated above.
+      <div style="font-size: 8px; color: #bbb; text-align: center; padding-top: 8px;">
+        By paying this invoice, you acknowledge and accept the refund policy stated above.
       </div>
     </div>
 
-    <div style="background: #d2302c; color: white; padding: 20px; text-align: center;">
-      <div style="font-size: 14px; font-weight: bold; margin-bottom: 8px;">${SCHOOL_INFO.name}</div>
-      <div style="font-size: 9px; line-height: 1.5; opacity: 0.95; margin-bottom: 5px;">
-        ${SCHOOL_INFO.address}, ${SCHOOL_INFO.city}, ${SCHOOL_INFO.state}<br/>
-        <strong>GST: ${SCHOOL_INFO.gst}</strong>
-      </div>
-      <div style="font-size: 9px; margin-bottom: 8px;">Email: ${SCHOOL_INFO.email} | Phone: ${SCHOOL_INFO.phone}</div>
-      <div style="font-size: 8px; font-style: italic; line-height: 1.4; opacity: 0.9;">
-        All fees are subject to our no-refund policy once batch commences, even if no classes are attended.<br/>
-        <strong>By paying this invoice, you acknowledge and accept this condition.</strong>
-      </div>
+    <!-- Footer -->
+    <div style="background: #1a1a1a; color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;" class="inv-font">
+      <div style="font-size: 12px; font-weight: 600;">Thank you for choosing Plan Beta!</div>
+      <div style="font-size: 10px; opacity: 0.6;">${SCHOOL_INFO.email} &middot; ${SCHOOL_INFO.phone}</div>
     </div>
   `
 

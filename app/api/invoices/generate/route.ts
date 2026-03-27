@@ -63,7 +63,8 @@ export async function POST(req: NextRequest) {
 
       // Student info
       studentName: student.name,
-      studentAddress: '', // Can be added to Student model later
+      studentAddress: student.address || '',
+      studentGst: student.gstNumber || '',
       studentEmail: student.email || '',
       studentPhone: student.whatsapp,
 

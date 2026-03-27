@@ -127,9 +127,14 @@ export async function POST(
         dueDate: invoice.dueDate.toISOString().split('T')[0],
         currency: invoice.currency,
 
-        // Lead/Student info
+        // Lead/Student info (check if linked student has address/GST)
         studentName: lead.name,
-        studentAddress: '', // Can add to Lead model later
+        studentAddress: lead.studentId
+          ? (await prisma.student.findUnique({ where: { id: lead.studentId }, select: { address: true } }))?.address || ''
+          : '',
+        studentGst: lead.studentId
+          ? (await prisma.student.findUnique({ where: { id: lead.studentId }, select: { gstNumber: true } }))?.gstNumber || ''
+          : '',
         studentEmail: lead.email || '',
         studentPhone: lead.whatsapp,
 

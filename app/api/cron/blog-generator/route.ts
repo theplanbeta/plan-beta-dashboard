@@ -210,18 +210,16 @@ Respond with valid JSON only (no markdown code fences):
       orderBy: { createdAt: "desc" },
       take: 20,
     })
-    const generatedKw = (postData.targetKeyword || targetKeyword).toLowerCase()
     const generatedTitle = postData.title.toLowerCase()
-    const titleWords = generatedTitle.split(/\s+/).filter((w: string) => w.length > 3)
+    // Exclude common domain words that appear in nearly every title
+    const stopWords = new Set(["germany", "german", "india", "indian", "indians", "2026", "2027", "guide", "complete", "students", "your", "that", "with", "from", "this", "what", "about", "tips", "best", "plan", "beta", "work", "jobs", "life", "real", "know"])
+    const titleWords = generatedTitle.split(/\s+/).filter((w: string) => w.length > 3 && !stopWords.has(w))
 
-    const isDuplicate = recentForDedup.some((p) => {
-      const existingKw = (p.targetKeyword || "").toLowerCase()
+    const isDuplicate = titleWords.length > 0 && recentForDedup.some((p) => {
       const existingTitle = p.title.toLowerCase()
-      // Exact keyword match only — substring matching causes too many false positives
-      const keywordOverlap = existingKw === generatedKw
       const matchCount = titleWords.filter((w: string) => existingTitle.includes(w)).length
-      const titleOverlap = matchCount >= Math.ceil(titleWords.length * 0.5)
-      return keywordOverlap || titleOverlap
+      const titleOverlap = matchCount >= Math.ceil(titleWords.length * 0.6)
+      return titleOverlap
     })
 
     if (isDuplicate) {

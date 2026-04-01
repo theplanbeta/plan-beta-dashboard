@@ -10,6 +10,7 @@ import LogHoursModal from '../components/teacher-hours/LogHoursModal'
 import ApproveRejectModal from '../components/teacher-hours/ApproveRejectModal'
 import MarkPaidModal from '../components/teacher-hours/MarkPaidModal'
 import MonthlyPayrollTable from '../components/teacher-hours/MonthlyPayrollTable'
+import PayrollCalculator from '../components/teacher-hours/PayrollCalculator'
 import { TeacherPayrollSummary } from '@/app/api/teacher-hours/monthly-payroll/route'
 
 interface Batch {
@@ -419,6 +420,11 @@ export default function TeacherHoursPage() {
       )}
 
       {/* Monthly Payroll Tab */}
+      {activeTab === 'payroll' && isFounder && (
+        <div className="flex justify-end">
+          <PayrollCalculator />
+        </div>
+      )}
       {activeTab === 'payroll' && isFounder && payrollData && (
         <MonthlyPayrollTable
           teachers={payrollData.teachers}

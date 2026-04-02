@@ -39,7 +39,6 @@ export async function GET(
         batch: true,
         attendance: {
           orderBy: { date: "desc" },
-          take: 10,
         },
         payments: {
           orderBy: { paymentDate: "desc" },

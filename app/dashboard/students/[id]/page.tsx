@@ -120,6 +120,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
   const { data: session } = useSession()
   const [student, setStudent] = useState<Student | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showAllAttendance, setShowAllAttendance] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [suspending, setSuspending] = useState(false)
   const [reviews, setReviews] = useState<TeacherReview[]>([])
@@ -909,16 +910,33 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
-      {/* Recent Attendance */}
+      {/* Attendance */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-md border border-gray-200 dark:border-gray-700 p-6">
-        <h3 className="font-semibold text-foreground mb-4">Recent Attendance</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-foreground">
+            Attendance
+            {student.attendance.length > 0 && (
+              <span className="ml-2 text-xs font-normal text-gray-500">
+                ({student.attendance.filter((r: any) => r.status === 'PRESENT').length}/{student.attendance.length} present)
+              </span>
+            )}
+          </h3>
+          {student.attendance.length > 10 && (
+            <button
+              onClick={() => setShowAllAttendance(!showAllAttendance)}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {showAllAttendance ? 'Show recent' : `Show all (${student.attendance.length})`}
+            </button>
+          )}
+        </div>
         {student.attendance.length === 0 ? (
           <div className="text-center py-4 text-gray-500 text-sm">No attendance records</div>
         ) : (
-          <div className="space-y-2">
-            {student.attendance.slice(0, 10).map((record) => (
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {(showAllAttendance ? student.attendance : student.attendance.slice(0, 10)).map((record: any) => (
               <div key={record.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">{formatDate(record.date)}</span>
+                <span className="text-gray-600 dark:text-gray-400">{formatDate(record.date)}</span>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
                     record.status === "PRESENT"

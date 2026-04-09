@@ -1616,3 +1616,37 @@ model CfoConversation {
 
   @@index([userId])
 }
+
+model InstagramPost {
+  id              String   @id @default(cuid())
+  shortCode       String   @unique
+  type            String   // Image, Video, Sidecar
+  caption         String?  @db.Text
+  permalink       String
+  thumbnailUrl    String?  @db.Text
+  likesCount      Int      @default(0)
+  commentsCount   Int      @default(0)
+  videoPlayCount  Int?
+  hashtags        Json?    // string[]
+  mentions        Json?    // string[]
+  isPinned        Boolean  @default(false)
+  ownerUsername    String
+  publishedAt     DateTime
+  firstScrapedAt  DateTime @default(now())
+  lastScrapedAt   DateTime @default(now())
+
+  @@index([publishedAt])
+  @@index([ownerUsername])
+}
+
+model InstagramSnapshot {
+  id             String   @id @default(cuid())
+  username       String
+  followersCount Int
+  followingCount Int
+  postsCount     Int
+  biography      String?  @db.Text
+  scrapedAt      DateTime @default(now())
+
+  @@index([username, scrapedAt])
+}

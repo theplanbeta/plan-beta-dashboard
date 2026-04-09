@@ -91,3 +91,13 @@ Add new templates in `lib/email.ts` in the `EMAIL_TEMPLATES` object.
 7. **Job scraper**: `maxDuration = 300` on cron route. Kimi Claw sources are push-only (skipped by scraper). Location filter uses haversine against `lib/german-cities.ts`.
 8. **Instagram embeds**: Use static thumbnails (`InstagramEmbed.tsx`), NOT iframes or embed.js. Thumbnails in `public/instagram/`.
 9. **Blog content**: Uses `.blog-content` CSS class in `globals.css` for dark-theme rendering. No Tailwind Typography plugin.
+
+### MemPalace Integration
+- MemPalace MCP server provides persistent project memory across Claude Code sessions
+- Auto-save hooks capture context on Stop (every 15 messages) and PreCompact events
+- Daily cron syncs WhatsApp, action items, content ideas, leads, audit logs, CFO chats into the palace
+- Search past decisions: `mempalace_search("query")` via MCP tools
+- Knowledge graph: `mempalace_kg_query("entity")` for temporal facts
+- Wake-up: `mempalace_status` returns L0+L1 context at session start
+- Palace storage: `.mempalace/palace/` (gitignored, local only)
+- CFO chat conversations now persist to `CfoConversation` model in DB

@@ -291,7 +291,7 @@ export async function POST(request: NextRequest) {
   if (!auth.authorized) return auth.response
 
   try {
-    const { messages } = (await request.json()) as { messages: ChatMessage[] }
+    const { messages, conversationId } = (await request.json()) as { messages: ChatMessage[]; conversationId?: string }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: "Messages array required" }, { status: 400 })
@@ -326,8 +326,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No response generated" }, { status: 500 })
     }
 
+    // Persist conversation
+    const userId = auth.session.user.id
+    const now = new Date().toISOString()
+    const updatedMessages = [
+      ...messages.map(m => ({ role: m.role, content: m.content, timestamp: now })),
+      { role: "assistant" as const, content: textContent.text, timestamp: now },
+    ]
+
+    let savedConversationId = conversationId
+    try {
+      if (conversationId) {
+        await prisma.cfoConversation.update({
+          where: { id: conversationId },
+          data: { messages: updatedMessages },
+        })
+      } else {
+        const firstUserMessage = messages.find(m => m.role === "user")
+        const title = firstUserMessage
+          ? firstUserMessage.content.slice(0, 100)
+          : "New conversation"
+        const conversation = await prisma.cfoConversation.create({
+          data: {
+            userId,
+            title,
+            messages: updatedMessages,
+          },
+        })
+        savedConversationId = conversation.id
+      }
+    } catch (persistError) {
+      console.error("[CFO Chat] Failed to persist conversation:", persistError)
+      // Don't fail the request if persistence fails
+    }
+
     return NextResponse.json({
       reply: textContent.text,
+      conversationId: savedConversationId,
       usage: {
         inputTokens: response.usage.input_tokens,
         outputTokens: response.usage.output_tokens,

@@ -46,6 +46,7 @@ model User {
   teacherReviews        TeacherReview[] @relation("TeacherReviewer")
   createdActionItems    ActionItem[]   @relation("ActionItemCreator")
   assignedActionItems   ActionItem[]   @relation("ActionItemAssignee")
+  cfoConversations      CfoConversation[]
 
   @@index([email])
   @@index([role])
@@ -1602,4 +1603,16 @@ model ActionItem {
   @@index([assignedToId])
   @@index([status])
   @@index([category])
+}
+
+model CfoConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String?
+  messages  Json     // [{role: "user"|"assistant", content: string, timestamp: string}]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

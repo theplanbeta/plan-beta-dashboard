@@ -52,3 +52,6 @@ production-backup.json
 /storage
 screenshots/
 .env.vercel
+
+# MemPalace local memory (contains conversation history)
+.mempalace/

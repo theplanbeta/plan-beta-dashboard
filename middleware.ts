@@ -37,6 +37,26 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // ─── PlanBeta Jobs App routing ──────────────────────────────────────
+  const isJobsAppDomain = hostname.includes("jobs.planbeta.app") || hostname.includes("jobs.localhost")
+
+  if (isJobsAppDomain) {
+    // Block dashboard/login access on jobs app domain
+    if (path.startsWith("/dashboard") || path === "/login") {
+      return NextResponse.redirect(new URL("/", request.url))
+    }
+
+    // Skip paths that don't need rewriting
+    const skipPrefixes = ["/api", "/_next", "/jobs-app"]
+    const shouldSkip = skipPrefixes.some((p) => path === p || path.startsWith(p + "/"))
+
+    if (!shouldSkip) {
+      // Rewrite / to /jobs-app, /jobs to /jobs-app/jobs, etc.
+      const rewritePath = path === "/" ? "/jobs-app" : "/jobs-app" + path
+      return NextResponse.rewrite(new URL(rewritePath, request.url))
+    }
+  }
+
   // ─── Dashboard auth ───────────────────────────────────────────────────
   // Redirect to dashboard if accessing login while authenticated
   if (path === "/login" && token) {
@@ -115,5 +135,6 @@ export const config = {
     "/spot-a-job/:path*",
     "/refer/:path*",
     "/german-classes/:path*",
+    "/jobs-app/:path*",
   ],
 }

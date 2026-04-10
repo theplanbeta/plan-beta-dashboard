@@ -9,6 +9,7 @@ type PeriodPreset = {
 
 const PRESETS: PeriodPreset[] = [
   { label: "7d", days: 7 },
+  { label: "14d", days: 14 },
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
   { label: "180d", days: 180 },

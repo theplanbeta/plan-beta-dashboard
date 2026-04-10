@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react"
 import { usePathname } from "next/navigation"
-import { captureTrackingData, trackEvent } from "@/lib/tracking"
+import { captureTrackingData, trackEvent, getVisitorId, getSessionId } from "@/lib/tracking"
 import { getConsent } from "@/components/marketing/CookieConsent"
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
@@ -156,23 +156,90 @@ export default function TrackingProvider() {
     scrollMilestonesRef.current.clear()
   }, [pathname, consented, gtagReady, firePageView])
 
-  // Internal first-party page view logging (consent-free, no PII)
+  // ─── Identity Resolution Pixel ────────────────────────────────────────────
+  // Consent-gated pageview tracking with duration and scroll depth enrichment
+  const pageViewIdRef = useRef<string | null>(null)
+  const pageLoadTimeRef = useRef<number>(0)
+  const currentPathRef = useRef<string>("")
+  const maxScrollRef = useRef<number>(0)
+
+  // Track continuous max scroll position (separate from milestone-based GA4 tracking)
   useEffect(() => {
-    if (!pathname) return
-    try {
-      const data = JSON.stringify({
+    const handleScroll = () => {
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      if (docHeight <= 0) return
+      const percent = Math.round((scrollTop / docHeight) * 100)
+      if (percent > maxScrollRef.current) {
+        maxScrollRef.current = percent
+      }
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  // Send consent-gated pageview on route change
+  useEffect(() => {
+    if (!consented || !pathname) return
+
+    // Capture path at load time (SPA-safe — don't read window.location at pagehide)
+    currentPathRef.current = pathname
+    pageLoadTimeRef.current = performance.now()
+    maxScrollRef.current = 0
+    pageViewIdRef.current = null
+
+    const visitorId = getVisitorId()
+    const sessionId = getSessionId()
+    if (!visitorId || !sessionId) return
+
+    // Use fetch with keepalive to get back pageViewId (sendBeacon can't read responses)
+    fetch("/api/analytics/pageview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "pageview",
+        visitorId,
+        sessionId,
         path: pathname,
-        referrer: document.referrer || undefined,
+        referrer: document.referrer && !document.referrer.includes(window.location.hostname)
+          ? document.referrer
+          : undefined,
         deviceType: window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop",
         timestamp: new Date().toISOString(),
+      }),
+      keepalive: true,
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.pageViewId) {
+          pageViewIdRef.current = data.pageViewId
+        }
       })
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon("/api/analytics/pageview", data)
-      }
-    } catch {
-      // Silent fail — pageview logging is non-critical
+      .catch(() => {}) // Silent fail
+  }, [pathname, consented])
+
+  // Send pagehide beacon with duration and scroll depth
+  useEffect(() => {
+    const handlePageHide = () => {
+      const pvId = pageViewIdRef.current
+      if (!pvId) return
+
+      const duration = Math.round((performance.now() - pageLoadTimeRef.current) / 1000)
+
+      navigator.sendBeacon(
+        "/api/analytics/pageview",
+        JSON.stringify({
+          type: "pagehide",
+          pageViewId: pvId,
+          duration,
+          scrollDepth: maxScrollRef.current,
+        })
+      )
     }
-  }, [pathname])
+
+    window.addEventListener("pagehide", handlePageHide)
+    return () => window.removeEventListener("pagehide", handlePageHide)
+  }, [])
 
   // Scroll depth tracking
   useEffect(() => {

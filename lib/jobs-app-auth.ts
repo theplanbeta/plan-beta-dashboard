@@ -7,7 +7,7 @@
 
 import { SignJWT, jwtVerify } from "jose"
 import bcrypt from "bcryptjs"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { JobSeeker, JobSeekerProfile } from "@prisma/client"
 
 // ---------------------------------------------------------------------------

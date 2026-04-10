@@ -161,11 +161,11 @@ async function getCfoContext() {
     }),
     // Job portal subscribers
     prisma.jobSubscription.count({ where: { status: "active" } }),
-    // PageView analytics (identity resolution data)
-    prisma.pageView.count({ where: { deletedAt: null } }),
+    // PageView analytics (identity resolution data — bounded to last 30 days)
+    prisma.pageView.count({ where: { deletedAt: null, timestamp: { gte: thirtyDaysAgo } } }),
     prisma.pageView.groupBy({
       by: ["path"],
-      where: { deletedAt: null },
+      where: { deletedAt: null, timestamp: { gte: thirtyDaysAgo } },
       _count: true,
       orderBy: { _count: { path: "desc" } },
       take: 10,
@@ -292,7 +292,7 @@ HEALTH INDICATORS:
 - Gross margin estimate: ${monthRevenueInr > 0 ? Math.round(((monthRevenueInr - teacherCostInr) / monthRevenueInr) * 100) : 0}%
 - CAC (blended, if ${totalAdSpend > 0 ? "known" : "no ad data"}): ${convertedLeads > 0 ? `₹${Math.round(totalAdSpend / convertedLeads).toLocaleString("en-IN")}` : "insufficient data"}
 
-WEBSITE VISITOR TRACKING (since pixel deployment):
+WEBSITE VISITOR TRACKING (last 30 days):
 - Total tracked pageviews: ${totalPageViews}
 - Top pages: ${topPages.slice(0, 5).map((p: { path: string; _count: number }) => `${p.path} (${p._count} views)`).join(", ") || "No data yet"}
 - Note: PageView tracking data available from April 2026. Touchpoint analysis only covers leads created after this date.`

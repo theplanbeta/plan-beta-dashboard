@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         await prisma.pageView.create({
           data: {
             visitorId: data.visitorId,
-            sessionId: "conversion",
+            sessionId: "00000000-0000-0000-0000-000000000000",
             path: "/__conversion/lead",
             country: request.headers.get("x-vercel-ip-country") || undefined,
             deviceType: data.deviceType || undefined,

@@ -1552,7 +1552,7 @@ model JobSeeker {
   email                String    @unique
   passwordHash         String?
   googleId             String?   @unique
-  name                 String?
+  name                 String
   whatsapp             String?   @map("seeker_whatsapp")
 
   // Stripe
@@ -1561,6 +1561,13 @@ model JobSeeker {
   stripePriceId        String?   @map("seeker_stripe_price_id")
   currentPeriodEnd     DateTime? @map("seeker_current_period_end")
   tier                 JobSeekerTier @default(FREE)
+  subscriptionStatus   String    @default("free") // free, trial, active, past_due, canceled
+  billingProvider      String?   // "stripe" or "razorpay"
+  razorpayCustomerId   String?   @unique @map("seeker_razorpay_customer_id")
+
+  // Onboarding
+  onboardingComplete   Boolean   @default(false)
+  country              String?   // for geo-pricing
 
   // Notifications
   pushEnabled          Boolean   @default(false)
@@ -1601,16 +1608,21 @@ model JobSeekerProfile {
   lastName             String?
   phone                String?
   dateOfBirth          DateTime?
-  nationality          String?
+  nationality          String?   @default("Indian")
   currentLocation      String?
-  targetLocation       String?
+  targetLocations      String[]  // preferred German cities
+  visaStatus           String?
 
   // Professional
   currentJobTitle      String?
   yearsOfExperience    Int?
   profession           String?   // e.g. "Nursing", "IT", "Engineering"
-  skills               String[]
+  targetRoles          String[]
+  skills               Json?     // { technical: [], languages: [], soft: [] }
   linkedinUrl          String?
+  salaryMin            Int?
+  salaryMax            Int?
+  salaryCurrency       String    @default("EUR")
 
   // Education
   highestDegree        String?

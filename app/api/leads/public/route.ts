@@ -154,6 +154,23 @@ export async function POST(request: NextRequest) {
       fbp: data.fbp || undefined,
     })
 
+    // Fire-and-forget: log conversion event to visitor's PageView timeline
+    try {
+      if (data.visitorId) {
+        await prisma.pageView.create({
+          data: {
+            visitorId: data.visitorId,
+            sessionId: "conversion",
+            path: "/__conversion/lead",
+            country: request.headers.get("x-vercel-ip-country") || undefined,
+            deviceType: data.deviceType || undefined,
+          },
+        })
+      }
+    } catch {
+      // Silent fail — conversion logging is non-critical
+    }
+
     return NextResponse.json({ success: true, id: lead.id, eventId }, { status: 201 })
   } catch (error) {
     console.error("Failed to create public lead:", error)

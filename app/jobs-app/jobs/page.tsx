@@ -3,13 +3,10 @@
 import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
-import { JobCard } from "@/components/jobs-app/JobCard"
+import { JobCard, type JobData } from "@/components/jobs-app/JobCard"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 
-interface Job {
-  id: string
-  [key: string]: unknown
-}
+type Job = JobData & { id: string }
 
 export default function JobsPage() {
   const { seeker, loading: authLoading } = useJobsAuth()
@@ -174,7 +171,7 @@ export default function JobsPage() {
             No jobs found
           </p>
         ) : (
-          jobs.map((job) => <JobCard key={job.id} job={job} />)
+          jobs.map((job) => <JobCard key={job.id} {...job} />)
         )}
       </div>
 

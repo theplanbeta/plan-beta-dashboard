@@ -7,7 +7,8 @@ import type { MatchLabel } from "@/lib/heuristic-scorer"
 // Types
 // ---------------------------------------------------------------------------
 
-export interface JobCardProps {
+export interface JobData {
+  id?: string
   slug?: string | null
   title: string
   company: string
@@ -19,7 +20,7 @@ export interface JobCardProps {
   jobType?: string | null
   matchScore?: number | null
   matchLabel?: MatchLabel | null
-  createdAt: Date | string
+  createdAt?: Date | string
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +39,10 @@ const JOB_TYPE_LABELS: Record<string, string> = {
 // Salary formatter
 // ---------------------------------------------------------------------------
 
-function formatSalary(min: number | null | undefined, max: number | null | undefined): string | null {
+function formatSalary(
+  min: number | null | undefined,
+  max: number | null | undefined
+): string | null {
   if (!min && !max) return null
   const fmt = (n: number) =>
     n >= 1000 ? `${(n / 1000).toFixed(0)}k` : String(n)
@@ -51,7 +55,7 @@ function formatSalary(min: number | null | undefined, max: number | null | undef
 // Component
 // ---------------------------------------------------------------------------
 
-export default function JobCard({
+export function JobCard({
   slug,
   title,
   company,
@@ -63,8 +67,7 @@ export default function JobCard({
   jobType,
   matchScore,
   matchLabel,
-  createdAt,
-}: JobCardProps) {
+}: JobData) {
   const href = slug ? `/jobs-app/job/${slug}` : "#"
   const salaryLabel = formatSalary(salaryMin, salaryMax)
   const jobTypeLabel = jobType ? (JOB_TYPE_LABELS[jobType] ?? jobType) : null
@@ -126,3 +129,5 @@ export default function JobCard({
     </Link>
   )
 }
+
+export default JobCard

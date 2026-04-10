@@ -270,16 +270,19 @@ export default function InstagramContentPage() {
     setSyncMessage("")
     try {
       const res = await fetch("/api/instagram/sync", { method: "POST" })
+      const data = await res.json()
       if (res.ok) {
-        setSyncMessage("Sync triggered successfully")
-        // Refresh data after a short delay
+        setSyncMessage(`Synced: ${data.followersCount?.toLocaleString()} followers, ${data.postsUpserted} posts updated`)
         setTimeout(() => {
           fetchPosts()
           setSyncMessage("")
         }, 3000)
+      } else if (res.status === 429) {
+        setSyncMessage(data.error || "Sync on cooldown")
+        setTimeout(() => setSyncMessage(""), 5000)
       } else {
-        setSyncMessage("Sync failed")
-        setTimeout(() => setSyncMessage(""), 3000)
+        setSyncMessage("Sync failed: " + (data.error || "Unknown error"))
+        setTimeout(() => setSyncMessage(""), 5000)
       }
     } catch {
       setSyncMessage("Sync failed")

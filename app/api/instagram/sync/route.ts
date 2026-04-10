@@ -7,12 +7,32 @@ export const maxDuration = 300
 
 const INSTAGRAM_USERNAME = "learn.german.with.aparnabose"
 
+const SYNC_COOLDOWN_HOURS = 6
+
 // POST /api/instagram/sync — Manual sync triggered from dashboard
 export async function POST() {
   const check = await checkPermission("analytics", "read")
   if (!check.authorized) return check.response
 
   try {
+    // Check cooldown — only allow sync every 6 hours
+    const lastSnapshot = await prisma.instagramSnapshot.findFirst({
+      where: { username: INSTAGRAM_USERNAME },
+      orderBy: { scrapedAt: "desc" },
+      select: { scrapedAt: true },
+    })
+
+    if (lastSnapshot) {
+      const hoursSinceLast = (Date.now() - lastSnapshot.scrapedAt.getTime()) / (1000 * 60 * 60)
+      if (hoursSinceLast < SYNC_COOLDOWN_HOURS) {
+        const nextSyncIn = Math.ceil(SYNC_COOLDOWN_HOURS - hoursSinceLast)
+        return NextResponse.json(
+          { error: `Sync already ran recently. Try again in ${nextSyncIn} hour${nextSyncIn !== 1 ? "s" : ""}.` },
+          { status: 429 }
+        )
+      }
+    }
+
     // 1. Scrape profile
     const profile = await scrapeInstagramProfile(INSTAGRAM_USERNAME)
 

@@ -1510,6 +1510,275 @@ model SavedSearch {
   @@index([alertEnabled])
 }
 
+// ========================================
+// PlanBeta Jobs App Models
+// ========================================
+
+enum JobSeekerTier {
+  FREE
+  PREMIUM
+}
+
+enum ApplicationStage {
+  SAVED
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+  ACCEPTED
+}
+
+enum ApplicationOutcome {
+  HIRED
+  REJECTED
+  WITHDRAWN
+  GHOSTED
+  EXPIRED
+}
+
+enum DocumentType {
+  CV
+  COVER_LETTER
+  CERTIFICATE
+  TRANSCRIPT
+  REFERENCE
+  OTHER
+}
+
+model JobSeeker {
+  id                   String    @id @default(cuid())
+  email                String    @unique
+  passwordHash         String?
+  googleId             String?   @unique
+  name                 String?
+  whatsapp             String?   @map("seeker_whatsapp")
+
+  // Stripe
+  stripeCustomerId     String?   @unique @map("seeker_stripe_customer_id")
+  subscriptionId       String?   @unique @map("seeker_subscription_id")
+  stripePriceId        String?   @map("seeker_stripe_price_id")
+  currentPeriodEnd     DateTime? @map("seeker_current_period_end")
+  tier                 JobSeekerTier @default(FREE)
+
+  // Notifications
+  pushEnabled          Boolean   @default(false)
+  pushEndpoint         String?
+  emailAlerts          Boolean   @default(true)
+  whatsappAlerts       Boolean   @default(false)
+
+  // Link to Plan Beta student (optional)
+  planBetaStudentId    String?
+
+  // Auth
+  emailVerified        Boolean   @default(false)
+  lastLoginAt          DateTime?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  profile              JobSeekerProfile?
+  documents            JobSeekerDocument[]
+  applications         JobApplication[]
+  generatedCVs         GeneratedCV[]
+  storyBankEntries     StoryBankEntry[]
+  matchScores          MatchScoreCache[]
+
+  @@index([email])
+  @@index([tier])
+  @@index([planBetaStudentId])
+}
+
+model JobSeekerProfile {
+  id                   String    @id @default(cuid())
+  seekerId             String    @unique
+  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  // Personal
+  firstName            String?
+  lastName             String?
+  phone                String?
+  dateOfBirth          DateTime?
+  nationality          String?
+  currentLocation      String?
+  targetLocation       String?
+
+  // Professional
+  currentJobTitle      String?
+  yearsOfExperience    Int?
+  profession           String?   // e.g. "Nursing", "IT", "Engineering"
+  skills               String[]
+  linkedinUrl          String?
+
+  // Education
+  highestDegree        String?
+  fieldOfStudy         String?
+  educationDetails     Json?     // Array of { institution, degree, field, year }
+
+  // German
+  germanLevel          String?   // A1, A2, B1, B2, C1, C2
+  germanCertificate    String?   // e.g. "Goethe B1"
+  englishLevel         String?
+
+  // Certifications & Experience
+  certifications       Json?     // Array of { name, issuer, year }
+  workExperience       Json?     // Array of { company, title, from, to, description }
+
+  // Computed
+  profileCompleteness  Int       @default(0) // 0-100
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([profession])
+  @@index([germanLevel])
+  @@index([currentLocation])
+}
+
+model JobSeekerDocument {
+  id                   String       @id @default(cuid())
+  seekerId             String
+  seeker               JobSeeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  type                 DocumentType
+  fileName             String
+  fileUrl              String
+  fileKey              String       // S3/storage key for deletion
+  fileSize             Int          // bytes
+  mimeType             String
+
+  // AI extraction
+  extractedText        String?
+  extractedData        Json?        // Structured data from CV parsing
+  processedAt          DateTime?
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([seekerId])
+  @@index([type])
+}
+
+model JobApplication {
+  id                   String            @id @default(cuid())
+  seekerId             String
+  seeker               JobSeeker         @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  // Job reference (NOT a FK — survives job deletion)
+  jobPostingId         String
+  jobTitle             String
+  jobCompany           String
+  jobLocation          String?
+
+  // Status
+  stage                ApplicationStage  @default(SAVED)
+  outcome              ApplicationOutcome?
+
+  // Generated CV
+  generatedCVId        String?
+  generatedCV          GeneratedCV?      @relation(fields: [generatedCVId], references: [id], onDelete: SetNull)
+
+  // Timeline
+  appliedAt            DateTime?
+  interviewDate        DateTime?
+
+  // Notes & prep
+  notes                String?
+  nextAction           String?
+  interviewPrep        Json?             // { questions, tips, companyResearch }
+
+  // Offer
+  salaryOffered        Decimal?
+
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@unique([seekerId, jobPostingId])
+  @@index([seekerId])
+  @@index([stage])
+  @@index([jobPostingId])
+}
+
+model GeneratedCV {
+  id                   String    @id @default(cuid())
+  seekerId             String
+  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  jobPostingId         String    // Plain string, not a FK
+  fileUrl              String
+  fileKey              String
+  keywordsUsed         String[]
+  matchScore           Float?
+  templateUsed         String?
+  language             String    @default("de") // de, en
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  applications         JobApplication[]
+
+  @@index([seekerId])
+  @@index([jobPostingId])
+}
+
+model StoryBankEntry {
+  id                   String    @id @default(cuid())
+  seekerId             String
+  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  competency           String    // e.g. "Teamwork", "Problem Solving", "Leadership"
+  situation            String
+  task                 String
+  action               String
+  result               String
+  reflection           String?
+  sourceExperience     String?   // Which job/project this came from
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([seekerId])
+  @@index([competency])
+}
+
+model MatchScoreCache {
+  id                   String    @id @default(cuid())
+  seekerId             String
+  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+
+  jobPostingId         String
+  heuristicScore       Int       // 0-100
+  aiScore              Int?      // 0-100, null if not yet computed
+  aiBreakdown          Json?     // { skills: 80, language: 90, location: 70, ... }
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@unique([seekerId, jobPostingId])
+  @@index([seekerId])
+  @@index([jobPostingId])
+  @@index([heuristicScore])
+}
+
+model Company {
+  id                   String    @id @default(cuid())
+  name                 String    @unique
+  website              String?
+  logoUrl              String?
+  industry             String?
+  size                 String?   // e.g. "1-50", "51-200", "201-1000", "1000+"
+  location             String?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([industry])
+  @@index([name])
+}
+
 model AnalyticsCache {
   id        String   @id @default(cuid())
   source    String   // "ga4", "gsc", "clarity", "vercel_web", "vercel_vitals"

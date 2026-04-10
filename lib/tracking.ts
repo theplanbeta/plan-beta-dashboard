@@ -3,6 +3,7 @@
 // ─── Constants ───────────────────────────────────────────────────────────────
 const TRACKING_KEY = "pb-tracking"
 const VISITOR_KEY = "pb-visitor-id"
+const SESSION_KEY = "pb-session-id"
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 export interface TrackingData {
@@ -74,6 +75,22 @@ export function getVisitorId(): string {
     if (!id) {
       id = crypto.randomUUID()
       localStorage.setItem(VISITOR_KEY, id)
+    }
+    return id
+  } catch {
+    return ""
+  }
+}
+
+// ─── Session ID ─────────────────────────────────────────────────────────
+// Per-tab session ID — persists across refreshes, clears on tab close
+export function getSessionId(): string {
+  if (typeof window === "undefined") return ""
+  try {
+    let id = sessionStorage.getItem(SESSION_KEY)
+    if (!id) {
+      id = crypto.randomUUID()
+      sessionStorage.setItem(SESSION_KEY, id)
     }
     return id
   } catch {

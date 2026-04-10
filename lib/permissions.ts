@@ -216,11 +216,6 @@ export const NAVIGATION: NavItem[] = [
   },
   {
     name: 'Instagram Insights',
-    href: '/dashboard/instagram-insights',
-    roles: ['FOUNDER', 'MARKETING'],
-  },
-  {
-    name: 'Content Performance',
     href: '/dashboard/instagram-content',
     roles: ['FOUNDER', 'MARKETING'],
   },

@@ -269,7 +269,7 @@ export default function InstagramContentPage() {
     setSyncing(true)
     setSyncMessage("")
     try {
-      const res = await fetch("/api/cron/instagram-scrape", { method: "POST" })
+      const res = await fetch("/api/instagram/sync", { method: "POST" })
       if (res.ok) {
         setSyncMessage("Sync triggered successfully")
         // Refresh data after a short delay

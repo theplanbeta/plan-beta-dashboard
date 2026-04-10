@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { getJobSeeker } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
 import type { Prisma } from "@prisma/client"

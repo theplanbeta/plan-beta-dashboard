@@ -61,6 +61,10 @@ CRITICAL RULES:
 - Distinguish revenue (cash received) from enrolled (committed but unpaid)
 - In a small business, ₹5,000 matters. Track every rupee.
 
+DATA QUALITY NOTES:
+- PageView visitor tracking deployed April 2026. Touchpoint-before-conversion analysis only covers leads created after deployment.
+- Only visitors who accepted cookie consent are tracked. Actual traffic is higher than tracked pageviews.
+
 You will receive live business data as context with each message. Use it to give specific, number-backed answers. Reference actual batch codes, student counts, and rupee amounts — never speak in generalities when you have the data.`
 
 // Aggregate fresh business data for the CFO
@@ -81,6 +85,8 @@ async function getCfoContext() {
     referrals,
     adSpend,
     jobSubscriptions,
+    totalPageViews,
+    topPages,
   ] = await Promise.all([
     // All students with financial data
     prisma.student.findMany({
@@ -155,6 +161,15 @@ async function getCfoContext() {
     }),
     // Job portal subscribers
     prisma.jobSubscription.count({ where: { status: "active" } }),
+    // PageView analytics (identity resolution data)
+    prisma.pageView.count({ where: { deletedAt: null } }),
+    prisma.pageView.groupBy({
+      by: ["path"],
+      where: { deletedAt: null },
+      _count: true,
+      orderBy: { _count: { path: "desc" } },
+      take: 10,
+    }),
   ])
 
   // Compute aggregates
@@ -275,7 +290,12 @@ JOB PORTAL:
 HEALTH INDICATORS:
 - Revenue vs burn ratio: ${runwayMonths.toFixed(1)}x
 - Gross margin estimate: ${monthRevenueInr > 0 ? Math.round(((monthRevenueInr - teacherCostInr) / monthRevenueInr) * 100) : 0}%
-- CAC (blended, if ${totalAdSpend > 0 ? "known" : "no ad data"}): ${convertedLeads > 0 ? `₹${Math.round(totalAdSpend / convertedLeads).toLocaleString("en-IN")}` : "insufficient data"}`
+- CAC (blended, if ${totalAdSpend > 0 ? "known" : "no ad data"}): ${convertedLeads > 0 ? `₹${Math.round(totalAdSpend / convertedLeads).toLocaleString("en-IN")}` : "insufficient data"}
+
+WEBSITE VISITOR TRACKING (since pixel deployment):
+- Total tracked pageviews: ${totalPageViews}
+- Top pages: ${topPages.slice(0, 5).map((p: { path: string; _count: number }) => `${p.path} (${p._count} views)`).join(", ") || "No data yet"}
+- Note: PageView tracking data available from April 2026. Touchpoint analysis only covers leads created after this date.`
 }
 
 interface ChatMessage {

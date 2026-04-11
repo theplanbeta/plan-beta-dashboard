@@ -1,7 +1,7 @@
 // app/api/jobs-app/anschreiben/generate/route.ts
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireJobSeeker, isPremium } from "@/lib/jobs-app-auth"
+import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateAnschreiben } from "@/lib/jobs-ai"
 import { AnschreibenTemplate } from "@/lib/anschreiben-template"
 import { renderToBuffer } from "@react-pdf/renderer"
@@ -26,8 +26,8 @@ export async function POST(request: Request) {
     throw e
   }
 
-  // Premium gating
-  const premium = isPremium(seeker)
+  // Premium gating (honours grandfathered legacy subscribers)
+  const premium = await isPremiumEffective(seeker)
   if (!premium) {
     return NextResponse.json(
       { error: "Anschreiben generation requires a Premium subscription" },

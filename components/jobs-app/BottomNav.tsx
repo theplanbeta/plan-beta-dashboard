@@ -9,7 +9,7 @@ const tabs = [
   { label: "Jobs", href: "/jobs-app/jobs", icon: Briefcase },
   { label: "CVs", href: "/jobs-app/cvs", icon: FileText },
   { label: "Tracker", href: "/jobs-app/applications", icon: KanbanSquare },
-  { label: "Profile", href: "/jobs-app/profile", icon: User },
+  { label: "Account", href: "/jobs-app/settings", icon: User },
 ]
 
 export function BottomNav() {

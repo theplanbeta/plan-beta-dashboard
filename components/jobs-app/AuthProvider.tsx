@@ -15,6 +15,10 @@ interface JobSeeker {
   name: string
   tier: string
   subscriptionStatus: string
+  currentPeriodEnd: string | null
+  billingProvider: string | null
+  stripeCustomerId: string | null
+  planBetaStudentId: string | null
   onboardingComplete: boolean
   profile: {
     germanLevel: string | null
@@ -64,9 +68,8 @@ export function JobsAuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const isPremium =
-    seeker?.tier === "PREMIUM" ||
-    // planBetaStudentId present means the account is linked to an enrolled student
-    !!(seeker as unknown as { planBetaStudentId?: string })?.planBetaStudentId
+    (seeker?.tier === "PREMIUM" && seeker?.subscriptionStatus === "active") ||
+    !!seeker?.planBetaStudentId
 
   const load = useCallback(async () => {
     setLoading(true)

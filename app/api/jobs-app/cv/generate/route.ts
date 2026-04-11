@@ -1,7 +1,7 @@
 // app/api/jobs-app/cv/generate/route.ts
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { requireJobSeeker, isPremium } from "@/lib/jobs-app-auth"
+import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateCVContent } from "@/lib/jobs-ai"
 import { CVTemplate } from "@/lib/cv-template"
 import { renderToBuffer } from "@react-pdf/renderer"
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     throw e
   }
 
-  const premium = isPremium(seeker)
+  const premium = await isPremiumEffective(seeker)
 
   // Check CV generation limits: free = 0/mo, premium = 5/mo
   if (!premium) {

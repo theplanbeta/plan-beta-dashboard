@@ -184,10 +184,34 @@ export async function requireJobSeeker(request: Request): Promise<JobSeekerWithP
 // ---------------------------------------------------------------------------
 
 /**
- * Returns true if the JobSeeker has premium access.
- * Premium is granted when tier === PREMIUM **or** when the seeker is linked
- * to a Plan Beta student (planBetaStudentId is set).
+ * Returns true if the JobSeeker has premium access based on their own record.
+ * Premium is granted when tier === PREMIUM, subscription is active, or the
+ * seeker is linked to a Plan Beta student (planBetaStudentId is set).
  */
 export function isPremium(seeker: JobSeeker): boolean {
-  return seeker.tier === "PREMIUM" || Boolean(seeker.planBetaStudentId)
+  if (seeker.planBetaStudentId) return true
+  if (seeker.tier === "PREMIUM" && seeker.subscriptionStatus === "active")
+    return true
+  return false
+}
+
+/**
+ * Async version that ALSO checks for grandfathered legacy subscribers.
+ *
+ * If a seeker doesn't have a PWA Pro subscription but has an active legacy
+ * JobSubscription (EUR 1.99 basic portal) on the same email, they are
+ * treated as Pro ("grandfathered" early adopter).
+ *
+ * Use this wherever the server needs the canonical premium decision —
+ * CV generation, Anschreiben, AI deep scoring routes.
+ */
+export async function isPremiumEffective(seeker: JobSeeker): Promise<boolean> {
+  if (isPremium(seeker)) return true
+
+  // Grandfather check
+  const legacy = await prisma.jobSubscription.findUnique({
+    where: { email: seeker.email },
+    select: { status: true },
+  })
+  return legacy?.status === "active"
 }

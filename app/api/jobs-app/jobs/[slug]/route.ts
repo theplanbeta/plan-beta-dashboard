@@ -1,7 +1,7 @@
 // app/api/jobs-app/jobs/[slug]/route.ts
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { getJobSeeker, isPremium } from "@/lib/jobs-app-auth"
+import { getJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
 import { scoreJobDeep } from "@/lib/jobs-ai"
 
@@ -77,8 +77,8 @@ export async function GET(
     response.matchScore = hScore
     response.matchLabel = getMatchLabel(hScore)
 
-    // AI deep score for premium users only
-    if (isPremium(seeker)) {
+    // AI deep score for premium users only (grandfathered legacy counts)
+    if (await isPremiumEffective(seeker)) {
       try {
         const deepScore = await scoreJobDeep(
           {

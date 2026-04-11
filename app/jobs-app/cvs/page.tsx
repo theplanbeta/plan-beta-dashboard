@@ -1,4 +1,3 @@
-// app/jobs-app/cvs/page.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -21,7 +20,7 @@ interface CVEntry {
 }
 
 export default function CVHistoryPage() {
-  const { seeker, isPremium } = useJobsAuth()
+  const { seeker } = useJobsAuth()
   const [cvs, setCvs] = useState<CVEntry[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -30,7 +29,6 @@ export default function CVHistoryPage() {
       setLoading(false)
       return
     }
-
     fetch("/api/jobs-app/cv")
       .then((res) => (res.ok ? res.json() : { cvs: [] }))
       .then((data) => setCvs(data.cvs || []))
@@ -39,7 +37,6 @@ export default function CVHistoryPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this CV?")) return
-
     const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE" })
     if (res.ok) {
       setCvs((prev) => prev.filter((cv) => cv.id !== id))
@@ -48,86 +45,220 @@ export default function CVHistoryPage() {
 
   if (!seeker) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-sm text-gray-500">
-          <Link href="/jobs-app/onboarding" className="text-blue-600 underline">
+      <div className="space-y-5">
+        <header className="amtlich-enter">
+          <span className="amtlich-label">
+            <span className="amtlich-rivet" /> Document archive
+          </span>
+          <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+            Your CVs
+          </h1>
+        </header>
+
+        <div
+          className="amtlich-card text-center amtlich-enter amtlich-enter-delay-1"
+          style={{ padding: "36px 24px" }}
+        >
+          <FileText
+            size={40}
+            strokeWidth={1.4}
+            className="mx-auto"
+            style={{ color: "var(--brass-shadow)" }}
+          />
+          <p
+            className="ink-soft mt-3"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.92rem",
+            }}
+          >
+            Sign up to generate and manage tailored CVs.
+          </p>
+          <Link
+            href="/jobs-app/onboarding"
+            className="amtlich-btn amtlich-btn--primary mt-5 inline-block no-underline"
+          >
             Sign up
-          </Link>{" "}
-          to generate and manage CVs
-        </p>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4 pt-2">
-      <h1 className="text-xl font-bold text-gray-900">My CVs</h1>
+    <div className="space-y-5">
+      {/* ── Masthead ────────────────────────────────────────── */}
+      <header className="amtlich-enter">
+        <span className="amtlich-label">
+          <span className="amtlich-rivet" /> Document archive
+        </span>
+        <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+          Your CVs
+        </h1>
+        <p
+          className="ink-soft mt-1"
+          style={{
+            fontFamily: "var(--f-body)",
+            fontSize: "0.92rem",
+          }}
+        >
+          Every Lebenslauf you've generated, archived by date.
+        </p>
+        <hr className="amtlich-divider mt-3" />
+      </header>
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+          <Loader2
+            className="h-7 w-7 animate-spin"
+            style={{ color: "var(--brass)" }}
+          />
         </div>
       ) : cvs.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center">
-          <FileText className="mx-auto h-10 w-10 text-gray-300" />
-          <p className="mt-3 text-sm text-gray-500">No CVs generated yet</p>
+        <div
+          className="amtlich-card text-center amtlich-enter amtlich-enter-delay-1"
+          style={{ padding: "36px 24px" }}
+        >
+          <FileText
+            size={40}
+            strokeWidth={1.4}
+            className="mx-auto"
+            style={{ color: "var(--brass-shadow)" }}
+          />
+          <h2 className="display ink mt-3" style={{ fontSize: "1.1rem" }}>
+            Empty archive
+          </h2>
+          <p
+            className="ink-soft mt-2"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.88rem",
+              maxWidth: "32ch",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Generate your first tailored CV from any job listing.
+          </p>
           <Link
             href="/jobs-app/jobs"
-            className="mt-2 inline-block text-sm text-blue-600 underline"
+            className="amtlich-btn amtlich-btn--primary mt-5 inline-block no-underline"
           >
-            Browse jobs to generate your first CV
+            Browse jobs
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
-          {cvs.map((cv) => (
-            <div
+        <div className="space-y-4">
+          {cvs.map((cv, i) => (
+            <article
               key={cv.id}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4"
+              className="amtlich-card amtlich-enter relative"
+              style={{
+                padding: "16px 18px",
+                animationDelay: `${Math.min(i * 40, 200)}ms`,
+              }}
             >
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-gray-900">
-                  {cv.job.title}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {cv.job.company} · {cv.language.toUpperCase()} ·{" "}
-                  {new Date(cv.createdAt).toLocaleDateString()}
-                </p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {cv.keywordsUsed.slice(0, 5).map((kw, i) => (
+              {/* CV metadata header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
+                    {cv.job.company}
+                  </span>
+                  <h3
+                    className="display ink mt-0.5"
+                    style={{
+                      fontSize: "1.05rem",
+                      lineHeight: 1.22,
+                      fontVariationSettings: '"opsz" 36, "SOFT" 25, "wght" 580',
+                    }}
+                  >
+                    {cv.job.title}
+                  </h3>
+                </div>
+                <span
+                  className="amtlich-stamp amtlich-stamp--ink"
+                  style={{
+                    transform: "rotate(2deg)",
+                    fontSize: "var(--fs-mono-xs)",
+                    padding: "3px 9px",
+                  }}
+                >
+                  {cv.language}
+                </span>
+              </div>
+
+              <hr className="amtlich-divider" style={{ margin: "12px 0 10px" }} />
+
+              {/* Date + keywords */}
+              <div
+                className="mono ink-faded mb-2"
+                style={{ fontSize: "var(--fs-mono-xs)" }}
+              >
+                {new Date(cv.createdAt).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}{" "}
+                · {cv.keywordsUsed.length} keywords
+              </div>
+
+              {cv.keywordsUsed.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {cv.keywordsUsed.slice(0, 5).map((kw, j) => (
                     <span
-                      key={i}
-                      className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500"
+                      key={j}
+                      style={{
+                        fontFamily: "var(--f-mono)",
+                        fontSize: "0.62rem",
+                        letterSpacing: "0.04em",
+                        color: "var(--ink-soft)",
+                        background: "rgba(255, 250, 220, 0.45)",
+                        border: "1px dotted rgba(140, 102, 24, 0.4)",
+                        borderRadius: "2px",
+                        padding: "2px 6px",
+                      }}
                     >
                       {kw}
                     </span>
                   ))}
                   {cv.keywordsUsed.length > 5 && (
-                    <span className="text-xs text-gray-400">
+                    <span
+                      className="ink-faded"
+                      style={{
+                        fontFamily: "var(--f-mono)",
+                        fontSize: "0.62rem",
+                        padding: "2px 4px",
+                      }}
+                    >
                       +{cv.keywordsUsed.length - 5}
                     </span>
                   )}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 pl-3">
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-2">
                 <a
                   href={cv.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-gray-200 p-2 text-gray-500 hover:bg-gray-50"
-                  title="Download"
+                  className="amtlich-btn flex-1 inline-flex items-center justify-center gap-1.5 no-underline"
+                  style={{ padding: "9px 12px", fontSize: "var(--fs-mono-xs)" }}
                 >
-                  <Download className="h-4 w-4" />
+                  <Download size={12} strokeWidth={2.2} />
+                  Download
                 </a>
                 <button
+                  type="button"
                   onClick={() => handleDelete(cv.id)}
-                  className="rounded-lg border border-gray-200 p-2 text-gray-400 hover:bg-red-50 hover:text-red-500"
-                  title="Delete"
+                  className="amtlich-btn inline-flex items-center justify-center"
+                  style={{ padding: "9px 14px", fontSize: "var(--fs-mono-xs)" }}
+                  aria-label="Delete CV"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 size={12} strokeWidth={2} />
                 </button>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

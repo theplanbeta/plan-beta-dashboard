@@ -63,10 +63,6 @@ interface Application {
   jobCompany: string
 }
 
-function classNames(...classes: (string | false | null | undefined)[]) {
-  return classes.filter(Boolean).join(" ")
-}
-
 export default function ApplicationKitModal({
   isOpen,
   onClose,
@@ -84,7 +80,6 @@ export default function ApplicationKitModal({
 
   const [copiedField, setCopiedField] = useState<"subject" | "body" | null>(null)
 
-  // Fetch kit + application details whenever the modal opens
   useEffect(() => {
     if (!isOpen || !applicationId) return
 
@@ -143,7 +138,7 @@ export default function ApplicationKitModal({
         setKit(data.kit)
       }
     } catch {
-      // ignore
+      /* ignore */
     }
   }
 
@@ -212,7 +207,6 @@ export default function ApplicationKitModal({
       window.open(kit.cv.fileUrl, "_blank")
     }
     if (kit?.anschreiben?.fileUrl) {
-      // slight delay so browsers don't block the second popup
       setTimeout(() => {
         window.open(kit.anschreiben!.fileUrl, "_blank")
       }, 200)
@@ -248,50 +242,117 @@ export default function ApplicationKitModal({
   }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className="amtlich relative z-50"
+    >
+      <DialogBackdrop
+        className="fixed inset-0 backdrop-blur-sm"
+        style={{ background: "rgba(20, 17, 9, 0.55)" }}
+      />
 
       <div className="fixed inset-0 flex items-end justify-center sm:items-center sm:p-4">
-        <DialogPanel className="flex h-full w-full flex-col overflow-hidden bg-white shadow-xl sm:h-auto sm:max-h-[90vh] sm:w-full sm:max-w-2xl sm:rounded-2xl">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-            <DialogTitle className="text-base font-semibold text-gray-900">
-              Application Kit
-            </DialogTitle>
+        <DialogPanel
+          className="amtlich amtlich-paper flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[90vh] sm:w-full sm:max-w-2xl"
+          style={{
+            borderRadius: "6px 6px 0 0",
+            borderTop: "2px solid var(--kraft-dark)",
+            borderLeft: "1px solid var(--manila-edge)",
+            borderRight: "1px solid var(--manila-edge)",
+          }}
+        >
+          {/* ── Header ─────────────────────────────────── */}
+          <div
+            className="flex items-center justify-between px-6 py-4"
+            style={{
+              borderBottom: "1px dashed rgba(140, 102, 24, 0.4)",
+            }}
+          >
+            <div>
+              <span className="amtlich-label">
+                <span className="amtlich-rivet" /> Application kit
+              </span>
+              <DialogTitle
+                className="display ink mt-1"
+                style={{
+                  fontSize: "1.1rem",
+                  fontVariationSettings: '"opsz" 36, "SOFT" 25, "wght" 580',
+                }}
+              >
+                {application?.jobTitle ?? "Your tailored documents"}
+              </DialogTitle>
+            </div>
             <button
               onClick={onClose}
-              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
               aria-label="Close"
+              className="flex h-8 w-8 items-center justify-center rounded-full"
+              style={{
+                background: "rgba(230, 210, 170, 0.4)",
+                border: "1px solid rgba(140, 102, 24, 0.35)",
+                color: "var(--ink-soft)",
+              }}
             >
-              <X className="h-5 w-5" />
+              <X size={16} strokeWidth={2} />
             </button>
           </div>
 
-          {/* Content */}
+          {/* ── Content ───────────────────────────────── */}
           {loading ? (
             <div className="flex flex-1 items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+              <Loader2
+                size={28}
+                className="animate-spin"
+                style={{ color: "var(--brass)" }}
+              />
             </div>
           ) : error ? (
-            <div className="flex flex-1 items-center justify-center px-6 py-16 text-center text-sm text-red-600">
-              {error}
+            <div className="flex flex-1 items-center justify-center px-6 py-16 text-center">
+              <div>
+                <span className="amtlich-stamp amtlich-stamp--ink">
+                  Error
+                </span>
+                <p
+                  className="ink-soft mt-3"
+                  style={{
+                    fontFamily: "var(--f-body)",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {error}
+                </p>
+              </div>
             </div>
           ) : kit ? (
             <TabGroup
               as="div"
               className="flex flex-1 flex-col overflow-hidden"
             >
-              <TabList className="flex border-b border-gray-200 bg-gray-50 px-3">
-                {["Documents", "Email Draft", "Portal Tips"].map((name) => (
+              {/* ── Tab bar — file divider style ─────── */}
+              <TabList
+                className="flex px-4"
+                style={{
+                  borderBottom: "1px solid rgba(140, 102, 24, 0.35)",
+                  background: "rgba(230, 210, 170, 0.35)",
+                }}
+              >
+                {["Documents", "Email", "Portal tips"].map((name) => (
                   <Tab key={name} as={Fragment}>
                     {({ selected }) => (
                       <button
-                        className={classNames(
-                          "flex-1 px-2 py-3 text-sm font-medium outline-none transition-colors",
-                          selected
-                            ? "border-b-2 border-blue-600 text-blue-600"
-                            : "border-b-2 border-transparent text-gray-500 hover:text-gray-700"
-                        )}
+                        className="flex-1 px-2 py-3 outline-none transition-all"
+                        style={{
+                          fontFamily: "var(--f-mono)",
+                          fontSize: "var(--fs-mono-xs)",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          color: selected ? "var(--ink)" : "var(--ink-faded)",
+                          borderBottom: selected
+                            ? "2px solid var(--stamp-red)"
+                            : "2px solid transparent",
+                          background: "transparent",
+                        }}
                       >
                         {name}
                       </button>
@@ -301,153 +362,207 @@ export default function ApplicationKitModal({
               </TabList>
 
               <TabPanels className="flex-1 overflow-y-auto">
-                {/* --- Tab 1: Documents --- */}
-                <TabPanel className="space-y-3 px-5 py-4">
-                  {/* CV Card */}
-                  <div className="rounded-xl border border-gray-200 bg-white p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        CV / Lebenslauf
-                      </h3>
+                {/* ── Tab 1: Documents ──────────────── */}
+                <TabPanel className="space-y-4 px-5 py-5">
+                  {/* CV */}
+                  <div className="amtlich-card" style={{ padding: "16px" }}>
+                    <div className="flex items-center justify-between">
+                      <span className="mono inline-flex items-center gap-1.5">
+                        <FileText
+                          size={12}
+                          strokeWidth={2}
+                          style={{ color: "var(--ink-soft)" }}
+                        />
+                        Lebenslauf
+                      </span>
+                      {kit.cv && (
+                        <span
+                          className="amtlich-stamp amtlich-stamp--ink"
+                          style={{
+                            transform: "rotate(2deg)",
+                            fontSize: "var(--fs-mono-xs)",
+                            padding: "3px 9px",
+                          }}
+                        >
+                          {kit.cv.language}
+                        </span>
+                      )}
                     </div>
                     {kit.cv ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm text-gray-700">
-                              {kit.cv.fileUrl.split("/").pop() || "CV.pdf"}
-                            </p>
-                            <div className="mt-1 flex items-center gap-2">
-                              <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                                {kit.cv.language.toUpperCase()}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(kit.cv.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                          <a
-                            href={kit.cv.fileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            Download
-                          </a>
-                        </div>
-                      </div>
+                      <>
+                        <p
+                          className="ink-faded mt-2"
+                          style={{
+                            fontFamily: "var(--f-mono)",
+                            fontSize: "var(--fs-mono-xs)",
+                          }}
+                        >
+                          Generated{" "}
+                          {new Date(kit.cv.createdAt).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                        <a
+                          href={kit.cv.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="amtlich-btn mt-3 inline-flex w-full items-center justify-center gap-1.5 no-underline"
+                          style={{ padding: "10px 16px" }}
+                        >
+                          <Download size={12} strokeWidth={2.2} />
+                          Download CV
+                        </a>
+                      </>
                     ) : (
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-500">
-                          No CV generated yet for this job.
+                      <>
+                        <p
+                          className="ink-faded mt-2"
+                          style={{
+                            fontFamily: "var(--f-body)",
+                            fontSize: "0.85rem",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No CV generated yet for this role.
                         </p>
                         <button
+                          type="button"
                           onClick={handleGenerateCV}
                           disabled={generatingCV}
-                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-blue-300"
+                          className="amtlich-btn amtlich-btn--primary mt-3 inline-flex w-full items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60"
+                          style={{ padding: "12px 16px" }}
                         >
                           {generatingCV ? (
                             <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Generating...
+                              <Loader2 size={13} className="animate-spin" />
+                              Generating
                             </>
                           ) : (
                             <>
-                              <FileText className="h-4 w-4" />
+                              <FileText size={13} strokeWidth={2.2} />
                               Generate CV
                             </>
                           )}
                         </button>
-                      </div>
+                      </>
                     )}
                   </div>
 
-                  {/* Anschreiben Card */}
-                  <div className="rounded-xl border border-gray-200 bg-white p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-blue-600" />
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        Cover Letter / Anschreiben
-                      </h3>
+                  {/* Anschreiben */}
+                  <div className="amtlich-card" style={{ padding: "16px" }}>
+                    <div className="flex items-center justify-between">
+                      <span className="mono inline-flex items-center gap-1.5">
+                        <Mail
+                          size={12}
+                          strokeWidth={2}
+                          style={{ color: "var(--ink-soft)" }}
+                        />
+                        Anschreiben
+                      </span>
+                      {kit.anschreiben && (
+                        <span
+                          className="amtlich-stamp amtlich-stamp--ink"
+                          style={{
+                            transform: "rotate(-2deg)",
+                            fontSize: "var(--fs-mono-xs)",
+                            padding: "3px 9px",
+                          }}
+                        >
+                          {kit.anschreiben.language}
+                        </span>
+                      )}
                     </div>
                     {kit.anschreiben ? (
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm text-gray-700">
-                            {kit.anschreiben.fileUrl.split("/").pop() ||
-                              "CoverLetter.pdf"}
-                          </p>
-                          <span className="mt-1 inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">
-                            {kit.anschreiben.language.toUpperCase()}
-                          </span>
-                        </div>
-                        <a
-                          href={kit.anschreiben.fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Download
-                        </a>
-                      </div>
+                      <a
+                        href={kit.anschreiben.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="amtlich-btn mt-3 inline-flex w-full items-center justify-center gap-1.5 no-underline"
+                        style={{ padding: "10px 16px" }}
+                      >
+                        <Download size={12} strokeWidth={2.2} />
+                        Download cover letter
+                      </a>
                     ) : (
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-500">
-                          No cover letter generated yet.
+                      <>
+                        <p
+                          className="ink-faded mt-2"
+                          style={{
+                            fontFamily: "var(--f-body)",
+                            fontSize: "0.85rem",
+                            fontStyle: "italic",
+                          }}
+                        >
+                          No cover letter yet.
                         </p>
                         <button
+                          type="button"
                           onClick={handleGenerateAnschreiben}
                           disabled={generatingAnschreiben}
-                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-blue-300"
+                          className="amtlich-btn amtlich-btn--primary mt-3 inline-flex w-full items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60"
+                          style={{ padding: "12px 16px" }}
                         >
                           {generatingAnschreiben ? (
                             <>
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Generating...
+                              <Loader2 size={13} className="animate-spin" />
+                              Generating
                             </>
                           ) : (
                             <>
-                              <Mail className="h-4 w-4" />
-                              Generate Cover Letter
+                              <Mail size={13} strokeWidth={2.2} />
+                              Generate cover letter
                             </>
                           )}
                         </button>
-                      </div>
+                      </>
                     )}
                   </div>
                 </TabPanel>
 
-                {/* --- Tab 2: Email Draft --- */}
-                <TabPanel className="space-y-4 px-5 py-4">
-                  {/* Subject */}
+                {/* ── Tab 2: Email draft ────────────── */}
+                <TabPanel className="space-y-4 px-5 py-5">
                   <div>
-                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      Subject
-                    </label>
-                    <div className="flex gap-2">
+                    <span className="mono">Subject</span>
+                    <div className="flex gap-2 mt-1.5">
                       <input
                         type="text"
                         readOnly
                         value={kit.emailDraft.subject}
-                        className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none"
+                        style={{
+                          flex: 1,
+                          fontFamily: "var(--f-body)",
+                          fontSize: "0.92rem",
+                          color: "var(--ink)",
+                          background: "rgba(255, 253, 240, 0.7)",
+                          border: "1px solid var(--manila-edge)",
+                          borderRadius: "3px",
+                          padding: "10px 12px",
+                          boxShadow:
+                            "0 1px 2px rgba(60, 40, 20, 0.12) inset",
+                        }}
                       />
                       <button
+                        type="button"
                         onClick={() =>
                           handleCopy("subject", kit.emailDraft.subject)
                         }
-                        className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        className="amtlich-btn inline-flex items-center gap-1.5"
+                        style={{ padding: "10px 14px", fontSize: "var(--fs-mono-xs)" }}
                       >
                         {copiedField === "subject" ? (
                           <>
-                            <Check className="h-3.5 w-3.5 text-green-600" />
+                            <Check
+                              size={12}
+                              strokeWidth={2.5}
+                              style={{ color: "var(--stamp-green)" }}
+                            />
                             Copied
                           </>
                         ) : (
                           <>
-                            <Copy className="h-3.5 w-3.5" />
+                            <Copy size={12} strokeWidth={2} />
                             Copy
                           </>
                         )}
@@ -455,24 +570,27 @@ export default function ApplicationKitModal({
                     </div>
                   </div>
 
-                  {/* Body */}
                   <div>
-                    <div className="mb-1 flex items-center justify-between">
-                      <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                        Body
-                      </label>
+                    <div className="flex items-center justify-between">
+                      <span className="mono">Body</span>
                       <button
+                        type="button"
                         onClick={() => handleCopy("body", kit.emailDraft.body)}
-                        className="flex items-center gap-1 rounded-lg border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        className="amtlich-btn inline-flex items-center gap-1.5"
+                        style={{ padding: "6px 10px", fontSize: "var(--fs-mono-xs)" }}
                       >
                         {copiedField === "body" ? (
                           <>
-                            <Check className="h-3.5 w-3.5 text-green-600" />
+                            <Check
+                              size={11}
+                              strokeWidth={2.5}
+                              style={{ color: "var(--stamp-green)" }}
+                            />
                             Copied
                           </>
                         ) : (
                           <>
-                            <Copy className="h-3.5 w-3.5" />
+                            <Copy size={11} strokeWidth={2} />
                             Copy
                           </>
                         )}
@@ -481,69 +599,103 @@ export default function ApplicationKitModal({
                     <textarea
                       readOnly
                       value={kit.emailDraft.body}
-                      rows={10}
-                      className="w-full resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none"
+                      rows={9}
+                      className="mt-1.5"
+                      style={{
+                        width: "100%",
+                        resize: "none",
+                        fontFamily: "var(--f-body)",
+                        fontSize: "0.9rem",
+                        lineHeight: 1.55,
+                        color: "var(--ink)",
+                        background: "rgba(255, 253, 240, 0.7)",
+                        border: "1px solid var(--manila-edge)",
+                        borderRadius: "3px",
+                        padding: "12px 14px",
+                        boxShadow: "0 1px 2px rgba(60, 40, 20, 0.12) inset",
+                      }}
                     />
                   </div>
 
-                  {/* Attachments */}
-                  <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">
-                      Attach:
-                    </p>
-                    <p className="mt-1 text-sm text-blue-900">
-                      {kit.emailDraft.attachmentNames.join(", ")}
+                  <div
+                    className="amtlich-card"
+                    style={{ padding: "12px 14px" }}
+                  >
+                    <span className="mono">Attach</span>
+                    <p
+                      className="ink mt-1"
+                      style={{
+                        fontFamily: "var(--f-mono)",
+                        fontSize: "var(--fs-mono-sm)",
+                      }}
+                    >
+                      {kit.emailDraft.attachmentNames.join(" · ")}
                     </p>
                   </div>
 
-                  {/* Download All */}
                   <button
+                    type="button"
                     onClick={handleDownloadAll}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800"
+                    className="amtlich-btn w-full inline-flex items-center justify-center gap-2"
+                    style={{ padding: "12px 18px" }}
                   >
-                    <Download className="h-4 w-4" />
-                    Download All Attachments
+                    <Download size={13} strokeWidth={2.2} />
+                    Download all attachments
                   </button>
                 </TabPanel>
 
-                {/* --- Tab 3: Portal Tips --- */}
-                <TabPanel className="px-5 py-4">
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                    <div className="flex gap-3">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
-                        <Lightbulb className="h-4 w-4 text-amber-700" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-amber-900">
-                          Portal Application Tips
-                        </h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-amber-900">
-                          {kit.portalGuide}
-                        </p>
-                      </div>
+                {/* ── Tab 3: Portal tips ──────────────── */}
+                <TabPanel className="px-5 py-5">
+                  <div className="amtlich-page" style={{ padding: "22px 22px 40px" }}>
+                    <div className="flex items-center gap-2">
+                      <Lightbulb
+                        size={14}
+                        strokeWidth={2}
+                        style={{ color: "var(--stamp-teal)" }}
+                      />
+                      <span className="mono">Filing notes</span>
                     </div>
+                    <p
+                      className="ink-soft mt-3"
+                      style={{
+                        fontFamily: "var(--f-body)",
+                        fontSize: "0.95rem",
+                        lineHeight: 1.58,
+                        whiteSpace: "pre-wrap",
+                      }}
+                    >
+                      {kit.portalGuide}
+                    </p>
                   </div>
                 </TabPanel>
               </TabPanels>
             </TabGroup>
           ) : null}
 
-          {/* Footer */}
-          <div className="border-t border-gray-200 bg-white px-5 py-3">
+          {/* ── Footer ─────────────────────────────────── */}
+          <div
+            className="px-5 py-4"
+            style={{
+              borderTop: "1px dashed rgba(140, 102, 24, 0.4)",
+              background: "rgba(230, 210, 170, 0.25)",
+            }}
+          >
             <button
+              type="button"
               onClick={handleMarkAsApplied}
               disabled={markingApplied || loading || !!error}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-green-700 disabled:bg-green-300"
+              className="amtlich-btn amtlich-btn--primary w-full inline-flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ padding: "14px 22px" }}
             >
               {markingApplied ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Marking as Applied...
+                  <Loader2 size={14} className="animate-spin" />
+                  Stamping as applied…
                 </>
               ) : (
                 <>
-                  <CheckCircle className="h-4 w-4" />
-                  Mark as Applied
+                  <CheckCircle size={14} strokeWidth={2.2} />
+                  Mark as applied
                 </>
               )}
             </button>

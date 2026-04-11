@@ -2,14 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { ChevronDown, Loader2, Briefcase } from "lucide-react"
+import { ChevronDown, Loader2, FolderOpen } from "lucide-react"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import ApplicationCard from "@/components/jobs-app/ApplicationCard"
 import { STAGE_LABELS } from "@/components/jobs-app/StageSelector"
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface Application {
   id: string
@@ -33,10 +29,6 @@ const ACTIVE_STAGES = [
 ] as const
 
 const CLOSED_STAGES = ["ACCEPTED", "REJECTED", "WITHDRAWN"] as const
-
-// ---------------------------------------------------------------------------
-// Page
-// ---------------------------------------------------------------------------
 
 export default function ApplicationsPage() {
   const { seeker, loading: authLoading } = useJobsAuth()
@@ -78,13 +70,8 @@ export default function ApplicationsPage() {
     fetchApplications()
   }, [authLoading, seeker, fetchApplications])
 
-  // -------------------------------------------------------------------------
-  // Mutations
-  // -------------------------------------------------------------------------
-
   const handleStageChange = useCallback(
     async (id: string, newStage: string) => {
-      // Optimistic update
       setApplications((prev) =>
         prev.map((a) =>
           a.id === id
@@ -128,17 +115,8 @@ export default function ApplicationsPage() {
   )
 
   const handleCardClick = useCallback((id: string) => {
-    // Placeholder — parent can later open a detail modal or expand view
-    // For now, log the click (no navigation to avoid breaking UX)
-    if (typeof window !== "undefined") {
-      // eslint-disable-next-line no-console
-      console.debug("Application card clicked:", id)
-    }
+    if (typeof window !== "undefined") console.debug("card click", id)
   }, [])
-
-  // -------------------------------------------------------------------------
-  // Grouping + stats
-  // -------------------------------------------------------------------------
 
   const groupedByStage = useMemo(() => {
     const map = new Map<string, Application[]>()
@@ -165,37 +143,62 @@ export default function ApplicationsPage() {
     return { saved, applied, interviewing, offers }
   }, [applications])
 
-  // -------------------------------------------------------------------------
-  // Render states
-  // -------------------------------------------------------------------------
+  // ── Render states ─────────────────────────────────────────
 
   if (authLoading || loading) {
     return (
-      <div className="max-w-lg mx-auto space-y-4 pt-2">
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-        </div>
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <Loader2
+          className="h-7 w-7 animate-spin"
+          style={{ color: "var(--brass)" }}
+        />
       </div>
     )
   }
 
   if (!seeker) {
     return (
-      <div className="max-w-lg mx-auto space-y-4 pt-2">
-        <div className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-          <Briefcase className="mx-auto h-10 w-10 text-blue-500" />
-          <h1 className="mt-3 text-lg font-semibold text-gray-900">
-            Track your applications
+      <div className="space-y-5">
+        <header className="amtlich-enter">
+          <span className="amtlich-label">
+            <span className="amtlich-rivet" /> Case tracker
+          </span>
+          <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+            Application tracker
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+        </header>
+
+        <div
+          className="amtlich-card text-center amtlich-enter amtlich-enter-delay-1"
+          style={{ padding: "32px 24px" }}
+        >
+          <FolderOpen
+            size={40}
+            strokeWidth={1.5}
+            className="mx-auto"
+            style={{ color: "var(--brass-shadow)" }}
+          />
+          <h2 className="display ink mt-3" style={{ fontSize: "1.15rem" }}>
+            Track every application in one folder
+          </h2>
+          <p
+            className="ink-soft mt-2"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.9rem",
+              maxWidth: "32ch",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
             Sign up to save jobs and keep tabs on every stage of your German
             job hunt.
           </p>
           <Link
             href="/jobs-app/onboarding"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            className="amtlich-btn amtlich-btn--primary mt-5 inline-block no-underline"
           >
-            Sign up to track applications
+            Sign up
           </Link>
         </div>
       </div>
@@ -204,24 +207,54 @@ export default function ApplicationsPage() {
 
   if (applications.length === 0) {
     return (
-      <div className="max-w-lg mx-auto space-y-4 pt-2">
-        <header>
-          <h1 className="text-xl font-bold text-gray-900">Applications</h1>
-          <p className="mt-0.5 text-sm text-gray-500">
-            Your personal German job hunt tracker
+      <div className="space-y-5">
+        <header className="amtlich-enter">
+          <span className="amtlich-label">
+            <span className="amtlich-rivet" /> Case tracker
+          </span>
+          <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+            Application tracker
+          </h1>
+          <p
+            className="ink-soft mt-1"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.92rem",
+            }}
+          >
+            Your personal folder for every role you pursue.
           </p>
+          <hr className="amtlich-divider mt-3" />
         </header>
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-8 text-center">
-          <Briefcase className="mx-auto h-10 w-10 text-gray-400" />
-          <h2 className="mt-3 text-base font-semibold text-gray-900">
-            No applications yet
+
+        <div
+          className="amtlich-card text-center amtlich-enter amtlich-enter-delay-1"
+          style={{ padding: "36px 24px" }}
+        >
+          <FolderOpen
+            size={40}
+            strokeWidth={1.4}
+            className="mx-auto"
+            style={{ color: "var(--brass-shadow)" }}
+          />
+          <h2 className="display ink mt-3" style={{ fontSize: "1.1rem" }}>
+            No open files
           </h2>
-          <p className="mt-1 text-sm text-gray-600">
-            Start tracking your applications — save jobs from the jobs feed.
+          <p
+            className="ink-soft mt-2"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.88rem",
+              maxWidth: "32ch",
+              marginLeft: "auto",
+              marginRight: "auto",
+            }}
+          >
+            Save jobs from the index to start building your application folder.
           </p>
           <Link
             href="/jobs-app/jobs"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            className="amtlich-btn amtlich-btn--primary mt-5 inline-block no-underline"
           >
             Browse jobs
           </Link>
@@ -230,44 +263,76 @@ export default function ApplicationsPage() {
     )
   }
 
-  // -------------------------------------------------------------------------
-  // Main view
-  // -------------------------------------------------------------------------
+  // ── Main view ─────────────────────────────────────────────
 
   return (
-    <div className="max-w-lg mx-auto space-y-4 pt-2">
-      <header>
-        <h1 className="text-xl font-bold text-gray-900">Applications</h1>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Your personal German job hunt tracker
+    <div className="space-y-5">
+      {/* ── Masthead ────────────────────────────────────────── */}
+      <header className="amtlich-enter">
+        <span className="amtlich-label">
+          <span className="amtlich-rivet" /> Case tracker
+        </span>
+        <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+          Application tracker
+        </h1>
+        <p
+          className="ink-soft mt-1"
+          style={{
+            fontFamily: "var(--f-body)",
+            fontSize: "0.92rem",
+          }}
+        >
+          Your personal folder for every role you pursue.
         </p>
+        <hr className="amtlich-divider mt-3" />
       </header>
 
-      {/* Stats bar */}
-      <div className="grid grid-cols-4 gap-2 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-        <StatPill label="Saved" value={stats.saved} />
-        <StatPill label="Applied" value={stats.applied} />
-        <StatPill label="Interviewing" value={stats.interviewing} />
-        <StatPill label="Offers" value={stats.offers} />
-      </div>
+      {/* ── Stats — ledger style ────────────────────────────── */}
+      <section className="amtlich-card amtlich-enter amtlich-enter-delay-1">
+        <div className="flex items-center justify-between">
+          <span className="mono">Case load</span>
+          <span
+            className="mono ink-faded"
+            style={{ fontSize: "var(--fs-mono-xs)" }}
+          >
+            {applications.length} total
+          </span>
+        </div>
 
-      {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div className="mt-4 grid grid-cols-4 gap-2">
+          <LedgerStat label="Saved" value={stats.saved} tone="ink-faded" />
+          <LedgerStat label="Sent" value={stats.applied} tone="ink" />
+          <LedgerStat label="Interview" value={stats.interviewing} tone="ink-teal" />
+          <LedgerStat label="Offers" value={stats.offers} tone="ink-green" />
+        </div>
+      </section>
+
+      {error && (
+        <div
+          className="amtlich-card"
+          style={{
+            padding: "10px 14px",
+            fontFamily: "var(--f-mono)",
+            fontSize: "var(--fs-mono-xs)",
+            color: "var(--stamp-red)",
+          }}
+        >
           {error}
         </div>
-      ) : null}
+      )}
 
-      {/* Active section */}
-      <CollapsibleSection
-        title="Active"
+      {/* ── Active case files ───────────────────────────────── */}
+      <FolderSection
+        title="Active cases"
         count={ACTIVE_STAGES.reduce(
           (sum, s) => sum + (groupedByStage.get(s)?.length ?? 0),
           0
         )}
         open={activeOpen}
         onToggle={() => setActiveOpen((v) => !v)}
+        className="amtlich-enter amtlich-enter-delay-2"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {ACTIVE_STAGES.map((stage) => (
             <StageGroup
               key={stage}
@@ -279,19 +344,20 @@ export default function ApplicationsPage() {
             />
           ))}
         </div>
-      </CollapsibleSection>
+      </FolderSection>
 
-      {/* Closed section */}
-      <CollapsibleSection
-        title="Closed"
+      {/* ── Closed cases ────────────────────────────────────── */}
+      <FolderSection
+        title="Closed cases"
         count={CLOSED_STAGES.reduce(
           (sum, s) => sum + (groupedByStage.get(s)?.length ?? 0),
           0
         )}
         open={closedOpen}
         onToggle={() => setClosedOpen((v) => !v)}
+        className="amtlich-enter amtlich-enter-delay-3"
       >
-        <div className="space-y-4">
+        <div className="space-y-5">
           {CLOSED_STAGES.map((stage) => (
             <StageGroup
               key={stage}
@@ -303,7 +369,7 @@ export default function ApplicationsPage() {
             />
           ))}
         </div>
-      </CollapsibleSection>
+      </FolderSection>
     </div>
   )
 }
@@ -312,52 +378,103 @@ export default function ApplicationsPage() {
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function StatPill({ label, value }: { label: string; value: number }) {
+function LedgerStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: string
+}) {
   return (
-    <div className="flex flex-col items-center justify-center">
-      <span className="text-lg font-bold text-gray-900 tabular-nums">
-        {value}
-      </span>
-      <span className="text-[10px] uppercase tracking-wide text-gray-500">
+    <div className="text-center">
+      <div
+        className={`display ${tone}`}
+        style={{
+          fontSize: "1.85rem",
+          fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 500',
+          lineHeight: 1,
+        }}
+      >
+        {String(value).padStart(2, "0")}
+      </div>
+      <div
+        className="mono mt-1.5"
+        style={{ fontSize: "var(--fs-mono-xs)" }}
+      >
         {label}
-      </span>
+      </div>
     </div>
   )
 }
 
-function CollapsibleSection({
+function FolderSection({
   title,
   count,
   open,
   onToggle,
+  className,
   children,
 }: {
   title: string
   count: number
   open: boolean
   onToggle: () => void
+  className?: string
   children: React.ReactNode
 }) {
   return (
-    <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
+    <section className={`amtlich-card ${className ?? ""}`} style={{ padding: 0 }}>
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        className="flex w-full items-center justify-between"
+        style={{
+          padding: "14px 18px",
+          background: "transparent",
+          border: "none",
+        }}
       >
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
-          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+        <div className="flex items-center gap-3">
+          <span className="mono">{title}</span>
+          <span
+            className="inline-flex items-center justify-center"
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "var(--fs-mono-xs)",
+              fontWeight: 700,
+              color: "var(--ink)",
+              background: "rgba(140, 102, 24, 0.15)",
+              border: "1px solid rgba(140, 102, 24, 0.25)",
+              borderRadius: "2px",
+              padding: "2px 8px",
+              minWidth: "22px",
+            }}
+          >
             {count}
           </span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          size={14}
+          strokeWidth={2}
+          style={{
+            color: "var(--ink-faded)",
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform 180ms ease-out",
+          }}
         />
       </button>
-      {open ? <div className="border-t border-gray-100 p-3">{children}</div> : null}
+      {open && (
+        <div
+          style={{
+            borderTop: "1px dashed rgba(140, 102, 24, 0.35)",
+            padding: "14px 16px 18px",
+          }}
+        >
+          {children}
+        </div>
+      )}
     </section>
   )
 }
@@ -377,18 +494,37 @@ function StageGroup({
 }) {
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+      <div className="mb-2 flex items-center justify-between">
+        <h3
+          className="mono"
+          style={{ fontSize: "var(--fs-mono-xs)" }}
+        >
           {STAGE_LABELS[stage] ?? stage}
         </h3>
-        <span className="text-[11px] text-gray-400">{apps.length}</span>
+        <span
+          className="mono ink-faded"
+          style={{ fontSize: "var(--fs-mono-xs)" }}
+        >
+          {apps.length}
+        </span>
       </div>
       {apps.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-400">
-          No applications in this stage
+        <div
+          style={{
+            fontFamily: "var(--f-body)",
+            fontStyle: "italic",
+            fontSize: "0.78rem",
+            color: "var(--ink-faded)",
+            padding: "8px 12px",
+            border: "1px dashed rgba(140, 102, 24, 0.3)",
+            borderRadius: "3px",
+            textAlign: "center",
+          }}
+        >
+          empty
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {apps.map((app) => (
             <ApplicationCard
               key={app.id}

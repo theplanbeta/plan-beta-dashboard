@@ -12,10 +12,13 @@ import {
   ExternalLink,
   FileText,
   Loader2,
+  Sparkles,
+  BookmarkPlus,
 } from "lucide-react"
 import MatchBadge from "@/components/jobs-app/MatchBadge"
 import { ScoreBreakdown } from "@/components/jobs-app/ScoreBreakdown"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
+import ApplicationKitModal from "@/components/jobs-app/ApplicationKitModal"
 import type { MatchLabel } from "@/lib/heuristic-scorer"
 import type { DeepScoreResult } from "@/lib/jobs-ai"
 
@@ -56,6 +59,10 @@ export default function JobDetailPage() {
   const [deepScore, setDeepScore] = useState<DeepScoreResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [showKitModal, setShowKitModal] = useState(false)
+  const [kitApplicationId, setKitApplicationId] = useState<string | null>(null)
+  const [trackingKit, setTrackingKit] = useState(false)
+  const [savingOnly, setSavingOnly] = useState(false)
 
   useEffect(() => {
     const slug = params.slug as string
@@ -91,6 +98,64 @@ export default function JobDetailPage() {
       }
     } finally {
       setGenerating(false)
+    }
+  }
+
+  /**
+   * Create (or reuse) a tracked JobApplication for this job.
+   * Returns the application id, or null on failure.
+   */
+  async function createOrGetApplication(
+    stage: "SAVED" | "APPLIED" = "SAVED"
+  ): Promise<string | null> {
+    if (!job) return null
+    try {
+      const res = await fetch("/api/jobs-app/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobPostingId: job.id, stage }),
+      })
+      const data = await res.json()
+
+      if (res.ok && data.application?.id) {
+        return data.application.id
+      }
+      // 409 — already tracked, return the existing application id
+      if (res.status === 409 && data.application?.id) {
+        return data.application.id
+      }
+      alert(data.error || "Failed to track application")
+      return null
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to track application")
+      return null
+    }
+  }
+
+  async function handleTrackAndGenerateKit() {
+    if (!job) return
+    setTrackingKit(true)
+    try {
+      const id = await createOrGetApplication("SAVED")
+      if (id) {
+        setKitApplicationId(id)
+        setShowKitModal(true)
+      }
+    } finally {
+      setTrackingKit(false)
+    }
+  }
+
+  async function handleSaveToTracker() {
+    if (!job) return
+    setSavingOnly(true)
+    try {
+      const id = await createOrGetApplication("SAVED")
+      if (id) {
+        alert("Saved to your tracker")
+      }
+    } finally {
+      setSavingOnly(false)
     }
   }
 
@@ -174,43 +239,91 @@ export default function JobDetailPage() {
       {deepScore && <ScoreBreakdown deepScore={deepScore} />}
 
       {/* Actions */}
-      <div className="flex gap-2">
-        {isPremium ? (
-          <button
-            onClick={handleGenerateCV}
-            disabled={generating}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:bg-blue-300"
-          >
-            {generating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Generating CV...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4" /> Generate CV & Apply
-              </>
-            )}
-          </button>
-        ) : (
-          <Link
-            href="/jobs-app/settings"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-          >
-            <FileText className="h-4 w-4" /> Upgrade to Generate CV
-          </Link>
-        )}
+      <div className="space-y-2">
+        {/* Primary row */}
+        <div className="flex gap-2">
+          {isPremium ? (
+            <button
+              onClick={handleTrackAndGenerateKit}
+              disabled={trackingKit}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:bg-blue-300"
+            >
+              {trackingKit ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Preparing kit...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" /> Track &amp; Generate Kit
+                </>
+              )}
+            </button>
+          ) : (
+            <Link
+              href="/jobs-app/settings"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            >
+              <FileText className="h-4 w-4" /> Upgrade to Generate CV
+            </Link>
+          )}
 
-        {job.applyUrl && (
-          <a
-            href={job.applyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <ExternalLink className="h-4 w-4" /> Apply
-          </a>
+          {job.applyUrl && (
+            <a
+              href={job.applyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              <ExternalLink className="h-4 w-4" /> Apply
+            </a>
+          )}
+        </div>
+
+        {/* Secondary row — premium only */}
+        {isPremium && (
+          <div className="flex gap-2">
+            <button
+              onClick={handleSaveToTracker}
+              disabled={savingOnly}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            >
+              {savingOnly ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...
+                </>
+              ) : (
+                <>
+                  <BookmarkPlus className="h-3.5 w-3.5" /> Save to Tracker
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleGenerateCV}
+              disabled={generating}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating...
+                </>
+              ) : (
+                <>
+                  <FileText className="h-3.5 w-3.5" /> Generate CV Only
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Application Kit Modal */}
+      {kitApplicationId && (
+        <ApplicationKitModal
+          isOpen={showKitModal}
+          onClose={() => setShowKitModal(false)}
+          applicationId={kitApplicationId}
+        />
+      )}
 
       {/* Description */}
       {job.description && (

@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next"
 import { JobsAuthProvider } from "@/components/jobs-app/AuthProvider"
 import { BottomNav } from "@/components/jobs-app/BottomNav"
+import DocumentSerial from "@/components/jobs-app/DocumentSerial"
 import "./amtlich.css"
 
 export const metadata: Metadata = {
-  title: "PlanBeta Jobs — Die Bewerbungsmappe",
+  title: "PlanBeta Jobs — Your Application Folder",
   description:
-    "AI-powered job matching, CV generation, and interview prep for the German job market — tailored for Indian professionals.",
+    "AI-powered job matching, CV generation, and interview prep for Indian professionals targeting the German job market.",
   manifest: "/jobs-manifest.json",
   appleWebApp: {
     capable: true,
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#F2EBD8",
+  themeColor: "#FBF6E7",
   width: "device-width",
   initialScale: 1,
 }
@@ -28,7 +29,7 @@ export default function JobsAppLayout({
 }) {
   return (
     <JobsAuthProvider>
-      {/* SVG filter for stamp ink irregularity (used by rubber stamps) */}
+      {/* SVG filter for stamp ink irregularity */}
       <svg
         width="0"
         height="0"
@@ -48,8 +49,13 @@ export default function JobsAppLayout({
         </defs>
       </svg>
 
-      <div className="amtlich amtlich-paper amtlich-grain min-h-screen">
-        <main className="relative z-10 mx-auto max-w-lg px-5 pt-6 pb-28">
+      <div className="amtlich amtlich-paper min-h-screen">
+        {/* Document serial — top-right of every screen */}
+        <div className="mx-auto flex max-w-lg items-center justify-end px-5 pt-4">
+          <DocumentSerial />
+        </div>
+
+        <main className="relative mx-auto max-w-lg px-5 pt-2 pb-28">
           {children}
         </main>
         <BottomNav />

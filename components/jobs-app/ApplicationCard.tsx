@@ -34,26 +34,26 @@ function formatRelativeUpdated(iso: string): string {
   if (Number.isNaN(then)) return ""
   const diffMs = Date.now() - then
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "jetzt"
-  if (diffMin < 60) return `vor ${diffMin} Min.`
+  if (diffMin < 1) return "just now"
+  if (diffMin < 60) return `${diffMin}m ago`
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `vor ${diffHr} Std.`
+  if (diffHr < 24) return `${diffHr}h ago`
   const diffDay = Math.floor(diffHr / 24)
-  if (diffDay < 7) return `vor ${diffDay} T.`
+  if (diffDay < 7) return `${diffDay}d ago`
   const diffWk = Math.floor(diffDay / 7)
-  if (diffWk < 4) return `vor ${diffWk} Wo.`
+  if (diffWk < 4) return `${diffWk}w ago`
   const diffMo = Math.floor(diffDay / 30)
-  return `vor ${diffMo} Mon.`
+  return `${diffMo}mo ago`
 }
 
 function formatInterviewDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ""
-  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "short" })
+  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" })
 }
 
 // ---------------------------------------------------------------------------
-// Component — styled as a pinned index card
+// Component — pinned index card with brass rivet
 // ---------------------------------------------------------------------------
 
 export default function ApplicationCard({
@@ -76,7 +76,7 @@ export default function ApplicationCard({
     e.stopPropagation()
     if (
       typeof window !== "undefined" &&
-      !window.confirm(`"${jobTitle}" aus der Akte entfernen?`)
+      !window.confirm(`Remove "${jobTitle}" from your tracker?`)
     ) {
       return
     }
@@ -95,12 +95,12 @@ export default function ApplicationCard({
         }
       }}
       className="amtlich-card group relative cursor-pointer focus:outline-none"
-      style={{ padding: "14px 16px" }}
+      style={{ padding: "16px 18px" }}
     >
       {/* Brass rivet (top-left) */}
       <span
         className="amtlich-rivet absolute"
-        style={{ top: "8px", left: "8px" }}
+        style={{ top: "10px", left: "10px" }}
         aria-hidden="true"
       />
 
@@ -108,11 +108,11 @@ export default function ApplicationCard({
       <button
         type="button"
         onClick={handleDelete}
-        aria-label="Bewerbung entfernen"
+        aria-label="Remove application"
         className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full"
         style={{
-          background: "rgba(230, 210, 170, 0.3)",
-          border: "1px solid rgba(138, 106, 60, 0.3)",
+          background: "rgba(230, 210, 170, 0.35)",
+          border: "1px solid rgba(140, 102, 24, 0.35)",
           color: "var(--ink-faded)",
         }}
       >
@@ -121,15 +121,15 @@ export default function ApplicationCard({
 
       {/* Header row */}
       <div className="pl-6 pr-8">
-        <span className="mono ink-faded" style={{ fontSize: "0.58rem" }}>
+        <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
           {jobCompany}
         </span>
         <h3
           className="display ink mt-0.5"
           style={{
-            fontSize: "1rem",
-            lineHeight: 1.2,
-            fontVariationSettings: '"opsz" 36, "SOFT" 40, "wght" 550',
+            fontSize: "1.05rem",
+            lineHeight: 1.22,
+            fontVariationSettings: '"opsz" 36, "SOFT" 25, "wght" 580',
           }}
         >
           {jobTitle}
@@ -152,33 +152,33 @@ export default function ApplicationCard({
             className="flex items-center gap-1"
             style={{
               fontFamily: "var(--f-mono)",
-              fontSize: "0.62rem",
+              fontSize: "var(--fs-mono-xs)",
               color: "var(--stamp-blue)",
               fontWeight: 700,
-              letterSpacing: "0.08em",
+              letterSpacing: "0.06em",
               textTransform: "uppercase",
             }}
           >
-            <Calendar size={11} strokeWidth={2} />
+            <Calendar size={12} strokeWidth={2} />
             {formatInterviewDate(interviewDate)}
           </div>
         )}
       </div>
 
-      {/* Footer row: location + timestamp */}
+      {/* Footer row */}
       <div
         className="mt-2 flex items-center justify-between"
-        style={{ fontFamily: "var(--f-mono)", fontSize: "0.6rem" }}
+        style={{ fontFamily: "var(--f-mono)", fontSize: "var(--fs-mono-xs)" }}
       >
         <div className="flex items-center gap-1 ink-faded">
           {jobLocation && (
             <>
-              <MapPin size={10} strokeWidth={1.8} />
+              <MapPin size={11} strokeWidth={1.8} />
               <span className="truncate">{jobLocation}</span>
             </>
           )}
         </div>
-        <span className="ink-faded">{formatRelativeUpdated(updatedAt)}</span>
+        <span className="ink-faded">Updated {formatRelativeUpdated(updatedAt)}</span>
       </div>
     </div>
   )

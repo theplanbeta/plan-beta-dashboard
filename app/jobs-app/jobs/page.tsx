@@ -69,7 +69,7 @@ export default function JobsPage() {
       <header className="amtlich-enter">
         <div className="flex items-center justify-between">
           <span className="amtlich-label">
-            <span className="amtlich-rivet" /> Stellenverzeichnis
+            <span className="amtlich-rivet" /> Job Index
           </span>
           <button
             type="button"
@@ -77,30 +77,29 @@ export default function JobsPage() {
             className="flex items-center gap-1.5"
             style={{
               fontFamily: "var(--f-mono)",
-              fontSize: "0.62rem",
-              letterSpacing: "0.1em",
+              fontSize: "var(--fs-mono-xs)",
+              letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: "var(--ink-soft)",
               background: "transparent",
-              border: "1px dashed rgba(138, 106, 60, 0.5)",
+              border: "1px dotted rgba(140, 102, 24, 0.55)",
               borderRadius: "2px",
               padding: "5px 10px",
             }}
           >
-            <SlidersHorizontal size={11} strokeWidth={2} />
+            <SlidersHorizontal size={12} strokeWidth={2} />
             Filter
           </button>
         </div>
 
-        <h1 className="display mt-3" style={{ fontSize: "1.85rem" }}>
-          Offene Stellen
+        <h1 className="display mt-3" style={{ fontSize: "1.95rem" }}>
+          Open Positions
         </h1>
         <p
-          className="ink-faded mt-1"
+          className="ink-soft mt-1"
           style={{
             fontFamily: "var(--f-body)",
-            fontSize: "0.85rem",
-            fontStyle: "italic",
+            fontSize: "0.92rem",
           }}
         >
           Hand-picked roles from the German market, scored against your profile.
@@ -113,32 +112,34 @@ export default function JobsPage() {
         <Link
           href="/jobs-app/onboarding"
           className="amtlich-card amtlich-enter amtlich-enter-delay-1 block no-underline"
-          style={{ textDecoration: "none", padding: "14px 16px" }}
+          style={{ textDecoration: "none", padding: "16px 18px" }}
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
-              <span className="mono" style={{ fontSize: "0.58rem" }}>
-                Profil unvollständig
+              <span className="mono" style={{ fontSize: "var(--fs-mono-xs)" }}>
+                Profile incomplete
               </span>
               <p
                 className="ink mt-1"
                 style={{
                   fontFamily: "var(--f-body)",
-                  fontStyle: "italic",
-                  fontSize: "0.88rem",
-                  lineHeight: 1.3,
+                  fontSize: "0.92rem",
+                  lineHeight: 1.35,
                 }}
               >
                 {!seeker
-                  ? "Register your profile to unlock personalised match scores."
-                  : "Complete your profile to see match scores on every job."}
+                  ? "Register your profile to see personalised match scores."
+                  : "Complete your profile to unlock match scores on every job."}
               </p>
             </div>
             <span
-              className="amtlich-stamp amtlich-stamp--blue"
-              style={{ transform: "rotate(3deg)", fontSize: "0.58rem" }}
+              className="amtlich-stamp amtlich-stamp--teal"
+              style={{
+                transform: "rotate(3deg)",
+                fontSize: "var(--fs-mono-xs)",
+              }}
             >
-              Eintragen
+              Set up
             </span>
           </div>
         </Link>
@@ -146,13 +147,13 @@ export default function JobsPage() {
 
       {/* ── Filters panel ───────────────────────────────────── */}
       {showFilters && (
-        <div className="amtlich-card amtlich-enter" style={{ padding: "16px" }}>
+        <div className="amtlich-card amtlich-enter" style={{ padding: "18px" }}>
           <div className="mb-3 flex items-center justify-between">
-            <span className="mono">Sortierung & Filter</span>
+            <span className="mono">Sort &amp; Filter</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <FilterField label="Deutsch-Niveau">
+            <FilterField label="German Level">
               <select
                 value={germanLevel}
                 onChange={(e) => {
@@ -161,7 +162,7 @@ export default function JobsPage() {
                 }}
                 className="amtlich-select"
               >
-                <option value="">Alle</option>
+                <option value="">All levels</option>
                 {GERMAN_LEVELS.map((l) => (
                   <option key={l} value={l}>
                     {l}
@@ -170,7 +171,7 @@ export default function JobsPage() {
               </select>
             </FilterField>
 
-            <FilterField label="Berufsfeld">
+            <FilterField label="Field">
               <select
                 value={profession}
                 onChange={(e) => {
@@ -179,7 +180,7 @@ export default function JobsPage() {
                 }}
                 className="amtlich-select"
               >
-                <option value="">Alle</option>
+                <option value="">All fields</option>
                 {PROFESSIONS.map((p) => (
                   <option key={p} value={p}>
                     {p}
@@ -190,7 +191,7 @@ export default function JobsPage() {
           </div>
 
           <div className="mt-3">
-            <FilterField label="Sortierung">
+            <FilterField label="Sort by">
               <select
                 value={sort}
                 onChange={(e) => {
@@ -199,9 +200,9 @@ export default function JobsPage() {
                 }}
                 className="amtlich-select"
               >
-                <option value="match">Bestes Match</option>
-                <option value="newest">Neueste zuerst</option>
-                <option value="salary">Höchstes Gehalt</option>
+                <option value="match">Best match</option>
+                <option value="newest">Newest first</option>
+                <option value="salary">Highest salary</option>
               </select>
             </FilterField>
           </div>
@@ -210,9 +211,9 @@ export default function JobsPage() {
             .amtlich-select {
               width: 100%;
               font-family: var(--f-mono);
-              font-size: 0.72rem;
+              font-size: var(--fs-mono-sm);
               text-transform: uppercase;
-              letter-spacing: 0.08em;
+              letter-spacing: 0.06em;
               color: var(--ink);
               background-color: #fbf4dc;
               background-image: linear-gradient(
@@ -221,8 +222,8 @@ export default function JobsPage() {
                 #f2e6b8 100%
               );
               border: 1px solid var(--manila-edge);
-              border-radius: 2px;
-              padding: 6px 10px;
+              border-radius: 3px;
+              padding: 8px 12px;
               box-shadow:
                 0 1px 2px rgba(60, 40, 20, 0.15) inset,
                 0 1px 0 rgba(255, 250, 220, 0.6);
@@ -246,19 +247,18 @@ export default function JobsPage() {
             />
           ))
         ) : jobs.length === 0 ? (
-          <div className="amtlich-card text-center" style={{ padding: "32px 20px" }}>
+          <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
             <span
               className="amtlich-stamp amtlich-stamp--ink"
               style={{ transform: "rotate(-3deg)" }}
             >
-              Keine Treffer
+              No matches
             </span>
             <p
               className="ink-faded mt-3"
               style={{
                 fontFamily: "var(--f-body)",
-                fontStyle: "italic",
-                fontSize: "0.85rem",
+                fontSize: "0.9rem",
               }}
             >
               Try adjusting your filters or profile preferences.
@@ -285,17 +285,17 @@ export default function JobsPage() {
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
             className="amtlich-btn disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ padding: "8px 14px", fontSize: "0.62rem" }}
+            style={{ padding: "10px 16px", fontSize: "var(--fs-mono-xs)" }}
           >
             <ChevronLeft size={12} className="inline-block mr-1" />
-            Zurück
+            Back
           </button>
 
           <span
             className="mono ink-faded"
-            style={{ fontSize: "0.68rem" }}
+            style={{ fontSize: "var(--fs-mono-xs)" }}
           >
-            Seite {page} / {totalPages}
+            Page {page} / {totalPages}
           </span>
 
           <button
@@ -303,9 +303,9 @@ export default function JobsPage() {
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
             className="amtlich-btn disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ padding: "8px 14px", fontSize: "0.62rem" }}
+            style={{ padding: "10px 16px", fontSize: "var(--fs-mono-xs)" }}
           >
-            Weiter
+            Next
             <ChevronRight size={12} className="inline-block ml-1" />
           </button>
         </div>
@@ -313,10 +313,6 @@ export default function JobsPage() {
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Helper components
-// ---------------------------------------------------------------------------
 
 function FilterField({
   label,
@@ -329,7 +325,7 @@ function FilterField({
     <label className="flex flex-col gap-1.5">
       <span
         className="mono"
-        style={{ fontSize: "0.58rem", color: "var(--ink-faded)" }}
+        style={{ fontSize: "var(--fs-mono-xs)", color: "var(--ink-faded)" }}
       >
         {label}
       </span>

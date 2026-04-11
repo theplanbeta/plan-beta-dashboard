@@ -1,143 +1,139 @@
 /* ============================================================
-   "Die Bewerbungsmappe" — The Application Folder aesthetic
+   "Die Bewerbungsmappe" v2 — Archive & Ink
    Skeuomorphic design system for PlanBeta Jobs PWA
-   Inspired by German bureaucratic paperwork, Dieter Rams,
-   manila folders, rubber stamps, and ring binders.
+
+   German bureaucratic paper meets Dieter Rams precision.
+   Hero red stamp. Vivid brass. Crisp cream paper. English copy.
+   German stays only as decorative stamps and file numbers.
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Newsreader:opsz,wght@6..72,200..800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 .amtlich {
-  /* ── Palette ────────────────────────────────────────────── */
-  --paper-cream: #F2EBD8;
-  --paper-warm: #EDE3C7;
-  --paper-shadow: #D8CBA4;
-  --manila: #E1C985;
-  --manila-deep: #C9A94C;
-  --manila-edge: #A68535;
+  /* ── Paper (background, cards) ─────────────────────── */
+  --paper-bright: #FBF6E7;   /* lightest — page background, holds up in sun */
+  --paper-cream:  #F6EED5;   /* primary surfaces */
+  --paper-warm:   #EEE2B8;   /* card fill — 12pt luma below page */
+  --paper-shadow: #D9C88A;   /* under-card shadow color */
 
-  --kraft: #BF9B60;
-  --kraft-dark: #8A6A3C;
+  /* ── Manila (folders) ──────────────────────────────── */
+  --manila:       #E8C774;
+  --manila-deep:  #C49A2C;
+  --manila-edge:  #8C6618;
 
-  --ink: #1F1711;
-  --ink-soft: #3E2F22;
-  --ink-faded: #6A5641;
+  /* ── Kraft (bottom nav rail, envelopes) ────────────── */
+  --kraft:        #A8804A;
+  --kraft-dark:   #6F4F1E;
 
-  --stamp-red: #B8342A;
-  --stamp-red-ink: #8A251D;
-  --stamp-green: #2E5E3E;
-  --stamp-blue: #234875;
+  /* ── Ink (text hierarchy) ──────────────────────────── */
+  --ink:          #141109;   /* near-black, warm bias, AAA on paper */
+  --ink-soft:     #3A2B1C;   /* secondary text */
+  --ink-faded:    #6B5134;   /* tertiary, labels */
 
-  --brass: #B8904A;
-  --brass-dark: #8F6B2E;
-  --brass-highlight: #DCB97C;
+  /* ── Stamps (the hero accents) ─────────────────────── */
+  --stamp-red:       #D93A1F;   /* HERO — bright orange-red, archival rubber */
+  --stamp-red-deep:  #A82410;
+  --stamp-red-ink:   #7A1609;
+  --stamp-blue:      #1E4A85;
+  --stamp-teal:      #0C6B6B;   /* secondary info color */
+  --stamp-green:     #2F7A3A;
 
-  --fiber: #C9B890;
-  --thread: #3A2E1F;
+  /* ── Brass (metal hardware) ────────────────────────── */
+  --brass:            #D4A547;  /* polished, vibrant */
+  --brass-highlight:  #F5D98A;
+  --brass-shadow:     #7A5516;
 
-  /* ── Typography ──────────────────────────────────────── */
+  /* ── Typography ────────────────────────────────────── */
   --f-display: 'Fraunces', Georgia, serif;
-  --f-body: 'Newsreader', 'Georgia', serif;
-  --f-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --f-body:    'Newsreader', Georgia, serif;
+  --f-mono:    'JetBrains Mono', 'Courier New', monospace;
 
-  /* ── Shadows — layered for physical depth ───────────── */
-  --shadow-paper-lift:
-    0 1px 0 rgba(255, 250, 230, 0.8) inset,
-    0 -1px 0 rgba(139, 108, 60, 0.1) inset,
-    0 2px 0 rgba(139, 108, 60, 0.15),
-    0 4px 8px rgba(60, 40, 20, 0.14),
-    0 12px 24px rgba(60, 40, 20, 0.10);
+  /* Mobile-first type scale — 11px minimum on mono */
+  --fs-mono-xs: 0.6875rem;  /* 11px */
+  --fs-mono-sm: 0.75rem;    /* 12px */
+  --fs-mono-md: 0.8125rem;  /* 13px */
 
-  --shadow-paper-press:
-    0 1px 2px rgba(60, 40, 20, 0.25) inset,
-    0 -1px 0 rgba(255, 250, 230, 0.3) inset,
-    0 1px 2px rgba(60, 40, 20, 0.08);
+  /* ── Shadows — 3 layers, not 5 ─────────────────────── */
+  --shadow-card:
+    0 1px 0 rgba(255, 250, 230, 0.6) inset,
+    0 2px 4px rgba(60, 40, 20, 0.12),
+    0 12px 24px rgba(60, 40, 20, 0.08);
 
   --shadow-folder:
-    0 1px 0 rgba(255, 245, 210, 0.6) inset,
-    0 -2px 2px rgba(139, 108, 60, 0.15) inset,
-    0 4px 6px rgba(60, 40, 20, 0.18),
-    0 12px 30px rgba(60, 40, 20, 0.12),
-    0 24px 48px rgba(60, 40, 20, 0.06);
-
-  --shadow-brass:
-    0 1px 0 rgba(255, 240, 180, 0.7) inset,
-    0 -1px 2px rgba(80, 50, 10, 0.3) inset,
-    0 1px 2px rgba(60, 40, 20, 0.2);
-
-  --shadow-stamp:
-    0 0 0 2px rgba(139, 37, 29, 0.0);
+    0 1px 0 rgba(255, 245, 210, 0.7) inset,
+    0 4px 8px rgba(60, 40, 20, 0.15),
+    0 18px 36px rgba(60, 40, 20, 0.10);
 
   /* ── Base setup ─────────────────────────────────────── */
   font-family: var(--f-body);
   font-feature-settings: "liga", "kern", "onum";
   color: var(--ink);
-  background-color: var(--paper-cream);
-  font-size: 15px;
+  background-color: var(--paper-bright);
+  font-size: 16px;    /* mobile floor, no zoom on input */
   line-height: 1.55;
 }
 
-/* Paper grain — SVG noise texture applied as background */
+/* ============================================================
+   Paper Backgrounds — softer grain, no compositing over grain
+   ============================================================ */
+
 .amtlich-paper {
-  background-color: var(--paper-cream);
+  background-color: var(--paper-bright);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.08  0 0 0 0.1 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.55'/></svg>"),
-    radial-gradient(ellipse at 30% 0%, #F8F2DC 0%, #F2EBD8 40%, #ECE3C5 100%);
-  background-blend-mode: multiply, normal;
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.08  0 0 0 0.08 0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.28'/></svg>");
 }
 
-/* Deeper manila paper (for folders / cards) */
 .amtlich-manila {
   background-color: var(--manila);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0 0.05  0 0 0 0.15 0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.65'/></svg>"),
-    linear-gradient(180deg, #E8D295 0%, #DEBE6F 55%, #D2AF58 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.15  0 0 0 0 0.1  0 0 0 0 0.05  0 0 0 0.1 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.35'/></svg>"),
+    linear-gradient(180deg, #EDD18A 0%, #D4AA40 100%);
   background-blend-mode: multiply, normal;
 }
 
-/* Kraft paper for darker envelope feel */
 .amtlich-kraft {
   background-color: var(--kraft);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0 0.03  0 0 0 0.2 0'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.7'/></svg>"),
-    linear-gradient(180deg, #C8A66B 0%, #A88352 50%, #8E6B3D 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0 0.02  0 0 0 0.18 0'/></filter><rect width='180' height='180' filter='url(%23n)' opacity='0.5'/></svg>"),
+    linear-gradient(180deg, #B58A4E 0%, #7B562A 100%);
   background-blend-mode: multiply, normal;
 }
 
 /* ============================================================
    Typography Tokens
    ============================================================ */
+
 .amtlich h1, .amtlich h2, .amtlich h3, .amtlich .display {
   font-family: var(--f-display);
-  font-variation-settings: "opsz" 144, "SOFT" 50, "wght" 500;
   color: var(--ink);
   letter-spacing: -0.01em;
 }
 
+/* Hardened SOFT axis — premium, not romantic */
 .amtlich h1 {
-  font-size: 2.25rem;
-  line-height: 1.05;
-  font-variation-settings: "opsz" 144, "SOFT" 30, "wght" 450;
+  font-size: 2.375rem;
+  line-height: 1.03;
+  font-variation-settings: "opsz" 144, "SOFT" 20, "wght" 520;
 }
 
 .amtlich h2 {
   font-size: 1.5rem;
   line-height: 1.15;
-  font-variation-settings: "opsz" 72, "SOFT" 40, "wght" 500;
+  font-variation-settings: "opsz" 72, "SOFT" 25, "wght" 550;
 }
 
 .amtlich h3 {
   font-size: 1.125rem;
   line-height: 1.25;
-  font-variation-settings: "opsz" 36, "SOFT" 50, "wght" 600;
+  font-variation-settings: "opsz" 36, "SOFT" 30, "wght" 620;
 }
 
 .amtlich-mono,
 .amtlich .mono,
 .amtlich .tag {
   font-family: var(--f-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-mono-sm);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-faded);
   font-weight: 500;
@@ -157,88 +153,77 @@
   position: relative;
   background-color: var(--paper-warm);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.08 0'/></filter><rect width='240' height='240' filter='url(%23n)' opacity='0.7'/></svg>"),
-    linear-gradient(180deg, #F5ECCF 0%, #ECE0B5 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.0' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.06 0'/></filter><rect width='260' height='260' filter='url(%23n)' opacity='0.4'/></svg>"),
+    linear-gradient(180deg, #F2E6BC 0%, #EADCA6 100%);
   background-blend-mode: multiply, normal;
-  border: 1px solid rgba(166, 133, 53, 0.35);
-  border-radius: 4px;
-  box-shadow: var(--shadow-paper-lift);
+  border: 1px solid rgba(140, 102, 24, 0.32);
+  border-radius: 6px;
+  box-shadow: var(--shadow-card);
   padding: 20px;
 }
 
-.amtlich-card::after {
-  /* subtle page-edge highlight */
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 250, 230, 0.7), transparent);
-  pointer-events: none;
-}
-
 /* ============================================================
-   Manila Folder (for applications / groups of documents)
+   Manila Folder (for quick actions)
    ============================================================ */
 .amtlich-folder {
   position: relative;
-  padding: 22px 18px 18px;
-  border-radius: 2px 14px 4px 4px;
+  padding: 24px 18px 18px;
+  border-radius: 2px 14px 6px 6px;
   border: 1px solid var(--manila-edge);
   border-top: 2px solid var(--kraft-dark);
   background-color: var(--manila);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.08  0 0 0 0.12 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.75'/></svg>"),
-    linear-gradient(180deg, #E8D295 0%, #DEBE6F 55%, #D2AF58 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.13  0 0 0 0 0.05  0 0 0 0.08 0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.4'/></svg>"),
+    linear-gradient(180deg, #EDD18A 0%, #D4AA40 65%, #C49A2C 100%);
   background-blend-mode: multiply, normal;
   box-shadow: var(--shadow-folder);
 }
 
-/* Folder tab — top-left label */
+/* Folder tab label via data-tab attribute */
 .amtlich-folder::before {
   content: attr(data-tab);
   position: absolute;
-  top: -14px;
+  top: -15px;
   left: 18px;
-  padding: 4px 14px 5px;
+  padding: 5px 14px 6px;
   background: var(--manila-deep);
-  background-image: linear-gradient(180deg, #E4BE62 0%, #C9A344 60%, #B79234 100%);
+  background-image: linear-gradient(180deg, #F2D070 0%, #D0A330 65%, #B88B1E 100%);
   color: var(--ink);
   font-family: var(--f-mono);
-  font-size: 0.68rem;
+  font-size: var(--fs-mono-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   border: 1px solid var(--manila-edge);
   border-bottom: none;
-  border-radius: 3px 8px 0 0;
+  border-radius: 4px 10px 0 0;
   box-shadow:
-    0 1px 0 rgba(255, 240, 180, 0.6) inset,
-    0 -1px 0 rgba(80, 50, 10, 0.15) inset,
-    0 -2px 4px rgba(60, 40, 20, 0.1);
+    0 1px 0 rgba(255, 240, 180, 0.65) inset,
+    0 -2px 0 rgba(80, 50, 10, 0.18),
+    0 -3px 6px rgba(60, 40, 20, 0.12);
 }
 
 /* ============================================================
-   Pressed Button (tactile, embossed)
+   Pressed Button — tactile depth
    ============================================================ */
 .amtlich-btn {
   font-family: var(--f-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-mono-md);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink);
   background-color: var(--paper-cream);
-  background-image: linear-gradient(180deg, #FBF2D7 0%, #ECE0B5 100%);
+  background-image: linear-gradient(180deg, #FDF7DC 0%, #EEE2B8 100%);
   border: 1px solid var(--manila-edge);
-  border-radius: 3px;
-  padding: 12px 20px;
+  border-radius: 4px;
+  padding: 12px 22px;
   cursor: pointer;
   box-shadow:
     0 1px 0 rgba(255, 250, 230, 0.9) inset,
-    0 -2px 3px rgba(139, 108, 60, 0.2) inset,
-    0 1px 0 rgba(255, 250, 230, 0.6),
-    0 3px 0 rgba(139, 108, 60, 0.5),
-    0 5px 10px rgba(60, 40, 20, 0.2);
+    0 -2px 3px rgba(140, 102, 24, 0.22) inset,
+    0 3px 0 rgba(140, 102, 24, 0.45),
+    0 5px 10px rgba(60, 40, 20, 0.18);
   transition: transform 100ms ease-out, box-shadow 100ms ease-out;
 }
 
@@ -246,66 +231,62 @@
   transform: translateY(-1px);
   box-shadow:
     0 1px 0 rgba(255, 250, 230, 0.9) inset,
-    0 -2px 3px rgba(139, 108, 60, 0.2) inset,
-    0 1px 0 rgba(255, 250, 230, 0.6),
-    0 4px 0 rgba(139, 108, 60, 0.55),
-    0 8px 14px rgba(60, 40, 20, 0.22);
+    0 -2px 3px rgba(140, 102, 24, 0.22) inset,
+    0 4px 0 rgba(140, 102, 24, 0.5),
+    0 8px 14px rgba(60, 40, 20, 0.2);
 }
 
 .amtlich-btn:active {
   transform: translateY(2px);
   box-shadow:
-    0 2px 4px rgba(60, 40, 20, 0.3) inset,
+    0 2px 4px rgba(60, 40, 20, 0.28) inset,
     0 -1px 0 rgba(255, 250, 230, 0.3) inset,
     0 1px 2px rgba(60, 40, 20, 0.15);
 }
 
 .amtlich-btn--primary {
-  color: #FBF2D7;
-  background-image: linear-gradient(180deg, #D14A3E 0%, #B8342A 55%, #952219 100%);
-  border-color: #7A1812;
+  color: #FFF8E7;
+  background-image: linear-gradient(180deg, #E34A2E 0%, #D93A1F 55%, #A82410 100%);
+  border-color: #7A1609;
   box-shadow:
-    0 1px 0 rgba(255, 220, 215, 0.4) inset,
-    0 -2px 3px rgba(40, 10, 5, 0.35) inset,
-    0 1px 0 rgba(255, 250, 230, 0.4),
-    0 3px 0 rgba(80, 20, 15, 0.7),
-    0 5px 12px rgba(60, 10, 5, 0.35);
+    0 1px 0 rgba(255, 220, 215, 0.5) inset,
+    0 -2px 3px rgba(40, 8, 2, 0.35) inset,
+    0 3px 0 rgba(80, 20, 15, 0.75),
+    0 5px 12px rgba(60, 10, 5, 0.32);
 }
 
 .amtlich-btn--primary:hover {
   box-shadow:
-    0 1px 0 rgba(255, 220, 215, 0.4) inset,
-    0 -2px 3px rgba(40, 10, 5, 0.35) inset,
-    0 1px 0 rgba(255, 250, 230, 0.4),
-    0 4px 0 rgba(80, 20, 15, 0.75),
-    0 8px 16px rgba(60, 10, 5, 0.4);
+    0 1px 0 rgba(255, 220, 215, 0.5) inset,
+    0 -2px 3px rgba(40, 8, 2, 0.35) inset,
+    0 4px 0 rgba(80, 20, 15, 0.8),
+    0 8px 16px rgba(60, 10, 5, 0.38);
 }
 
 /* ============================================================
-   Rubber Stamp (for match scores, status labels, badges)
+   Rubber Stamp — the hero accent
    ============================================================ */
 .amtlich-stamp {
   display: inline-block;
   padding: 6px 14px;
   font-family: var(--f-mono);
   font-weight: 800;
-  font-size: 0.7rem;
-  letter-spacing: 0.15em;
+  font-size: var(--fs-mono-sm);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--stamp-red);
   border: 2px solid var(--stamp-red);
   border-radius: 3px;
   background: transparent;
   transform: rotate(-2.5deg);
-  opacity: 0.85;
+  opacity: 0.88;
   mix-blend-mode: multiply;
   position: relative;
-  /* slight irregular ink feel */
   filter: url("#stamp-ink");
 }
 
 .amtlich-stamp::before {
-  /* soft stamp ink bleed */
+  /* soft stamp ink bleed halo */
   content: "";
   position: absolute;
   inset: -1px;
@@ -315,38 +296,66 @@
   filter: blur(0.5px);
 }
 
-.amtlich-stamp--green {
-  color: var(--stamp-green);
-  border-color: var(--stamp-green);
-}
-
+.amtlich-stamp--green { color: var(--stamp-green); border-color: var(--stamp-green); }
 .amtlich-stamp--green::before { border-color: var(--stamp-green); }
 
-.amtlich-stamp--blue {
-  color: var(--stamp-blue);
-  border-color: var(--stamp-blue);
-}
-
+.amtlich-stamp--blue { color: var(--stamp-blue); border-color: var(--stamp-blue); }
 .amtlich-stamp--blue::before { border-color: var(--stamp-blue); }
 
-.amtlich-stamp--ink {
-  color: var(--ink-soft);
-  border-color: var(--ink-soft);
-}
+.amtlich-stamp--teal { color: var(--stamp-teal); border-color: var(--stamp-teal); }
+.amtlich-stamp--teal::before { border-color: var(--stamp-teal); }
 
+.amtlich-stamp--ink { color: var(--ink-soft); border-color: var(--ink-soft); }
 .amtlich-stamp--ink::before { border-color: var(--ink-soft); }
 
+/* Wet stamp — animated thunk + ink bleed halo (Signature 1) */
+.amtlich-stamp-wet {
+  position: relative;
+  display: inline-block;
+  animation: stamp-thunk 160ms cubic-bezier(0.2, 0.8, 0.2, 1.3) both;
+}
+
+.amtlich-stamp-wet::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(ellipse, rgba(217, 58, 31, 0.32) 0%, transparent 60%);
+  animation: ink-bleed 560ms ease-out 60ms both;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  border-radius: 6px;
+}
+
+.amtlich-stamp-wet.amtlich-stamp-wet--green::after {
+  background: radial-gradient(ellipse, rgba(47, 122, 58, 0.28) 0%, transparent 60%);
+}
+.amtlich-stamp-wet.amtlich-stamp-wet--blue::after {
+  background: radial-gradient(ellipse, rgba(30, 74, 133, 0.28) 0%, transparent 60%);
+}
+
+@keyframes stamp-thunk {
+  0%   { transform: rotate(-2.5deg) scale(1.25); opacity: 0; }
+  55%  { opacity: 1; }
+  100% { transform: rotate(-2.5deg) scale(1); opacity: 0.88; }
+}
+
+@keyframes ink-bleed {
+  0%   { opacity: 0; transform: scale(0.45); }
+  45%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.15); }
+}
+
 /* ============================================================
-   Brass Rivet / Ring Binder Hole
+   Brass Hardware
    ============================================================ */
 .amtlich-rivet {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 30%, #F0DC9E 0%, #C89B4E 40%, #7A5322 85%, #4A3214 100%);
+    radial-gradient(circle at 30% 30%, #F5D98A 0%, #D4A547 40%, #7A5516 85%, #3A2408 100%);
   box-shadow:
-    0 1px 0 rgba(255, 250, 230, 0.4) inset,
+    0 1px 0 rgba(255, 250, 230, 0.5) inset,
     0 -1px 1px rgba(40, 20, 5, 0.5) inset,
     0 1px 2px rgba(40, 20, 5, 0.4),
     0 0 0 1px rgba(40, 20, 5, 0.2);
@@ -360,22 +369,22 @@
   border-radius: 50%;
   background: radial-gradient(circle at 40% 40%, #A28950 0%, #6E5530 50%, #3A2A16 100%);
   box-shadow:
-    0 2px 3px rgba(40, 20, 5, 0.4) inset,
-    0 -1px 0 rgba(255, 250, 230, 0.2),
-    0 1px 2px rgba(40, 20, 5, 0.2);
+    0 2px 3px rgba(40, 20, 5, 0.45) inset,
+    0 -1px 0 rgba(255, 250, 230, 0.25),
+    0 1px 2px rgba(40, 20, 5, 0.22);
   display: inline-block;
 }
 
 /* ============================================================
-   Hanging File Tab (for BottomNav)
+   Hanging File Tab (BottomNav)
    ============================================================ */
 .amtlich-filetab-row {
-  background: linear-gradient(180deg, #8E6B3D 0%, #6B4F29 100%);
+  background-color: var(--kraft);
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.5' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0 0.02  0 0 0 0.3 0'/></filter><rect width='200' height='80' filter='url(%23n)' opacity='0.7'/></svg>"),
-    linear-gradient(180deg, #8E6B3D 0%, #6B4F29 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.08  0 0 0 0 0.05  0 0 0 0 0.02  0 0 0 0.22 0'/></filter><rect width='200' height='80' filter='url(%23n)' opacity='0.55'/></svg>"),
+    linear-gradient(180deg, #A8804A 0%, #6F4F1E 100%);
   background-blend-mode: multiply, normal;
-  border-top: 2px solid var(--brass-dark);
+  border-top: 2px solid var(--kraft-dark);
   box-shadow:
     0 -1px 0 rgba(255, 240, 180, 0.25) inset,
     0 -12px 24px rgba(40, 25, 10, 0.15);
@@ -384,17 +393,17 @@
 .amtlich-filetab {
   position: relative;
   font-family: var(--f-mono);
-  font-size: 0.65rem;
+  font-size: var(--fs-mono-xs);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #5B4428;
-  transition: color 120ms ease-out, transform 120ms ease-out;
+  color: #C9A865;   /* WCAG-legible on kraft */
+  transition: color 140ms ease-out, transform 140ms ease-out;
 }
 
 .amtlich-filetab span.label {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .amtlich-filetab--active {
@@ -403,7 +412,7 @@
 }
 
 .amtlich-filetab--active::before {
-  /* raised manila tab rising out of the file rail */
+  /* raised manila tab rising out of the rail */
   content: "";
   position: absolute;
   top: -6px;
@@ -411,49 +420,49 @@
   right: 6px;
   bottom: -10px;
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.15  0 0 0 0 0.08  0 0 0 0.15 0'/></filter><rect width='80' height='80' filter='url(%23n)' opacity='0.7'/></svg>"),
-    linear-gradient(180deg, #F2DC95 0%, #E2C36A 70%, #CEA747 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.2  0 0 0 0 0.13  0 0 0 0 0.05  0 0 0 0.1 0'/></filter><rect width='80' height='80' filter='url(%23n)' opacity='0.45'/></svg>"),
+    linear-gradient(180deg, #F2D070 0%, #D4AA40 65%, #B88B1E 100%);
   background-blend-mode: multiply, normal;
   border: 1px solid var(--manila-edge);
   border-bottom: none;
   border-radius: 6px 6px 2px 2px;
   box-shadow:
-    0 1px 0 rgba(255, 245, 200, 0.6) inset,
-    0 -2px 3px rgba(100, 70, 20, 0.15) inset,
-    0 -4px 10px rgba(40, 25, 10, 0.18);
+    0 1px 0 rgba(255, 245, 200, 0.65) inset,
+    0 -2px 3px rgba(100, 70, 20, 0.18) inset,
+    0 -4px 10px rgba(40, 25, 10, 0.22);
   z-index: -1;
 }
 
 /* ============================================================
-   Typewriter Label — small header tag
+   Typewriter Label
    ============================================================ */
 .amtlich-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 7px;
+  padding: 5px 12px;
   font-family: var(--f-mono);
-  font-size: 0.62rem;
+  font-size: var(--fs-mono-xs);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  background: rgba(255, 250, 220, 0.5);
-  border: 1px dashed rgba(138, 106, 60, 0.5);
+  background: transparent;
+  border: 1px dotted rgba(140, 102, 24, 0.55);
   border-radius: 2px;
 }
 
 /* ============================================================
-   Document Page (for CV preview, etc.)
+   Document Page (CV preview, job detail, confirmations)
    ============================================================ */
 .amtlich-page {
-  background-color: #FEFBF0;
+  background-color: #FFFCEE;
   background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.04 0'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.7'/></svg>"),
-    linear-gradient(180deg, #FFFDF2 0%, #FBF5E0 100%);
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.0' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.04 0'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.5'/></svg>"),
+    linear-gradient(180deg, #FFFDF2 0%, #FBF5DD 100%);
   background-blend-mode: multiply, normal;
   border: 1px solid #D0C29A;
-  border-radius: 1px 1px 14px 1px;
+  border-radius: 2px 2px 16px 2px;
   box-shadow:
     0 1px 0 rgba(255, 255, 240, 0.9) inset,
     0 4px 8px rgba(60, 40, 20, 0.12),
@@ -467,90 +476,85 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, transparent 50%, var(--paper-cream) 50%);
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, transparent 50%, var(--paper-bright) 50%);
   border-left: 1px solid #D0C29A;
   border-top: 1px solid #D0C29A;
   box-shadow: -2px -2px 4px rgba(60, 40, 20, 0.08);
 }
 
 /* ============================================================
-   Ink Divider (horizontal rule, handwritten feel)
+   Ink Divider
    ============================================================ */
 .amtlich-divider {
   height: 1px;
   border: none;
   background: linear-gradient(90deg,
     transparent,
-    rgba(31, 23, 17, 0.4) 20%,
-    rgba(31, 23, 17, 0.55) 50%,
-    rgba(31, 23, 17, 0.4) 80%,
+    rgba(20, 17, 9, 0.35) 20%,
+    rgba(20, 17, 9, 0.5) 50%,
+    rgba(20, 17, 9, 0.35) 80%,
     transparent);
   margin: 12px 0;
 }
 
 /* ============================================================
-   Ink text colors
+   Ink colors
    ============================================================ */
-.amtlich .ink { color: var(--ink); }
-.amtlich .ink-soft { color: var(--ink-soft); }
-.amtlich .ink-faded { color: var(--ink-faded); }
-.amtlich .ink-red { color: var(--stamp-red); }
-.amtlich .ink-green { color: var(--stamp-green); }
-.amtlich .ink-blue { color: var(--stamp-blue); }
+.amtlich .ink        { color: var(--ink); }
+.amtlich .ink-soft   { color: var(--ink-soft); }
+.amtlich .ink-faded  { color: var(--ink-faded); }
+.amtlich .ink-red    { color: var(--stamp-red); }
+.amtlich .ink-green  { color: var(--stamp-green); }
+.amtlich .ink-blue   { color: var(--stamp-blue); }
+.amtlich .ink-teal   { color: var(--stamp-teal); }
 
 /* ============================================================
-   Grain overlay for full-screen atmosphere
-   ============================================================ */
-.amtlich-grain::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.35;
-  background-image:
-    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.1  0 0 0 0 0.07  0 0 0 0 0.04  0 0 0 0.18 0'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
-  mix-blend-mode: multiply;
-}
-
-/* ============================================================
-   Soft entry animation for page load
+   Entry animations — faster, tighter
    ============================================================ */
 @keyframes amtlich-settle {
-  0% { opacity: 0; transform: translateY(6px) rotate(-0.4deg); }
+  0%   { opacity: 0; transform: translateY(6px) rotate(-0.3deg); }
   100% { opacity: 1; transform: translateY(0) rotate(0); }
 }
 
 .amtlich-enter {
-  animation: amtlich-settle 420ms cubic-bezier(0.25, 0.1, 0.25, 1.2) both;
+  animation: amtlich-settle 320ms cubic-bezier(0.25, 0.1, 0.25, 1.2) both;
 }
 
-.amtlich-enter-delay-1 { animation-delay: 60ms; }
-.amtlich-enter-delay-2 { animation-delay: 120ms; }
-.amtlich-enter-delay-3 { animation-delay: 180ms; }
-.amtlich-enter-delay-4 { animation-delay: 240ms; }
+.amtlich-enter-delay-1 { animation-delay: 50ms; }
+.amtlich-enter-delay-2 { animation-delay: 100ms; }
+.amtlich-enter-delay-3 { animation-delay: 150ms; }
+.amtlich-enter-delay-4 { animation-delay: 200ms; }
 
 /* ============================================================
-   Crease line (simulates a folded document)
+   Document Serial — top-right of every screen
    ============================================================ */
-.amtlich-crease {
-  position: relative;
+.amtlich-serial {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: var(--fs-mono-xs);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
+  text-transform: uppercase;
 }
 
-.amtlich-crease::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(139, 108, 60, 0.15) 15%,
-    rgba(139, 108, 60, 0.3) 50%,
-    rgba(139, 108, 60, 0.15) 85%,
-    transparent);
-  pointer-events: none;
+.amtlich-serial .sep {
+  color: var(--ink-faded);
+  opacity: 0.4;
+  margin: 0 2px;
+}
+
+.amtlich-serial .flash {
+  color: var(--stamp-red);
+  animation: serial-flash 300ms ease-out both;
+}
+
+@keyframes serial-flash {
+  0%   { opacity: 0; transform: translateX(-2px); }
+  50%  { opacity: 1; }
+  100% { opacity: 1; transform: translateX(0); }
 }

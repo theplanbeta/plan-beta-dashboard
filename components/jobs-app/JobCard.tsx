@@ -23,11 +23,11 @@ export interface JobData {
 }
 
 const JOB_TYPE_LABELS: Record<string, string> = {
-  FULL_TIME: "Vollzeit",
-  PART_TIME: "Teilzeit",
-  WORKING_STUDENT: "Werkstudent",
-  INTERNSHIP: "Praktikum",
-  CONTRACT: "Vertrag",
+  FULL_TIME: "Full-time",
+  PART_TIME: "Part-time",
+  WORKING_STUDENT: "Werkstudent",  // German flavor word — common
+  INTERNSHIP: "Internship",
+  CONTRACT: "Contract",
 }
 
 function formatSalary(
@@ -38,17 +38,13 @@ function formatSalary(
   const fmt = (n: number) =>
     n >= 1000 ? `${(n / 1000).toFixed(0)}k` : String(n)
   if (min && max) return `${fmt(min)}–${fmt(max)}`
-  if (max) return `bis ${fmt(max)}`
-  return `ab ${fmt(min!)}`
+  if (max) return `up to ${fmt(max)}`
+  return `from ${fmt(min!)}`
 }
 
-/**
- * Map a numeric match score to a stamp color variant.
- * 75+: green (good), 60-74: blue (ok), <60: red (marginal).
- */
 function stampVariantForScore(score: number): string {
   if (score >= 75) return "amtlich-stamp--green"
-  if (score >= 60) return "amtlich-stamp--blue"
+  if (score >= 60) return "amtlich-stamp--teal"
   return ""
 }
 
@@ -79,18 +75,18 @@ export function JobCard({
       className="amtlich-card group block no-underline"
       style={{ textDecoration: "none" }}
     >
-      {/* Header row: company + rubber stamp score */}
+      {/* Header row: company + wet rubber stamp score */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <span className="mono ink-faded" style={{ fontSize: "0.58rem" }}>
+          <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
             {company}
           </span>
           <h3
             className="display ink mt-1"
             style={{
-              fontSize: "1.05rem",
+              fontSize: "1.1rem",
               lineHeight: 1.2,
-              fontVariationSettings: '"opsz" 36, "SOFT" 40, "wght" 550',
+              fontVariationSettings: '"opsz" 36, "SOFT" 25, "wght" 580',
             }}
           >
             {title}
@@ -100,7 +96,15 @@ export function JobCard({
         {matchScore !== null && matchScore !== undefined && (
           <div className="shrink-0 pt-1">
             <span
-              className={`amtlich-stamp ${stampVariantForScore(matchScore)}`}
+              className={`amtlich-stamp amtlich-stamp-wet ${stampVariantForScore(
+                matchScore
+              )} ${
+                matchScore >= 75
+                  ? "amtlich-stamp-wet--green"
+                  : matchScore >= 60
+                  ? "amtlich-stamp-wet--blue"
+                  : ""
+              }`}
               style={{ transform: "rotate(2deg)" }}
             >
               {matchScore}/100
@@ -115,7 +119,7 @@ export function JobCard({
       {/* Metadata row — typewriter labels */}
       <dl
         className="flex flex-wrap items-center gap-x-4 gap-y-1.5"
-        style={{ fontFamily: "var(--f-mono)", fontSize: "0.68rem" }}
+        style={{ fontFamily: "var(--f-mono)", fontSize: "var(--fs-mono-xs)" }}
       >
         {location && (
           <div className="flex items-center gap-1 ink-soft">
@@ -148,14 +152,13 @@ export function JobCard({
         )}
       </dl>
 
-      {/* Match label text (if provided) */}
+      {/* Match label text */}
       {matchLabel && (
         <p
           className="ink-faded mt-3"
           style={{
             fontFamily: "var(--f-body)",
-            fontStyle: "italic",
-            fontSize: "0.75rem",
+            fontSize: "0.8rem",
           }}
         >
           {matchLabel.label}

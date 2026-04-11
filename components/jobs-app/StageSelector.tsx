@@ -3,19 +3,11 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react"
 import { ChevronDown } from "lucide-react"
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 interface StageSelectorProps {
   currentStage: string
   onChange: (newStage: string) => void
   disabled?: boolean
 }
-
-// ---------------------------------------------------------------------------
-// Stage metadata — German bureaucratic labels
-// ---------------------------------------------------------------------------
 
 const STAGES = [
   "SAVED",
@@ -29,37 +21,28 @@ const STAGES = [
 ] as const
 
 export const STAGE_LABELS: Record<string, string> = {
-  SAVED: "Gespeichert",
-  APPLIED: "Eingereicht",
-  SCREENING: "Prüfung",
-  INTERVIEW: "Gespräch",
-  OFFER: "Angebot",
-  ACCEPTED: "Angenommen",
-  REJECTED: "Absage",
-  WITHDRAWN: "Zurückgezogen",
+  SAVED: "Saved",
+  APPLIED: "Applied",
+  SCREENING: "Screening",
+  INTERVIEW: "Interview",
+  OFFER: "Offer",
+  ACCEPTED: "Accepted",
+  REJECTED: "Rejected",
+  WITHDRAWN: "Withdrawn",
 }
 
-/**
- * Each stage gets its own rubber-stamp style variant class.
- * Uses the `.amtlich-stamp` base from amtlich.css with color modifiers.
- */
 export const STAGE_STAMP_VARIANT: Record<string, string> = {
   SAVED: "amtlich-stamp--ink",
   APPLIED: "amtlich-stamp--ink",
-  SCREENING: "amtlich-stamp--blue",
+  SCREENING: "amtlich-stamp--teal",
   INTERVIEW: "amtlich-stamp--blue",
   OFFER: "amtlich-stamp--green",
   ACCEPTED: "amtlich-stamp--green",
-  REJECTED: "",
+  REJECTED: "",   // default red
   WITHDRAWN: "amtlich-stamp--ink",
 }
 
-// Backwards-compat export (some older code imports this)
 export const STAGE_BADGE_CLASSES: Record<string, string> = STAGE_STAMP_VARIANT
-
-// ---------------------------------------------------------------------------
-// Component — stage shown as a tilted rubber stamp, dropdown opens a ledger
-// ---------------------------------------------------------------------------
 
 export default function StageSelector({
   currentStage,
@@ -83,14 +66,14 @@ export default function StageSelector({
           className={`amtlich-stamp ${stampVariant}`}
           style={{
             transform: "rotate(-1.5deg)",
-            fontSize: "0.6rem",
+            fontSize: "var(--fs-mono-xs)",
             padding: "4px 10px",
           }}
         >
           {currentLabel}
         </span>
         <ChevronDown
-          size={11}
+          size={12}
           strokeWidth={2}
           style={{ color: "var(--ink-faded)" }}
         />
@@ -102,8 +85,8 @@ export default function StageSelector({
         style={{ padding: "8px 4px" }}
       >
         <div className="mb-2 px-2">
-          <span className="mono" style={{ fontSize: "0.58rem" }}>
-            Stand ändern
+          <span className="mono" style={{ fontSize: "var(--fs-mono-xs)" }}>
+            Change status
           </span>
         </div>
         {STAGES.map((stage) => {
@@ -120,8 +103,8 @@ export default function StageSelector({
                   className="flex w-full items-center gap-2 px-3 py-2 text-left"
                   style={{
                     fontFamily: "var(--f-mono)",
-                    fontSize: "0.68rem",
-                    letterSpacing: "0.08em",
+                    fontSize: "var(--fs-mono-sm)",
+                    letterSpacing: "0.06em",
                     textTransform: "uppercase",
                     fontWeight: isActive ? 700 : 500,
                     color: isActive ? "var(--ink)" : "var(--ink-soft)",

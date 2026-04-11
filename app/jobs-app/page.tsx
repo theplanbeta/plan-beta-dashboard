@@ -9,94 +9,83 @@ import {
 } from "lucide-react"
 
 const stageStats = [
-  { label: "Im Umschlag", count: 0, tone: "ink-faded" },
-  { label: "Abgeschickt", count: 0, tone: "ink" },
-  { label: "Gespräch", count: 0, tone: "ink-blue" },
-  { label: "Angebot", count: 0, tone: "ink-green" },
+  { label: "Saved", count: 0, tone: "ink-faded" },
+  { label: "Sent", count: 0, tone: "ink" },
+  { label: "Interview", count: 0, tone: "ink-teal" },
+  { label: "Offers", count: 0, tone: "ink-green" },
 ]
 
 const quickActions = [
   {
-    title: "Stellenbörse",
-    subtitle: "Hand-kuratierte Stellen, täglich aktualisiert",
+    title: "Browse Jobs",
+    subtitle: "Hand-picked roles, updated daily",
     href: "/jobs-app/jobs",
     icon: Briefcase,
-    tab: "№ 01",
+    tab: "№ 01 · STELLENBÖRSE",
   },
   {
-    title: "Mein Profil",
-    subtitle: "Das Herzstück jeder Bewerbungsmappe",
+    title: "Your Profile",
+    subtitle: "The core of every application folder",
     href: "/jobs-app/onboarding",
     icon: UserCircle,
-    tab: "№ 02",
+    tab: "№ 02 · PROFIL",
   },
 ]
 
 const howItWorks = [
   {
     step: "I.",
-    title: "Eintragen",
-    body: "Ihre Qualifikationen, Erfahrung und Deutschkenntnisse werden registriert.",
+    title: "Register",
+    body: "Tell us about your experience, skills, and German level.",
     icon: PenLine,
   },
   {
     step: "II.",
-    title: "Vorschlagen",
-    body: "Die KI schlägt passende Stellen mit einer Bewertung von 0 bis 100 vor.",
+    title: "Match",
+    body: "Our AI scores every job against your profile out of 100.",
     icon: ScrollText,
   },
   {
     step: "III.",
-    title: "Bewerben",
-    body: "Lebenslauf und Anschreiben werden für jede Stelle einzeln erstellt.",
+    title: "Apply",
+    body: "Generate a tailored CV and cover letter for each application.",
     icon: FileCheck2,
   },
 ]
 
 export default function JobsAppHomePage() {
-  const currentDate = new Date().toLocaleDateString("de-DE", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  })
-
   return (
     <div className="space-y-7">
       {/* ── Masthead ─────────────────────────────────────────── */}
       <header className="amtlich-enter">
-        <div className="flex items-center justify-between">
-          <span className="amtlich-label">
-            <span className="amtlich-rivet" /> Aktenzeichen PB-2026
-          </span>
-          <span className="mono ink-faded" style={{ fontSize: "0.62rem" }}>
-            {currentDate}
-          </span>
-        </div>
+        <span className="amtlich-label">
+          <span className="amtlich-rivet" /> Your Application Folder
+        </span>
 
         <h1 className="mt-3 display">
-          Die Bewerbungs&shy;mappe
+          Your job search,<br />officially filed.
         </h1>
 
         <p
-          className="mt-2 ink-faded"
+          className="mt-3 ink-soft"
           style={{
             fontFamily: "var(--f-body)",
-            fontStyle: "italic",
-            fontSize: "0.95rem",
-            lineHeight: 1.45,
+            fontSize: "1rem",
+            lineHeight: 1.5,
+            maxWidth: "36ch",
           }}
         >
-          Your personal application folder for the German job market. Every CV, every
-          cover letter, every interview — officially recorded, neatly filed.
+          An AI career companion for Indian professionals targeting Germany.
+          Every CV, every cover letter, every interview — neatly filed in one folder.
         </p>
 
-        <hr className="amtlich-divider mt-4" />
+        <hr className="amtlich-divider mt-5" />
       </header>
 
-      {/* ── Stage Overview — looks like a stamped ledger row ── */}
+      {/* ── Stage Overview — ledger row ───────────────────────── */}
       <section className="amtlich-card amtlich-enter amtlich-enter-delay-1">
         <div className="flex items-center justify-between">
-          <span className="mono">Übersicht</span>
+          <span className="mono">Overview</span>
           <span className="amtlich-stamp amtlich-stamp--ink">Entwurf</span>
         </div>
 
@@ -106,14 +95,17 @@ export default function JobsAppHomePage() {
               <div
                 className={`display ${stage.tone}`}
                 style={{
-                  fontSize: "1.75rem",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 450',
+                  fontSize: "1.9rem",
+                  fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 500',
                   lineHeight: 1,
                 }}
               >
                 {String(stage.count).padStart(2, "0")}
               </div>
-              <div className="mono mt-1" style={{ fontSize: "0.58rem" }}>
+              <div
+                className="mono mt-1.5"
+                style={{ fontSize: "var(--fs-mono-xs)" }}
+              >
                 {stage.label}
               </div>
             </div>
@@ -126,22 +118,22 @@ export default function JobsAppHomePage() {
           className="ink-faded"
           style={{
             fontFamily: "var(--f-body)",
-            fontSize: "0.82rem",
-            fontStyle: "italic",
+            fontSize: "0.88rem",
           }}
         >
-          Register a profile to begin tracking applications.
+          Create a profile to start tracking applications.
         </p>
       </section>
 
-      {/* ── Quick Actions — two manila folders ───────────────── */}
-      <section className="space-y-5">
+      {/* ── Quick Actions — manila folders ───────────────────── */}
+      <section className="space-y-6">
         {quickActions.map(({ title, subtitle, href, icon: Icon, tab }, i) => (
           <Link
             key={title}
             href={href}
             className={`amtlich-folder block amtlich-enter amtlich-enter-delay-${i + 2}`}
             data-tab={tab}
+            style={{ textDecoration: "none" }}
           >
             <div className="flex items-start gap-4">
               <div
@@ -149,31 +141,31 @@ export default function JobsAppHomePage() {
                 style={{
                   borderColor: "var(--manila-edge)",
                   backgroundImage:
-                    "linear-gradient(180deg, #F5E4A6 0%, #DEBE6F 100%)",
+                    "linear-gradient(180deg, #F5E4A6 0%, #D4AA40 100%)",
                   boxShadow:
-                    "0 1px 0 rgba(255, 245, 200, 0.6) inset, 0 -1px 1px rgba(100, 70, 20, 0.2) inset, 0 2px 4px rgba(60, 40, 20, 0.15)",
+                    "0 1px 0 rgba(255, 245, 200, 0.65) inset, 0 -1px 1px rgba(100, 70, 20, 0.22) inset, 0 2px 4px rgba(60, 40, 20, 0.18)",
                 }}
               >
                 <Icon size={24} strokeWidth={1.6} className="ink" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <h3 className="display ink" style={{ fontSize: "1.15rem" }}>
+                <h3 className="display ink" style={{ fontSize: "1.2rem" }}>
                   {title}
                 </h3>
                 <p
                   className="mt-1 ink-soft"
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: "0.85rem",
+                    fontSize: "0.9rem",
                     lineHeight: 1.4,
                   }}
                 >
                   {subtitle}
                 </p>
                 <div className="mt-3 flex items-center gap-1.5">
-                  <span className="mono ink">Öffnen</span>
-                  <ArrowRight size={12} className="ink" />
+                  <span className="mono ink">Open folder</span>
+                  <ArrowRight size={12} strokeWidth={2.2} className="ink" />
                 </div>
               </div>
             </div>
@@ -184,35 +176,37 @@ export default function JobsAppHomePage() {
       {/* ── How it works — three stamped instructions ────────── */}
       <section className="amtlich-card amtlich-enter amtlich-enter-delay-4">
         <div className="flex items-center justify-between">
-          <span className="mono">Verfahren</span>
-          <span className="amtlich-stamp amtlich-stamp--blue">Offiziell</span>
+          <span className="mono">How it works</span>
+          <span className="amtlich-stamp amtlich-stamp--teal">Offiziell</span>
         </div>
 
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3.5">
           {howItWorks.map(({ step, title, body, icon: Icon }) => (
             <div key={step} className="flex items-start gap-3">
-              <div className="flex items-center gap-2 pt-0.5">
+              <div className="flex items-center gap-2 pt-1">
                 <span
                   className="display ink-faded"
                   style={{
-                    fontSize: "1.05rem",
-                    fontVariationSettings: '"opsz" 36, "SOFT" 60, "wght" 500',
+                    fontSize: "1.1rem",
+                    fontVariationSettings:
+                      '"opsz" 36, "SOFT" 50, "wght" 500',
                     fontStyle: "italic",
+                    minWidth: "22px",
                   }}
                 >
                   {step}
                 </span>
-                <Icon size={16} strokeWidth={1.5} className="ink-soft" />
+                <Icon size={16} strokeWidth={1.6} className="ink-soft" />
               </div>
               <div className="flex-1">
-                <h4 className="display ink" style={{ fontSize: "0.95rem" }}>
+                <h4 className="display ink" style={{ fontSize: "1rem" }}>
                   {title}
                 </h4>
                 <p
-                  className="ink-faded"
+                  className="ink-faded mt-0.5"
                   style={{
                     fontFamily: "var(--f-body)",
-                    fontSize: "0.78rem",
+                    fontSize: "0.84rem",
                     lineHeight: 1.45,
                   }}
                 >
@@ -229,7 +223,7 @@ export default function JobsAppHomePage() {
         className="amtlich-enter amtlich-enter-delay-4 flex items-center justify-between pt-2"
         style={{ paddingBottom: "1rem" }}
       >
-        <span className="mono ink-faded" style={{ fontSize: "0.6rem" }}>
+        <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
           planbeta.app · bewerbungsmappe
         </span>
         <span className="amtlich-rivet" />

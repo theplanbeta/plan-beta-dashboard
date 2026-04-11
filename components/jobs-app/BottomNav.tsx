@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation"
 import { Home, Briefcase, FileText, KanbanSquare, User } from "lucide-react"
 
 const tabs = [
-  { label: "Start", href: "/jobs-app", icon: Home },
-  { label: "Stellen", href: "/jobs-app/jobs", icon: Briefcase },
-  { label: "Unterlagen", href: "/jobs-app/cvs", icon: FileText },
-  { label: "Akten", href: "/jobs-app/applications", icon: KanbanSquare },
-  { label: "Profil", href: "/jobs-app/profile", icon: User },
+  { label: "Home", href: "/jobs-app", icon: Home },
+  { label: "Jobs", href: "/jobs-app/jobs", icon: Briefcase },
+  { label: "CVs", href: "/jobs-app/cvs", icon: FileText },
+  { label: "Tracker", href: "/jobs-app/applications", icon: KanbanSquare },
+  { label: "Profile", href: "/jobs-app/profile", icon: User },
 ]
 
 export function BottomNav() {
@@ -40,7 +40,7 @@ export function BottomNav() {
             >
               <Icon
                 size={18}
-                strokeWidth={active ? 2.2 : 1.6}
+                strokeWidth={active ? 2.2 : 1.7}
                 className="relative z-10 shrink-0"
                 aria-hidden="true"
               />

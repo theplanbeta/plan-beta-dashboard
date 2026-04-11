@@ -107,6 +107,29 @@ export async function POST(request: NextRequest) {
         })
 
         console.log(`[Stripe Webhook] Subscription created for ${email}`)
+
+        // ── Jobs App PWA tier (parallel upsert for JobSeeker) ─────
+        // If the checkout originated from the PWA, also mark the
+        // JobSeeker as PREMIUM so the PWA auth layer picks it up.
+        if (metadata.source === "jobs-app") {
+          const seekerEmail = email.toLowerCase()
+          await prisma.jobSeeker.updateMany({
+            where: { email: seekerEmail },
+            data: {
+              tier: "PREMIUM",
+              subscriptionStatus: "active",
+              billingProvider: "stripe",
+              stripeCustomerId: customerId,
+              subscriptionId: subscriptionId,
+              stripePriceId: sub.items.data[0]?.price?.id || null,
+              currentPeriodEnd: periodEnd,
+            },
+          })
+          console.log(
+            `[Stripe Webhook] JobSeeker upgraded to PRO: ${seekerEmail}`
+          )
+        }
+
         break
       }
 
@@ -129,6 +152,30 @@ export async function POST(request: NextRequest) {
           })
           console.log(`[Stripe Webhook] Subscription updated: ${subscriptionId} → ${sub.status}`)
         }
+
+        // ── Jobs App PWA (mirror status on JobSeeker) ─────────────
+        const subMetadata = sub.metadata || {}
+        if (subMetadata.source === "jobs-app") {
+          await prisma.jobSeeker.updateMany({
+            where: { subscriptionId: subscriptionId },
+            data: {
+              subscriptionStatus:
+                sub.status === "active"
+                  ? "active"
+                  : sub.status === "past_due"
+                  ? "past_due"
+                  : sub.status === "canceled"
+                  ? "canceled"
+                  : "inactive",
+              ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
+              ...(sub.status === "canceled" ? { tier: "FREE" } : {}),
+            },
+          })
+          console.log(
+            `[Stripe Webhook] JobSeeker status synced: ${subscriptionId} → ${sub.status}`
+          )
+        }
+
         break
       }
 
@@ -140,6 +187,16 @@ export async function POST(request: NextRequest) {
           where: { stripeSubscriptionId: subscriptionId },
           data: { status: "canceled" },
         })
+
+        // ── Jobs App PWA (downgrade JobSeeker to FREE) ─────────────
+        await prisma.jobSeeker.updateMany({
+          where: { subscriptionId: subscriptionId },
+          data: {
+            tier: "FREE",
+            subscriptionStatus: "canceled",
+          },
+        })
+
         console.log(`[Stripe Webhook] Subscription canceled: ${subscriptionId}`)
         break
       }
@@ -153,6 +210,13 @@ export async function POST(request: NextRequest) {
             where: { stripeSubscriptionId: subscriptionId },
             data: { status: "past_due" },
           })
+
+          // Jobs App PWA — mirror past_due status
+          await prisma.jobSeeker.updateMany({
+            where: { subscriptionId: subscriptionId },
+            data: { subscriptionStatus: "past_due" },
+          })
+
           console.log(`[Stripe Webhook] Payment failed for subscription: ${subscriptionId}`)
         }
         break

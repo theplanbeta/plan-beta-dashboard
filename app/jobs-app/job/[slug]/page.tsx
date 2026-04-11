@@ -1,4 +1,3 @@
-// app/jobs-app/job/[slug]/page.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -9,20 +8,23 @@ import {
   MapPin,
   Briefcase,
   Euro,
+  Languages,
   ExternalLink,
   FileText,
   Loader2,
+  Sparkles,
+  BookmarkPlus,
 } from "lucide-react"
-import MatchBadge from "@/components/jobs-app/MatchBadge"
 import { ScoreBreakdown } from "@/components/jobs-app/ScoreBreakdown"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
+import ApplicationKitModal from "@/components/jobs-app/ApplicationKitModal"
 import type { MatchLabel } from "@/lib/heuristic-scorer"
 import type { DeepScoreResult } from "@/lib/jobs-ai"
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "Full-time",
   PART_TIME: "Part-time",
-  WORKING_STUDENT: "Working Student",
+  WORKING_STUDENT: "Werkstudent",
   INTERNSHIP: "Internship",
   CONTRACT: "Contract",
 }
@@ -46,16 +48,32 @@ interface JobDetail {
   createdAt: string
 }
 
+function stampVariantForScore(score: number): string {
+  if (score >= 75) return "amtlich-stamp--green"
+  if (score >= 60) return "amtlich-stamp--teal"
+  return ""
+}
+
+function wetVariantForScore(score: number): string {
+  if (score >= 75) return "amtlich-stamp-wet--green"
+  if (score >= 60) return "amtlich-stamp-wet--blue"
+  return ""
+}
+
 export default function JobDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { seeker, isPremium } = useJobsAuth()
+  const { isPremium } = useJobsAuth()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [matchScore, setMatchScore] = useState<number | null>(null)
   const [matchLabel, setMatchLabel] = useState<MatchLabel | null>(null)
   const [deepScore, setDeepScore] = useState<DeepScoreResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(false)
+  const [showKitModal, setShowKitModal] = useState(false)
+  const [kitApplicationId, setKitApplicationId] = useState<string | null>(null)
+  const [trackingKit, setTrackingKit] = useState(false)
+  const [savingOnly, setSavingOnly] = useState(false)
 
   useEffect(() => {
     const slug = params.slug as string
@@ -94,144 +112,353 @@ export default function JobDetailPage() {
     }
   }
 
+  async function createOrGetApplication(
+    stage: "SAVED" | "APPLIED" = "SAVED"
+  ): Promise<string | null> {
+    if (!job) return null
+    try {
+      const res = await fetch("/api/jobs-app/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobPostingId: job.id, stage }),
+      })
+      const data = await res.json()
+      if (res.ok && data.application?.id) return data.application.id
+      if (res.status === 409 && data.application?.id) return data.application.id
+      alert(data.error || "Failed to track application")
+      return null
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to track application")
+      return null
+    }
+  }
+
+  async function handleTrackAndGenerateKit() {
+    if (!job) return
+    setTrackingKit(true)
+    try {
+      const id = await createOrGetApplication("SAVED")
+      if (id) {
+        setKitApplicationId(id)
+        setShowKitModal(true)
+      }
+    } finally {
+      setTrackingKit(false)
+    }
+  }
+
+  async function handleSaveToTracker() {
+    if (!job) return
+    setSavingOnly(true)
+    try {
+      const id = await createOrGetApplication("SAVED")
+      if (id) alert("Saved to your tracker")
+    } finally {
+      setSavingOnly(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+        <Loader2
+          className="h-7 w-7 animate-spin"
+          style={{ color: "var(--brass)" }}
+        />
       </div>
     )
   }
 
   if (!job) {
     return (
-      <div className="py-12 text-center text-sm text-gray-500">
-        Job not found.{" "}
-        <Link href="/jobs-app/jobs" className="text-blue-600 underline">
-          Browse all jobs
+      <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
+        <span className="amtlich-stamp amtlich-stamp--ink">File not found</span>
+        <p
+          className="ink-faded mt-4"
+          style={{ fontFamily: "var(--f-body)", fontSize: "0.9rem" }}
+        >
+          This job posting may have been archived.
+        </p>
+        <Link
+          href="/jobs-app/jobs"
+          className="mono mt-4 inline-block ink-teal"
+          style={{ textDecoration: "underline", fontSize: "var(--fs-mono-sm)" }}
+        >
+          Back to job index
         </Link>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4 pt-2">
-      {/* Back button */}
+    <div className="space-y-5">
+      {/* ── Back nav ────────────────────────────────────────── */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+        className="flex items-center gap-1.5 amtlich-enter"
+        style={{
+          fontFamily: "var(--f-mono)",
+          fontSize: "var(--fs-mono-sm)",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--ink-faded)",
+          background: "transparent",
+          border: "none",
+          padding: 0,
+        }}
       >
-        <ArrowLeft className="h-4 w-4" /> Back
+        <ArrowLeft size={14} strokeWidth={2} />
+        Back to index
       </button>
 
-      {/* Header */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">{job.title}</h1>
-            <p className="text-sm text-gray-600">{job.company}</p>
+      {/* ── Job Header Card (paper) ─────────────────────────── */}
+      <header className="amtlich-card amtlich-enter amtlich-enter-delay-1">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
+              {job.company}
+            </span>
+            <h1
+              className="display ink mt-1"
+              style={{
+                fontSize: "1.5rem",
+                lineHeight: 1.15,
+                fontVariationSettings: '"opsz" 72, "SOFT" 20, "wght" 560',
+              }}
+            >
+              {job.title}
+            </h1>
           </div>
           {matchScore !== null && matchLabel && (
-            <MatchBadge
-              score={matchScore}
-              label={matchLabel.label}
-              color={matchLabel.color}
-              bgColor={matchLabel.bgColor}
-              size="md"
-            />
+            <div className="shrink-0 pt-1">
+              <span
+                className={`amtlich-stamp amtlich-stamp-wet ${stampVariantForScore(
+                  matchScore
+                )} ${wetVariantForScore(matchScore)}`}
+                style={{ transform: "rotate(2deg)" }}
+              >
+                {matchScore}/100
+              </span>
+            </div>
           )}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-600">
+        <hr className="amtlich-divider" style={{ margin: "14px 0 10px" }} />
+
+        <dl
+          className="flex flex-wrap items-center gap-x-4 gap-y-2"
+          style={{ fontFamily: "var(--f-mono)", fontSize: "var(--fs-mono-xs)" }}
+        >
           {job.location && (
-            <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
-              <MapPin className="h-3 w-3" /> {job.location}
-            </span>
+            <div className="flex items-center gap-1.5 ink-soft">
+              <MapPin size={12} strokeWidth={1.8} />
+              <span>{job.location}</span>
+            </div>
           )}
           {job.jobType && (
-            <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
-              <Briefcase className="h-3 w-3" /> {JOB_TYPE_LABELS[job.jobType] || job.jobType}
-            </span>
+            <div className="flex items-center gap-1.5 ink-soft">
+              <Briefcase size={12} strokeWidth={1.8} />
+              <span>{JOB_TYPE_LABELS[job.jobType] || job.jobType}</span>
+            </div>
           )}
           {(job.salaryMin || job.salaryMax) && (
-            <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1">
-              <Euro className="h-3 w-3" />
-              {job.salaryMin && job.salaryMax
-                ? `${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()} EUR`
-                : job.salaryMin
-                ? `From ${job.salaryMin.toLocaleString()} EUR`
-                : `Up to ${job.salaryMax?.toLocaleString()} EUR`}
-            </span>
+            <div className="flex items-center gap-1.5 ink-soft">
+              <Euro size={12} strokeWidth={1.8} />
+              <span>
+                {job.salaryMin && job.salaryMax
+                  ? `${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()}`
+                  : job.salaryMin
+                  ? `from ${job.salaryMin.toLocaleString()}`
+                  : `up to ${job.salaryMax?.toLocaleString()}`}
+                <span className="ink-faded"> EUR</span>
+              </span>
+            </div>
           )}
           {job.germanLevel && (
-            <span className="rounded-full bg-gray-100 px-2.5 py-1">
-              German: {job.germanLevel}
-            </span>
+            <div className="flex items-center gap-1.5 ink-soft">
+              <Languages size={12} strokeWidth={1.8} />
+              <span>DE {job.germanLevel}</span>
+            </div>
           )}
+        </dl>
+      </header>
+
+      {/* ── AI Score Breakdown (premium) ────────────────────── */}
+      {deepScore && (
+        <div className="amtlich-enter amtlich-enter-delay-2">
+          <ScoreBreakdown deepScore={deepScore} />
         </div>
-      </div>
+      )}
 
-      {/* AI Score Breakdown (premium only) */}
-      {deepScore && <ScoreBreakdown deepScore={deepScore} />}
-
-      {/* Actions */}
-      <div className="flex gap-2">
+      {/* ── Primary action ──────────────────────────────────── */}
+      <div className="space-y-3 amtlich-enter amtlich-enter-delay-3">
         {isPremium ? (
           <button
-            onClick={handleGenerateCV}
-            disabled={generating}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:bg-blue-300"
+            type="button"
+            onClick={handleTrackAndGenerateKit}
+            disabled={trackingKit}
+            className="amtlich-btn amtlich-btn--primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+            style={{ padding: "14px 22px" }}
           >
-            {generating ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Generating CV...
-              </>
+            {trackingKit ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                <Loader2 size={14} className="animate-spin" />
+                Preparing kit…
+              </span>
             ) : (
-              <>
-                <FileText className="h-4 w-4" /> Generate CV & Apply
-              </>
+              <span className="inline-flex items-center justify-center gap-2">
+                <Sparkles size={14} strokeWidth={2.2} />
+                Track &amp; Generate Kit
+              </span>
             )}
           </button>
         ) : (
           <Link
             href="/jobs-app/settings"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            className="amtlich-btn amtlich-btn--primary block w-full text-center no-underline"
+            style={{ padding: "14px 22px" }}
           >
-            <FileText className="h-4 w-4" /> Upgrade to Generate CV
+            <span className="inline-flex items-center justify-center gap-2">
+              <FileText size={14} strokeWidth={2.2} />
+              Upgrade to generate CV
+            </span>
           </Link>
         )}
 
-        {job.applyUrl && (
-          <a
-            href={job.applyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1 rounded-xl border border-gray-200 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <ExternalLink className="h-4 w-4" /> Apply
-          </a>
-        )}
+        {/* Secondary row */}
+        <div className="flex gap-2">
+          {isPremium && (
+            <>
+              <button
+                type="button"
+                onClick={handleSaveToTracker}
+                disabled={savingOnly}
+                className="amtlich-btn flex-1 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
+              >
+                {savingOnly ? (
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <Loader2 size={12} className="animate-spin" />
+                    Saving
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <BookmarkPlus size={12} strokeWidth={2.2} />
+                    Save
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleGenerateCV}
+                disabled={generating}
+                className="amtlich-btn flex-1 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
+              >
+                {generating ? (
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <Loader2 size={12} className="animate-spin" />
+                    CV
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center justify-center gap-1.5">
+                    <FileText size={12} strokeWidth={2.2} />
+                    CV only
+                  </span>
+                )}
+              </button>
+            </>
+          )}
+          {job.applyUrl && (
+            <a
+              href={job.applyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="amtlich-btn flex items-center justify-center gap-1.5 flex-1 no-underline"
+              style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
+            >
+              <ExternalLink size={12} strokeWidth={2.2} />
+              Portal
+            </a>
+          )}
+        </div>
       </div>
 
-      {/* Description */}
-      {job.description && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Description</h2>
-          <div className="whitespace-pre-wrap text-sm text-gray-600">
-            {job.description}
-          </div>
-        </div>
+      {/* ── Application Kit Modal ───────────────────────────── */}
+      {kitApplicationId && (
+        <ApplicationKitModal
+          isOpen={showKitModal}
+          onClose={() => setShowKitModal(false)}
+          applicationId={kitApplicationId}
+        />
       )}
 
-      {/* Requirements */}
+      {/* ── Description (document page style) ───────────────── */}
+      {job.description && (
+        <section
+          className="amtlich-page amtlich-enter amtlich-enter-delay-4"
+          style={{ padding: "22px 22px 40px" }}
+        >
+          <div className="mb-3 flex items-center justify-between">
+            <span className="mono">Role description</span>
+            <span className="amtlich-stamp amtlich-stamp--ink">Gelesen</span>
+          </div>
+          <div
+            className="whitespace-pre-wrap ink-soft"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.95rem",
+              lineHeight: 1.58,
+            }}
+          >
+            {job.description}
+          </div>
+        </section>
+      )}
+
+      {/* ── Requirements ──────────────────────────────────── */}
       {job.requirements.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <h2 className="mb-2 text-sm font-semibold text-gray-900">Requirements</h2>
-          <ul className="list-disc pl-4 text-sm text-gray-600">
+        <section className="amtlich-card amtlich-enter">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="mono">Requirements</span>
+            <span
+              className="mono ink-faded"
+              style={{ fontSize: "var(--fs-mono-xs)" }}
+            >
+              {job.requirements.length} items
+            </span>
+          </div>
+          <ul
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.92rem",
+              lineHeight: 1.55,
+              color: "var(--ink-soft)",
+              paddingLeft: 0,
+              listStyle: "none",
+            }}
+          >
             {job.requirements.map((req, i) => (
-              <li key={i}>{req}</li>
+              <li
+                key={i}
+                className="flex items-start gap-3"
+                style={{ marginBottom: "6px" }}
+              >
+                <span
+                  className="mono ink-faded"
+                  style={{
+                    fontSize: "var(--fs-mono-xs)",
+                    minWidth: "22px",
+                    paddingTop: "3px",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span>{req}</span>
+              </li>
             ))}
           </ul>
-        </div>
+        </section>
       )}
     </div>
   )

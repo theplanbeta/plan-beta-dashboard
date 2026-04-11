@@ -1,8 +1,9 @@
 // lib/jobs-ai.ts
 /**
- * AI orchestrator for PlanBeta Jobs.
+ * AI orchestrator for Plan Beta Day Zero.
  * - scoreJobDeep(): Claude Haiku — detailed match scoring
  * - generateCVContent(): Claude Sonnet — tailored CV content
+ * - generateAnschreiben(): Claude Sonnet — German cover letter
  */
 
 import Anthropic from "@anthropic-ai/sdk"
@@ -249,4 +250,133 @@ Return JSON:
   }
 
   return JSON.parse(text.text) as CVContentResult
+}
+
+// ── Anschreiben (Cover Letter) Generation (Claude Sonnet) ──────────────
+
+export interface AnschreibenResult {
+  senderBlock: string    // e.g. "Priya Sharma\nMusterstraße 1\n10115 Berlin"
+  date: string           // e.g. "10. April 2026"
+  recipientBlock: string // e.g. "Siemens AG\nPersonalabteilung\nMünchen"
+  subject: string        // e.g. "Bewerbung als Software Engineer"
+  salutation: string     // e.g. "Sehr geehrte Damen und Herren,"
+  paragraphs: string[]   // 3-4 paragraphs of body text
+  closing: string        // e.g. "Mit freundlichen Grüßen"
+  signature: string      // e.g. "Priya Sharma"
+}
+
+export async function generateAnschreiben(
+  profile: {
+    firstName: string | null
+    lastName: string | null
+    email: string
+    phone: string | null
+    currentJobTitle: string | null
+    yearsOfExperience: number | null
+    germanLevel: string | null
+    englishLevel: string | null
+    skills: any
+    workExperience: any
+    education: any
+    certifications: any
+    visaStatus: string | null
+  },
+  job: {
+    title: string
+    company: string
+    description: string | null
+    requirements: string[]
+    germanLevel: string | null
+    location: string | null
+  },
+  language: "en" | "de" = "en"
+): Promise<AnschreibenResult> {
+  const client = getClient()
+
+  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Candidate"
+
+  const response = await client.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 2000,
+    system: `You are an expert German Anschreiben (cover letter) writer for international candidates applying to German companies. You write formal, culturally-appropriate cover letters that strictly follow German business correspondence conventions (DIN 5008-inspired).
+
+GERMAN ANSCHREIBEN STRUCTURE (mandatory):
+1. Sender block (Absender): candidate's name, contact info — top-right in the final PDF
+2. Date (Datum): current date in German or English format depending on output language
+3. Recipient block (Empfänger): company name, department (Personalabteilung if unknown), city
+4. Subject line (Betreff): "Bewerbung als <Job Title>" in German / "Application for <Job Title>" in English — bold, no "Betreff:" label
+5. Salutation (Anrede): "Sehr geehrte Damen und Herren," (German) or "Dear Hiring Manager," (English) if no named contact
+6. Body (Hauptteil): 3-4 paragraphs
+7. Closing (Grußformel): "Mit freundlichen Grüßen" (German) or "Sincerely" (English)
+8. Signature: candidate's full name
+
+BODY PARAGRAPH RULES:
+- Paragraph 1 — Why this company and role: Show research about the company. Reference something specific about their work, values, or the role. Open with enthusiasm but remain formal (German cover letters are NOT casual).
+- Paragraph 2 — Relevant experience: Connect 2-3 concrete experiences directly to the job description keywords and requirements. Use measurable achievements where possible. Never fabricate — only reformulate what the candidate has already done.
+- Paragraph 3 — Why Germany / relocation motivation: Critical for international applicants. Explain motivation to live and work in Germany, German language commitment (mention current level), cultural interest, long-term career vision in the German market. Show visa readiness if relevant.
+- Paragraph 4 — Closing: Availability / earliest start date, salary expectation only if provided, polite forward-looking statement ("Über die Gelegenheit zu einem persönlichen Gespräch würde ich mich sehr freuen" / "I would welcome the opportunity to discuss my application in a personal interview").
+
+ABSOLUTE RULES:
+- NEVER fabricate experience, skills, employers, projects, or qualifications
+- ONLY reformulate existing experience using the job description's vocabulary
+- Match the output language exactly: if "de", write everything in formal German (Sie-form, never "du"). If "en", write in formal professional English.
+- Tone: formal, confident, respectful — not salesy, not casual, not overly humble
+- Avoid clichés like "I am a team player" — prove claims with specific evidence
+- Keep each paragraph focused; total body should be ~250-350 words
+- Do NOT include placeholder text like "[Your Address]" — omit address fields that aren't provided
+
+OUTPUT FORMAT:
+Return VALID JSON ONLY, no markdown, no code fences, no commentary. Exact structure:
+{
+  "senderBlock": "<name only if no address available, else name + address lines separated by \\n>",
+  "date": "<today's date in language-appropriate format>",
+  "recipientBlock": "<company>\\n<department>\\n<city>",
+  "subject": "<Bewerbung als ... | Application for ...>",
+  "salutation": "<Sehr geehrte Damen und Herren, | Dear Hiring Manager,>",
+  "paragraphs": ["<para 1>", "<para 2>", "<para 3>", "<para 4>"],
+  "closing": "<Mit freundlichen Grüßen | Sincerely>",
+  "signature": "<full name>"
+}`,
+    messages: [
+      {
+        role: "user",
+        content: `Write a German Anschreiben (cover letter) for this candidate and job. Output language: ${language === "de" ? "German (Deutsch)" : "English"}.
+
+TODAY'S DATE: ${new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-GB", { year: "numeric", month: "long", day: "numeric" })}
+
+CANDIDATE PROFILE:
+- Full Name: ${fullName}
+- Email: ${profile.email}
+- Phone: ${profile.phone || "Not provided"}
+- Current Title: ${profile.currentJobTitle || "Not specified"}
+- Years of Experience: ${profile.yearsOfExperience ?? "Not specified"}
+- German Level: ${profile.germanLevel || "Not specified"}
+- English Level: ${profile.englishLevel || "Not specified"}
+- Visa Status: ${profile.visaStatus || "Not specified"}
+- Skills: ${JSON.stringify(profile.skills || {})}
+- Work Experience: ${JSON.stringify(profile.workExperience || [])}
+- Education: ${JSON.stringify(profile.education || [])}
+- Certifications: ${JSON.stringify(profile.certifications || [])}
+
+TARGET JOB:
+- Title: ${job.title}
+- Company: ${job.company}
+- Location: ${job.location || "Germany"}
+- German Required: ${job.germanLevel || "None specified"}
+- Requirements: ${job.requirements.join(", ") || "None listed"}
+- Description: ${(job.description || "").slice(0, 3000)}
+
+Generate the Anschreiben now. Return JSON only.`,
+      },
+    ],
+  })
+
+  const text = response.content.find((c) => c.type === "text")
+  if (!text || text.type !== "text") {
+    throw new Error("No text response from Claude")
+  }
+
+  // Strip any accidental markdown code fences before parsing
+  const raw = text.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")
+  return JSON.parse(raw) as AnschreibenResult
 }

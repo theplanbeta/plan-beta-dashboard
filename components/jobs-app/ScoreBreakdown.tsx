@@ -1,61 +1,156 @@
-// components/jobs-app/ScoreBreakdown.tsx
 "use client"
 
 import type { DeepScoreResult } from "@/lib/jobs-ai"
-import { getMatchLabel } from "@/lib/heuristic-scorer"
 
 interface ScoreBreakdownProps {
   deepScore: DeepScoreResult
 }
 
-export function ScoreBreakdown({ deepScore }: ScoreBreakdownProps) {
-  const overall = getMatchLabel(deepScore.overallScore)
+function stampVariant(score: number): string {
+  if (score >= 75) return "amtlich-stamp--green"
+  if (score >= 60) return "amtlich-stamp--teal"
+  return ""
+}
 
+function barColor(score: number): string {
+  if (score >= 75) return "var(--stamp-green)"
+  if (score >= 50) return "var(--stamp-teal)"
+  return "var(--brass-shadow)"
+}
+
+export function ScoreBreakdown({ deepScore }: ScoreBreakdownProps) {
   return (
-    <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
-      {/* Overall score */}
+    <section className="amtlich-card">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">AI Match Analysis</h3>
-        <span className={`rounded-full px-3 py-1 text-sm font-bold ${overall.color} ${overall.bgColor}`}>
-          {deepScore.overallScore} — {overall.label}
+        <span className="mono">AI Analysis</span>
+        <span
+          className={`amtlich-stamp ${stampVariant(deepScore.overallScore)}`}
+          style={{ transform: "rotate(-2deg)" }}
+        >
+          {deepScore.overallScore}/100
         </span>
       </div>
 
+      <hr className="amtlich-divider" style={{ margin: "14px 0 10px" }} />
+
       {/* Summary */}
-      <p className="text-sm text-gray-600">{deepScore.summary}</p>
+      <p
+        className="ink-soft"
+        style={{
+          fontFamily: "var(--f-body)",
+          fontSize: "0.92rem",
+          lineHeight: 1.5,
+        }}
+      >
+        {deepScore.summary}
+      </p>
 
       {/* Dimensions */}
-      <div className="space-y-2">
+      <div className="mt-5 space-y-3.5">
         {deepScore.dimensions.map((dim) => (
           <div key={dim.name}>
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-gray-700">{dim.name}</span>
-              <span className="text-gray-500">{dim.score}/100</span>
+            <div className="flex items-center justify-between">
+              <span
+                className="mono ink-soft"
+                style={{
+                  fontSize: "var(--fs-mono-xs)",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {dim.name}
+              </span>
+              <span
+                className="display"
+                style={{
+                  fontSize: "0.95rem",
+                  fontVariationSettings: '"opsz" 36, "SOFT" 20, "wght" 560',
+                  color: "var(--ink)",
+                }}
+              >
+                {dim.score}
+              </span>
             </div>
-            <div className="mt-1 h-2 rounded-full bg-gray-100">
+
+            {/* Progress bar — ink on paper, not a colored pill */}
+            <div
+              style={{
+                marginTop: "6px",
+                height: "3px",
+                background: "rgba(140, 102, 24, 0.18)",
+                borderRadius: "1px",
+                overflow: "hidden",
+                position: "relative",
+              }}
+            >
               <div
-                className={`h-2 rounded-full ${
-                  dim.score >= 75 ? "bg-emerald-500" : dim.score >= 50 ? "bg-blue-500" : "bg-orange-400"
-                }`}
-                style={{ width: `${dim.score}%` }}
+                style={{
+                  height: "100%",
+                  width: `${dim.score}%`,
+                  background: barColor(dim.score),
+                  borderRadius: "1px",
+                  boxShadow:
+                    dim.score >= 75
+                      ? "0 0 0 0.5px rgba(47, 122, 58, 0.4)"
+                      : "0 0 0 0.5px rgba(12, 107, 107, 0.3)",
+                  transition: "width 400ms ease-out",
+                }}
               />
             </div>
-            <p className="mt-0.5 text-xs text-gray-500">{dim.explanation}</p>
+
+            <p
+              className="ink-faded mt-1.5"
+              style={{
+                fontFamily: "var(--f-body)",
+                fontSize: "0.78rem",
+                lineHeight: 1.45,
+              }}
+            >
+              {dim.explanation}
+            </p>
           </div>
         ))}
       </div>
 
       {/* Gaps */}
       {deepScore.gaps.length > 0 && (
-        <div>
-          <h4 className="text-xs font-semibold text-gray-700">Gaps to Address</h4>
-          <ul className="mt-1 list-disc pl-4 text-xs text-gray-500">
+        <>
+          <hr className="amtlich-divider" style={{ margin: "16px 0 10px" }} />
+          <span className="mono">Gaps to address</span>
+          <ul
+            className="mt-2 space-y-1"
+            style={{ paddingLeft: 0, listStyle: "none" }}
+          >
             {deepScore.gaps.map((gap, i) => (
-              <li key={i}>{gap}</li>
+              <li
+                key={i}
+                className="flex items-start gap-2"
+                style={{
+                  fontFamily: "var(--f-body)",
+                  fontSize: "0.82rem",
+                  color: "var(--ink-soft)",
+                  lineHeight: 1.45,
+                }}
+              >
+                <span
+                  className="ink-faded"
+                  style={{
+                    fontFamily: "var(--f-mono)",
+                    fontSize: "0.6rem",
+                    minWidth: "16px",
+                    paddingTop: "3px",
+                  }}
+                >
+                  —
+                </span>
+                <span>{gap}</span>
+              </li>
             ))}
           </ul>
-        </div>
+        </>
       )}
-    </div>
+    </section>
   )
 }
+
+export default ScoreBreakdown

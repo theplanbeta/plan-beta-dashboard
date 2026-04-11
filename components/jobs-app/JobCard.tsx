@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { MapPin, Briefcase, Euro } from "lucide-react"
-import MatchBadge from "./MatchBadge"
+import { MapPin, Euro, Languages } from "lucide-react"
 import type { MatchLabel } from "@/lib/heuristic-scorer"
 
 // ---------------------------------------------------------------------------
@@ -23,21 +22,13 @@ export interface JobData {
   createdAt?: Date | string
 }
 
-// ---------------------------------------------------------------------------
-// Job type label map
-// ---------------------------------------------------------------------------
-
 const JOB_TYPE_LABELS: Record<string, string> = {
   FULL_TIME: "Full-time",
   PART_TIME: "Part-time",
-  WORKING_STUDENT: "Working Student",
+  WORKING_STUDENT: "Werkstudent",  // German flavor word — common
   INTERNSHIP: "Internship",
   CONTRACT: "Contract",
 }
-
-// ---------------------------------------------------------------------------
-// Salary formatter
-// ---------------------------------------------------------------------------
 
 function formatSalary(
   min: number | null | undefined,
@@ -49,6 +40,12 @@ function formatSalary(
   if (min && max) return `${fmt(min)}–${fmt(max)}`
   if (max) return `up to ${fmt(max)}`
   return `from ${fmt(min!)}`
+}
+
+function stampVariantForScore(score: number): string {
+  if (score >= 75) return "amtlich-stamp--green"
+  if (score >= 60) return "amtlich-stamp--teal"
+  return ""
 }
 
 // ---------------------------------------------------------------------------
@@ -70,62 +67,103 @@ export function JobCard({
 }: JobData) {
   const href = slug ? `/jobs-app/job/${slug}` : "#"
   const salaryLabel = formatSalary(salaryMin, salaryMax)
-  const jobTypeLabel = jobType ? (JOB_TYPE_LABELS[jobType] ?? jobType) : null
+  const jobTypeLabel = jobType ? JOB_TYPE_LABELS[jobType] ?? jobType : null
 
   return (
     <Link
       href={href}
-      className="group relative flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
+      className="amtlich-card group block no-underline"
+      style={{ textDecoration: "none" }}
     >
-      {/* Match badge — top-right */}
-      {matchScore != null && matchLabel ? (
-        <div className="absolute right-4 top-4">
-          <MatchBadge
-            score={matchScore}
-            label={matchLabel.label}
-            color={matchLabel.color}
-            bgColor={matchLabel.bgColor}
-            size="sm"
-          />
+      {/* Header row: company + wet rubber stamp score */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
+            {company}
+          </span>
+          <h3
+            className="display ink mt-1"
+            style={{
+              fontSize: "1.1rem",
+              lineHeight: 1.2,
+              fontVariationSettings: '"opsz" 36, "SOFT" 25, "wght" 580',
+            }}
+          >
+            {title}
+          </h3>
         </div>
-      ) : null}
 
-      {/* Title + company */}
-      <div className="pr-24">
-        <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-blue-600">
-          {title}
-        </h3>
-        <p className="mt-0.5 truncate text-sm text-gray-500">{company}</p>
+        {matchScore !== null && matchScore !== undefined && (
+          <div className="shrink-0 pt-1">
+            <span
+              className={`amtlich-stamp amtlich-stamp-wet ${stampVariantForScore(
+                matchScore
+              )} ${
+                matchScore >= 75
+                  ? "amtlich-stamp-wet--green"
+                  : matchScore >= 60
+                  ? "amtlich-stamp-wet--blue"
+                  : ""
+              }`}
+              style={{ transform: "rotate(2deg)" }}
+            >
+              {matchScore}/100
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Metadata pills */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-        {location ? (
-          <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5">
-            <MapPin className="h-3 w-3 shrink-0" />
-            {location}
-          </span>
-        ) : null}
+      {/* Divider */}
+      <hr className="amtlich-divider" style={{ margin: "10px 0 8px" }} />
 
-        {jobTypeLabel ? (
-          <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5">
-            <Briefcase className="h-3 w-3 shrink-0" />
-            {jobTypeLabel}
-          </span>
-        ) : null}
+      {/* Metadata row — typewriter labels */}
+      <dl
+        className="flex flex-wrap items-center gap-x-4 gap-y-1.5"
+        style={{ fontFamily: "var(--f-mono)", fontSize: "var(--fs-mono-xs)" }}
+      >
+        {location && (
+          <div className="flex items-center gap-1 ink-soft">
+            <MapPin size={11} strokeWidth={1.8} />
+            <span>{location}</span>
+          </div>
+        )}
+        {jobTypeLabel && (
+          <div className="flex items-center gap-1 ink-soft">
+            <span className="ink-faded" style={{ fontSize: "0.6rem" }}>
+              ◈
+            </span>
+            <span>{jobTypeLabel}</span>
+          </div>
+        )}
+        {salaryLabel && (
+          <div className="flex items-center gap-1 ink-soft">
+            <Euro size={11} strokeWidth={1.8} />
+            <span>
+              {salaryLabel}
+              {currency && currency !== "EUR" ? ` ${currency}` : ""}
+            </span>
+          </div>
+        )}
+        {germanLevel && (
+          <div className="flex items-center gap-1 ink-soft">
+            <Languages size={11} strokeWidth={1.8} />
+            <span>DE {germanLevel}</span>
+          </div>
+        )}
+      </dl>
 
-        {salaryLabel ? (
-          <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5">
-            <Euro className="h-3 w-3 shrink-0" />
-            {salaryLabel}
-            {currency && currency !== "EUR" ? ` ${currency}` : ""}
-          </span>
-        ) : null}
-
-        {germanLevel ? (
-          <span className="rounded-full bg-gray-100 px-2.5 py-0.5">{germanLevel}</span>
-        ) : null}
-      </div>
+      {/* Match label text */}
+      {matchLabel && (
+        <p
+          className="ink-faded mt-3"
+          style={{
+            fontFamily: "var(--f-body)",
+            fontSize: "0.8rem",
+          }}
+        >
+          {matchLabel.label}
+        </p>
+      )}
     </Link>
   )
 }

@@ -1,6 +1,6 @@
 // Plan Beta Service Worker — Push Notifications + Caching + Offline + Background Sync
 
-const CACHE_NAME = "planbeta-v3"
+const CACHE_NAME = "planbeta-v4"
 
 // Pages to precache on install
 const PRECACHE_URLS = [

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
  * in the top-right of every screen. Context-aware: reads the route
  * and produces a fresh suffix. Free delight, zero API cost.
  *
- * Example: PB-2026-0412 · 11.04.2026 · FILE OPEN
+ * Example: DZ-2026-0412 · 11.04.2026 · FILE OPEN
  */
 
 const ROUTE_SUFFIX: Record<string, string> = {
@@ -22,14 +22,14 @@ const ROUTE_SUFFIX: Record<string, string> = {
 function makeSerial(): string {
   const year = new Date().getFullYear()
   // Deterministic per-session random so it stays stable on a given visit
-  if (typeof window === "undefined") return `PB-${year}-0000`
-  const stored = sessionStorage.getItem("pb-serial")
+  if (typeof window === "undefined") return `DZ-${year}-0000`
+  const stored = sessionStorage.getItem("dz-serial")
   if (stored) return stored
   const num = Math.floor(Math.random() * 9999)
     .toString()
     .padStart(4, "0")
-  const serial = `PB-${year}-${num}`
-  sessionStorage.setItem("pb-serial", serial)
+  const serial = `DZ-${year}-${num}`
+  sessionStorage.setItem("dz-serial", serial)
   return serial
 }
 

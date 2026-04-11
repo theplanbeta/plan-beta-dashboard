@@ -59,11 +59,11 @@ export default function JobsAppHomePage() {
       {/* ── Masthead ─────────────────────────────────────────── */}
       <header className="amtlich-enter">
         <span className="amtlich-label">
-          <span className="amtlich-rivet" /> Your Application Folder
+          <span className="amtlich-rivet" /> № 00 · Day Zero
         </span>
 
         <h1 className="mt-3 display">
-          Your job search,<br />officially filed.
+          Day Zero with us,<br />Day One at work.
         </h1>
 
         <p
@@ -75,8 +75,8 @@ export default function JobsAppHomePage() {
             maxWidth: "36ch",
           }}
         >
-          An AI career companion for Indian professionals targeting Germany.
-          Every CV, every cover letter, every interview — neatly filed in one folder.
+          The career companion for professionals on their way to Germany. Every CV,
+          every cover letter, every interview — neatly filed in one folder.
         </p>
 
         <hr className="amtlich-divider mt-5" />
@@ -224,7 +224,7 @@ export default function JobsAppHomePage() {
         style={{ paddingBottom: "1rem" }}
       >
         <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
-          planbeta.app · bewerbungsmappe
+          dayzero.xyz · by plan beta
         </span>
         <span className="amtlich-rivet" />
       </footer>

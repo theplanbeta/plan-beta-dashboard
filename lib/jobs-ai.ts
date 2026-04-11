@@ -1,8 +1,9 @@
 // lib/jobs-ai.ts
 /**
- * AI orchestrator for PlanBeta Jobs.
+ * AI orchestrator for Plan Beta Day Zero.
  * - scoreJobDeep(): Claude Haiku — detailed match scoring
  * - generateCVContent(): Claude Sonnet — tailored CV content
+ * - generateAnschreiben(): Claude Sonnet — German cover letter
  */
 
 import Anthropic from "@anthropic-ai/sdk"

@@ -37,11 +37,21 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ─── PlanBeta Jobs App routing ──────────────────────────────────────
-  const isJobsAppDomain = hostname.includes("jobs.planbeta.app") || hostname.includes("jobs.localhost")
+  // ─── Plan Beta Day Zero routing ─────────────────────────────────────
+  // Strict hostname match to prevent substring attacks. Each entry checks
+  // either exact host or host+port for dev. Strip port, compare the base.
+  const baseHost = hostname.split(":")[0]
+  const DAY_ZERO_HOSTS = new Set([
+    "dayzero.xyz",
+    "www.dayzero.xyz",
+    "jobs.planbeta.app", // legacy fallback during transition
+    "dayzero.localhost",
+    "jobs.localhost",
+  ])
+  const isDayZeroDomain = DAY_ZERO_HOSTS.has(baseHost)
 
-  if (isJobsAppDomain) {
-    // Block dashboard/login access on jobs app domain
+  if (isDayZeroDomain) {
+    // Block dashboard/login access on Day Zero domain
     if (path.startsWith("/dashboard") || path === "/login") {
       return NextResponse.redirect(new URL("/", request.url))
     }

@@ -62,10 +62,16 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Derive the return URL from the originating request so users on
+  // dayzero.xyz return to dayzero.xyz, not to a hardcoded fallback.
+  // Falls back to https://dayzero.xyz if neither origin nor env are set.
+  const originHeader = request.headers.get("origin") || ""
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const appUrl = rawAppUrl.startsWith("https://")
+  const appUrl = originHeader.startsWith("https://")
+    ? originHeader.replace(/\/+$/, "")
+    : rawAppUrl.startsWith("https://")
     ? rawAppUrl.trim().replace(/\/+$/, "")
-    : "https://jobs.planbeta.app"
+    : "https://dayzero.xyz"
 
   const successUrl = `${appUrl}/jobs-app/settings?upgraded=true&session_id={CHECKOUT_SESSION_ID}`
   const cancelUrl = `${appUrl}/jobs-app/settings`

@@ -31,10 +31,15 @@ export async function POST(request: Request) {
     )
   }
 
+  // Return URL derived from the originating request so dayzero.xyz users
+  // come back to dayzero.xyz, not to a hardcoded fallback.
+  const originHeader = request.headers.get("origin") || ""
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const appUrl = rawAppUrl.startsWith("https://")
+  const appUrl = originHeader.startsWith("https://")
+    ? originHeader.replace(/\/+$/, "")
+    : rawAppUrl.startsWith("https://")
     ? rawAppUrl.trim().replace(/\/+$/, "")
-    : "https://jobs.planbeta.app"
+    : "https://dayzero.xyz"
 
   try {
     const session = await stripe.billingPortal.sessions.create({

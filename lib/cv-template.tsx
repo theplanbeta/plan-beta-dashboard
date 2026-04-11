@@ -272,7 +272,7 @@ export function CVTemplate({
 
         {/* Watermark for free tier */}
         {showWatermark && (
-          <Text style={styles.watermark}>Generated with PlanBeta Jobs</Text>
+          <Text style={styles.watermark}>Generated with Plan Beta Day Zero</Text>
         )}
       </Page>
     </Document>

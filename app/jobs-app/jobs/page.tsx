@@ -8,6 +8,18 @@ import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 
 type Job = JobData & { id: string }
 
+const GERMAN_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
+const PROFESSIONS = [
+  "Nursing",
+  "Engineering",
+  "IT",
+  "Healthcare",
+  "Hospitality",
+  "Accounting",
+  "Teaching",
+  "Other",
+]
+
 export default function JobsPage() {
   const { seeker, loading: authLoading } = useJobsAuth()
 
@@ -34,7 +46,7 @@ export default function JobsPage() {
       if (res.ok) {
         const data = await res.json()
         setJobs(data.jobs ?? [])
-        setTotalPages(data.totalPages ?? 1)
+        setTotalPages(data.totalPages ?? data.pagination?.pages ?? 1)
       }
     } finally {
       setLoading(false)
@@ -42,167 +54,286 @@ export default function JobsPage() {
   }, [page, sort, germanLevel, profession])
 
   useEffect(() => {
-    if (!authLoading) {
-      fetchJobs()
-    }
+    if (!authLoading) fetchJobs()
   }, [fetchJobs, authLoading])
 
-  function handleGermanLevelChange(value: string) {
-    setGermanLevel(value)
-    setPage(1)
-  }
-
-  function handleProfessionChange(value: string) {
-    setProfession(value)
-    setPage(1)
-  }
-
-  function handleSortChange(value: string) {
-    setSort(value)
+  function resetPage() {
     setPage(1)
   }
 
   const showProfileBanner = !seeker || !seeker.onboardingComplete
 
   return (
-    <div className="space-y-4">
-      {/* Header row */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Jobs</h1>
-        <button
-          onClick={() => setShowFilters((v) => !v)}
-          className="flex items-center gap-1.5 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100"
-          aria-label="Toggle filters"
-        >
-          <SlidersHorizontal size={16} />
-          <span>Filters</span>
-        </button>
-      </div>
+    <div className="space-y-5">
+      {/* ── Masthead ────────────────────────────────────────── */}
+      <header className="amtlich-enter">
+        <div className="flex items-center justify-between">
+          <span className="amtlich-label">
+            <span className="amtlich-rivet" /> Stellenverzeichnis
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowFilters((v) => !v)}
+            className="flex items-center gap-1.5"
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.62rem",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--ink-soft)",
+              background: "transparent",
+              border: "1px dashed rgba(138, 106, 60, 0.5)",
+              borderRadius: "2px",
+              padding: "5px 10px",
+            }}
+          >
+            <SlidersHorizontal size={11} strokeWidth={2} />
+            Filter
+          </button>
+        </div>
 
-      {/* Profile banner */}
+        <h1 className="display mt-3" style={{ fontSize: "1.85rem" }}>
+          Offene Stellen
+        </h1>
+        <p
+          className="ink-faded mt-1"
+          style={{
+            fontFamily: "var(--f-body)",
+            fontSize: "0.85rem",
+            fontStyle: "italic",
+          }}
+        >
+          Hand-picked roles from the German market, scored against your profile.
+        </p>
+        <hr className="amtlich-divider mt-3" />
+      </header>
+
+      {/* ── Profile banner ──────────────────────────────────── */}
       {showProfileBanner && (
         <Link
           href="/jobs-app/onboarding"
-          className="flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-700 hover:bg-blue-100"
+          className="amtlich-card amtlich-enter amtlich-enter-delay-1 block no-underline"
+          style={{ textDecoration: "none", padding: "14px 16px" }}
         >
-          <span>
-            {!seeker
-              ? "Create a profile to see personalized match scores"
-              : "Complete your profile to see match scores"}
-          </span>
-          <span className="ml-auto shrink-0 font-medium">Set up &rarr;</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <span className="mono" style={{ fontSize: "0.58rem" }}>
+                Profil unvollständig
+              </span>
+              <p
+                className="ink mt-1"
+                style={{
+                  fontFamily: "var(--f-body)",
+                  fontStyle: "italic",
+                  fontSize: "0.88rem",
+                  lineHeight: 1.3,
+                }}
+              >
+                {!seeker
+                  ? "Register your profile to unlock personalised match scores."
+                  : "Complete your profile to see match scores on every job."}
+              </p>
+            </div>
+            <span
+              className="amtlich-stamp amtlich-stamp--blue"
+              style={{ transform: "rotate(3deg)", fontSize: "0.58rem" }}
+            >
+              Eintragen
+            </span>
+          </div>
         </Link>
       )}
 
-      {/* Filters panel */}
+      {/* ── Filters panel ───────────────────────────────────── */}
       {showFilters && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+        <div className="amtlich-card amtlich-enter" style={{ padding: "16px" }}>
+          <div className="mb-3 flex items-center justify-between">
+            <span className="mono">Sortierung & Filter</span>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            {/* German Level */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">
-                German Level
-              </label>
+            <FilterField label="Deutsch-Niveau">
               <select
                 value={germanLevel}
-                onChange={(e) => handleGermanLevelChange(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setGermanLevel(e.target.value)
+                  resetPage()
+                }}
+                className="amtlich-select"
               >
-                <option value="">All</option>
-                <option value="A1">A1</option>
-                <option value="A2">A2</option>
-                <option value="B1">B1</option>
-                <option value="B2">B2</option>
-                <option value="C1">C1</option>
-                <option value="C2">C2</option>
+                <option value="">Alle</option>
+                {GERMAN_LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
               </select>
-            </div>
+            </FilterField>
 
-            {/* Profession */}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-600">
-                Profession
-              </label>
+            <FilterField label="Berufsfeld">
               <select
                 value={profession}
-                onChange={(e) => handleProfessionChange(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => {
+                  setProfession(e.target.value)
+                  resetPage()
+                }}
+                className="amtlich-select"
               >
-                <option value="">All</option>
-                <option value="Nursing">Nursing</option>
-                <option value="Engineering">Engineering</option>
-                <option value="IT">IT</option>
-                <option value="Healthcare">Healthcare</option>
-                <option value="Hospitality">Hospitality</option>
-                <option value="Accounting">Accounting</option>
-                <option value="Teaching">Teaching</option>
-                <option value="Other">Other</option>
+                <option value="">Alle</option>
+                {PROFESSIONS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
               </select>
-            </div>
+            </FilterField>
           </div>
 
-          {/* Sort */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Sort by</label>
-            <select
-              value={sort}
-              onChange={(e) => handleSortChange(e.target.value)}
-              className="rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="match">Best Match</option>
-              <option value="newest">Newest</option>
-              <option value="salary">Highest Salary</option>
-            </select>
+          <div className="mt-3">
+            <FilterField label="Sortierung">
+              <select
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value)
+                  resetPage()
+                }}
+                className="amtlich-select"
+              >
+                <option value="match">Bestes Match</option>
+                <option value="newest">Neueste zuerst</option>
+                <option value="salary">Höchstes Gehalt</option>
+              </select>
+            </FilterField>
           </div>
+
+          <style jsx>{`
+            .amtlich-select {
+              width: 100%;
+              font-family: var(--f-mono);
+              font-size: 0.72rem;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: var(--ink);
+              background-color: #fbf4dc;
+              background-image: linear-gradient(
+                180deg,
+                #fdf6de 0%,
+                #f2e6b8 100%
+              );
+              border: 1px solid var(--manila-edge);
+              border-radius: 2px;
+              padding: 6px 10px;
+              box-shadow:
+                0 1px 2px rgba(60, 40, 20, 0.15) inset,
+                0 1px 0 rgba(255, 250, 220, 0.6);
+            }
+          `}</style>
         </div>
       )}
 
-      {/* Jobs list */}
-      <div className="space-y-3">
+      {/* ── Job list ────────────────────────────────────────── */}
+      <div className="space-y-4">
         {loading ? (
-          Array.from({ length: 5 }).map((_, i) => (
+          Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-24 animate-pulse rounded-xl bg-gray-200"
+              className="amtlich-card"
+              style={{
+                height: "120px",
+                opacity: 0.4,
+                animation: "pulse 1.5s ease-in-out infinite",
+              }}
             />
           ))
         ) : jobs.length === 0 ? (
-          <p className="py-12 text-center text-sm text-gray-500">
-            No jobs found
-          </p>
+          <div className="amtlich-card text-center" style={{ padding: "32px 20px" }}>
+            <span
+              className="amtlich-stamp amtlich-stamp--ink"
+              style={{ transform: "rotate(-3deg)" }}
+            >
+              Keine Treffer
+            </span>
+            <p
+              className="ink-faded mt-3"
+              style={{
+                fontFamily: "var(--f-body)",
+                fontStyle: "italic",
+                fontSize: "0.85rem",
+              }}
+            >
+              Try adjusting your filters or profile preferences.
+            </p>
+          </div>
         ) : (
-          jobs.map((job) => <JobCard key={job.id} {...job} />)
+          jobs.map((job, i) => (
+            <div
+              key={job.id}
+              className="amtlich-enter"
+              style={{ animationDelay: `${Math.min(i * 40, 200)}ms` }}
+            >
+              <JobCard {...job} />
+            </div>
+          ))
         )}
       </div>
 
-      {/* Pagination */}
-      {!loading && jobs.length > 0 && (
+      {/* ── Pagination ──────────────────────────────────────── */}
+      {!loading && jobs.length > 0 && totalPages > 1 && (
         <div className="flex items-center justify-between pt-2">
           <button
+            type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Previous page"
+            className="amtlich-btn disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ padding: "8px 14px", fontSize: "0.62rem" }}
           >
-            <ChevronLeft size={16} />
-            <span>Previous</span>
+            <ChevronLeft size={12} className="inline-block mr-1" />
+            Zurück
           </button>
 
-          <span className="text-sm text-gray-500">
-            {page} / {totalPages}
+          <span
+            className="mono ink-faded"
+            style={{ fontSize: "0.68rem" }}
+          >
+            Seite {page} / {totalPages}
           </span>
 
           <button
+            type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-            aria-label="Next page"
+            className="amtlich-btn disabled:cursor-not-allowed disabled:opacity-40"
+            style={{ padding: "8px 14px", fontSize: "0.62rem" }}
           >
-            <span>Next</span>
-            <ChevronRight size={16} />
+            Weiter
+            <ChevronRight size={12} className="inline-block ml-1" />
           </button>
         </div>
       )}
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Helper components
+// ---------------------------------------------------------------------------
+
+function FilterField({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span
+        className="mono"
+        style={{ fontSize: "0.58rem", color: "var(--ink-faded)" }}
+      >
+        {label}
+      </span>
+      {children}
+    </label>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { MapPin, Calendar, Trash2 } from "lucide-react"
+import { MapPin, Calendar, X } from "lucide-react"
 import StageSelector from "./StageSelector"
 
 // ---------------------------------------------------------------------------
@@ -34,26 +34,26 @@ function formatRelativeUpdated(iso: string): string {
   if (Number.isNaN(then)) return ""
   const diffMs = Date.now() - then
   const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return "Updated just now"
-  if (diffMin < 60) return `Updated ${diffMin} min ago`
+  if (diffMin < 1) return "jetzt"
+  if (diffMin < 60) return `vor ${diffMin} Min.`
   const diffHr = Math.floor(diffMin / 60)
-  if (diffHr < 24) return `Updated ${diffHr} hr${diffHr === 1 ? "" : "s"} ago`
+  if (diffHr < 24) return `vor ${diffHr} Std.`
   const diffDay = Math.floor(diffHr / 24)
-  if (diffDay < 7) return `Updated ${diffDay} day${diffDay === 1 ? "" : "s"} ago`
+  if (diffDay < 7) return `vor ${diffDay} T.`
   const diffWk = Math.floor(diffDay / 7)
-  if (diffWk < 4) return `Updated ${diffWk} wk${diffWk === 1 ? "" : "s"} ago`
+  if (diffWk < 4) return `vor ${diffWk} Wo.`
   const diffMo = Math.floor(diffDay / 30)
-  return `Updated ${diffMo} mo${diffMo === 1 ? "" : "s"} ago`
+  return `vor ${diffMo} Mon.`
 }
 
 function formatInterviewDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ""
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "short" })
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Component — styled as a pinned index card
 // ---------------------------------------------------------------------------
 
 export default function ApplicationCard({
@@ -76,7 +76,7 @@ export default function ApplicationCard({
     e.stopPropagation()
     if (
       typeof window !== "undefined" &&
-      !window.confirm(`Remove "${jobTitle}" from your tracker?`)
+      !window.confirm(`"${jobTitle}" aus der Akte entfernen?`)
     ) {
       return
     }
@@ -94,52 +94,92 @@ export default function ApplicationCard({
           onClick(id)
         }
       }}
-      className="group relative flex flex-col gap-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+      className="amtlich-card group relative cursor-pointer focus:outline-none"
+      style={{ padding: "14px 16px" }}
     >
-      {/* Header: title + stage selector */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 pr-2">
-          <h3 className="truncate text-sm font-semibold text-gray-900 group-hover:text-blue-600">
-            {jobTitle}
-          </h3>
-          <p className="mt-0.5 truncate text-sm text-gray-500">{jobCompany}</p>
-        </div>
-        <div className="flex shrink-0 items-start gap-1">
+      {/* Brass rivet (top-left) */}
+      <span
+        className="amtlich-rivet absolute"
+        style={{ top: "8px", left: "8px" }}
+        aria-hidden="true"
+      />
+
+      {/* Delete button (top-right) */}
+      <button
+        type="button"
+        onClick={handleDelete}
+        aria-label="Bewerbung entfernen"
+        className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full"
+        style={{
+          background: "rgba(230, 210, 170, 0.3)",
+          border: "1px solid rgba(138, 106, 60, 0.3)",
+          color: "var(--ink-faded)",
+        }}
+      >
+        <X size={12} strokeWidth={2.2} />
+      </button>
+
+      {/* Header row */}
+      <div className="pl-6 pr-8">
+        <span className="mono ink-faded" style={{ fontSize: "0.58rem" }}>
+          {jobCompany}
+        </span>
+        <h3
+          className="display ink mt-0.5"
+          style={{
+            fontSize: "1rem",
+            lineHeight: 1.2,
+            fontVariationSettings: '"opsz" 36, "SOFT" 40, "wght" 550',
+          }}
+        >
+          {jobTitle}
+        </h3>
+      </div>
+
+      <hr className="amtlich-divider" style={{ margin: "10px 0 8px" }} />
+
+      {/* Stage + interview row */}
+      <div className="flex items-center justify-between gap-2">
+        <div onClick={(e) => e.stopPropagation()}>
           <StageSelector
             currentStage={stage}
             onChange={(newStage) => onStageChange(id, newStage)}
           />
-          <button
-            type="button"
-            onClick={handleDelete}
-            aria-label="Delete application"
-            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
         </div>
+
+        {interviewDate && (
+          <div
+            className="flex items-center gap-1"
+            style={{
+              fontFamily: "var(--f-mono)",
+              fontSize: "0.62rem",
+              color: "var(--stamp-blue)",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            <Calendar size={11} strokeWidth={2} />
+            {formatInterviewDate(interviewDate)}
+          </div>
+        )}
       </div>
 
-      {/* Location */}
-      {jobLocation ? (
-        <div className="flex items-center gap-1 text-xs text-gray-500">
-          <MapPin className="h-3 w-3 shrink-0" />
-          <span className="truncate">{jobLocation}</span>
+      {/* Footer row: location + timestamp */}
+      <div
+        className="mt-2 flex items-center justify-between"
+        style={{ fontFamily: "var(--f-mono)", fontSize: "0.6rem" }}
+      >
+        <div className="flex items-center gap-1 ink-faded">
+          {jobLocation && (
+            <>
+              <MapPin size={10} strokeWidth={1.8} />
+              <span className="truncate">{jobLocation}</span>
+            </>
+          )}
         </div>
-      ) : null}
-
-      {/* Interview date — prominent */}
-      {interviewDate ? (
-        <div className="mt-1 flex items-center gap-1.5 rounded-md bg-purple-50 px-2.5 py-1.5 text-xs font-medium text-purple-800 ring-1 ring-inset ring-purple-200">
-          <Calendar className="h-3.5 w-3.5 shrink-0" />
-          Interview: {formatInterviewDate(interviewDate)}
-        </div>
-      ) : null}
-
-      {/* Updated timestamp */}
-      <p className="mt-1 text-[11px] text-gray-400">
-        {formatRelativeUpdated(updatedAt)}
-      </p>
+        <span className="ink-faded">{formatRelativeUpdated(updatedAt)}</span>
+      </div>
     </div>
   )
 }

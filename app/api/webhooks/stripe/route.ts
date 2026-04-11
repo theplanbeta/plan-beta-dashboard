@@ -53,13 +53,20 @@ export async function POST(request: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.mode !== "subscription") break
 
-        const email = session.customer_email
+        // A-H6: fall back to customer_details.email when customer_email is null
+        // (happens when the checkout session is created without a
+        // pre-filled email and Stripe collects it on the hosted page).
+        const rawEmail = session.customer_email ?? session.customer_details?.email
+        // A-C5: lowercase email consistently so every downstream lookup matches
+        const email = rawEmail ? rawEmail.toLowerCase() : null
         const customerId = session.customer as string
         const subscriptionId = session.subscription as string
         const metadata = session.metadata || {}
 
         if (!email) {
-          console.error("[Stripe Webhook] No email in checkout session")
+          console.error(
+            "[Stripe Webhook] No email on checkout session or customer_details"
+          )
           break
         }
 
@@ -67,7 +74,14 @@ export async function POST(request: NextRequest) {
         const sub = await stripe.subscriptions.retrieve(subscriptionId)
         const periodEnd = getPeriodEnd(sub)
 
-        const tier = sub.items.data[0]?.price?.id === process.env.STRIPE_PREMIUM_PRICE_ID ? "premium" : "legacy"
+        // A-H5: Detect Pro tier via the new Day Zero price ids in addition
+        // to the legacy STRIPE_PREMIUM_PRICE_ID (EUR 1.99 basic portal).
+        const priceId = sub.items.data[0]?.price?.id
+        const isPro =
+          priceId === process.env.STRIPE_PRO_PRICE_MONTHLY_EU ||
+          priceId === process.env.STRIPE_PRO_PRICE_ANNUAL_EU
+        const isLegacyPremium = priceId === process.env.STRIPE_PREMIUM_PRICE_ID
+        const tier = isPro ? "pro" : isLegacyPremium ? "premium" : "legacy"
 
         await prisma.jobSubscription.upsert({
           where: { email },
@@ -109,25 +123,25 @@ export async function POST(request: NextRequest) {
         console.log(`[Stripe Webhook] Subscription created for ${email}`)
 
         // ── Jobs App PWA tier (parallel upsert for JobSeeker) ─────
-        // If the checkout originated from the PWA, also mark the
-        // JobSeeker as PREMIUM so the PWA auth layer picks it up.
-        if (metadata.source === "jobs-app") {
-          const seekerEmail = email.toLowerCase()
+        // Upgrade the JobSeeker to PREMIUM when the checkout is flagged
+        // as coming from the PWA OR when the price matches a Day Zero
+        // Pro price id (defence in depth — metadata can be lost if the
+        // customer re-enters the flow).
+        if (metadata.source === "jobs-app" || isPro) {
+          // email is already lowercased above; use it directly
           await prisma.jobSeeker.updateMany({
-            where: { email: seekerEmail },
+            where: { email },
             data: {
               tier: "PREMIUM",
               subscriptionStatus: "active",
               billingProvider: "stripe",
               stripeCustomerId: customerId,
               subscriptionId: subscriptionId,
-              stripePriceId: sub.items.data[0]?.price?.id || null,
+              stripePriceId: priceId ?? null,
               currentPeriodEnd: periodEnd,
             },
           })
-          console.log(
-            `[Stripe Webhook] JobSeeker upgraded to PRO: ${seekerEmail}`
-          )
+          console.log(`[Stripe Webhook] JobSeeker upgraded to PRO: ${email}`)
         }
 
         break
@@ -142,39 +156,46 @@ export async function POST(request: NextRequest) {
           where: { stripeSubscriptionId: subscriptionId },
         })
 
+        // A-H1: trialing should be treated as active (user has Pro access
+        // during the trial window). Previously it fell through to
+        // "existing.status" which left the seeker stuck on the old value.
+        const mappedStatus =
+          sub.status === "active" || sub.status === "trialing"
+            ? "active"
+            : sub.status === "past_due"
+            ? "past_due"
+            : sub.status === "canceled"
+            ? "canceled"
+            : "inactive"
+
         if (existing) {
           await prisma.jobSubscription.update({
             where: { stripeSubscriptionId: subscriptionId },
             data: {
-              status: sub.status === "active" ? "active" : sub.status === "past_due" ? "past_due" : existing.status,
+              status: mappedStatus === "inactive" ? existing.status : mappedStatus,
               ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
-            },
-          })
-          console.log(`[Stripe Webhook] Subscription updated: ${subscriptionId} → ${sub.status}`)
-        }
-
-        // ── Jobs App PWA (mirror status on JobSeeker) ─────────────
-        const subMetadata = sub.metadata || {}
-        if (subMetadata.source === "jobs-app") {
-          await prisma.jobSeeker.updateMany({
-            where: { subscriptionId: subscriptionId },
-            data: {
-              subscriptionStatus:
-                sub.status === "active"
-                  ? "active"
-                  : sub.status === "past_due"
-                  ? "past_due"
-                  : sub.status === "canceled"
-                  ? "canceled"
-                  : "inactive",
-              ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
-              ...(sub.status === "canceled" ? { tier: "FREE" } : {}),
             },
           })
           console.log(
-            `[Stripe Webhook] JobSeeker status synced: ${subscriptionId} → ${sub.status}`
+            `[Stripe Webhook] Subscription updated: ${subscriptionId} → ${sub.status} (mapped: ${mappedStatus})`
           )
         }
+
+        // ── Jobs App PWA (mirror status on JobSeeker) ─────────────
+        // Always try to sync the JobSeeker side, keyed by subscriptionId.
+        // updateMany() is a no-op if no seeker matches, so the extra
+        // call is free and removes the metadata-loss foot-gun.
+        await prisma.jobSeeker.updateMany({
+          where: { subscriptionId: subscriptionId },
+          data: {
+            subscriptionStatus: mappedStatus,
+            ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
+            ...(sub.status === "canceled" ? { tier: "FREE" } : {}),
+          },
+        })
+        console.log(
+          `[Stripe Webhook] JobSeeker status synced: ${subscriptionId} → ${mappedStatus}`
+        )
 
         break
       }

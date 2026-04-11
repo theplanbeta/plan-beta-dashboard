@@ -6,12 +6,14 @@ import { requireJobSeeker, JobSeekerWithProfile } from "@/lib/jobs-app-auth"
 
 // ---------------------------------------------------------------------------
 // Validation schema (all fields optional)
+// stage / outcome are validated against the Prisma enums so callers can't
+// write arbitrary strings that slip past casts and eventually fail in SQL.
 // ---------------------------------------------------------------------------
 const UpdateSchema = z.object({
-  stage: z.string().optional(),
+  stage: z.nativeEnum(ApplicationStage).optional(),
   notes: z.string().nullable().optional(),
   interviewDate: z.string().nullable().optional(),
-  outcome: z.string().nullable().optional(),
+  outcome: z.nativeEnum(ApplicationOutcome).nullable().optional(),
   outcomeNotes: z.string().nullable().optional(),
   salaryOffered: z.number().nullable().optional(),
   nextAction: z.string().nullable().optional(),
@@ -90,7 +92,7 @@ export async function PUT(
   const data: Prisma.JobApplicationUpdateInput = {}
 
   if (stage !== undefined) {
-    data.stage = stage as ApplicationStage
+    data.stage = stage
   }
   if (notes !== undefined) {
     data.notes = notes
@@ -99,7 +101,7 @@ export async function PUT(
     data.nextAction = nextAction
   }
   if (outcome !== undefined) {
-    data.outcome = outcome === null ? null : (outcome as ApplicationOutcome)
+    data.outcome = outcome
   }
   if (outcomeNotes !== undefined) {
     // outcomeNotes is not a distinct column on JobApplication — persist it via notes

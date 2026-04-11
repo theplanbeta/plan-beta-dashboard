@@ -31,15 +31,20 @@ export async function GET(request: Request) {
   // Student bundle
   const hasStudentBundle = !!seeker.planBetaStudentId
 
-  // Effective tier resolution
-  const effective =
-    seeker.tier === "PREMIUM"
-      ? "pro"
-      : hasStudentBundle
-      ? "student"
-      : hasLegacyActive
-      ? "grandfathered"
-      : "free"
+  // Effective tier resolution. Note the "pro" branch now also requires
+  // subscriptionStatus === "active" — previously a canceled PREMIUM
+  // seeker still showed as "pro" in the UI until the webhook downgraded
+  // their tier field (A-H3 drift bug).
+  const hasActivePro =
+    seeker.tier === "PREMIUM" && seeker.subscriptionStatus === "active"
+
+  const effective = hasActivePro
+    ? "pro"
+    : hasStudentBundle
+    ? "student"
+    : hasLegacyActive
+    ? "grandfathered"
+    : "free"
 
   return NextResponse.json({
     subscription: {

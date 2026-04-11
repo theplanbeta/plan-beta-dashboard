@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
 import { scoreJobDeep } from "@/lib/jobs-ai"
+import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 export async function GET(
   request: Request,
@@ -79,6 +80,16 @@ export async function GET(
 
     // AI deep score for premium users only (grandfathered legacy counts)
     if (await isPremiumEffective(seeker)) {
+      // Per-seeker rate limit on AI deep scoring — cost damper on
+      // Claude Haiku calls. Silently skip (return heuristic only) on
+      // limit rather than failing the whole page load.
+      const deepLimited = checkRateLimit(
+        `deepscore:${seeker.id}`,
+        RL.JOB_DEEP_SCORE
+      )
+      if (deepLimited) {
+        return NextResponse.json(response)
+      }
       try {
         const deepScore = await scoreJobDeep(
           {

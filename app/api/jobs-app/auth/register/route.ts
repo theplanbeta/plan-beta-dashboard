@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hashPassword, signJobsAppToken } from "@/lib/jobs-app-auth"
+import { checkRateLimit, getClientIp, RL } from "@/lib/jobs-app-rate-limit"
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -10,6 +11,12 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  // Rate-limit registration by IP. 3 sign-ups/hour is enough for real
+  // users (sharing a household IP) and well below spam-bot volume.
+  const ip = getClientIp(request)
+  const ipLimited = checkRateLimit(`register:ip:${ip}`, RL.AUTH_REGISTER)
+  if (ipLimited) return ipLimited
+
   let body: unknown
   try {
     body = await request.json()

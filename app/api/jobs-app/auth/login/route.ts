@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, signJobsAppToken } from "@/lib/jobs-app-auth"
+import { checkRateLimit, getClientIp, RL } from "@/lib/jobs-app-rate-limit"
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -26,6 +27,18 @@ export async function POST(request: Request) {
 
   const { email, password } = parsed.data
   const normalizedEmail = email.toLowerCase()
+
+  // Rate-limit by both IP and email so a single attacker can't iterate
+  // passwords from one IP and can't spray across many IPs against a
+  // single known-good email.
+  const ip = getClientIp(request)
+  const ipLimited = checkRateLimit(`login:ip:${ip}`, RL.AUTH_LOGIN)
+  if (ipLimited) return ipLimited
+  const emailLimited = checkRateLimit(
+    `login:email:${normalizedEmail}`,
+    RL.AUTH_LOGIN
+  )
+  if (emailLimited) return emailLimited
 
   const seeker = await prisma.jobSeeker.findUnique({
     where: { email: normalizedEmail },

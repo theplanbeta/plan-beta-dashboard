@@ -12,6 +12,7 @@ import { ApplicationStage } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker, JobSeekerWithProfile } from "@/lib/jobs-app-auth"
 import { classifyScreenshot } from "@/lib/application-classifier"
+import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 export const maxDuration = 30
 
@@ -30,6 +31,14 @@ export async function POST(request: Request) {
     if (e instanceof Response) return e
     throw e
   }
+
+  // --- Rate limit -----------------------------------------------------------
+  // Screenshot classification calls Claude Vision — expensive. Cap per seeker.
+  const limited = checkRateLimit(
+    `screenshot:${seeker.id}`,
+    RL.SCREENSHOT_CLASSIFY
+  )
+  if (limited) return limited
 
   // --- Parse multipart form -------------------------------------------------
   let formData: FormData

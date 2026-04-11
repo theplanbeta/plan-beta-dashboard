@@ -8,6 +8,11 @@ import { renderToBuffer } from "@react-pdf/renderer"
 import { put } from "@vercel/blob"
 import { z } from "zod"
 import React from "react"
+import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
+
+/** Discriminator value stored in GeneratedCV.templateUsed for Anschreiben. */
+const ANSCHREIBEN_TEMPLATE = "anschreiben"
+const ANSCHREIBEN_MONTHLY_CAP = 5
 
 const generateSchema = z.object({
   jobPostingId: z.string().min(1),
@@ -32,6 +37,35 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Anschreiben generation requires a Premium subscription" },
       { status: 403 }
+    )
+  }
+
+  // Per-seeker burst rate limit
+  const limited = checkRateLimit(`anschreiben:${seeker.id}`, RL.ANSCHREIBEN_GENERATE)
+  if (limited) return limited
+
+  // Monthly cap — 5 Anschreibens per seeker per calendar month. We
+  // discriminate by templateUsed = "anschreiben" on the shared
+  // GeneratedCV table so we don't need a new Prisma model just for
+  // counting. See hardening plan § 3.3.
+  const startOfMonth = new Date()
+  startOfMonth.setDate(1)
+  startOfMonth.setHours(0, 0, 0, 0)
+
+  const anschreibenCount = await prisma.generatedCV.count({
+    where: {
+      seekerId: seeker.id,
+      templateUsed: ANSCHREIBEN_TEMPLATE,
+      createdAt: { gte: startOfMonth },
+    },
+  })
+
+  if (anschreibenCount >= ANSCHREIBEN_MONTHLY_CAP) {
+    return NextResponse.json(
+      {
+        error: `Monthly cover letter limit reached (${ANSCHREIBEN_MONTHLY_CAP}/month)`,
+      },
+      { status: 429 }
     )
   }
 
@@ -118,11 +152,27 @@ export async function POST(request: Request) {
     contentType: "application/pdf",
   })
 
+  // Record the generation so the monthly cap counter reflects it.
+  // We reuse GeneratedCV with templateUsed = "anschreiben" as the
+  // discriminator; the /cvs page filters the UI by this field.
+  await prisma.generatedCV.create({
+    data: {
+      seekerId: seeker.id,
+      jobPostingId: job.id,
+      fileUrl: blob.url,
+      fileKey: blob.pathname,
+      keywordsUsed: [],
+      templateUsed: ANSCHREIBEN_TEMPLATE,
+      language,
+    },
+  })
+
   return NextResponse.json({
     anschreiben: {
       fileUrl: blob.url,
       language,
       generatedAt: new Date().toISOString(),
     },
+    remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,
   })
 }

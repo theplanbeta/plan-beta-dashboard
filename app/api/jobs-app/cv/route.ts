@@ -12,8 +12,14 @@ export async function GET(request: Request) {
     throw e
   }
 
+  // Exclude Anschreibens (stored in the same table with templateUsed =
+  // "anschreiben" for cap-counting purposes). The CVs archive should
+  // only show real CVs.
   const cvs = await prisma.generatedCV.findMany({
-    where: { seekerId: seeker.id },
+    where: {
+      seekerId: seeker.id,
+      NOT: { templateUsed: "anschreiben" },
+    },
     orderBy: { createdAt: "desc" },
     take: 50,
   })

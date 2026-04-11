@@ -397,8 +397,12 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #C9A865;   /* WCAG-legible on kraft */
+  /* U-C1: bumped from #C9A865 (2.33:1 on kraft) to #E8D69A (~4.6:1)
+     so inactive tab labels pass WCAG AA contrast. */
+  color: #E8D69A;
   transition: color 140ms ease-out, transform 140ms ease-out;
+  /* Ensure touch targets — each tab gets at least 44×44 via layout */
+  min-height: 44px;
 }
 
 .amtlich-filetab span.label {
@@ -598,4 +602,54 @@
 
 .pb-auth-input:focus-visible {
   outline: none;
+}
+
+/* ============================================================
+   A11y sweep — U-C1 … U-C7 from the hardening audit
+   ============================================================ */
+
+/* Safe-area utility for iPhone home-indicator clearance.
+   Consumed by BottomNav via pb-safe class. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0.75rem);
+}
+
+/* Keyboard-only focus ring across the whole amtlich surface.
+   focus-visible means we don't steal the visual click-click ring
+   from mouse users, but keyboard + switch-control users always
+   see where the focus is. */
+.amtlich :focus-visible {
+  outline: 2px solid var(--stamp-red);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* iOS Safari zoom prevention — bump any native form control inside
+   the amtlich layout to a 16px floor. Tailwind + inline font-size
+   utilities elsewhere can still enlarge; this is the minimum. */
+.amtlich input,
+.amtlich textarea,
+.amtlich select {
+  font-size: max(16px, 1rem);
+}
+
+/* Reduced-motion honoured globally for skeuomorphic animations.
+   Users who opted out via system settings get zero movement —
+   the stamp thunk, ink bleed, enter-slide and shimmer all freeze. */
+@media (prefers-reduced-motion: reduce) {
+  .amtlich *,
+  .amtlich *::before,
+  .amtlich *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .amtlich-stamp,
+  .amtlich-stamp-wet,
+  .amtlich-enter,
+  .amtlich-filetab {
+    transform: none !important;
+    filter: none !important;
+  }
 }

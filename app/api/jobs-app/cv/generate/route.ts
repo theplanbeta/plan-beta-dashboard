@@ -15,7 +15,7 @@ const generateSchema = z.object({
   language: z.enum(["en", "de"]).default("en"),
 })
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   let seeker
@@ -98,79 +98,91 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
-  // Generate CV content via Claude Sonnet
-  const cvContent = await generateCVContent(
-    {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email: seeker.email,
-      phone: profile.phone,
-      currentJobTitle: profile.currentJobTitle,
-      yearsOfExperience: profile.yearsOfExperience,
-      germanLevel: profile.germanLevel,
-      englishLevel: profile.englishLevel,
-      skills: profile.skills,
-      workExperience: profile.workExperience,
-      education: profile.educationDetails,
-      certifications: profile.certifications,
-      visaStatus: profile.visaStatus,
-    },
-    {
-      title: job.title,
-      company: job.company,
-      description: job.description,
-      requirements: job.requirements,
-      germanLevel: job.germanLevel,
-    },
-    language
-  )
+  try {
+    // Generate CV content via Claude Sonnet
+    const cvContent = await generateCVContent(
+      {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: seeker.email,
+        phone: profile.phone,
+        currentJobTitle: profile.currentJobTitle,
+        yearsOfExperience: profile.yearsOfExperience,
+        germanLevel: profile.germanLevel,
+        englishLevel: profile.englishLevel,
+        skills: profile.skills,
+        workExperience: profile.workExperience,
+        education: profile.educationDetails,
+        certifications: profile.certifications,
+        visaStatus: profile.visaStatus,
+      },
+      {
+        title: job.title,
+        company: job.company,
+        description: job.description,
+        requirements: job.requirements,
+        germanLevel: job.germanLevel,
+      },
+      language
+    )
 
-  // Render PDF
-  const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || seeker.name || "Candidate"
+    // Render PDF
+    const fullName =
+      [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+      seeker.name ||
+      "Candidate"
 
-  const pdfBuffer = await renderToBuffer(
-    React.createElement(CVTemplate, {
-      content: cvContent,
-      name: fullName,
-      email: seeker.email,
-      phone: profile.phone,
-      germanLevel: profile.germanLevel,
-      visaStatus: profile.visaStatus,
-      language,
-      showWatermark: false, // premium users get no watermark
+    const pdfBuffer = await renderToBuffer(
+      React.createElement(CVTemplate, {
+        content: cvContent,
+        name: fullName,
+        email: seeker.email,
+        phone: profile.phone,
+        germanLevel: profile.germanLevel,
+        visaStatus: profile.visaStatus,
+        language,
+        showWatermark: false,
+      })
+    )
+
+    // Upload to Vercel Blob
+    const slug = job.slug || job.id
+    const fileName = `cvs/${seeker.id}/${slug}-${Date.now()}.pdf`
+
+    const blob = await put(fileName, pdfBuffer, {
+      access: "public",
+      contentType: "application/pdf",
     })
-  )
 
-  // Upload to Vercel Blob
-  const slug = job.slug || job.id
-  const fileName = `cvs/${seeker.id}/${slug}-${Date.now()}.pdf`
+    // Save record
+    const generatedCV = await prisma.generatedCV.create({
+      data: {
+        seekerId: seeker.id,
+        jobPostingId: job.id,
+        fileUrl: blob.url,
+        fileKey: blob.pathname,
+        keywordsUsed: cvContent.keywordsUsed,
+        templateUsed: "ats-standard",
+        language,
+      },
+    })
 
-  const blob = await put(fileName, pdfBuffer, {
-    access: "public",
-    contentType: "application/pdf",
-  })
-
-  // Save record
-  const generatedCV = await prisma.generatedCV.create({
-    data: {
-      seekerId: seeker.id,
-      jobPostingId: job.id,
-      fileUrl: blob.url,
-      fileKey: blob.pathname,
-      keywordsUsed: cvContent.keywordsUsed,
-      templateUsed: "ats-standard",
-      language,
-    },
-  })
-
-  return NextResponse.json({
-    cv: {
-      id: generatedCV.id,
-      fileUrl: generatedCV.fileUrl,
-      language: generatedCV.language,
-      keywordsUsed: generatedCV.keywordsUsed,
-      createdAt: generatedCV.createdAt,
-    },
-    remaining: 5 - cvCount - 1,
-  })
+    return NextResponse.json({
+      cv: {
+        id: generatedCV.id,
+        fileUrl: generatedCV.fileUrl,
+        language: generatedCV.language,
+        keywordsUsed: generatedCV.keywordsUsed,
+        createdAt: generatedCV.createdAt,
+      },
+      remaining: 5 - cvCount - 1,
+    })
+  } catch (error) {
+    console.error("[cv/generate] Failed:", error)
+    const message =
+      error instanceof Error && error.message.includes("ANTHROPIC")
+        ? "AI service temporarily unavailable. Try again in a minute."
+        : "CV generation failed. Please try again."
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

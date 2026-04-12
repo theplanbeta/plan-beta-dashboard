@@ -135,7 +135,8 @@ Return JSON with this exact structure:
     throw new Error("No text response from Claude")
   }
 
-  return JSON.parse(text.text) as DeepScoreResult
+  const raw = text.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")
+  return JSON.parse(raw) as DeepScoreResult
 }
 
 // ── CV Content Generation (Claude Sonnet) ──────────────────────────────
@@ -249,7 +250,9 @@ Return JSON:
     throw new Error("No text response from Claude")
   }
 
-  return JSON.parse(text.text) as CVContentResult
+  // Strip markdown code fences — Claude sometimes wraps JSON in ```json ... ```
+  const raw = text.text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "")
+  return JSON.parse(raw) as CVContentResult
 }
 
 // ── Anschreiben (Cover Letter) Generation (Claude Sonnet) ──────────────

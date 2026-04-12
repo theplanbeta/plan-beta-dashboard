@@ -19,7 +19,7 @@ const generateSchema = z.object({
   language: z.enum(["en", "de"]).default("en"),
 })
 
-export const maxDuration = 30
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   // Auth
@@ -105,74 +105,81 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
-  // Generate Anschreiben content via Claude Sonnet
-  const content = await generateAnschreiben(
-    {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
+  try {
+    // Generate Anschreiben content via Claude Sonnet
+    const content = await generateAnschreiben(
+      {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        email: seeker.email,
+        phone: profile.phone,
+        currentJobTitle: profile.currentJobTitle,
+        yearsOfExperience: profile.yearsOfExperience,
+        germanLevel: profile.germanLevel,
+        englishLevel: profile.englishLevel,
+        skills: profile.skills,
+        workExperience: profile.workExperience,
+        education: profile.educationDetails,
+        certifications: profile.certifications,
+        visaStatus: profile.visaStatus,
+      },
+      {
+        title: job.title,
+        company: job.company,
+        description: job.description,
+        requirements: job.requirements,
+        germanLevel: job.germanLevel,
+        location: job.location,
+      },
+      language
+    )
+
+    // Render PDF
+    const element = React.createElement(AnschreibenTemplate, {
+      content,
       email: seeker.email,
       phone: profile.phone,
-      currentJobTitle: profile.currentJobTitle,
-      yearsOfExperience: profile.yearsOfExperience,
-      germanLevel: profile.germanLevel,
-      englishLevel: profile.englishLevel,
-      skills: profile.skills,
-      workExperience: profile.workExperience,
-      education: profile.educationDetails,
-      certifications: profile.certifications,
-      visaStatus: profile.visaStatus,
-    },
-    {
-      title: job.title,
-      company: job.company,
-      description: job.description,
-      requirements: job.requirements,
-      germanLevel: job.germanLevel,
-      location: job.location,
-    },
-    language
-  )
+      showWatermark: false,
+    })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfBuffer = await renderToBuffer(element as any)
 
-  // Render PDF
-  const element = React.createElement(AnschreibenTemplate, {
-    content,
-    email: seeker.email,
-    phone: profile.phone,
-    showWatermark: false, // premium users get no watermark
-  })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfBuffer = await renderToBuffer(element as any)
+    // Upload to Vercel Blob
+    const slug = job.slug || job.id
+    const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
 
-  // Upload to Vercel Blob
-  const slug = job.slug || job.id
-  const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
+    const blob = await put(fileName, pdfBuffer, {
+      access: "public",
+      contentType: "application/pdf",
+    })
 
-  const blob = await put(fileName, pdfBuffer, {
-    access: "public",
-    contentType: "application/pdf",
-  })
+    // Record for monthly cap counter
+    await prisma.generatedCV.create({
+      data: {
+        seekerId: seeker.id,
+        jobPostingId: job.id,
+        fileUrl: blob.url,
+        fileKey: blob.pathname,
+        keywordsUsed: [],
+        templateUsed: ANSCHREIBEN_TEMPLATE,
+        language,
+      },
+    })
 
-  // Record the generation so the monthly cap counter reflects it.
-  // We reuse GeneratedCV with templateUsed = "anschreiben" as the
-  // discriminator; the /cvs page filters the UI by this field.
-  await prisma.generatedCV.create({
-    data: {
-      seekerId: seeker.id,
-      jobPostingId: job.id,
-      fileUrl: blob.url,
-      fileKey: blob.pathname,
-      keywordsUsed: [],
-      templateUsed: ANSCHREIBEN_TEMPLATE,
-      language,
-    },
-  })
-
-  return NextResponse.json({
-    anschreiben: {
-      fileUrl: blob.url,
-      language,
-      generatedAt: new Date().toISOString(),
-    },
-    remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,
-  })
+    return NextResponse.json({
+      anschreiben: {
+        fileUrl: blob.url,
+        language,
+        generatedAt: new Date().toISOString(),
+      },
+      remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,
+    })
+  } catch (error) {
+    console.error("[anschreiben/generate] Failed:", error)
+    const message =
+      error instanceof Error && error.message.includes("ANTHROPIC")
+        ? "AI service temporarily unavailable. Try again in a minute."
+        : "Cover letter generation failed. Please try again."
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

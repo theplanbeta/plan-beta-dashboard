@@ -71,7 +71,7 @@ export async function sendJobAlertEmail({
   const html = `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
       <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 30px 20px; text-align: center;">
-        <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Plan Beta Jobs</h1>
+        <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Plan Beta Day Zero</h1>
         <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.9); font-size: 13px; letter-spacing: 2px; text-transform: uppercase;">Daily Job Alerts</p>
       </div>
 
@@ -106,9 +106,9 @@ export async function sendJobAlertEmail({
 
   try {
     const result = await resend.emails.send({
-      from: process.env.EMAIL_FROM || "Plan Beta Jobs <noreply@planbeta.in>",
+      from: process.env.EMAIL_FROM || "Plan Beta Day Zero <noreply@planbeta.in>",
       to,
-      subject: `${jobs.length} new job${jobs.length !== 1 ? "s" : ""} matching your profile — Plan Beta Jobs`,
+      subject: `${jobs.length} new job${jobs.length !== 1 ? "s" : ""} matching your profile — Plan Beta Day Zero`,
       html,
     })
 

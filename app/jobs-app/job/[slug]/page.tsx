@@ -107,6 +107,8 @@ export async function generateMetadata({
 // ---------------------------------------------------------------------------
 // Employment type mapping for schema.org JobPosting
 // ---------------------------------------------------------------------------
+// Google Jobs valid employmentType values. "OTHER" is NOT valid — omit
+// the field entirely when there's no mapping.
 const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
   FULL_TIME: "FULL_TIME",
   PART_TIME: "PART_TIME",
@@ -139,9 +141,9 @@ export default async function JobDetailPage({
     validThrough: new Date(
       (job.postedAt ?? job.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000
     ).toISOString(),
-    employmentType: job.jobType
-      ? EMPLOYMENT_TYPE_MAP[job.jobType] ?? "OTHER"
-      : "OTHER",
+    ...(job.jobType && EMPLOYMENT_TYPE_MAP[job.jobType]
+      ? { employmentType: EMPLOYMENT_TYPE_MAP[job.jobType] }
+      : {}),
     hiringOrganization: {
       "@type": "Organization",
       name: job.company,

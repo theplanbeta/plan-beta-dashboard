@@ -42,16 +42,44 @@ export default function SettingsPage() {
       if (res.ok) {
         const data = await res.json()
         setSub(data.subscription)
+        return data.subscription as SubscriptionStatus
       }
+    } catch {
+      // Network error — leave current state, don't crash
     } finally {
       setLoading(false)
     }
+    return null
   }, [])
 
   useEffect(() => {
     if (!authLoading && seeker) fetchStatus()
     else if (!authLoading && !seeker) setLoading(false)
   }, [authLoading, seeker, fetchStatus])
+
+  // Poll for subscription upgrade after Stripe checkout redirect.
+  // The webhook may take a few seconds to process, so the first
+  // fetchStatus might still show "free". Poll every 2s for up to 30s.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("upgraded") !== "true") return
+
+    let attempts = 0
+    const maxAttempts = 15
+    const interval = setInterval(async () => {
+      attempts++
+      const result = await fetchStatus()
+      if (result && result.effective !== "free") {
+        clearInterval(interval)
+        // Clean up the URL
+        window.history.replaceState({}, "", "/jobs-app/settings")
+      }
+      if (attempts >= maxAttempts) clearInterval(interval)
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [fetchStatus])
 
   async function handleCheckout(plan: "monthly" | "annual") {
     setCheckoutLoading(plan)
@@ -80,9 +108,11 @@ export default function SettingsPage() {
         method: "POST",
         credentials: "include",
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) window.location.href = data.url
       else alert(data.error || "Failed to open billing portal")
+    } catch {
+      alert("Network error. Check your connection.")
     } finally {
       setPortalLoading(false)
     }

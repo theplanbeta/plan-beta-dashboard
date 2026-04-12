@@ -29,17 +29,22 @@ export default function CVHistoryPage() {
       setLoading(false)
       return
     }
-    fetch("/api/jobs-app/cv")
-      .then((res) => (res.ok ? res.json() : { cvs: [] }))
+    fetch("/api/jobs-app/cv", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : Promise.resolve({ cvs: [] })))
       .then((data) => setCvs(data.cvs || []))
+      .catch(() => setCvs([]))
       .finally(() => setLoading(false))
   }, [seeker])
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this CV?")) return
-    const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE" })
-    if (res.ok) {
-      setCvs((prev) => prev.filter((cv) => cv.id !== id))
+    try {
+      const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE", credentials: "include" })
+      if (res.ok) {
+        setCvs((prev) => prev.filter((cv) => cv.id !== id))
+      }
+    } catch {
+      // Network error — CV stays in the list
     }
   }
 

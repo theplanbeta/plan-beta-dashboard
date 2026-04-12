@@ -13,20 +13,20 @@ function escapeHtml(str: string | null | undefined): string {
 }
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://theplanbeta.com"
-const FROM = process.env.EMAIL_FROM || "Plan Beta Jobs <noreply@planbeta.in>"
+const FROM = process.env.EMAIL_FROM || "Plan Beta Day Zero <noreply@planbeta.in>"
 
 function wrapEmail(content: string, preheader: string): string {
   return `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
       <span style="display:none;font-size:1px;color:#fff;max-height:0;overflow:hidden;">${escapeHtml(preheader)}</span>
       <div style="background: linear-gradient(135deg, #d2302c 0%, #121212 100%); padding: 30px 20px; text-align: center;">
-        <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Plan Beta Jobs</h1>
+        <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 700;">Plan Beta Day Zero</h1>
       </div>
       <div style="padding: 30px;">
         ${content}
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
           <p style="margin: 0; color: #9ca3af; font-size: 12px;">
-            You're receiving this because you started a free trial on Plan Beta Jobs.
+            You're receiving this because you started a free trial on Plan Beta Day Zero.
           </p>
         </div>
       </div>
@@ -55,7 +55,7 @@ export async function sendTrialDay1Email(to: string, name?: string): Promise<boo
       ${greeting}! 👋
     </p>
     <p style="color: #374151; font-size: 15px; margin: 0 0 20px 0;">
-      Welcome to <strong>Plan Beta Jobs Premium</strong>! Your 5-day free trial just started. Here's what you've unlocked:
+      Welcome to <strong>Plan Beta Day Zero Premium</strong>! Your 5-day free trial just started. Here's what you've unlocked:
     </p>
 
     <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
@@ -72,7 +72,7 @@ export async function sendTrialDay1Email(to: string, name?: string): Promise<boo
     <p style="color: #6b7280; font-size: 13px; margin: 0; text-align: center;">
       Try saving a search to get notified when matching jobs appear.
     </p>
-  `, "Welcome to Plan Beta Jobs Premium! Here's what you've unlocked.")
+  `, "Welcome to Plan Beta Day Zero Premium! Here's what you've unlocked.")
 
   try {
     await resend.emails.send({ from: FROM, to, subject: "Welcome to Premium! Here's what you unlocked 🎯", html })

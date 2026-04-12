@@ -104,14 +104,17 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       const res = await fetch("/api/jobs-app/cv/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: job.id, language: "en" }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => ({}))
       if (res.ok && data.cv?.fileUrl) {
         window.open(data.cv.fileUrl, "_blank")
       } else {
         alert(data.error || "CV generation failed")
       }
+    } catch {
+      alert("Network error. Check your connection.")
     } finally {
       setGenerating(false)
     }
@@ -125,6 +128,7 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       const res = await fetch("/api/jobs-app/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: job.id, stage }),
       })
       const data = await res.json()

@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 // ---------------------------------------------------------------------------
 const CreateSchema = z.object({
   jobPostingId: z.string().min(1),
-  stage: z.string().optional(),
+  stage: z.nativeEnum(ApplicationStage).optional(),
   notes: z.string().optional(),
 })
 
@@ -107,24 +107,38 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const stageValue = (stage as ApplicationStage | undefined) ?? ApplicationStage.SAVED
+  const stageValue = stage ?? ApplicationStage.SAVED
 
-  const application = await prisma.jobApplication.create({
-    data: {
-      seekerId: seeker.id,
-      jobPostingId: job.id,
-      jobTitle: job.title,
-      jobCompany: job.company,
-      jobLocation: job.location ?? null,
-      stage: stageValue,
-      notes: notes ?? null,
-    },
-    include: {
-      generatedCV: {
-        select: { id: true, fileUrl: true, language: true },
+  try {
+    const application = await prisma.jobApplication.create({
+      data: {
+        seekerId: seeker.id,
+        jobPostingId: job.id,
+        jobTitle: job.title,
+        jobCompany: job.company,
+        jobLocation: job.location ?? null,
+        stage: stageValue,
+        notes: notes ?? null,
       },
-    },
-  })
-
-  return NextResponse.json({ application }, { status: 201 })
+      include: {
+        generatedCV: {
+          select: { id: true, fileUrl: true, language: true },
+        },
+      },
+    })
+    return NextResponse.json({ application }, { status: 201 })
+  } catch (e) {
+    // P2002 = unique constraint violation (race between findUnique and create)
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      const race = await prisma.jobApplication.findUnique({
+        where: { seekerId_jobPostingId: { seekerId: seeker.id, jobPostingId } },
+        include: { generatedCV: { select: { id: true, fileUrl: true, language: true } } },
+      })
+      return NextResponse.json(
+        { error: "Application already exists", application: race },
+        { status: 409 }
+      )
+    }
+    throw e
+  }
 }

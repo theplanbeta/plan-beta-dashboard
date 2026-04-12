@@ -52,7 +52,7 @@ export default function OnboardingForm() {
         return
       }
       await refresh()
-      router.push("/jobs-app/jobs")
+      router.replace("/jobs-app/jobs")
     } catch {
       setError("Network error. Check your connection.")
     } finally {

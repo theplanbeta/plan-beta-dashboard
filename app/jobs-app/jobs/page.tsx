@@ -25,6 +25,7 @@ export default function JobsPage() {
 
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [showFilters, setShowFilters] = useState(false)
@@ -35,6 +36,7 @@ export default function JobsPage() {
 
   const fetchJobs = useCallback(async () => {
     setLoading(true)
+    setFetchError(null)
     try {
       const params = new URLSearchParams()
       params.set("page", String(page))
@@ -49,7 +51,13 @@ export default function JobsPage() {
         const data = await res.json()
         setJobs(data.jobs ?? [])
         setTotalPages(data.totalPages ?? data.pagination?.pages ?? 1)
+      } else {
+        setFetchError("Could not load jobs. Try again.")
+        setJobs([])
       }
+    } catch {
+      setFetchError("Network error. Check your connection.")
+      setJobs([])
     } finally {
       setLoading(false)
     }
@@ -248,6 +256,32 @@ export default function JobsPage() {
               }}
             />
           ))
+        ) : fetchError ? (
+          <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
+            <span
+              className="amtlich-stamp amtlich-stamp--ink"
+              style={{ transform: "rotate(-3deg)" }}
+            >
+              Fehler
+            </span>
+            <p
+              className="ink-faded mt-3"
+              style={{
+                fontFamily: "var(--f-body)",
+                fontSize: "0.9rem",
+              }}
+            >
+              {fetchError}
+            </p>
+            <button
+              type="button"
+              onClick={() => fetchJobs()}
+              className="amtlich-btn mt-4"
+              style={{ padding: "10px 20px", fontSize: "var(--fs-mono-xs)" }}
+            >
+              Try again
+            </button>
+          </div>
         ) : jobs.length === 0 ? (
           <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
             <span

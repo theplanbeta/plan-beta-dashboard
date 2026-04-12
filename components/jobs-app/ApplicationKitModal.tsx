@@ -86,6 +86,9 @@ export default function ApplicationKitModal({
     let cancelled = false
     setLoading(true)
     setError(null)
+    setKit(null)
+    setApplication(null)
+    setCopiedField(null)
 
     async function load() {
       try {
@@ -224,6 +227,7 @@ export default function ApplicationKitModal({
       const res = await fetch(`/api/jobs-app/applications/${applicationId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           stage: "APPLIED",
           appliedAt: new Date().toISOString(),

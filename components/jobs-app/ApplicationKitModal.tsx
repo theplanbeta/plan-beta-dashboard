@@ -90,8 +90,8 @@ export default function ApplicationKitModal({
     async function load() {
       try {
         const [kitRes, appRes] = await Promise.all([
-          fetch(`/api/jobs-app/applications/${applicationId}/kit`),
-          fetch(`/api/jobs-app/applications`),
+          fetch(`/api/jobs-app/applications/${applicationId}/kit`, { credentials: "include" }),
+          fetch(`/api/jobs-app/applications`, { credentials: "include" }),
         ])
 
         if (!kitRes.ok) {
@@ -132,7 +132,7 @@ export default function ApplicationKitModal({
 
   async function refetchKit() {
     try {
-      const res = await fetch(`/api/jobs-app/applications/${applicationId}/kit`)
+      const res = await fetch(`/api/jobs-app/applications/${applicationId}/kit`, { credentials: "include" })
       if (res.ok) {
         const data = await res.json()
         setKit(data.kit)
@@ -152,6 +152,7 @@ export default function ApplicationKitModal({
       const res = await fetch("/api/jobs-app/cv/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: application.jobPostingId }),
       })
       const data = await res.json()
@@ -177,6 +178,7 @@ export default function ApplicationKitModal({
       const res = await fetch("/api/jobs-app/anschreiben/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: application.jobPostingId }),
       })
       const data = await res.json()

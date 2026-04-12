@@ -42,7 +42,9 @@ export default function JobsPage() {
       if (germanLevel) params.set("germanLevel", germanLevel)
       if (profession) params.set("profession", profession)
 
-      const res = await fetch(`/api/jobs-app/jobs?${params.toString()}`)
+      const res = await fetch(`/api/jobs-app/jobs?${params.toString()}`, {
+        credentials: "include",
+      })
       if (res.ok) {
         const data = await res.json()
         setJobs(data.jobs ?? [])

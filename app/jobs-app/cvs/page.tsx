@@ -29,7 +29,7 @@ export default function CVHistoryPage() {
       setLoading(false)
       return
     }
-    fetch("/api/jobs-app/cv")
+    fetch("/api/jobs-app/cv", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : { cvs: [] }))
       .then((data) => setCvs(data.cvs || []))
       .finally(() => setLoading(false))
@@ -37,7 +37,7 @@ export default function CVHistoryPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this CV?")) return
-    const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE" })
+    const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE", credentials: "include" })
     if (res.ok) {
       setCvs((prev) => prev.filter((cv) => cv.id !== id))
     }

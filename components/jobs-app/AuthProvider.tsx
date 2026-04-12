@@ -20,6 +20,8 @@ interface JobSeeker {
   stripeCustomerId: string | null
   planBetaStudentId: string | null
   onboardingComplete: boolean
+  /** Canonical premium flag computed server-side via isPremiumEffective. */
+  isPremium: boolean
   profile: {
     germanLevel: string | null
     profession: string | null
@@ -31,33 +33,30 @@ interface AuthContextValue {
   seeker: JobSeeker | null
   loading: boolean
   isPremium: boolean
-  login: (token: string) => Promise<void>
-  logout: () => void
+  /** Re-fetch the profile from the server (reads the httpOnly cookie). */
+  refresh: () => Promise<void>
+  /** Clear the session by hitting the server logout endpoint. */
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-function getCookie(name: string): string | null {
-  if (typeof document === "undefined") return null
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : null
-}
-
-function setCookie(name: string, value: string, days = 30) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString()
-  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax; Secure`
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
-}
-
+/**
+ * Fetch the current profile. The server reads the httpOnly `pb-jobs-app`
+ * cookie to resolve identity — the client never touches it.
+ *
+ * 200 → logged in (returns seeker)
+ * 401 → not logged in (returns null)
+ */
 async function fetchProfile(): Promise<JobSeeker | null> {
   try {
-    const res = await fetch("/api/jobs-app/profile", { credentials: "include" })
+    const res = await fetch("/api/jobs-app/profile", {
+      credentials: "include",
+      cache: "no-store",
+    })
     if (!res.ok) return null
     const data = await res.json()
-    return data.seeker ?? null
+    return (data?.seeker as JobSeeker) ?? null
   } catch {
     return null
   }
@@ -67,42 +66,35 @@ export function JobsAuthProvider({ children }: { children: ReactNode }) {
   const [seeker, setSeeker] = useState<JobSeeker | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const isPremium =
-    (seeker?.tier === "PREMIUM" && seeker?.subscriptionStatus === "active") ||
-    !!seeker?.planBetaStudentId
+  // The server is the source of truth for premium; we just mirror it.
+  const isPremium = Boolean(seeker?.isPremium)
 
-  const load = useCallback(async () => {
+  const refresh = useCallback(async () => {
     setLoading(true)
-    const token = getCookie("pb-jobs-app")
-    if (!token) {
-      setSeeker(null)
-      setLoading(false)
-      return
-    }
     const profile = await fetchProfile()
     setSeeker(profile)
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    load()
-  }, [load])
+    refresh()
+  }, [refresh])
 
-  const login = useCallback(
-    async (token: string) => {
-      setCookie("pb-jobs-app", token)
-      await load()
-    },
-    [load]
-  )
-
-  const logout = useCallback(() => {
-    deleteCookie("pb-jobs-app")
+  const logout = useCallback(async () => {
+    try {
+      await fetch("/api/jobs-app/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      })
+    } catch {
+      // Even if the network call fails, clear local state so the UI
+      // reflects a logged-out session. The stale cookie will expire.
+    }
     setSeeker(null)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ seeker, loading, isPremium, login, logout }}>
+    <AuthContext.Provider value={{ seeker, loading, isPremium, refresh, logout }}>
       {children}
     </AuthContext.Provider>
   )

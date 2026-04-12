@@ -1,465 +1,188 @@
-"use client"
+import type { Metadata } from "next"
+import Script from "next/script"
+import { notFound } from "next/navigation"
+import { cache } from "react"
+import { prisma } from "@/lib/prisma"
+import JobDetailClient, { type JobDetail } from "./JobDetailClient"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import {
-  ArrowLeft,
-  MapPin,
-  Briefcase,
-  Euro,
-  Languages,
-  ExternalLink,
-  FileText,
-  Loader2,
-  Sparkles,
-  BookmarkPlus,
-} from "lucide-react"
-import { ScoreBreakdown } from "@/components/jobs-app/ScoreBreakdown"
-import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
-import ApplicationKitModal from "@/components/jobs-app/ApplicationKitModal"
-import type { MatchLabel } from "@/lib/heuristic-scorer"
-import type { DeepScoreResult } from "@/lib/jobs-ai"
+const SITE_URL = "https://dayzero.xyz"
 
-const JOB_TYPE_LABELS: Record<string, string> = {
-  FULL_TIME: "Full-time",
-  PART_TIME: "Part-time",
-  WORKING_STUDENT: "Werkstudent",
-  INTERNSHIP: "Internship",
-  CONTRACT: "Contract",
+// React cache() deduplicates this across generateMetadata + the page
+// component within the same server request. Without it we'd fire two
+// identical Prisma queries per job detail page load (H7 adversarial fix).
+const getJob = cache(async function getJob(slug: string) {
+  return prisma.jobPosting.findFirst({
+    where: { slug, active: true },
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      company: true,
+      location: true,
+      description: true,
+      salaryMin: true,
+      salaryMax: true,
+      currency: true,
+      germanLevel: true,
+      profession: true,
+      jobType: true,
+      requirements: true,
+      applyUrl: true,
+      viewCount: true,
+      createdAt: true,
+      postedAt: true,
+      updatedAt: true,
+    },
+  })
+})
+
+type JobFromDb = NonNullable<Awaited<ReturnType<typeof getJob>>>
+
+function toClientJob(j: JobFromDb): JobDetail {
+  return {
+    id: j.id,
+    slug: j.slug ?? "",
+    title: j.title,
+    company: j.company,
+    location: j.location,
+    description: j.description,
+    salaryMin: j.salaryMin,
+    salaryMax: j.salaryMax,
+    currency: j.currency,
+    germanLevel: j.germanLevel,
+    profession: j.profession,
+    jobType: j.jobType,
+    requirements: j.requirements,
+    applyUrl: j.applyUrl,
+    viewCount: j.viewCount,
+    createdAt: j.createdAt.toISOString(),
+  }
 }
 
-interface JobDetail {
-  id: string
-  slug: string
-  title: string
-  company: string
-  location: string | null
-  description: string | null
-  salaryMin: number | null
-  salaryMax: number | null
-  currency: string
-  germanLevel: string | null
-  profession: string | null
-  jobType: string | null
-  requirements: string[]
-  applyUrl: string | null
-  viewCount: number
-  createdAt: string
-}
-
-function stampVariantForScore(score: number): string {
-  if (score >= 75) return "amtlich-stamp--green"
-  if (score >= 60) return "amtlich-stamp--teal"
-  return ""
-}
-
-function wetVariantForScore(score: number): string {
-  if (score >= 75) return "amtlich-stamp-wet--green"
-  if (score >= 60) return "amtlich-stamp-wet--blue"
-  return ""
-}
-
-export default function JobDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const { isPremium } = useJobsAuth()
-  const [job, setJob] = useState<JobDetail | null>(null)
-  const [matchScore, setMatchScore] = useState<number | null>(null)
-  const [matchLabel, setMatchLabel] = useState<MatchLabel | null>(null)
-  const [deepScore, setDeepScore] = useState<DeepScoreResult | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [showKitModal, setShowKitModal] = useState(false)
-  const [kitApplicationId, setKitApplicationId] = useState<string | null>(null)
-  const [trackingKit, setTrackingKit] = useState(false)
-  const [savingOnly, setSavingOnly] = useState(false)
-
-  useEffect(() => {
-    const slug = params.slug as string
-    if (!slug) return
-
-    fetch(`/api/jobs-app/jobs/${slug}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setJob(data.job)
-          setMatchScore(data.matchScore)
-          setMatchLabel(data.matchLabel)
-          setDeepScore(data.deepScore)
-        }
-      })
-      .finally(() => setLoading(false))
-  }, [params.slug])
-
-  async function handleGenerateCV() {
-    if (!job) return
-    setGenerating(true)
-    try {
-      const res = await fetch("/api/jobs-app/cv/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobPostingId: job.id, language: "en" }),
-      })
-      const data = await res.json()
-      if (res.ok && data.cv?.fileUrl) {
-        window.open(data.cv.fileUrl, "_blank")
-      } else {
-        alert(data.error || "CV generation failed")
-      }
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  async function createOrGetApplication(
-    stage: "SAVED" | "APPLIED" = "SAVED"
-  ): Promise<string | null> {
-    if (!job) return null
-    try {
-      const res = await fetch("/api/jobs-app/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobPostingId: job.id, stage }),
-      })
-      const data = await res.json()
-      if (res.ok && data.application?.id) return data.application.id
-      if (res.status === 409 && data.application?.id) return data.application.id
-      alert(data.error || "Failed to track application")
-      return null
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to track application")
-      return null
-    }
-  }
-
-  async function handleTrackAndGenerateKit() {
-    if (!job) return
-    setTrackingKit(true)
-    try {
-      const id = await createOrGetApplication("SAVED")
-      if (id) {
-        setKitApplicationId(id)
-        setShowKitModal(true)
-      }
-    } finally {
-      setTrackingKit(false)
-    }
-  }
-
-  async function handleSaveToTracker() {
-    if (!job) return
-    setSavingOnly(true)
-    try {
-      const id = await createOrGetApplication("SAVED")
-      if (id) alert("Saved to your tracker")
-    } finally {
-      setSavingOnly(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2
-          className="h-7 w-7 animate-spin"
-          style={{ color: "var(--brass)" }}
-        />
-      </div>
-    )
-  }
+// ---------------------------------------------------------------------------
+// generateMetadata — runs at request time on the server
+// ---------------------------------------------------------------------------
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const job = await getJob(slug)
 
   if (!job) {
-    return (
-      <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
-        <span className="amtlich-stamp amtlich-stamp--ink">File not found</span>
-        <p
-          className="ink-faded mt-4"
-          style={{ fontFamily: "var(--f-body)", fontSize: "0.9rem" }}
-        >
-          This job posting may have been archived.
-        </p>
-        <Link
-          href="/jobs-app/jobs"
-          className="mono mt-4 inline-block ink-teal"
-          style={{ textDecoration: "underline", fontSize: "var(--fs-mono-sm)" }}
-        >
-          Back to job index
-        </Link>
-      </div>
-    )
+    return {
+      title: "Job not found",
+      robots: { index: false, follow: false },
+    }
+  }
+
+  const title = `${job.title} · ${job.company}`
+  const description =
+    (job.description ?? "").slice(0, 160).replace(/\s+/g, " ").trim() ||
+    `${job.title} at ${job.company}${
+      job.location ? ` in ${job.location}` : ""
+    } — Plan Beta Day Zero.`
+  const url = `${SITE_URL}/jobs-app/job/${slug}`
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      siteName: "Plan Beta Day Zero",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Employment type mapping for schema.org JobPosting
+// ---------------------------------------------------------------------------
+const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
+  FULL_TIME: "FULL_TIME",
+  PART_TIME: "PART_TIME",
+  WORKING_STUDENT: "PART_TIME",
+  INTERNSHIP: "INTERN",
+  CONTRACT: "CONTRACTOR",
+}
+
+export default async function JobDetailPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
+  const job = await getJob(slug)
+
+  // Fixes B-C6 nonexistent-slug-returns-200 bug.
+  if (!job) notFound()
+
+  const clientJob = toClientJob(job)
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.description ?? job.title,
+    datePosted: (job.postedAt ?? job.createdAt).toISOString(),
+    // Day Zero doesn't track explicit expiry — estimate 30 days from
+    // posting so Google Jobs has a validThrough value.
+    validThrough: new Date(
+      (job.postedAt ?? job.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000
+    ).toISOString(),
+    employmentType: job.jobType
+      ? EMPLOYMENT_TYPE_MAP[job.jobType] ?? "OTHER"
+      : "OTHER",
+    hiringOrganization: {
+      "@type": "Organization",
+      name: job.company,
+    },
+    jobLocation: job.location
+      ? {
+          "@type": "Place",
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: job.location,
+            addressCountry: "DE",
+          },
+        }
+      : undefined,
+    baseSalary:
+      job.salaryMin !== null || job.salaryMax !== null
+        ? {
+            "@type": "MonetaryAmount",
+            currency: job.currency,
+            value: {
+              "@type": "QuantitativeValue",
+              ...(job.salaryMin !== null ? { minValue: job.salaryMin } : {}),
+              ...(job.salaryMax !== null ? { maxValue: job.salaryMax } : {}),
+              unitText: "YEAR",
+            },
+          }
+        : undefined,
+    url: `${SITE_URL}/jobs-app/job/${slug}`,
+    directApply: Boolean(job.applyUrl),
   }
 
   return (
-    <div className="space-y-5">
-      {/* ── Back nav ────────────────────────────────────────── */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 amtlich-enter"
-        style={{
-          fontFamily: "var(--f-mono)",
-          fontSize: "var(--fs-mono-sm)",
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "var(--ink-faded)",
-          background: "transparent",
-          border: "none",
-          padding: 0,
-        }}
+    <>
+      <Script
+        id="job-posting-jsonld"
+        type="application/ld+json"
+        strategy="beforeInteractive"
       >
-        <ArrowLeft size={14} strokeWidth={2} />
-        Back to index
-      </button>
-
-      {/* ── Job Header Card (paper) ─────────────────────────── */}
-      <header className="amtlich-card amtlich-enter amtlich-enter-delay-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <span className="mono ink-faded" style={{ fontSize: "var(--fs-mono-xs)" }}>
-              {job.company}
-            </span>
-            <h1
-              className="display ink mt-1"
-              style={{
-                fontSize: "1.5rem",
-                lineHeight: 1.15,
-                fontVariationSettings: '"opsz" 72, "SOFT" 20, "wght" 560',
-              }}
-            >
-              {job.title}
-            </h1>
-          </div>
-          {matchScore !== null && matchLabel && (
-            <div className="shrink-0 pt-1">
-              <span
-                className={`amtlich-stamp amtlich-stamp-wet ${stampVariantForScore(
-                  matchScore
-                )} ${wetVariantForScore(matchScore)}`}
-                style={{ transform: "rotate(2deg)" }}
-              >
-                {matchScore}/100
-              </span>
-            </div>
-          )}
-        </div>
-
-        <hr className="amtlich-divider" style={{ margin: "14px 0 10px" }} />
-
-        <dl
-          className="flex flex-wrap items-center gap-x-4 gap-y-2"
-          style={{ fontFamily: "var(--f-mono)", fontSize: "var(--fs-mono-xs)" }}
-        >
-          {job.location && (
-            <div className="flex items-center gap-1.5 ink-soft">
-              <MapPin size={12} strokeWidth={1.8} />
-              <span>{job.location}</span>
-            </div>
-          )}
-          {job.jobType && (
-            <div className="flex items-center gap-1.5 ink-soft">
-              <Briefcase size={12} strokeWidth={1.8} />
-              <span>{JOB_TYPE_LABELS[job.jobType] || job.jobType}</span>
-            </div>
-          )}
-          {(job.salaryMin || job.salaryMax) && (
-            <div className="flex items-center gap-1.5 ink-soft">
-              <Euro size={12} strokeWidth={1.8} />
-              <span>
-                {job.salaryMin && job.salaryMax
-                  ? `${job.salaryMin.toLocaleString()} – ${job.salaryMax.toLocaleString()}`
-                  : job.salaryMin
-                  ? `from ${job.salaryMin.toLocaleString()}`
-                  : `up to ${job.salaryMax?.toLocaleString()}`}
-                <span className="ink-faded"> EUR</span>
-              </span>
-            </div>
-          )}
-          {job.germanLevel && (
-            <div className="flex items-center gap-1.5 ink-soft">
-              <Languages size={12} strokeWidth={1.8} />
-              <span>DE {job.germanLevel}</span>
-            </div>
-          )}
-        </dl>
-      </header>
-
-      {/* ── AI Score Breakdown (premium) ────────────────────── */}
-      {deepScore && (
-        <div className="amtlich-enter amtlich-enter-delay-2">
-          <ScoreBreakdown deepScore={deepScore} />
-        </div>
-      )}
-
-      {/* ── Primary action ──────────────────────────────────── */}
-      <div className="space-y-3 amtlich-enter amtlich-enter-delay-3">
-        {isPremium ? (
-          <button
-            type="button"
-            onClick={handleTrackAndGenerateKit}
-            disabled={trackingKit}
-            className="amtlich-btn amtlich-btn--primary w-full disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ padding: "14px 22px" }}
-          >
-            {trackingKit ? (
-              <span className="inline-flex items-center justify-center gap-2">
-                <Loader2 size={14} className="animate-spin" />
-                Preparing kit…
-              </span>
-            ) : (
-              <span className="inline-flex items-center justify-center gap-2">
-                <Sparkles size={14} strokeWidth={2.2} />
-                Track &amp; Generate Kit
-              </span>
-            )}
-          </button>
-        ) : (
-          <Link
-            href="/jobs-app/settings"
-            className="amtlich-btn amtlich-btn--primary block w-full text-center no-underline"
-            style={{ padding: "14px 22px" }}
-          >
-            <span className="inline-flex items-center justify-center gap-2">
-              <FileText size={14} strokeWidth={2.2} />
-              Upgrade to generate CV
-            </span>
-          </Link>
-        )}
-
-        {/* Secondary row */}
-        <div className="flex gap-2">
-          {isPremium && (
-            <>
-              <button
-                type="button"
-                onClick={handleSaveToTracker}
-                disabled={savingOnly}
-                className="amtlich-btn flex-1 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
-              >
-                {savingOnly ? (
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <Loader2 size={12} className="animate-spin" />
-                    Saving
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <BookmarkPlus size={12} strokeWidth={2.2} />
-                    Save
-                  </span>
-                )}
-              </button>
-              <button
-                type="button"
-                onClick={handleGenerateCV}
-                disabled={generating}
-                className="amtlich-btn flex-1 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
-              >
-                {generating ? (
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <Loader2 size={12} className="animate-spin" />
-                    CV
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center justify-center gap-1.5">
-                    <FileText size={12} strokeWidth={2.2} />
-                    CV only
-                  </span>
-                )}
-              </button>
-            </>
-          )}
-          {job.applyUrl && (
-            <a
-              href={job.applyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="amtlich-btn flex items-center justify-center gap-1.5 flex-1 no-underline"
-              style={{ padding: "10px 12px", fontSize: "var(--fs-mono-xs)" }}
-            >
-              <ExternalLink size={12} strokeWidth={2.2} />
-              Portal
-            </a>
-          )}
-        </div>
-      </div>
-
-      {/* ── Application Kit Modal ───────────────────────────── */}
-      {kitApplicationId && (
-        <ApplicationKitModal
-          isOpen={showKitModal}
-          onClose={() => setShowKitModal(false)}
-          applicationId={kitApplicationId}
-        />
-      )}
-
-      {/* ── Description (document page style) ───────────────── */}
-      {job.description && (
-        <section
-          className="amtlich-page amtlich-enter amtlich-enter-delay-4"
-          style={{ padding: "22px 22px 40px" }}
-        >
-          <div className="mb-3 flex items-center justify-between">
-            <span className="mono">Role description</span>
-            <span className="amtlich-stamp amtlich-stamp--ink">Gelesen</span>
-          </div>
-          <div
-            className="whitespace-pre-wrap ink-soft"
-            style={{
-              fontFamily: "var(--f-body)",
-              fontSize: "0.95rem",
-              lineHeight: 1.58,
-            }}
-          >
-            {job.description}
-          </div>
-        </section>
-      )}
-
-      {/* ── Requirements ──────────────────────────────────── */}
-      {job.requirements.length > 0 && (
-        <section className="amtlich-card amtlich-enter">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="mono">Requirements</span>
-            <span
-              className="mono ink-faded"
-              style={{ fontSize: "var(--fs-mono-xs)" }}
-            >
-              {job.requirements.length} items
-            </span>
-          </div>
-          <ul
-            style={{
-              fontFamily: "var(--f-body)",
-              fontSize: "0.92rem",
-              lineHeight: 1.55,
-              color: "var(--ink-soft)",
-              paddingLeft: 0,
-              listStyle: "none",
-            }}
-          >
-            {job.requirements.map((req, i) => (
-              <li
-                key={i}
-                className="flex items-start gap-3"
-                style={{ marginBottom: "6px" }}
-              >
-                <span
-                  className="mono ink-faded"
-                  style={{
-                    fontSize: "var(--fs-mono-xs)",
-                    minWidth: "22px",
-                    paddingTop: "3px",
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span>{req}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-    </div>
+        {JSON.stringify(jsonLd)}
+      </Script>
+      <JobDetailClient initialJob={clientJob} />
+    </>
   )
 }

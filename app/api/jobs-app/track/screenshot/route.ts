@@ -12,6 +12,7 @@ import { ApplicationStage } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker, JobSeekerWithProfile } from "@/lib/jobs-app-auth"
 import { classifyScreenshot } from "@/lib/application-classifier"
+import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 export const maxDuration = 30
 
@@ -30,6 +31,14 @@ export async function POST(request: Request) {
     if (e instanceof Response) return e
     throw e
   }
+
+  // --- Rate limit -----------------------------------------------------------
+  // Screenshot classification calls Claude Vision — expensive. Cap per seeker.
+  const limited = checkRateLimit(
+    `screenshot:${seeker.id}`,
+    RL.SCREENSHOT_CLASSIFY
+  )
+  if (limited) return limited
 
   // --- Parse multipart form -------------------------------------------------
   let formData: FormData
@@ -113,7 +122,16 @@ export async function POST(request: Request) {
     }
   }
 
-  // --- Map status string to enum -------------------------------------------
+  // --- Validate status against the Prisma enum (C2 adversarial fix) --------
+  // The AI classifier can return arbitrary strings. Casting blindly would
+  // cause Prisma to throw on the subsequent insert/update.
+  const validStages = Object.values(ApplicationStage) as string[]
+  if (!validStages.includes(result.status)) {
+    return NextResponse.json(
+      { error: `Unrecognised application status: ${result.status}` },
+      { status: 422 }
+    )
+  }
   const stage = result.status as ApplicationStage
 
   // --- Update existing application ------------------------------------------

@@ -495,11 +495,7 @@ export default function SettingsPage() {
         <button
           type="button"
           onClick={async () => {
-            await fetch("/api/jobs-app/auth/logout", {
-              method: "POST",
-              credentials: "include",
-            })
-            logout()
+            await logout()
             window.location.href = "/jobs-app"
           }}
           className="amtlich-btn w-full"

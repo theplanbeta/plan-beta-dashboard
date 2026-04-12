@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getJobSeeker } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
@@ -6,14 +7,35 @@ import type { Prisma } from "@prisma/client"
 
 const LIMIT = 20
 
+// Zod schema for query params. z.coerce.number() gives us NaN-safe parsing
+// with a proper 400 instead of a Prisma 500 when someone passes ?page=abc.
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+  sort: z.enum(["match", "newest", "salary"]).default("match"),
+  profession: z.string().max(100).optional(),
+  germanLevel: z.string().max(10).optional(),
+  location: z.string().max(100).optional(),
+})
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
 
-  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10))
-  const sort = searchParams.get("sort") ?? "match"
-  const profession = searchParams.get("profession")
-  const germanLevel = searchParams.get("germanLevel")
-  const location = searchParams.get("location")
+  const parsed = querySchema.safeParse({
+    page: searchParams.get("page") ?? undefined,
+    sort: searchParams.get("sort") ?? undefined,
+    profession: searchParams.get("profession") ?? undefined,
+    germanLevel: searchParams.get("germanLevel") ?? undefined,
+    location: searchParams.get("location") ?? undefined,
+  })
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid query parameters", issues: parsed.error.issues },
+      { status: 400 }
+    )
+  }
+
+  const { page, sort, profession, germanLevel, location } = parsed.data
 
   // Build where clause
   const where: Prisma.JobPostingWhereInput = { active: true }

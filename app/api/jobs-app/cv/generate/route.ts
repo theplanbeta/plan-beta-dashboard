@@ -8,6 +8,7 @@ import { renderToBuffer } from "@react-pdf/renderer"
 import { put } from "@vercel/blob"
 import { z } from "zod"
 import React from "react"
+import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 const generateSchema = z.object({
   jobPostingId: z.string().min(1),
@@ -35,14 +36,22 @@ export async function POST(request: Request) {
     )
   }
 
+  // Per-seeker burst rate limit (cost damper on top of the monthly cap)
+  const limited = checkRateLimit(`cv:${seeker.id}`, RL.CV_GENERATE)
+  if (limited) return limited
+
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
 
+  // Exclude Anschreiben rows from the CV cap (they live in the same
+  // table with templateUsed = "anschreiben" so the Anschreiben route
+  // can count them independently — see anschreiben/generate).
   const cvCount = await prisma.generatedCV.count({
     where: {
       seekerId: seeker.id,
       createdAt: { gte: startOfMonth },
+      NOT: { templateUsed: "anschreiben" },
     },
   })
 
@@ -54,7 +63,12 @@ export async function POST(request: Request) {
   }
 
   // Validate input
-  const body = await request.json()
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
   const parsed = generateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(

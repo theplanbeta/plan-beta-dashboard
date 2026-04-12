@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { cookies } from "next/headers"
 import {
   Briefcase,
   UserCircle,
@@ -7,6 +8,7 @@ import {
   ScrollText,
   FileCheck2,
 } from "lucide-react"
+import { verifyJobsAppToken } from "@/lib/jobs-app-auth"
 
 const stageStats = [
   { label: "Saved", count: 0, tone: "ink-faded" },
@@ -15,22 +17,26 @@ const stageStats = [
   { label: "Offers", count: 0, tone: "ink-green" },
 ]
 
-const quickActions = [
-  {
-    title: "Browse Jobs",
-    subtitle: "Hand-picked roles, updated daily",
-    href: "/jobs-app/jobs",
-    icon: Briefcase,
-    tab: "№ 01 · STELLENBÖRSE",
-  },
-  {
-    title: "Your Profile",
-    subtitle: "The core of every application folder",
-    href: "/jobs-app/onboarding",
-    icon: UserCircle,
-    tab: "№ 02 · PROFIL",
-  },
-]
+function buildQuickActions(isAuthed: boolean) {
+  return [
+    {
+      title: "Browse Jobs",
+      subtitle: "Hand-picked roles, updated daily",
+      href: isAuthed ? "/jobs-app/jobs" : "/jobs-app/auth?mode=register",
+      icon: Briefcase,
+      tab: "№ 01 · STELLENBÖRSE",
+    },
+    {
+      title: isAuthed ? "Your Profile" : "Open your dossier",
+      subtitle: isAuthed
+        ? "The core of every application folder"
+        : "Sign up to start your career folder",
+      href: isAuthed ? "/jobs-app/onboarding" : "/jobs-app/auth?mode=register",
+      icon: UserCircle,
+      tab: "№ 02 · PROFIL",
+    },
+  ]
+}
 
 const howItWorks = [
   {
@@ -53,7 +59,11 @@ const howItWorks = [
   },
 ]
 
-export default function JobsAppHomePage() {
+export default async function JobsAppHomePage() {
+  const token = (await cookies()).get("pb-jobs-app")?.value
+  const isAuthed = token ? Boolean(await verifyJobsAppToken(token)) : false
+  const quickActions = buildQuickActions(isAuthed)
+
   return (
     <div className="space-y-7">
       {/* ── Masthead ─────────────────────────────────────────── */}
@@ -121,7 +131,9 @@ export default function JobsAppHomePage() {
             fontSize: "0.88rem",
           }}
         >
-          Create a profile to start tracking applications.
+          {isAuthed
+            ? "Create a profile to start tracking applications."
+            : "Open your dossier to start tracking applications."}
         </p>
       </section>
 

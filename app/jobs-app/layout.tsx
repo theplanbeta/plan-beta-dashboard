@@ -17,16 +17,26 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Plan Beta Day Zero",
-    description: "Day Zero with us, Day One at work. The career companion for professionals on their way to Germany.",
+    description:
+      "Day Zero with us, Day One at work. The career companion for professionals on their way to Germany.",
     url: "https://dayzero.xyz",
     siteName: "Plan Beta Day Zero",
     locale: "en_IN",
     type: "website",
+    images: [
+      {
+        url: "/og-day-zero.png",
+        width: 1200,
+        height: 630,
+        alt: "Plan Beta Day Zero — Day Zero with us, Day One at work.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Plan Beta Day Zero",
     description: "Day Zero with us, Day One at work.",
+    images: ["/og-day-zero.png"],
   },
 }
 

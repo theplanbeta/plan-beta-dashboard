@@ -17,12 +17,13 @@ const PROFESSIONS = [
 ]
 
 export default function OnboardingForm() {
-  const { seeker } = useJobsAuth()
+  const { seeker, refresh } = useJobsAuth()
   const router = useRouter()
 
   const [germanLevel, setGermanLevel] = useState("")
   const [profession, setProfession] = useState("")
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const firstName = seeker?.name?.split(" ")[0] ?? null
 
@@ -30,6 +31,7 @@ export default function OnboardingForm() {
     e.preventDefault()
     if (!germanLevel || !profession) return
     setSaving(true)
+    setError(null)
     try {
       const res = await fetch("/api/jobs-app/profile", {
         method: "PUT",
@@ -37,7 +39,22 @@ export default function OnboardingForm() {
         credentials: "include",
         body: JSON.stringify({ germanLevel, profession }),
       })
-      if (res.ok) router.push("/jobs-app/jobs")
+      if (res.status === 401) {
+        router.replace("/jobs-app/auth?mode=login")
+        return
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(
+          (data && typeof data.error === "string" && data.error) ||
+            "Could not save your profile. Try again."
+        )
+        return
+      }
+      await refresh()
+      router.push("/jobs-app/jobs")
+    } catch {
+      setError("Network error. Check your connection.")
     } finally {
       setSaving(false)
     }
@@ -149,6 +166,22 @@ export default function OnboardingForm() {
 
       {/* Submit */}
       <div className="amtlich-enter amtlich-enter-delay-3">
+        {error && (
+          <div
+            role="alert"
+            className="mono mb-3"
+            style={{
+              fontSize: "var(--fs-mono-xs)",
+              color: "var(--stamp-red)",
+              padding: "8px 10px",
+              border: "1px dashed var(--stamp-red)",
+              borderRadius: "3px",
+              background: "rgba(217, 58, 31, 0.06)",
+            }}
+          >
+            {error}
+          </div>
+        )}
         <button
           type="submit"
           disabled={!germanLevel || !profession || saving}

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { getJobSeeker, requireJobSeeker } from "@/lib/jobs-app-auth"
+import {
+  getJobSeeker,
+  isPremiumEffective,
+  requireJobSeeker,
+} from "@/lib/jobs-app-auth"
 
 // ---------------------------------------------------------------------------
 // Zod schema for PUT body
@@ -68,6 +72,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  // Single canonical source of truth for premium. Matches the server-side
+  // gate used by CV, Anschreiben and AI scoring routes.
+  const isPremium = await isPremiumEffective(seeker)
+
   return NextResponse.json({
     seeker: {
       id: seeker.id,
@@ -80,6 +88,7 @@ export async function GET(request: Request) {
       stripeCustomerId: seeker.stripeCustomerId,
       planBetaStudentId: seeker.planBetaStudentId,
       onboardingComplete: seeker.onboardingComplete,
+      isPremium,
       profile: seeker.profile,
     },
   })

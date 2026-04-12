@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next"
+import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
 
 const SITE_URL = "https://theplanbeta.com"
+const DAY_ZERO_URL = "https://dayzero.xyz"
 
 const KERALA_CITIES = [
   "kochi",
@@ -25,7 +27,51 @@ const GERMAN_CITIES = [
 
 const JOB_NICHES = ["nursing", "engineering", "student-jobs"]
 
+async function dayZeroSitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date()
+
+  const staticDayZero: MetadataRoute.Sitemap = [
+    {
+      url: DAY_ZERO_URL,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 1,
+    },
+    {
+      url: `${DAY_ZERO_URL}/jobs-app/jobs`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.95,
+    },
+  ]
+
+  // Every active job posting gets its own detail URL for Google Jobs
+  // indexing. Cap at 5000 to keep sitemap size reasonable.
+  const jobs = await prisma.jobPosting.findMany({
+    where: { active: true, slug: { not: null } },
+    select: { slug: true, updatedAt: true },
+    orderBy: { createdAt: "desc" },
+    take: 5000,
+  })
+
+  const jobDetailPages: MetadataRoute.Sitemap = jobs
+    .filter((j): j is { slug: string; updatedAt: Date } => Boolean(j.slug))
+    .map((job) => ({
+      url: `${DAY_ZERO_URL}/jobs-app/job/${job.slug}`,
+      lastModified: job.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }))
+
+  return [...staticDayZero, ...jobDetailPages]
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const host = (await headers()).get("host") ?? "theplanbeta.com"
+  if (host.includes("dayzero.xyz")) {
+    return dayZeroSitemap()
+  }
+
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: SITE_URL,

@@ -104,6 +104,7 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       const res = await fetch("/api/jobs-app/cv/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: job.id, language: "en" }),
       })
       const data = await res.json()
@@ -125,6 +126,7 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       const res = await fetch("/api/jobs-app/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ jobPostingId: job.id, stage }),
       })
       const data = await res.json()

@@ -85,7 +85,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[track/screenshot] classification failed:", err)
     return NextResponse.json(
-      { error: "Failed to classify screenshot", details: (err as Error).message },
+      { error: "Failed to classify screenshot" },
       { status: 500 }
     )
   }

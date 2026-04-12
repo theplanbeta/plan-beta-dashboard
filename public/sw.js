@@ -1,15 +1,18 @@
 // Plan Beta Service Worker — Push Notifications + Caching + Offline + Background Sync
 
-const CACHE_NAME = "planbeta-v4"
+const CACHE_NAME = "planbeta-v5"
 
-// Pages to precache on install
-const PRECACHE_URLS = [
-  "/site",
-  "/site/courses",
-  "/site/contact",
-  "/site/about",
-  "/offline",
-]
+// Detect which domain we're running on so we precache the right pages.
+// On dayzero.xyz the marketing /site/* pages don't exist; the PWA lives
+// entirely under /jobs-app/. On theplanbeta.com the opposite is true.
+const isDayZero =
+  self.location.hostname.includes("dayzero.xyz") ||
+  self.location.hostname.includes("dayzero.localhost") ||
+  self.location.hostname.includes("jobs.localhost")
+
+const PRECACHE_URLS = isDayZero
+  ? ["/jobs-app", "/jobs-app/jobs", "/offline"]
+  : ["/site", "/site/courses", "/site/contact", "/site/about", "/offline"]
 
 // Install — precache critical pages, skip waiting
 self.addEventListener("install", (event) => {
@@ -78,6 +81,27 @@ self.addEventListener("fetch", (event) => {
           return response
         })
       })
+    )
+    return
+  }
+
+  // Jobs app pages — network-first with cache fallback and offline fallback
+  if (url.pathname.startsWith("/jobs-app") || url.pathname === "/offline") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
+          }
+          return response
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) => {
+            if (cached) return cached
+            return caches.match("/offline")
+          })
+        )
     )
     return
   }
@@ -172,7 +196,7 @@ self.addEventListener("push", (event) => {
     body: data.body,
     icon: data.icon || "/icon-192.png",
     badge: "/icon-192.png",
-    data: { url: data.url || "/site" },
+    data: { url: data.url || (isDayZero ? "/jobs-app" : "/site") },
     vibrate: [200, 100, 200],
   }
 
@@ -183,7 +207,7 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close()
 
-  const url = event.notification.data?.url || "/site"
+  const url = event.notification.data?.url || (isDayZero ? "/jobs-app" : "/site")
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

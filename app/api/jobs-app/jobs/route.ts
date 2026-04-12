@@ -37,6 +37,8 @@ export async function GET(request: Request) {
 
   const { page, sort, profession, germanLevel, location } = parsed.data
 
+  try {
+
   // Build where clause
   const where: Prisma.JobPostingWhereInput = { active: true }
 
@@ -159,4 +161,11 @@ export async function GET(request: Request) {
       pages: Math.ceil(total / LIMIT),
     },
   })
+  } catch (error) {
+    console.error("[jobs-app/jobs] GET error:", error)
+    return NextResponse.json(
+      { error: "Failed to fetch jobs" },
+      { status: 500 }
+    )
+  }
 }

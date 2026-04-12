@@ -64,11 +64,20 @@ export async function POST(request: NextRequest) {
 
   // Derive the return URL from the originating request so users on
   // dayzero.xyz return to dayzero.xyz, not to a hardcoded fallback.
-  // Falls back to https://dayzero.xyz if neither origin nor env are set.
+  // SECURITY: allowlist valid origins to prevent an attacker from
+  // injecting Origin: https://evil.com and receiving a Stripe session
+  // whose success_url redirects the victim to the attacker's domain.
+  const ALLOWED_ORIGINS = new Set([
+    "https://dayzero.xyz",
+    "https://www.dayzero.xyz",
+    "https://planbeta.app",
+    "https://theplanbeta.com",
+    "http://localhost:3000",
+  ])
   const originHeader = request.headers.get("origin") || ""
   const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || ""
-  const appUrl = originHeader.startsWith("https://")
-    ? originHeader.replace(/\/+$/, "")
+  const appUrl = ALLOWED_ORIGINS.has(originHeader)
+    ? originHeader
     : rawAppUrl.startsWith("https://")
     ? rawAppUrl.trim().replace(/\/+$/, "")
     : "https://dayzero.xyz"

@@ -122,7 +122,16 @@ export async function POST(request: Request) {
     }
   }
 
-  // --- Map status string to enum -------------------------------------------
+  // --- Validate status against the Prisma enum (C2 adversarial fix) --------
+  // The AI classifier can return arbitrary strings. Casting blindly would
+  // cause Prisma to throw on the subsequent insert/update.
+  const validStages = Object.values(ApplicationStage) as string[]
+  if (!validStages.includes(result.status)) {
+    return NextResponse.json(
+      { error: `Unrecognised application status: ${result.status}` },
+      { status: 422 }
+    )
+  }
   const stage = result.status as ApplicationStage
 
   // --- Update existing application ------------------------------------------

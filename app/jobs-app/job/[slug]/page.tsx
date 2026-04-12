@@ -1,13 +1,16 @@
 import type { Metadata } from "next"
 import Script from "next/script"
 import { notFound } from "next/navigation"
+import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import JobDetailClient, { type JobDetail } from "./JobDetailClient"
 
 const SITE_URL = "https://dayzero.xyz"
 
-// Pull only the fields the page needs.
-async function getJob(slug: string) {
+// React cache() deduplicates this across generateMetadata + the page
+// component within the same server request. Without it we'd fire two
+// identical Prisma queries per job detail page load (H7 adversarial fix).
+const getJob = cache(async function getJob(slug: string) {
   return prisma.jobPosting.findFirst({
     where: { slug, active: true },
     select: {
@@ -31,7 +34,7 @@ async function getJob(slug: string) {
       updatedAt: true,
     },
   })
-}
+})
 
 type JobFromDb = NonNullable<Awaited<ReturnType<typeof getJob>>>
 
@@ -154,14 +157,14 @@ export default async function JobDetailPage({
         }
       : undefined,
     baseSalary:
-      job.salaryMin || job.salaryMax
+      job.salaryMin !== null || job.salaryMax !== null
         ? {
             "@type": "MonetaryAmount",
             currency: job.currency,
             value: {
               "@type": "QuantitativeValue",
-              minValue: job.salaryMin ?? undefined,
-              maxValue: job.salaryMax ?? undefined,
+              ...(job.salaryMin !== null ? { minValue: job.salaryMin } : {}),
+              ...(job.salaryMax !== null ? { maxValue: job.salaryMax } : {}),
               unitText: "YEAR",
             },
           }

@@ -57,9 +57,10 @@ export async function POST(request: Request) {
 
   const token = await signJobsAppToken(seeker.id, seeker.email, seeker.tier)
 
+  // Do NOT return the token in the JSON body. It lives exclusively in the
+  // httpOnly cookie — exposing it in the body would let XSS exfiltrate it.
   const response = NextResponse.json(
     {
-      token,
       seeker: {
         id: seeker.id,
         email: seeker.email,

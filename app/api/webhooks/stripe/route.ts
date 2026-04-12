@@ -169,10 +169,14 @@ export async function POST(request: NextRequest) {
             : "inactive"
 
         if (existing) {
+          // H4 adversarial fix: "inactive" must NOT preserve stale status.
+          // An `incomplete_expired` Stripe state that maps to "inactive"
+          // should actually write "inactive" — falling back to
+          // existing.status could leave a subscription stuck on "active".
           await prisma.jobSubscription.update({
             where: { stripeSubscriptionId: subscriptionId },
             data: {
-              status: mappedStatus === "inactive" ? existing.status : mappedStatus,
+              status: mappedStatus,
               ...(periodEnd ? { currentPeriodEnd: periodEnd } : {}),
             },
           })

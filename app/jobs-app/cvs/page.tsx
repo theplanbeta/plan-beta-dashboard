@@ -244,9 +244,7 @@ export default function CVHistoryPage() {
               {/* Actions */}
               <div className="flex gap-2">
                 <a
-                  href={cv.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`/api/jobs-app/cv/${cv.id}/download`}
                   className="amtlich-btn flex-1 inline-flex items-center justify-center gap-1.5 no-underline"
                   style={{ padding: "9px 12px", fontSize: "var(--fs-mono-xs)" }}
                 >

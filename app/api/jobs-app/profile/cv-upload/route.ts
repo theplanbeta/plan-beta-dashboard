@@ -1,5 +1,6 @@
 // app/api/jobs-app/profile/cv-upload/route.ts
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
 import { validatePdf } from "@/lib/pdf-validation"
@@ -82,13 +83,34 @@ export async function POST(request: Request) {
   }
 
   // Create CVImport row + write blob + fire worker
-  const importRow = await prisma.cVImport.create({
-    data: {
-      seekerId: seeker.id,
-      status: "QUEUED",
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    },
-  })
+  let importRow
+  try {
+    importRow = await prisma.cVImport.create({
+      data: {
+        seekerId: seeker.id,
+        status: "QUEUED",
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    })
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      // Concurrent upload beat the findFirst check — return the existing pending
+      const existing = await prisma.cVImport.findFirst({
+        where: { seekerId: seeker.id, consumedAt: null, status: { not: "FAILED" } },
+        select: { id: true, status: true },
+        orderBy: { createdAt: "desc" },
+      })
+      return NextResponse.json(
+        {
+          error: "You already have an upload in progress",
+          importId: existing?.id ?? null,
+          status: existing?.status ?? "QUEUED",
+        },
+        { status: 409 }
+      )
+    }
+    throw e
+  }
 
   const blobKey = `cv-uploads/${seeker.id}/${importRow.id}.pdf`
   try {

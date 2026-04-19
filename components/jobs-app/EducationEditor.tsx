@@ -35,19 +35,44 @@ export function EducationEditor({ value, onChange }: Props) {
         const isOpen = open === e.id
         return (
           <div key={e.id} className="border rounded p-2">
-            <div className="flex justify-between cursor-pointer" onClick={() => setOpen(isOpen ? null : e.id)}>
-              <div>
+            <div className="flex justify-between items-center">
+              <button
+                type="button"
+                className="flex-1 text-left bg-transparent border-0 p-0"
+                onClick={() => setOpen(isOpen ? null : e.id)}
+                aria-expanded={isOpen}
+                aria-controls={`edu-panel-${e.id}`}
+              >
                 <div className="font-medium">{e.institution || "Institution"}</div>
                 <div className="text-xs opacity-60">{e.degree ?? "?"} · {e.field ?? "?"} · {e.year ?? ""}</div>
-              </div>
-              <button type="button" onClick={(ev) => { ev.stopPropagation(); onChange(value.filter((x) => x.id !== e.id)) }}><Trash2 size={14} /></button>
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange(value.filter((x) => x.id !== e.id))}
+                aria-label="Remove entry"
+                className="ml-2"
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
             {isOpen && (
-              <div className="grid gap-2 mt-2">
-                <input value={e.institution} onChange={(ev) => update(e.id, { institution: ev.target.value })} placeholder="Institution" className="border p-1" />
-                <input value={e.degree ?? ""} onChange={(ev) => update(e.id, { degree: ev.target.value || null })} placeholder="Degree" className="border p-1" />
-                <input value={e.field ?? ""} onChange={(ev) => update(e.id, { field: ev.target.value || null })} placeholder="Field of study" className="border p-1" />
-                <input value={e.year ?? ""} onChange={(ev) => update(e.id, { year: ev.target.value || null })} placeholder="Year" className="border p-1" />
+              <div id={`edu-panel-${e.id}`} className="grid gap-2 mt-2">
+                <label className="block text-xs opacity-70">
+                  <span>Institution</span>
+                  <input value={e.institution} onChange={(ev) => update(e.id, { institution: ev.target.value })} className="border p-1 w-full mt-0.5" />
+                </label>
+                <label className="block text-xs opacity-70">
+                  <span>Degree</span>
+                  <input value={e.degree ?? ""} onChange={(ev) => update(e.id, { degree: ev.target.value || null })} className="border p-1 w-full mt-0.5" />
+                </label>
+                <label className="block text-xs opacity-70">
+                  <span>Field of study</span>
+                  <input value={e.field ?? ""} onChange={(ev) => update(e.id, { field: ev.target.value || null })} className="border p-1 w-full mt-0.5" />
+                </label>
+                <label className="block text-xs opacity-70">
+                  <span>Year</span>
+                  <input value={e.year ?? ""} onChange={(ev) => update(e.id, { year: ev.target.value || null })} className="border p-1 w-full mt-0.5" />
+                </label>
               </div>
             )}
           </div>

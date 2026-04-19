@@ -53,6 +53,9 @@ export function CVUploadDropzone({ onUploadStart, onError, className, compact }:
     if (f) handleFile(f)
   }
 
+  // Outer div keeps drag handlers (the drop target). Inner button is the
+  // keyboard/click handle. aria-live on the status paragraph announces
+  // upload state changes to screen readers.
   return (
     <div
       className={className}
@@ -61,32 +64,46 @@ export function CVUploadDropzone({ onUploadStart, onError, className, compact }:
       style={{
         border: "2px dashed rgba(0,0,0,.25)",
         borderRadius: 6,
-        padding: compact ? 16 : 40,
-        textAlign: "center",
         background: state === "error" ? "#fff5f5" : "#fffef5",
-        cursor: state === "uploading" ? "wait" : "pointer",
       }}
-      onClick={() => state === "idle" && inputRef.current?.click()}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf"
-        style={{ display: "none" }}
-        onChange={onChange}
-      />
-      {state === "uploading" ? (
-        <>
-          <Loader2 className="mx-auto animate-spin" size={28} />
-          <p className="mt-2">Uploading…</p>
-        </>
-      ) : (
-        <>
-          {state === "error" ? <FileText size={28} className="mx-auto" /> : <Upload size={28} className="mx-auto" />}
-          <p className="mt-2">{state === "error" ? message : "Drop your CV (PDF) here or click to browse"}</p>
-          <p className="text-sm opacity-60 mt-1">PDF only · up to 10 MB · up to 20 pages</p>
-        </>
-      )}
+      <button
+        type="button"
+        onClick={() => state === "idle" && inputRef.current?.click()}
+        disabled={state === "uploading"}
+        aria-label="Upload your CV PDF"
+        style={{
+          display: "block",
+          width: "100%",
+          padding: compact ? 16 : 40,
+          textAlign: "center",
+          background: "transparent",
+          border: "none",
+          cursor: state === "uploading" ? "wait" : "pointer",
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="application/pdf"
+          style={{ display: "none" }}
+          onChange={onChange}
+        />
+        <div role="status" aria-live="polite">
+          {state === "uploading" ? (
+            <>
+              <Loader2 className="mx-auto animate-spin" size={28} />
+              <p className="mt-2">Uploading…</p>
+            </>
+          ) : (
+            <>
+              {state === "error" ? <FileText size={28} className="mx-auto" /> : <Upload size={28} className="mx-auto" />}
+              <p className="mt-2">{state === "error" ? message : "Drop your CV (PDF) here or click to browse"}</p>
+              <p className="text-sm opacity-60 mt-1">PDF only · up to 10 MB · up to 20 pages</p>
+            </>
+          )}
+        </div>
+      </button>
     </div>
   )
 }

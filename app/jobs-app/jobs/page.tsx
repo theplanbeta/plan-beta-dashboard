@@ -252,7 +252,7 @@ export default function JobsPage() {
       )}
 
       {/* ── Job list ────────────────────────────────────────── */}
-      <div className="space-y-4">
+      <div className="space-y-4" aria-busy={loading} aria-live="polite">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -266,7 +266,7 @@ export default function JobsPage() {
             />
           ))
         ) : fetchError ? (
-          <div className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
+          <div role="alert" className="amtlich-card text-center" style={{ padding: "36px 22px" }}>
             <span
               className="amtlich-stamp amtlich-stamp--ink"
               style={{ transform: "rotate(-3deg)" }}

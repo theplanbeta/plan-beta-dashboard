@@ -165,7 +165,7 @@ export function OnboardingFlow() {
             <button
               key={l}
               type="button"
-              className={`border px-3 py-1 ${germanLevel === l ? "bg-black text-white" : ""}`}
+              className={`border px-4 py-2 min-h-[44px] min-w-[44px] ${germanLevel === l ? "bg-black text-white" : ""}`}
               onClick={() => setGermanLevel(l)}
             >
               {l}
@@ -181,7 +181,7 @@ export function OnboardingFlow() {
             <button
               key={f}
               type="button"
-              className={`border px-3 py-1 ${field === f ? "bg-black text-white" : ""}`}
+              className={`border px-4 py-2 min-h-[44px] ${field === f ? "bg-black text-white" : ""}`}
               onClick={() => setField(f)}
             >
               {f}

@@ -5,11 +5,15 @@ import crypto from "crypto"
 
 const redis = Redis.fromEnv()
 
+// Shared ephemeral cache absorbs brief Upstash blips.
+const cvEphemeral = new Map<string, number>()
+
 // Per-seeker hourly: 10/hour
 export const seekerHourly = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(10, "1 h"),
   prefix: "cv-upload:seeker-h",
+  ephemeralCache: cvEphemeral,
 })
 
 // Per-seeker daily: 30/day
@@ -17,6 +21,7 @@ export const seekerDaily = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(30, "1 d"),
   prefix: "cv-upload:seeker-d",
+  ephemeralCache: cvEphemeral,
 })
 
 // Per-IP daily: 50/day — blocks multi-account farming from same IP
@@ -24,6 +29,7 @@ export const ipDaily = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(50, "1 d"),
   prefix: "cv-upload:ip-d",
+  ephemeralCache: cvEphemeral,
 })
 
 // Global daily circuit breaker: 5000/day
@@ -31,11 +37,47 @@ export const globalDaily = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(5000, "1 d"),
   prefix: "cv-upload:global-d",
+  ephemeralCache: cvEphemeral,
+})
+
+// Auth limiters — migrated from in-memory
+const authEphemeral = new Map<string, number>()
+
+export const authLoginLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 m"),
+  prefix: "auth:login",
+  ephemeralCache: authEphemeral,
+})
+
+export const authRegisterLimiter = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, "1 m"),
+  prefix: "auth:register",
+  ephemeralCache: authEphemeral,
 })
 
 export interface RateLimitFailure {
   layer: "seekerHourly" | "seekerDaily" | "ipDaily" | "globalDaily"
   retryAfterSeconds: number
+}
+
+async function safeLimit(
+  limiter: Ratelimit,
+  key: string,
+  layer: string
+): Promise<{ success: boolean; reset: number }> {
+  try {
+    return await limiter.limit(key)
+  } catch (err) {
+    console.warn("rate-limit layer failed, failing closed", {
+      layer,
+      key,
+      err: err instanceof Error ? err.message : String(err),
+    })
+    // Fail closed: deny briefly, let user retry
+    return { success: false, reset: Date.now() + 30_000 }
+  }
 }
 
 /**
@@ -56,7 +98,7 @@ export async function checkAllLayers(
   ]
 
   for (const [layer, limiter, key] of checks) {
-    const result = await limiter.limit(key)
+    const result = await safeLimit(limiter, key, layer)
     if (!result.success) {
       return {
         layer,
@@ -68,8 +110,26 @@ export async function checkAllLayers(
   return null
 }
 
+/**
+ * Extract a trustable client IP.
+ *
+ * On Vercel, `x-vercel-forwarded-for` is edge-injected and cannot be client-spoofed.
+ * `x-forwarded-for` is a comma-separated chain where the LAST entry is the
+ * most-recently-trusted hop; the FIRST entry can be anything the client appended.
+ * Clients cannot forge the last hop because the edge proxy overwrites it.
+ */
 export function extractIp(request: Request): string {
+  const vercelIp = request.headers.get("x-vercel-forwarded-for")?.trim()
+  if (vercelIp) {
+    // x-vercel-forwarded-for can itself be comma-separated in multi-proxy setups;
+    // take the last value for the edge's authoritative view.
+    const parts = vercelIp.split(",").map((s) => s.trim()).filter(Boolean)
+    return parts[parts.length - 1] || "unknown"
+  }
   const xff = request.headers.get("x-forwarded-for")
-  if (xff) return xff.split(",")[0].trim()
-  return request.headers.get("x-real-ip") ?? "unknown"
+  if (xff) {
+    const parts = xff.split(",").map((s) => s.trim()).filter(Boolean)
+    return parts[parts.length - 1] || "unknown"
+  }
+  return request.headers.get("x-real-ip")?.trim() || "unknown"
 }

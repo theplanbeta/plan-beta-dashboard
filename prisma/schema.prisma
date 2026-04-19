@@ -1582,6 +1582,11 @@ model JobSeeker {
   emailVerified        Boolean   @default(false)
   lastLoginAt          DateTime?
 
+  // Referral
+  referralCode         String?   @unique  // auto-generated on signup, e.g. "PRIYA-D0-A3F2"
+  referredBy           String?             // referralCode of the referrer (FK-like but not enforced)
+  referredAt           DateTime?
+
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -1597,6 +1602,7 @@ model JobSeeker {
   @@index([email])
   @@index([tier])
   @@index([planBetaStudentId])
+  @@index([referredBy])
 }
 
 model JobSeekerProfile {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { stripe } from "@/lib/stripe"
 import { prisma } from "@/lib/prisma"
+import { trackServerPurchase } from "@/lib/meta-capi"
 import type Stripe from "stripe"
 
 function getPeriodEnd(sub: Stripe.Subscription): Date | null {
@@ -121,6 +122,17 @@ export async function POST(request: NextRequest) {
         })
 
         console.log(`[Stripe Webhook] Subscription created for ${email}`)
+
+        // Fire Meta CAPI Purchase event — teaches the ad optimizer what a
+        // real paid conversion looks like. Non-blocking.
+        trackServerPurchase({
+          email,
+          name: metadata.name || null,
+          phone: metadata.whatsapp || null,
+          amount: (session.amount_total ?? 0) / 100,
+          currency: (session.currency ?? "eur").toUpperCase(),
+          orderId: subscriptionId,
+        }).catch((err) => console.warn("[Stripe Webhook] CAPI Purchase failed", { err: (err as Error).message }))
 
         // ── Jobs App PWA tier (parallel upsert for JobSeeker) ─────
         // Upgrade the JobSeeker to PREMIUM when the checkout is flagged

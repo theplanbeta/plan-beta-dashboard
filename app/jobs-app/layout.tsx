@@ -3,6 +3,8 @@ import { Fraunces, Newsreader, JetBrains_Mono } from "next/font/google"
 import { JobsAuthProvider } from "@/components/jobs-app/AuthProvider"
 import { BottomNav } from "@/components/jobs-app/BottomNav"
 import DocumentSerial from "@/components/jobs-app/DocumentSerial"
+import PWAInstallPrompt from "@/components/PWAInstallPrompt"
+import PushNotificationPrompt from "@/components/marketing/PushNotificationPrompt"
 import "./amtlich.css"
 
 const fraunces = Fraunces({
@@ -101,6 +103,8 @@ export default function JobsAppLayout({
           {children}
         </main>
         <BottomNav />
+        <PWAInstallPrompt />
+        <PushNotificationPrompt />
       </div>
       </div>
     </JobsAuthProvider>

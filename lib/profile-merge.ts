@@ -43,6 +43,28 @@ export interface MergeResult {
 
 const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").replace(/[^\p{L}\p{N} ]/gu, "").trim()
 
+// Normalize arbitrary date-like strings to YYYY or YYYY-MM for matching.
+// Accepts "2020", "2020-03", "03/2020", "March 2020", "Mar 2020".
+// Falls through to a lowercased trim for anything else so exact-match still works.
+function normDate(s: string | null | undefined): string {
+  if (!s) return ""
+  const t = s.trim().toLowerCase()
+  if (!t) return ""
+  const mIso = /^(\d{4})(?:-(\d{1,2}))?$/.exec(t)
+  if (mIso) return mIso[2] ? `${mIso[1]}-${mIso[2].padStart(2, "0")}` : mIso[1]
+  const mSlash = /^(\d{1,2})\/(\d{4})$/.exec(t)
+  if (mSlash) return `${mSlash[2]}-${mSlash[1].padStart(2, "0")}`
+  const months: Record<string, string> = {
+    jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+    jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+    january: "01", february: "02", march: "03", april: "04", june: "06",
+    july: "07", august: "08", september: "09", october: "10", november: "11", december: "12",
+  }
+  const mName = /^([a-z]+)[\s-]+(\d{4})$/.exec(t)
+  if (mName && months[mName[1]]) return `${mName[2]}-${months[mName[1]]}`
+  return t
+}
+
 function matchWork(
   a: { company: string; title: string; from: string | null },
   b: { company: string; title: string; from: string | null }
@@ -50,7 +72,7 @@ function matchWork(
   return (
     norm(a.company) === norm(b.company) &&
     norm(a.title) === norm(b.title) &&
-    (a.from ?? "") === (b.from ?? "")
+    normDate(a.from) === normDate(b.from)
   )
 }
 
@@ -73,8 +95,17 @@ function matchCert(
 }
 
 function unionCI(existing: string[], incoming: string[]): string[] {
-  const lower = new Set(existing.map((s) => s.toLowerCase()))
-  const added = incoming.filter((s) => !lower.has(s.toLowerCase()))
+  const keyFn = (s: string) => s.trim().toLowerCase()
+  const seen = new Set(existing.map(keyFn))
+  const added: string[] = []
+  for (const s of incoming) {
+    const k = keyFn(s)
+    if (!k) continue
+    if (!seen.has(k)) {
+      seen.add(k)
+      added.push(s.trim())
+    }
+  }
   return [...existing, ...added]
 }
 

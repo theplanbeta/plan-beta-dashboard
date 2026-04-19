@@ -93,6 +93,39 @@ describe("smartMerge", () => {
   })
 })
 
+describe("smartMerge date normalization + unionCI hygiene", () => {
+  it("deduplicates work entries across date-format variants", () => {
+    const existing = makeExisting({
+      workExperience: [{ id: "e1", company: "Acme", title: "Engineer", from: "2020-03", to: null, description: "original" }],
+    })
+    const parsed = makeParsed({
+      workExperience: [{ id: "n1", company: "Acme", title: "Engineer", from: "March 2020", to: null, description: "new" }],
+    })
+    const { merged, diff } = smartMerge(existing, parsed)
+    expect(merged.workExperience).toHaveLength(1)
+    expect(merged.workExperience[0].description).toBe("original")
+    expect(diff.workExperience.added).toHaveLength(0)
+  })
+
+  it("handles 03/2020 slash format", () => {
+    const existing = makeExisting({
+      workExperience: [{ id: "e1", company: "Acme", title: "Engineer", from: "2020-03", to: null, description: null }],
+    })
+    const parsed = makeParsed({
+      workExperience: [{ id: "n1", company: "Acme", title: "Engineer", from: "03/2020", to: null, description: null }],
+    })
+    const { diff } = smartMerge(existing, parsed)
+    expect(diff.workExperience.added).toHaveLength(0)
+  })
+
+  it("skills unionCI trims and is case-insensitive", () => {
+    const existing = makeExisting({ skills: { technical: ["Python"], languages: [], soft: [] } })
+    const parsed = makeParsed({ skills: { technical: ["  python  ", "Docker"], languages: [], soft: [] } })
+    const { merged } = smartMerge(existing, parsed)
+    expect(merged.skills?.technical).toEqual(["Python", "Docker"])
+  })
+})
+
 describe("PARSED_CV_SCALAR_KEYS drift-coverage", () => {
   it("every key in PARSED_CV_SCALAR_KEYS exists on ParsedCVSchema", () => {
     const shape = ParsedCVSchema.shape as Record<string, unknown>

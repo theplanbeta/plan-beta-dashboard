@@ -55,3 +55,6 @@ screenshots/
 
 # MemPalace local memory (contains conversation history)
 .mempalace/
+
+# Superpowers brainstorming session artifacts
+.superpowers/

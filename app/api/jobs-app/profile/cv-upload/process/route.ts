@@ -57,8 +57,8 @@ export async function POST(request: Request) {
   })
 
   try {
-    // Fetch PDF bytes from private blob
-    const info = await head(row.blobKey)
+    // Fetch PDF bytes from private blob — pass token explicitly for defence-in-depth
+    const info = await head(row.blobKey, { token: process.env.BLOB_READ_WRITE_TOKEN })
     const pdfResponse = await fetch(info.url, {
       headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
     })

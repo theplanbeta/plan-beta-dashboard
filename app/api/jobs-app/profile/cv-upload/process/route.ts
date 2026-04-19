@@ -14,6 +14,15 @@ export const maxDuration = 60
 
 const bodySchema = z.object({ importId: z.string().min(1) })
 
+function safeErrorMessage(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err)
+  if (/anthropic|api.?key|rate.?limit/i.test(msg)) return "AI service temporarily unavailable"
+  if (/blob|vercel/i.test(msg)) return "Storage temporarily unavailable"
+  if (/prisma|postgres|p\d{4}/i.test(msg)) return "Database temporarily unavailable"
+  if (/timeout|aborted/i.test(msg)) return "Parse took too long, please retry"
+  return "Parse failed, please try again"
+}
+
 export async function POST(request: Request) {
   const rawBody = await request.text()
   const signature = request.headers.get("X-Worker-Signature") ?? ""
@@ -115,15 +124,22 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true })
   } catch (err) {
-    const message = (err as Error).message ?? "Unknown error"
+    console.error("cv-upload parse failed", {
+      importId,
+      err: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    const userMessage = safeErrorMessage(err)
     // Best-effort blob cleanup on failure
     if (row.blobKey) {
-      try { await del(row.blobKey) } catch {}
+      try { await del(row.blobKey) } catch (delErr) {
+        console.warn("blob del on failure path failed", { blobKey: row.blobKey, err: delErr instanceof Error ? delErr.message : delErr })
+      }
     }
     await prisma.cVImport.update({
       where: { id: importId },
-      data: { status: "FAILED", error: message, blobKey: null, progress: null },
+      data: { status: "FAILED", error: userMessage, blobKey: null, progress: null },
     })
-    return NextResponse.json({ ok: false, error: message }, { status: 500 })
+    return NextResponse.json({ ok: false, error: userMessage }, { status: 500 })
   }
 }

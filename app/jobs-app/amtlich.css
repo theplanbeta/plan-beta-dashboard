@@ -7,7 +7,9 @@
    German stays only as decorative stamps and file numbers.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Newsreader:opsz,wght@6..72,200..800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Fonts loaded via next/font/google in app/jobs-app/layout.tsx — the
+   CSS variables --font-fraunces, --font-newsreader, --font-jetbrains
+   are then consumed by --f-display, --f-body, --f-mono below. */
 
 .amtlich {
   /* ── Paper (background, cards) ─────────────────────── */
@@ -44,9 +46,9 @@
   --brass-shadow:     #7A5516;
 
   /* ── Typography ────────────────────────────────────── */
-  --f-display: 'Fraunces', Georgia, serif;
-  --f-body:    'Newsreader', Georgia, serif;
-  --f-mono:    'JetBrains Mono', 'Courier New', monospace;
+  --f-display: var(--font-fraunces), 'Fraunces', Georgia, serif;
+  --f-body:    var(--font-newsreader), 'Newsreader', Georgia, serif;
+  --f-mono:    var(--font-jetbrains), 'JetBrains Mono', 'Courier New', monospace;
 
   /* Mobile-first type scale — 11px minimum on mono */
   --fs-mono-xs: 0.6875rem;  /* 11px */

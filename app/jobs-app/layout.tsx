@@ -1,8 +1,25 @@
 import type { Metadata, Viewport } from "next"
+import { Fraunces, Newsreader, JetBrains_Mono } from "next/font/google"
 import { JobsAuthProvider } from "@/components/jobs-app/AuthProvider"
 import { BottomNav } from "@/components/jobs-app/BottomNav"
 import DocumentSerial from "@/components/jobs-app/DocumentSerial"
 import "./amtlich.css"
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+})
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-newsreader",
+})
+const jetBrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains",
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dayzero.xyz"),
@@ -53,6 +70,7 @@ export default function JobsAppLayout({
 }) {
   return (
     <JobsAuthProvider>
+      <div className={`${fraunces.variable} ${newsreader.variable} ${jetBrainsMono.variable}`}>
       {/* SVG filter for stamp ink irregularity */}
       <svg
         width="0"
@@ -83,6 +101,7 @@ export default function JobsAppLayout({
           {children}
         </main>
         <BottomNav />
+      </div>
       </div>
     </JobsAuthProvider>
   )

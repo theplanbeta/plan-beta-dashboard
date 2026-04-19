@@ -7,6 +7,7 @@ import {
   isPremiumEffective,
   requireJobSeeker,
 } from "@/lib/jobs-app-auth"
+import { PARSED_CV_SCALAR_KEYS } from "@/lib/profile-merge"
 
 // ---------------------------------------------------------------------------
 // Zod schema for PUT body
@@ -249,14 +250,9 @@ export async function PATCH(request: Request) {
     (existing?.manuallyEditedFields as Record<string, true> | null) ?? {}
   const nextEdited: Record<string, true> = { ...prevEdited }
 
-  const scalarKeys = [
-    "firstName",
-    "lastName",
-    "currentJobTitle",
-    "yearsOfExperience",
-    "germanLevel",
-    "profession",
-  ] as const
+  // CV-parsed scalars come from the shared constant (drift-tested).
+  // Onboarding-only scalars (germanLevel, profession) are appended here.
+  const scalarKeys = [...PARSED_CV_SCALAR_KEYS, "germanLevel", "profession"] as const
 
   for (const key of scalarKeys) {
     if (!(key in updates)) continue

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
-import { smartMerge, type ExistingProfile } from "@/lib/profile-merge"
-import type { ParsedCV } from "@/lib/cv-parser"
+import { smartMerge, PARSED_CV_SCALAR_KEYS, type ExistingProfile } from "@/lib/profile-merge"
+import { ParsedCVSchema, type ParsedCV } from "@/lib/cv-parser"
 
 function makeExisting(overrides: Partial<ExistingProfile> = {}): ExistingProfile {
   return {
@@ -90,5 +90,23 @@ describe("smartMerge", () => {
     const { merged, diff } = smartMerge(existing, parsed)
     expect(merged.skills?.technical).toEqual(["Python"])
     expect(diff.preservedFromManualEdits).toContain("profile.skills")
+  })
+})
+
+describe("PARSED_CV_SCALAR_KEYS drift-coverage", () => {
+  it("every key in PARSED_CV_SCALAR_KEYS exists on ParsedCVSchema", () => {
+    const shape = ParsedCVSchema.shape as Record<string, unknown>
+    for (const key of PARSED_CV_SCALAR_KEYS) {
+      expect(shape).toHaveProperty(key)
+    }
+  })
+
+  it("catches drift when a new scalar is added to ParsedCV without updating the list", () => {
+    // If ParsedCV adds a new top-level non-array/non-object scalar (string or number)
+    // and PARSED_CV_SCALAR_KEYS is not updated, the new scalar silently bypasses
+    // manuallyEditedFields protection on future merges. This test enumerates the
+    // expected scalar keys and fires a clear failure when they drift.
+    const expectedScalars = ["firstName", "lastName", "currentJobTitle", "yearsOfExperience"]
+    expect([...PARSED_CV_SCALAR_KEYS].sort()).toEqual(expectedScalars.sort())
   })
 })

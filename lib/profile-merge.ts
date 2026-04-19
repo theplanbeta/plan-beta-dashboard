@@ -1,6 +1,20 @@
 // lib/profile-merge.ts
 import type { ParsedCV } from "./cv-parser"
 
+// Single source of truth for the scalar keys of ParsedCV. Consumed by
+// smartMerge and by the profile PATCH route's manuallyEditedFields diff
+// logic. Adding a scalar to ParsedCV and forgetting to update this list
+// breaks manual-edit protection silently — the drift-coverage test in
+// profile-merge.test.ts is the canary.
+export const PARSED_CV_SCALAR_KEYS = [
+  "firstName",
+  "lastName",
+  "currentJobTitle",
+  "yearsOfExperience",
+] as const
+
+export type ParsedCVScalarKey = (typeof PARSED_CV_SCALAR_KEYS)[number]
+
 export interface ExistingProfile {
   firstName: string | null
   lastName: string | null
@@ -75,15 +89,9 @@ export function smartMerge(existing: ExistingProfile, parsed: ParsedCV): MergeRe
     preservedFromManualEdits: [],
   }
 
-  // Scalars
-  const scalarKeys: Array<keyof Pick<ParsedCV, "firstName" | "lastName" | "currentJobTitle" | "yearsOfExperience">> = [
-    "firstName",
-    "lastName",
-    "currentJobTitle",
-    "yearsOfExperience",
-  ]
+  // Scalars — PARSED_CV_SCALAR_KEYS is the shared source of truth
   const merged: ExistingProfile = { ...existing }
-  for (const key of scalarKeys) {
+  for (const key of PARSED_CV_SCALAR_KEYS) {
     const path = `profile.${key}`
     if (edited[path]) {
       diff.preservedFromManualEdits.push(path)

@@ -1592,6 +1592,7 @@ model JobSeeker {
   generatedCVs         GeneratedCV[]
   storyBankEntries     StoryBankEntry[]
   matchScores          MatchScoreCache[]
+  cvImports            CVImport[]
 
   @@index([email])
   @@index([tier])
@@ -1640,6 +1641,10 @@ model JobSeekerProfile {
 
   // Computed
   profileCompleteness  Int       @default(0) // 0-100
+
+  // CV-upload tracking — Map<pathKey, true> where pathKey = "profile.fieldName"
+  // or "workExperience:{entryId}.fieldName". Smart merge skips fields flagged here.
+  manuallyEditedFields Json?
 
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -1774,6 +1779,48 @@ model MatchScoreCache {
   @@index([jobPostingId])
   @@index([heuristicScore])
 }
+
+// ---------------------------------------------------------------------------
+// CV Upload pipeline (Apr 19, 2026)
+// ---------------------------------------------------------------------------
+
+enum CVImportStatus {
+  QUEUED
+  PARSING
+  READY
+  FAILED
+}
+
+enum CVImportMode {
+  REVIEW
+  MERGED
+}
+
+model CVImport {
+  id          String          @id @default(cuid())
+  seekerId    String
+  seeker      JobSeeker       @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  status      CVImportStatus  @default(QUEUED)
+  mode        CVImportMode?
+  blobKey     String?         // PDF location in Vercel Blob; nulled after parse completes
+  parsedData  Json?           // populated when status = READY (matches ParsedCVSchema)
+  mergeDiff   Json?           // populated when mode = MERGED (MergeDiff shape)
+  progress    String?         // human-readable e.g. "parsing page 3 of 12"
+  error       String?         // populated when status = FAILED
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  consumedAt  DateTime?
+  expiresAt   DateTime        // NOW() + 24h; daily cron purges unconsumed expired rows
+
+  @@index([seekerId, consumedAt])
+  @@index([expiresAt, consumedAt])
+}
+
+// Partial unique index to block concurrent uploads per seeker. Must be created
+// via raw SQL alongside `prisma db push` (Prisma schema can't express it):
+//   CREATE UNIQUE INDEX IF NOT EXISTS "one_pending_import_per_seeker"
+//     ON "CVImport"("seekerId")
+//     WHERE "consumedAt" IS NULL AND "status" <> 'FAILED';
 
 model Company {
   id                   String    @id @default(cuid())

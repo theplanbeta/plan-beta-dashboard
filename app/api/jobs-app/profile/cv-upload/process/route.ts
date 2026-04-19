@@ -79,12 +79,25 @@ export async function POST(request: Request) {
     // Parse via Claude Sonnet
     const { parsed: parsedCV } = await parseCVFromPdf(pdfBuffer)
 
-    // Decide mode — empty profile → REVIEW, populated → MERGED
+    // Decide mode — empty profile → REVIEW, populated → MERGED.
+    //
+    // A profile is "truly empty" only if the user hasn't completed onboarding
+    // AND has no manual edits AND has empty CV-relevant arrays. A fresh
+    // graduate who finished onboarding (germanLevel, profession, etc.) has
+    // empty workExperience but should NOT be treated as empty — REVIEW mode
+    // overwrites the whole profile, wiping onboarding fields that aren't in
+    // ParsedCV.
     const p = row.seeker.profile
+    const onboardingComplete = row.seeker.onboardingComplete
+    const workCount = ((p?.workExperience as unknown[] | null)?.length ?? 0)
+    const techCount = ((p?.skills as { technical?: string[] } | null)?.technical?.length ?? 0)
+    const manualEditCount = Object.keys((p?.manuallyEditedFields as Record<string, true> | null) ?? {}).length
     const profileEmpty =
       !p ||
-      (((p.workExperience as unknown[] | null)?.length ?? 0) === 0 &&
-        (((p.skills as { technical?: string[] } | null)?.technical?.length ?? 0) === 0))
+      (!onboardingComplete &&
+        manualEditCount === 0 &&
+        workCount === 0 &&
+        techCount === 0)
 
     let mergeDiff: unknown = null
     if (!profileEmpty && p) {

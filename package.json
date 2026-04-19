@@ -11,7 +11,9 @@
     "db:seed": "tsx prisma/seed.ts",
     "backup": "tsx scripts/backup-database.ts",
     "restore": "tsx scripts/restore-database.ts",
-    "import": "tsx scripts/bulk-import.ts"
+    "import": "tsx scripts/bulk-import.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

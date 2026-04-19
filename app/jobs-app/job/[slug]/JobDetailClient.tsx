@@ -79,6 +79,19 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
   const [kitApplicationId, setKitApplicationId] = useState<string | null>(null)
   const [trackingKit, setTrackingKit] = useState(false)
   const [savingOnly, setSavingOnly] = useState(false)
+  const [isProfileEmpty, setIsProfileEmpty] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    if (isPremium) return
+    fetch("/api/jobs-app/profile", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return
+        const work = data.profile?.workExperience
+        setIsProfileEmpty(!Array.isArray(work) || work.length === 0)
+      })
+      .catch(() => {})
+  }, [isPremium])
 
   useEffect(() => {
     // Re-fetch the auth-aware version for match scoring and deep score.
@@ -289,6 +302,17 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
               </span>
             )}
           </button>
+        ) : isProfileEmpty ? (
+          <Link
+            href="/jobs-app/profile"
+            className="amtlich-btn amtlich-btn--primary block w-full text-center no-underline"
+            style={{ padding: "14px 22px" }}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <FileText size={14} strokeWidth={2.2} />
+              Complete your profile first →
+            </span>
+          </Link>
         ) : (
           <Link
             href="/jobs-app/settings"

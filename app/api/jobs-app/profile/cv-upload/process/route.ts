@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   await prisma.cVImport.update({
     where: { id: importId },
-    data: { status: "PARSING", progress: "reading document…" },
+    data: { status: "PARSING", progress: "reading document…", startedAt: new Date() },
   })
 
   try {

@@ -21,12 +21,37 @@ async function loadAndAuthorize(request: Request, id: string) {
   return { row, seeker } as const
 }
 
+const STUCK_QUEUED_MS = 30_000
+const STUCK_PARSING_MS = 90_000
+
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const result = await loadAndAuthorize(request, id)
   if ("err" in result) return result.err
 
-  const { row } = result
+  let { row } = result
+
+  // Stuck-state detection: if the worker never started or crashed mid-parse,
+  // mark as FAILED so the client unblocks and the partial unique index lets
+  // the user retry without waiting for the 24h cron sweep.
+  const now = Date.now()
+  const queuedAgeMs = now - row.createdAt.getTime()
+  const parsingAgeMs = row.startedAt ? now - row.startedAt.getTime() : 0
+
+  if (row.status === "QUEUED" && queuedAgeMs > STUCK_QUEUED_MS) {
+    console.warn("cv-import stuck in QUEUED, auto-failing", { id: row.id, ageMs: queuedAgeMs })
+    row = await prisma.cVImport.update({
+      where: { id: row.id },
+      data: { status: "FAILED", error: "Worker never started. Please try again." },
+    })
+  } else if (row.status === "PARSING" && parsingAgeMs > STUCK_PARSING_MS) {
+    console.warn("cv-import stuck in PARSING, auto-failing", { id: row.id, ageMs: parsingAgeMs })
+    row = await prisma.cVImport.update({
+      where: { id: row.id },
+      data: { status: "FAILED", error: "Parse took too long. Please try again." },
+    })
+  }
+
   return NextResponse.json({
     id: row.id,
     status: row.status,

@@ -1809,6 +1809,7 @@ model CVImport {
   error       String?         // populated when status = FAILED
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  startedAt   DateTime?       // set when worker transitions to PARSING (stuck-state detection)
   consumedAt  DateTime?
   expiresAt   DateTime        // NOW() + 24h; daily cron purges unconsumed expired rows
 

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
 import { JobCard, type JobData } from "@/components/jobs-app/JobCard"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
+import { ProfileCompletionBanner } from "@/components/jobs-app/ProfileCompletionBanner"
 
 type Job = JobData & { id: string }
 
@@ -33,6 +34,7 @@ export default function JobsPage() {
   const [germanLevel, setGermanLevel] = useState("")
   const [profession, setProfession] = useState("")
   const [sort, setSort] = useState("match")
+  const [profileCompleteness, setProfileCompleteness] = useState<number | null>(null)
 
   const fetchJobs = useCallback(async () => {
     setLoading(true)
@@ -66,6 +68,18 @@ export default function JobsPage() {
   useEffect(() => {
     if (!authLoading) fetchJobs()
   }, [fetchJobs, authLoading])
+
+  useEffect(() => {
+    if (authLoading || !seeker) return
+    fetch("/api/jobs-app/profile", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data && typeof data.profileCompleteness === "number") {
+          setProfileCompleteness(data.profileCompleteness)
+        }
+      })
+      .catch(() => {})
+  }, [authLoading, seeker])
 
   function resetPage() {
     setPage(1)
@@ -153,6 +167,11 @@ export default function JobsPage() {
             </span>
           </div>
         </Link>
+      )}
+
+      {/* ── Profile completeness nudge (for onboarded users with sparse profile) ── */}
+      {!showProfileBanner && profileCompleteness !== null && (
+        <ProfileCompletionBanner profileCompleteness={profileCompleteness} />
       )}
 
       {/* ── Filters panel ───────────────────────────────────── */}

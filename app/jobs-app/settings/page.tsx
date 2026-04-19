@@ -522,6 +522,13 @@ export default function SettingsPage() {
 
         <hr className="amtlich-divider" style={{ margin: "16px 0 12px" }} />
 
+        <Link
+          href="/jobs-app/profile"
+          className="amtlich-btn w-full mb-2 no-underline inline-block text-center"
+        >
+          Edit your profile →
+        </Link>
+
         <button
           type="button"
           onClick={async () => {

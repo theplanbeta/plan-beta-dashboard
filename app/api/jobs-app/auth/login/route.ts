@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, signJobsAppToken } from "@/lib/jobs-app-auth"
-import { checkRateLimit, getClientIp, RL } from "@/lib/jobs-app-rate-limit"
+import { authLoginLimiter, extractIp } from "@/lib/rate-limit-upstash"
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -28,17 +28,18 @@ export async function POST(request: Request) {
   const { email, password } = parsed.data
   const normalizedEmail = email.toLowerCase()
 
-  // Rate-limit by both IP and email so a single attacker can't iterate
-  // passwords from one IP and can't spray across many IPs against a
-  // single known-good email.
-  const ip = getClientIp(request)
-  const ipLimited = checkRateLimit(`login:ip:${ip}`, RL.AUTH_LOGIN)
-  if (ipLimited) return ipLimited
-  const emailLimited = checkRateLimit(
-    `login:email:${normalizedEmail}`,
-    RL.AUTH_LOGIN
-  )
-  if (emailLimited) return emailLimited
+  // Rate-limit by (IP, email) tuple — Upstash-backed so it survives cold starts.
+  const ip = extractIp(request)
+  const rl = await authLoginLimiter.limit(`${ip}:${normalizedEmail}`).catch(() => ({
+    success: false,
+    reset: Date.now() + 60_000,
+  }))
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Try again in a minute." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(((rl as { reset: number }).reset - Date.now()) / 1000)) } }
+    )
+  }
 
   const seeker = await prisma.jobSeeker.findUnique({
     where: { email: normalizedEmail },

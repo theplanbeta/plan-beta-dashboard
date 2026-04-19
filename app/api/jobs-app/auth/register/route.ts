@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { hashPassword, signJobsAppToken } from "@/lib/jobs-app-auth"
-import { checkRateLimit, getClientIp, RL } from "@/lib/jobs-app-rate-limit"
+import { authRegisterLimiter, extractIp } from "@/lib/rate-limit-upstash"
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -11,11 +11,18 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: Request) {
-  // Rate-limit registration by IP. 3 sign-ups/hour is enough for real
-  // users (sharing a household IP) and well below spam-bot volume.
-  const ip = getClientIp(request)
-  const ipLimited = checkRateLimit(`register:ip:${ip}`, RL.AUTH_REGISTER)
-  if (ipLimited) return ipLimited
+  // Rate-limit registration (Upstash-backed so cold-start bypass is closed).
+  const ip = extractIp(request)
+  const rl = await authRegisterLimiter.limit(ip).catch(() => ({
+    success: false,
+    reset: Date.now() + 60_000,
+  }))
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many registration attempts. Try again in a minute." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(((rl as { reset: number }).reset - Date.now()) / 1000)) } }
+    )
+  }
 
   let body: unknown
   try {

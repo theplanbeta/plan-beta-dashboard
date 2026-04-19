@@ -9,6 +9,41 @@ import {
   ReactNode,
 } from "react"
 
+/** Full profile shape returned by GET /api/jobs-app/profile.
+ *  Child pages read from this via context — NEVER refetch the profile. */
+export interface JobSeekerProfileShape {
+  firstName: string | null
+  lastName: string | null
+  germanLevel: string | null
+  profession: string | null
+  currentJobTitle: string | null
+  yearsOfExperience: number | null
+  workExperience: Array<{
+    id: string
+    company: string
+    title: string
+    from: string | null
+    to: string | null
+    description: string | null
+  }> | null
+  skills: { technical: string[]; languages: string[]; soft: string[] } | null
+  educationDetails: Array<{
+    id: string
+    institution: string
+    degree: string | null
+    field: string | null
+    year: string | null
+  }> | null
+  certifications: Array<{
+    id: string
+    name: string
+    issuer: string | null
+    year: string | null
+  }> | null
+  profileCompleteness: number
+  manuallyEditedFields: Record<string, true> | null
+}
+
 interface JobSeeker {
   id: string
   email: string
@@ -22,11 +57,9 @@ interface JobSeeker {
   onboardingComplete: boolean
   /** Canonical premium flag computed server-side via isPremiumEffective. */
   isPremium: boolean
-  profile: {
-    germanLevel: string | null
-    profession: string | null
-    profileCompleteness: number
-  } | null
+  /** Server allows null when the user hasn't PUT a profile yet. */
+  profile: JobSeekerProfileShape | null
+  referralCode: string | null
 }
 
 interface AuthContextValue {

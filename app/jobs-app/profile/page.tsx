@@ -6,9 +6,11 @@ import { CVUploadDropzone } from "@/components/jobs-app/CVUploadDropzone"
 import { ProfileEditor, type ProfileEditorValue } from "@/components/jobs-app/ProfileEditor"
 import { MergeDiffModal, type MergeDiffData } from "@/components/jobs-app/MergeDiffModal"
 import { useCVUploadPolling } from "@/hooks/useCVUploadPolling"
+import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { seeker, refresh } = useJobsAuth()
   const [value, setValue] = useState<ProfileEditorValue | null>(null)
   const [pendingImportId, setPendingImportId] = useState<string | null>(null)
   const [mergeDiff, setMergeDiff] = useState<MergeDiffData | null>(null)
@@ -17,22 +19,34 @@ export default function ProfilePage() {
   const { state: importState } = useCVUploadPolling(pendingImportId)
 
   useEffect(() => {
-    fetch("/api/jobs-app/profile", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        const p = data.profile ?? {}
+    const p = seeker?.profile
+    if (!p) {
+      // Still loading auth, or not signed in. Initialize to empty to unblock render.
+      if (seeker !== null) {
         setValue({
-          firstName: p.firstName ?? null,
-          lastName: p.lastName ?? null,
-          currentJobTitle: p.currentJobTitle ?? null,
-          yearsOfExperience: p.yearsOfExperience ?? null,
-          workExperience: (p.workExperience as ProfileEditorValue["workExperience"]) ?? [],
-          skills: p.skills ?? { technical: [], languages: [], soft: [] },
-          educationDetails: (p.educationDetails as ProfileEditorValue["educationDetails"]) ?? [],
-          certifications: (p.certifications as ProfileEditorValue["certifications"]) ?? [],
+          firstName: null,
+          lastName: null,
+          currentJobTitle: null,
+          yearsOfExperience: null,
+          workExperience: [],
+          skills: { technical: [], languages: [], soft: [] },
+          educationDetails: [],
+          certifications: [],
         })
-      })
-  }, [])
+      }
+      return
+    }
+    setValue({
+      firstName: p.firstName ?? null,
+      lastName: p.lastName ?? null,
+      currentJobTitle: p.currentJobTitle ?? null,
+      yearsOfExperience: p.yearsOfExperience ?? null,
+      workExperience: (p.workExperience as ProfileEditorValue["workExperience"]) ?? [],
+      skills: p.skills ?? { technical: [], languages: [], soft: [] },
+      educationDetails: (p.educationDetails as ProfileEditorValue["educationDetails"]) ?? [],
+      certifications: (p.certifications as ProfileEditorValue["certifications"]) ?? [],
+    })
+  }, [seeker])
 
   useEffect(() => {
     if (!importState) return
@@ -69,6 +83,7 @@ export default function ProfilePage() {
       }
       setPendingImportId(null)
       setMergeDiff(null)
+      await refresh() // pull the updated profile through AuthProvider so other pages see it
       router.refresh()
     } finally {
       setSaving(false)

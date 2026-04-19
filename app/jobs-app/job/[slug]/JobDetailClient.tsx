@@ -66,7 +66,8 @@ interface JobDetailClientProps {
 
 export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
   const router = useRouter()
-  const { isPremium } = useJobsAuth()
+  const auth = useJobsAuth()
+  const isPremium = auth.isPremium
 
   // Seed state from SSR so we skip the initial spinner and still allow
   // client-side updates (e.g. auth-gated deep score coming from the API).
@@ -79,24 +80,18 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
   const [kitApplicationId, setKitApplicationId] = useState<string | null>(null)
   const [trackingKit, setTrackingKit] = useState(false)
   const [savingOnly, setSavingOnly] = useState(false)
-  const [isProfileEmpty, setIsProfileEmpty] = useState<boolean | null>(null)
+
+  // Profile-empty check reads from AuthProvider context (no separate fetch).
+  const { seeker, loading: authLoading } = auth
+  const isProfileEmpty = seeker?.profile
+    ? !Array.isArray(seeker.profile.workExperience) || seeker.profile.workExperience.length === 0
+    : null
 
   useEffect(() => {
-    if (isPremium) return
-    fetch("/api/jobs-app/profile", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return
-        const work = data.profile?.workExperience
-        setIsProfileEmpty(!Array.isArray(work) || work.length === 0)
-      })
-      .catch(() => {})
-  }, [isPremium])
-
-  useEffect(() => {
-    // Re-fetch the auth-aware version for match scoring and deep score.
-    // The SSR payload doesn't know who the visitor is, so we overwrite
-    // the base job with whatever the API returns (it's a superset).
+    // Anonymous visitors keep the SSR payload; only authed users refetch
+    // for match scoring + deep score (which require identity).
+    if (authLoading) return
+    if (!seeker) return
     fetch(`/api/jobs-app/jobs/${initialJob.slug}`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -108,7 +103,7 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       .catch(() => {
         // Non-fatal — we still have SSR data to render.
       })
-  }, [initialJob.slug])
+  }, [initialJob.slug, authLoading, seeker])
 
   async function handleGenerateCV() {
     if (!job) return

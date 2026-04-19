@@ -34,7 +34,9 @@ export default function JobsPage() {
   const [germanLevel, setGermanLevel] = useState("")
   const [profession, setProfession] = useState("")
   const [sort, setSort] = useState("match")
-  const [profileCompleteness, setProfileCompleteness] = useState<number | null>(null)
+
+  // profileCompleteness comes from AuthProvider context (no separate fetch).
+  const profileCompleteness = seeker?.profile?.profileCompleteness ?? null
 
   const fetchJobs = useCallback(async () => {
     setLoading(true)
@@ -68,18 +70,6 @@ export default function JobsPage() {
   useEffect(() => {
     if (!authLoading) fetchJobs()
   }, [fetchJobs, authLoading])
-
-  useEffect(() => {
-    if (authLoading || !seeker) return
-    fetch("/api/jobs-app/profile", { credentials: "include" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data && typeof data.profileCompleteness === "number") {
-          setProfileCompleteness(data.profileCompleteness)
-        }
-      })
-      .catch(() => {})
-  }, [authLoading, seeker])
 
   function resetPage() {
     setPage(1)

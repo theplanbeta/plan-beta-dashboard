@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import {
   getJobSeeker,
@@ -202,4 +203,145 @@ export async function PUT(request: Request) {
   }
 
   return NextResponse.json({ profile })
+}
+
+// ---------------------------------------------------------------------------
+// PATCH /api/jobs-app/profile
+// Used by the CV upload review/merge flow. Computes manuallyEditedFields
+// server-side by diffing incoming payload vs existing profile. Consumes a
+// CVImport row if importId query param is provided.
+// ---------------------------------------------------------------------------
+
+export async function PATCH(request: Request) {
+  let seeker
+  try {
+    seeker = await requireJobSeeker(request)
+  } catch (e) {
+    if (e instanceof Response) return e
+    throw e
+  }
+
+  const url = new URL(request.url)
+  const importId = url.searchParams.get("importId")
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+
+  const parsed = updateProfileSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid payload", issues: parsed.error.issues },
+      { status: 422 }
+    )
+  }
+  const updates = parsed.data
+
+  const existing = await prisma.jobSeekerProfile.findUnique({
+    where: { seekerId: seeker.id },
+  })
+
+  // Compute diff → paths that changed become manuallyEditedFields
+  const prevEdited =
+    (existing?.manuallyEditedFields as Record<string, true> | null) ?? {}
+  const nextEdited: Record<string, true> = { ...prevEdited }
+
+  const scalarKeys = [
+    "firstName",
+    "lastName",
+    "currentJobTitle",
+    "yearsOfExperience",
+    "germanLevel",
+    "profession",
+  ] as const
+
+  for (const key of scalarKeys) {
+    if (!(key in updates)) continue
+    const before = existing ? (existing as Record<string, unknown>)[key] : null
+    const after = (updates as Record<string, unknown>)[key]
+    if (after !== undefined && after !== before) {
+      nextEdited[`profile.${key}`] = true
+    }
+  }
+
+  if (
+    "skills" in updates &&
+    JSON.stringify(updates.skills) !== JSON.stringify(existing?.skills)
+  ) {
+    nextEdited["profile.skills"] = true
+  }
+  // Array-level flags — user-initiated PATCH of these fields is intentional
+  if ("workExperience" in updates) nextEdited["profile.workExperience"] = true
+  if ("educationDetails" in updates) nextEdited["profile.educationDetails"] = true
+  if ("certifications" in updates) nextEdited["profile.certifications"] = true
+
+  await prisma.jobSeekerProfile.upsert({
+    where: { seekerId: seeker.id },
+    create: {
+      seekerId: seeker.id,
+      firstName: updates.firstName,
+      lastName: updates.lastName,
+      germanLevel: updates.germanLevel,
+      profession: updates.profession,
+      currentLocation: updates.currentLocation,
+      targetLocations: updates.targetLocations ?? [],
+      visaStatus: updates.visaStatus,
+      currentJobTitle: updates.currentJobTitle,
+      yearsOfExperience: updates.yearsOfExperience,
+      targetRoles: updates.targetRoles ?? [],
+      skills: updates.skills,
+      salaryMin: updates.salaryMin,
+      salaryMax: updates.salaryMax,
+      salaryCurrency: updates.salaryCurrency,
+      educationDetails: updates.education,
+      germanCertificate: updates.germanCertificate,
+      englishLevel: updates.englishLevel,
+      certifications: updates.certifications,
+      workExperience: updates.workExperience,
+      manuallyEditedFields: nextEdited as Prisma.InputJsonValue,
+    },
+    update: {
+      ...(updates.firstName !== undefined && { firstName: updates.firstName }),
+      ...(updates.lastName !== undefined && { lastName: updates.lastName }),
+      ...(updates.germanLevel !== undefined && { germanLevel: updates.germanLevel }),
+      ...(updates.profession !== undefined && { profession: updates.profession }),
+      ...(updates.currentLocation !== undefined && { currentLocation: updates.currentLocation }),
+      ...(updates.targetLocations !== undefined && { targetLocations: updates.targetLocations }),
+      ...(updates.visaStatus !== undefined && { visaStatus: updates.visaStatus }),
+      ...(updates.currentJobTitle !== undefined && { currentJobTitle: updates.currentJobTitle }),
+      ...(updates.yearsOfExperience !== undefined && { yearsOfExperience: updates.yearsOfExperience }),
+      ...(updates.targetRoles !== undefined && { targetRoles: updates.targetRoles }),
+      ...(updates.skills !== undefined && { skills: updates.skills }),
+      ...(updates.salaryMin !== undefined && { salaryMin: updates.salaryMin }),
+      ...(updates.salaryMax !== undefined && { salaryMax: updates.salaryMax }),
+      ...(updates.salaryCurrency !== undefined && { salaryCurrency: updates.salaryCurrency }),
+      ...(updates.education !== undefined && { educationDetails: updates.education }),
+      ...(updates.germanCertificate !== undefined && { germanCertificate: updates.germanCertificate }),
+      ...(updates.englishLevel !== undefined && { englishLevel: updates.englishLevel }),
+      ...(updates.certifications !== undefined && { certifications: updates.certifications }),
+      ...(updates.workExperience !== undefined && { workExperience: updates.workExperience }),
+      manuallyEditedFields: nextEdited as Prisma.InputJsonValue,
+    },
+  })
+
+  // Consume the import if one was referenced
+  if (importId) {
+    const imp = await prisma.cVImport.findUnique({ where: { id: importId } })
+    if (
+      imp &&
+      imp.seekerId === seeker.id &&
+      imp.status === "READY" &&
+      !imp.consumedAt
+    ) {
+      await prisma.cVImport.update({
+        where: { id: importId },
+        data: { consumedAt: new Date() },
+      })
+    }
+  }
+
+  return NextResponse.json({ ok: true })
 }

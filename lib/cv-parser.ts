@@ -9,38 +9,70 @@ const anthropic = new Anthropic({
   maxRetries: 3,
 })
 
-const stringArraySafe = z.preprocess(
-  (v) => (v === null || v === undefined ? [] : v),
-  z.array(z.string()).default([])
-)
+// Reject prompt-injection markers + control chars in any field that flows
+// back into a downstream Claude call (cv/generate, anschreiben, deep score).
+const INJECTION_RE = /ignore\s+(?:previous|all|prior)\s+(?:instructions|prompts)|system:|assistant:|role:\s*(?:system|assistant)/i
+const CONTROL_RE = /[\x00-\x1F\x7F]/
+
+function isSafeContent(s: string): boolean {
+  return !CONTROL_RE.test(s) && !INJECTION_RE.test(s)
+}
+
+const safeString = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .nullable()
+    .refine((s) => s === null || isSafeContent(s), { message: "contains disallowed content" })
+
+const safeRequiredString = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((s) => isSafeContent(s), { message: "contains disallowed content" })
+
+const safeStringArray = (maxItems: number, maxItemLen: number) =>
+  z.preprocess(
+    (v) => (v === null || v === undefined ? [] : v),
+    z
+      .array(
+        z
+          .string()
+          .max(maxItemLen)
+          .refine((s) => isSafeContent(s), { message: "contains disallowed content" })
+      )
+      .max(maxItems)
+      .default([])
+  )
 
 export const ParsedCVSchema = z
   .object({
-    firstName: z.string().nullable(),
-    lastName: z.string().nullable(),
-    currentJobTitle: z.string().nullable(),
-    yearsOfExperience: z.number().int().nullable(),
+    firstName: safeString(60),
+    lastName: safeString(60),
+    currentJobTitle: safeString(120),
+    yearsOfExperience: z.number().int().min(0).max(60).nullable(),
     workExperience: z.preprocess(
       (v) => v ?? [],
       z
         .array(
           z.object({
-            id: z.string().optional(),
-            company: z.string(),
-            title: z.string(),
-            from: z.string().nullable(),
-            to: z.string().nullable(),
-            description: z.string().nullable(),
+            id: z.string().max(100).optional(),
+            company: safeRequiredString(120),
+            title: safeRequiredString(120),
+            from: safeString(40),
+            to: safeString(40),
+            description: safeString(2000),
           })
         )
+        .max(30)
         .default([])
     ),
     skills: z.preprocess(
       (v) => v ?? { technical: [], languages: [], soft: [] },
       z.object({
-        technical: stringArraySafe,
-        languages: stringArraySafe,
-        soft: stringArraySafe,
+        technical: safeStringArray(100, 60),
+        languages: safeStringArray(30, 60),
+        soft: safeStringArray(50, 60),
       })
     ),
     educationDetails: z.preprocess(
@@ -48,13 +80,14 @@ export const ParsedCVSchema = z
       z
         .array(
           z.object({
-            id: z.string().optional(),
-            institution: z.string(),
-            degree: z.string().nullable(),
-            field: z.string().nullable(),
-            year: z.string().nullable(),
+            id: z.string().max(100).optional(),
+            institution: safeRequiredString(160),
+            degree: safeString(120),
+            field: safeString(120),
+            year: safeString(20),
           })
         )
+        .max(20)
         .default([])
     ),
     certifications: z.preprocess(
@@ -62,18 +95,19 @@ export const ParsedCVSchema = z
       z
         .array(
           z.object({
-            id: z.string().optional(),
-            name: z.string(),
-            issuer: z.string().nullable(),
-            year: z.string().nullable(),
+            id: z.string().max(100).optional(),
+            name: safeRequiredString(160),
+            issuer: safeString(160),
+            year: safeString(20),
           })
         )
+        .max(20)
         .default([])
     ),
     _confidence: z
       .object({
         overall: z.enum(["high", "medium", "low"]),
-        notes: z.array(z.string()).default([]),
+        notes: z.array(z.string().max(200)).max(10).default([]),
       })
       .optional(),
   })

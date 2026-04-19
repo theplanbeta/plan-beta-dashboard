@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { useCallback, useEffect, useState } from "react"
 import {
   Loader2,
@@ -96,7 +97,7 @@ export default function SettingsPage() {
       if (res.ok && data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || "Failed to start checkout")
+        toast.error(data.error || "Failed to start checkout")
       }
     } finally {
       setCheckoutLoading(null)
@@ -112,9 +113,9 @@ export default function SettingsPage() {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.url) window.location.href = data.url
-      else alert(data.error || "Failed to open billing portal")
+      else toast.error(data.error || "Failed to open billing portal")
     } catch {
-      alert("Network error. Check your connection.")
+      toast.error("Network error. Check your connection.")
     } finally {
       setPortalLoading(false)
     }

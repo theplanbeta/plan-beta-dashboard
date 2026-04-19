@@ -270,9 +270,14 @@ export function CVTemplate({
           </>
         )}
 
-        {/* Watermark for free tier */}
-        {showWatermark && (
+        {/* Tier-aware footer.
+            - Free tier: "Generated with Plan Beta Day Zero" (small credit)
+            - Paid tiers: subtle "Made with Day Zero · dayzero.xyz" brand footer
+              — turns every emailed CV into a tasteful billboard in HR inboxes. */}
+        {showWatermark ? (
           <Text style={styles.watermark}>Generated with Plan Beta Day Zero</Text>
+        ) : (
+          <Text style={styles.watermark}>Made with Day Zero · dayzero.xyz</Text>
         )}
       </Page>
     </Document>

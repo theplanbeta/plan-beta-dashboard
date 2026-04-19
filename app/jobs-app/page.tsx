@@ -85,57 +85,98 @@ export default async function JobsAppHomePage() {
             maxWidth: "36ch",
           }}
         >
-          The career companion for professionals on their way to Germany. Every CV,
-          every cover letter, every interview — neatly filed in one folder.
+          {isAuthed
+            ? "The career companion for professionals on their way to Germany. Every CV, every cover letter, every interview — neatly filed in one folder."
+            : "Find German jobs that match your CV. Made for Indians preparing to move to Germany. Free to start."}
         </p>
 
         <hr className="amtlich-divider mt-5" />
       </header>
 
-      {/* ── Stage Overview — ledger row ───────────────────────── */}
-      <section className="amtlich-card amtlich-enter amtlich-enter-delay-1">
-        <div className="flex items-center justify-between">
-          <span className="mono">Overview</span>
-          <span className="amtlich-stamp amtlich-stamp--ink">Entwurf</span>
-        </div>
+      {/* ── Stage Overview (authed) / Social Proof (anon) ─────── */}
+      {isAuthed ? (
+        <section className="amtlich-card amtlich-enter amtlich-enter-delay-1">
+          <div className="flex items-center justify-between">
+            <span className="mono">Overview</span>
+            <span className="amtlich-stamp amtlich-stamp--ink">Entwurf</span>
+          </div>
 
-        <div className="mt-4 grid grid-cols-4 gap-2">
-          {stageStats.map((stage) => (
-            <div key={stage.label} className="text-center">
-              <div
-                className={`display ${stage.tone}`}
-                style={{
-                  fontSize: "1.9rem",
-                  fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 500',
-                  lineHeight: 1,
-                }}
-              >
-                {String(stage.count).padStart(2, "0")}
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {stageStats.map((stage) => (
+              <div key={stage.label} className="text-center">
+                <div
+                  className={`display ${stage.tone}`}
+                  style={{
+                    fontSize: "1.9rem",
+                    fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 500',
+                    lineHeight: 1,
+                  }}
+                >
+                  {String(stage.count).padStart(2, "0")}
+                </div>
+                <div
+                  className="mono mt-1.5"
+                  style={{ fontSize: "var(--fs-mono-xs)" }}
+                >
+                  {stage.label}
+                </div>
               </div>
+            ))}
+          </div>
+
+          <hr className="amtlich-divider" />
+
+          <p
+            className="ink-faded"
+            style={{ fontFamily: "var(--f-body)", fontSize: "0.88rem" }}
+          >
+            Create a profile to start tracking applications.
+          </p>
+        </section>
+      ) : (
+        <section className="amtlich-card amtlich-enter amtlich-enter-delay-1">
+          <div className="flex items-center justify-between">
+            <span className="mono">Live right now</span>
+            <span className="amtlich-stamp amtlich-stamp--green">Active</span>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+            <div>
               <div
-                className="mono mt-1.5"
-                style={{ fontSize: "var(--fs-mono-xs)" }}
+                className="display ink"
+                style={{ fontSize: "1.7rem", fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 550', lineHeight: 1 }}
               >
-                {stage.label}
+                2,400+
               </div>
+              <div className="mono mt-1.5" style={{ fontSize: "var(--fs-mono-xs)" }}>jobs live</div>
             </div>
-          ))}
-        </div>
-
-        <hr className="amtlich-divider" />
-
-        <p
-          className="ink-faded"
-          style={{
-            fontFamily: "var(--f-body)",
-            fontSize: "0.88rem",
-          }}
-        >
-          {isAuthed
-            ? "Create a profile to start tracking applications."
-            : "Open your dossier to start tracking applications."}
-        </p>
-      </section>
+            <div>
+              <div
+                className="display ink"
+                style={{ fontSize: "1.7rem", fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 550', lineHeight: 1 }}
+              >
+                180+
+              </div>
+              <div className="mono mt-1.5" style={{ fontSize: "var(--fs-mono-xs)" }}>employers</div>
+            </div>
+            <div>
+              <div
+                className="display ink"
+                style={{ fontSize: "1.7rem", fontVariationSettings: '"opsz" 144, "SOFT" 20, "wght" 550', lineHeight: 1 }}
+              >
+                17
+              </div>
+              <div className="mono mt-1.5" style={{ fontSize: "var(--fs-mono-xs)" }}>nurses placed</div>
+            </div>
+          </div>
+          <hr className="amtlich-divider" />
+          <p
+            className="ink-faded text-center"
+            style={{ fontFamily: "var(--f-body)", fontSize: "0.85rem" }}
+          >
+            Upload your CV · Auto-matched to live jobs · Tailored CVs per role.
+          </p>
+        </section>
+      )}
 
       {/* ── Quick Actions — manila folders ───────────────────── */}
       <section className="space-y-6">

@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CVUploadDropzone } from "@/components/jobs-app/CVUploadDropzone"
@@ -60,7 +61,7 @@ export default function ProfilePage() {
       }
     }
     if (importState.status === "FAILED") {
-      alert(`Parse failed: ${importState.error ?? "unknown"}`)
+      toast.error(`Parse failed: ${importState.error ?? "unknown"}`)
       setPendingImportId(null)
     }
   }, [importState])
@@ -78,7 +79,7 @@ export default function ProfilePage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Save failed" }))
-        alert(err.error ?? "Save failed")
+        toast.error(err.error ?? "Save failed")
         return
       }
       setPendingImportId(null)
@@ -117,7 +118,7 @@ export default function ProfilePage() {
 
       <section className="space-y-2">
         <h2 className="text-sm uppercase opacity-60">Refresh from a CV</h2>
-        <CVUploadDropzone onUploadStart={(id) => setPendingImportId(id)} onError={(m) => alert(m)} compact />
+        <CVUploadDropzone onUploadStart={(id) => setPendingImportId(id)} onError={(m) => toast.error(m)} compact />
         {isParsing && (
           <p className="text-sm opacity-60">
             {importState?.progress ?? "Parsing your CV…"} (this usually takes 15–30 seconds)

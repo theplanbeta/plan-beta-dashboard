@@ -158,9 +158,11 @@ export function AnschreibenTemplate({
         {/* Signature */}
         <Text style={styles.signature}>{content.signature}</Text>
 
-        {/* Watermark */}
-        {showWatermark && (
+        {/* Tier-aware footer (free → credit, paid → subtle brand) */}
+        {showWatermark ? (
           <Text style={styles.watermark}>Generated with Plan Beta Day Zero</Text>
+        ) : (
+          <Text style={styles.watermark}>Made with Day Zero · dayzero.xyz</Text>
         )}
       </Page>
     </Document>

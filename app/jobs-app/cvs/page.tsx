@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { FileText, Download, Trash2, Loader2 } from "lucide-react"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
@@ -36,16 +37,26 @@ export default function CVHistoryPage() {
       .finally(() => setLoading(false))
   }, [seeker])
 
-  async function handleDelete(id: string) {
-    if (!confirm("Delete this CV?")) return
+  async function performDelete(id: string) {
     try {
       const res = await fetch(`/api/jobs-app/cv/${id}`, { method: "DELETE", credentials: "include" })
       if (res.ok) {
         setCvs((prev) => prev.filter((cv) => cv.id !== id))
+        toast.success("CV deleted")
+      } else {
+        toast.error("Failed to delete")
       }
     } catch {
-      // Network error — CV stays in the list
+      toast.error("Network error. Check your connection.")
     }
+  }
+
+  function handleDelete(id: string) {
+    toast("Delete this CV?", {
+      action: { label: "Delete", onClick: () => performDelete(id) },
+      cancel: { label: "Cancel", onClick: () => {} },
+      duration: 8000,
+    })
   }
 
   if (!seeker) {

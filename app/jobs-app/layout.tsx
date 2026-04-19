@@ -6,6 +6,7 @@ import DocumentSerial from "@/components/jobs-app/DocumentSerial"
 import PWAInstallPrompt from "@/components/PWAInstallPrompt"
 import PushNotificationPrompt from "@/components/marketing/PushNotificationPrompt"
 import { ReferralCapture } from "@/components/jobs-app/ReferralCapture"
+import { Toaster } from "sonner"
 import "./amtlich.css"
 
 const fraunces = Fraunces({
@@ -107,6 +108,7 @@ export default function JobsAppLayout({
         <ReferralCapture />
         <PWAInstallPrompt />
         <PushNotificationPrompt />
+        <Toaster position="top-center" richColors closeButton />
       </div>
       </div>
     </JobsAuthProvider>

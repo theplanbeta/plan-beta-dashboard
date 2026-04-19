@@ -175,6 +175,29 @@ export default async function CityPage({ params }: { params: Promise<{ city: str
         </div>
       </section>
 
+      {/* Day Zero bridge */}
+      <section className="py-14 bg-gradient-to-br from-amber-50 to-orange-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm uppercase tracking-wider text-orange-700 font-semibold mb-2">
+            Already at B1+ or working on it?
+          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            See live jobs in Germany for {cityInfo.name} professionals
+          </h2>
+          <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
+            Day Zero is our companion app for the next step after learning German. Upload your CV, get auto-matched to live German jobs, generate a tailored German CV per role. Free to start.
+          </p>
+          <a
+            href={`https://dayzero.xyz/jobs-app?utm_source=city-page&utm_medium=organic&utm_campaign=${encodeURIComponent(cityInfo.name)}`}
+            target="_blank"
+            rel="noopener"
+            className="inline-block bg-black text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition"
+          >
+            Open Day Zero →
+          </a>
+        </div>
+      </section>
+
       {/* Live Courses */}
       {batches.length > 0 && (
         <section className="py-16 bg-gray-50">

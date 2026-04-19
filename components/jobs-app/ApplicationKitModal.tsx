@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { useEffect, useState, Fragment } from "react"
 import {
   Dialog,
@@ -147,7 +148,7 @@ export default function ApplicationKitModal({
 
   async function handleGenerateCV() {
     if (!application) {
-      alert("Job details not loaded yet")
+      toast.error("Job details not loaded yet")
       return
     }
     setGeneratingCV(true)
@@ -160,12 +161,12 @@ export default function ApplicationKitModal({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || "CV generation failed")
+        toast.error(data.error || "CV generation failed")
         return
       }
       await refetchKit()
     } catch (e) {
-      alert(e instanceof Error ? e.message : "CV generation failed")
+      toast.error(e instanceof Error ? e.message : "CV generation failed")
     } finally {
       setGeneratingCV(false)
     }
@@ -173,7 +174,7 @@ export default function ApplicationKitModal({
 
   async function handleGenerateAnschreiben() {
     if (!application) {
-      alert("Job details not loaded yet")
+      toast.error("Job details not loaded yet")
       return
     }
     setGeneratingAnschreiben(true)
@@ -186,12 +187,12 @@ export default function ApplicationKitModal({
       })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error || "Cover letter generation failed")
+        toast.error(data.error || "Cover letter generation failed")
         return
       }
       await refetchKit()
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Cover letter generation failed")
+      toast.error(e instanceof Error ? e.message : "Cover letter generation failed")
     } finally {
       setGeneratingAnschreiben(false)
     }
@@ -203,7 +204,7 @@ export default function ApplicationKitModal({
       setCopiedField(field)
       setTimeout(() => setCopiedField(null), 1500)
     } catch {
-      alert("Copy failed — please copy manually")
+      toast.error("Copy failed — please copy manually")
     }
   }
 
@@ -217,7 +218,7 @@ export default function ApplicationKitModal({
       }, 200)
     }
     if (!kit?.cv?.fileUrl && !kit?.anschreiben?.fileUrl) {
-      alert("No documents to download yet. Generate them first.")
+      toast.error("No documents to download yet. Generate them first.")
     }
   }
 
@@ -235,13 +236,13 @@ export default function ApplicationKitModal({
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        alert(data.error || "Failed to mark as applied")
+        toast.error(data.error || "Failed to mark as applied")
         return
       }
       onMarkedAsApplied?.()
       onClose()
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to mark as applied")
+      toast.error(e instanceof Error ? e.message : "Failed to mark as applied")
     } finally {
       setMarkingApplied(false)
     }

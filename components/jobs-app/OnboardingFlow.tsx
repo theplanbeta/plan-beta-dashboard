@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { toast } from "sonner"
 import { CVUploadDropzone } from "@/components/jobs-app/CVUploadDropzone"
 import { ProfileEditor, type ProfileEditorValue } from "@/components/jobs-app/ProfileEditor"
 import { useCVUploadPolling } from "@/hooks/useCVUploadPolling"
@@ -28,7 +29,7 @@ export function OnboardingFlow() {
       goTo("2", importState.id)
     }
     if (importState?.status === "FAILED") {
-      alert(`Parse failed: ${importState.error ?? "unknown"}. Continuing manually.`)
+      toast.error(`Parse failed: ${importState.error ?? "unknown"}. Continuing manually.`)
       goTo("3", null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,7 +119,7 @@ export function OnboardingFlow() {
         </div>
 
         <div id="cv-drop">
-          <CVUploadDropzone onUploadStart={(id) => setPendingImportId(id)} onError={(m) => alert(m)} />
+          <CVUploadDropzone onUploadStart={(id) => setPendingImportId(id)} onError={(m) => toast.error(m)} />
           {isParsing && (
             <p className="text-sm opacity-60 mt-2">
               {importState?.progress ?? "Parsing your CV…"} (15–30 seconds)
@@ -133,19 +134,72 @@ export function OnboardingFlow() {
     const workCount = value.workExperience.length
     const skillsCount = value.skills.technical.length + value.skills.languages.length + value.skills.soft.length
     const eduCount = value.educationDetails.length
+    const flatSkills = [...value.skills.technical, ...value.skills.languages]
     return (
-      <main className="p-4 max-w-2xl mx-auto space-y-6">
+      <main className="p-4 max-w-2xl mx-auto space-y-5">
         <h1 className="text-2xl font-semibold">Step 2 of 3 — Review your profile</h1>
         {importId && (
-          <p className="opacity-70">We found {workCount} job{workCount === 1 ? "" : "s"}, {skillsCount} skill{skillsCount === 1 ? "" : "s"}, and {eduCount} education entr{eduCount === 1 ? "y" : "ies"}. Looks right?</p>
+          <p className="opacity-70">
+            We found {workCount} job{workCount === 1 ? "" : "s"}, {skillsCount} skill
+            {skillsCount === 1 ? "" : "s"}, and {eduCount} education entr
+            {eduCount === 1 ? "y" : "ies"}. Quick scan:
+          </p>
+        )}
+        {importId && (
+          <div className="amtlich-card space-y-3" style={{ padding: "14px 16px" }}>
+            {workCount > 0 && (
+              <div>
+                <p className="mono text-xs opacity-60">Work experience</p>
+                <ul className="text-sm space-y-0.5 mt-1">
+                  {value.workExperience.slice(0, 5).map((w) => (
+                    <li key={w.id}>
+                      • {w.title || "—"} at {w.company || "—"}
+                      {w.from ? ` (${w.from}${w.to ? `–${w.to}` : "–present"})` : ""}
+                    </li>
+                  ))}
+                  {workCount > 5 && (
+                    <li className="opacity-50">…and {workCount - 5} more</li>
+                  )}
+                </ul>
+              </div>
+            )}
+            {flatSkills.length > 0 && (
+              <div>
+                <p className="mono text-xs opacity-60">Skills</p>
+                <p className="text-sm mt-1 opacity-80">
+                  {flatSkills.slice(0, 15).join(" · ")}
+                  {flatSkills.length > 15 ? " · …" : ""}
+                </p>
+              </div>
+            )}
+            {eduCount > 0 && (
+              <div>
+                <p className="mono text-xs opacity-60">Education</p>
+                <ul className="text-sm space-y-0.5 mt-1">
+                  {value.educationDetails.slice(0, 3).map((e) => (
+                    <li key={e.id}>
+                      • {e.degree ?? "—"}
+                      {e.field ? ` in ${e.field}` : ""} — {e.institution}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         )}
         <div className="flex gap-2">
-          <button type="button" onClick={saveAndContinue} disabled={saving} className="bg-black text-white px-4 py-2 rounded">
+          <button
+            type="button"
+            onClick={saveAndContinue}
+            disabled={saving}
+            className="amtlich-btn amtlich-btn--primary"
+            style={{ padding: "12px 22px" }}
+          >
             {saving ? "Saving…" : "Looks good →"}
           </button>
         </div>
         <details>
-          <summary className="cursor-pointer opacity-70">Review each detail</summary>
+          <summary className="cursor-pointer opacity-70 mono text-xs">Review each detail</summary>
           <div className="mt-2">
             <ProfileEditor value={value} onChange={setValue} onSave={saveAndContinue} saving={saving} saveLabel="Continue →" />
           </div>

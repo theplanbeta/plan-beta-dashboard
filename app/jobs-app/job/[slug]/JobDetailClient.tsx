@@ -1,5 +1,6 @@
 "use client"
 
+import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -121,10 +122,10 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       if (res.ok && data.cv?.fileUrl) {
         window.open(data.cv.fileUrl, "_blank")
       } else {
-        alert(data.error || "CV generation failed")
+        toast.error(data.error || "CV generation failed")
       }
     } catch {
-      alert("Network error. Check your connection.")
+      toast.error("Network error. Check your connection.")
     } finally {
       setGenerating(false)
     }
@@ -144,10 +145,10 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
       const data = await res.json()
       if (res.ok && data.application?.id) return data.application.id
       if (res.status === 409 && data.application?.id) return data.application.id
-      alert(data.error || "Failed to track application")
+      toast.error(data.error || "Failed to track application")
       return null
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Failed to track application")
+      toast.error(e instanceof Error ? e.message : "Failed to track application")
       return null
     }
   }
@@ -171,7 +172,7 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
     setSavingOnly(true)
     try {
       const id = await createOrGetApplication("SAVED")
-      if (id) alert("Saved to your tracker")
+      if (id) toast.error("Saved to your tracker")
     } finally {
       setSavingOnly(false)
     }
@@ -279,7 +280,18 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
 
       {/* ── Primary action ──────────────────────────────────── */}
       <div className="space-y-3 amtlich-enter amtlich-enter-delay-3">
-        {isPremium ? (
+        {!seeker ? (
+          <Link
+            href={`/jobs-app/auth?mode=register&next=${encodeURIComponent(`/jobs-app/job/${job.slug}`)}`}
+            className="amtlich-btn amtlich-btn--primary block w-full text-center no-underline"
+            style={{ padding: "14px 22px" }}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <FileText size={14} strokeWidth={2.2} />
+              Sign up free to generate CV
+            </span>
+          </Link>
+        ) : isPremium ? (
           <button
             type="button"
             onClick={handleTrackAndGenerateKit}

@@ -273,9 +273,12 @@ export async function PATCH(request: Request) {
   ) {
     nextEdited["profile.skills"] = true
   }
-  // Array-level flags — user-initiated PATCH of these fields is intentional
+  // Array-level flags — user-initiated PATCH of these fields is intentional.
+  // Note: Zod schema uses `education` (not `educationDetails`) as the input key,
+  // but we persist it as the Prisma column `educationDetails`, so the edit flag
+  // uses the Prisma-column path to stay consistent with profile-merge.ts reads.
   if ("workExperience" in updates) nextEdited["profile.workExperience"] = true
-  if ("educationDetails" in updates) nextEdited["profile.educationDetails"] = true
+  if ("education" in updates) nextEdited["profile.educationDetails"] = true
   if ("certifications" in updates) nextEdited["profile.certifications"] = true
 
   await prisma.jobSeekerProfile.upsert({

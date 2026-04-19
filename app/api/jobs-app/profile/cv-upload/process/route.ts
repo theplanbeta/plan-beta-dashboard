@@ -1,0 +1,122 @@
+// app/api/jobs-app/profile/cv-upload/process/route.ts
+import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
+import { parseCVFromPdf } from "@/lib/cv-parser"
+import { smartMerge, type ExistingProfile } from "@/lib/profile-merge"
+import { head, del } from "@vercel/blob"
+import { z } from "zod"
+
+export const runtime = "nodejs"
+export const maxDuration = 60
+// memory bump to 3008 MB is configured in vercel.json (functions block)
+
+const bodySchema = z.object({ importId: z.string().min(1) })
+
+export async function POST(request: Request) {
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
+  }
+
+  const parsed = bodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Invalid body" }, { status: 400 })
+  }
+  const { importId } = parsed.data
+
+  const row = await prisma.cVImport.findUnique({
+    where: { id: importId },
+    include: { seeker: { include: { profile: true } } },
+  })
+  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 })
+  if (row.status !== "QUEUED") {
+    // Idempotent safety — worker may be called twice
+    return NextResponse.json({ ok: true, status: row.status })
+  }
+  if (!row.blobKey) {
+    await prisma.cVImport.update({
+      where: { id: importId },
+      data: { status: "FAILED", error: "Missing blobKey" },
+    })
+    return NextResponse.json({ ok: false })
+  }
+
+  await prisma.cVImport.update({
+    where: { id: importId },
+    data: { status: "PARSING", progress: "reading document…" },
+  })
+
+  try {
+    // Fetch PDF bytes from private blob
+    const info = await head(row.blobKey)
+    const pdfResponse = await fetch(info.url, {
+      headers: { Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}` },
+    })
+    if (!pdfResponse.ok) throw new Error(`Blob fetch failed: ${pdfResponse.status}`)
+    const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer())
+
+    await prisma.cVImport.update({ where: { id: importId }, data: { progress: "extracting details…" } })
+
+    // Parse via Claude Sonnet
+    const { parsed: parsedCV } = await parseCVFromPdf(pdfBuffer)
+
+    // Decide mode — empty profile → REVIEW, populated → MERGED
+    const p = row.seeker.profile
+    const profileEmpty =
+      !p ||
+      (((p.workExperience as unknown[] | null)?.length ?? 0) === 0 &&
+        (((p.skills as { technical?: string[] } | null)?.technical?.length ?? 0) === 0))
+
+    let mergeDiff: unknown = null
+    if (!profileEmpty && p) {
+      const existing: ExistingProfile = {
+        firstName: p.firstName ?? null,
+        lastName: p.lastName ?? null,
+        currentJobTitle: p.currentJobTitle ?? null,
+        yearsOfExperience: p.yearsOfExperience ?? null,
+        workExperience: (p.workExperience as ExistingProfile["workExperience"]) ?? [],
+        skills: (p.skills as ExistingProfile["skills"]) ?? null,
+        educationDetails: (p.educationDetails as ExistingProfile["educationDetails"]) ?? [],
+        certifications: (p.certifications as ExistingProfile["certifications"]) ?? [],
+        manuallyEditedFields: (p.manuallyEditedFields as Record<string, true> | null) ?? null,
+      }
+      const { diff } = smartMerge(existing, parsedCV)
+      mergeDiff = diff
+    }
+
+    // Delete blob immediately — we don't persist uploaded PDFs
+    try {
+      await del(row.blobKey)
+    } catch {
+      // best-effort — cron will sweep
+    }
+
+    await prisma.cVImport.update({
+      where: { id: importId },
+      data: {
+        status: "READY",
+        mode: profileEmpty ? "REVIEW" : "MERGED",
+        parsedData: parsedCV as unknown as Prisma.InputJsonValue,
+        mergeDiff: mergeDiff as Prisma.InputJsonValue | undefined,
+        blobKey: null,
+        progress: null,
+      },
+    })
+
+    return NextResponse.json({ ok: true })
+  } catch (err) {
+    const message = (err as Error).message ?? "Unknown error"
+    // Best-effort blob cleanup on failure
+    if (row.blobKey) {
+      try { await del(row.blobKey) } catch {}
+    }
+    await prisma.cVImport.update({
+      where: { id: importId },
+      data: { status: "FAILED", error: message, blobKey: null, progress: null },
+    })
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
+  }
+}

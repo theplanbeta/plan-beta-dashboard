@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "app/api/jobs-app/profile/cv-upload/process/route.ts": {
+      "memory": 3008
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/backup",

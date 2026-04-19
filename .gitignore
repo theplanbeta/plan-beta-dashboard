@@ -58,3 +58,6 @@ screenshots/
 
 # Superpowers brainstorming session artifacts
 .superpowers/
+
+# Playwright MCP session output
+.playwright-mcp/

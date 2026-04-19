@@ -6,17 +6,24 @@ import { parseCVFromPdf } from "@/lib/cv-parser"
 import { smartMerge, type ExistingProfile } from "@/lib/profile-merge"
 import { head, del } from "@vercel/blob"
 import { z } from "zod"
+import { verifyWorkerSignature } from "@/lib/worker-auth"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
-// memory bump to 3008 MB is configured in vercel.json (functions block)
+// memory bump to 2048 MB is configured in vercel.json (functions block)
 
 const bodySchema = z.object({ importId: z.string().min(1) })
 
 export async function POST(request: Request) {
+  const rawBody = await request.text()
+  const signature = request.headers.get("X-Worker-Signature") ?? ""
+  if (!verifyWorkerSignature(rawBody, signature)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   let body: unknown
   try {
-    body = await request.json()
+    body = JSON.parse(rawBody)
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
   }

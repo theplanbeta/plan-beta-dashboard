@@ -5,6 +5,7 @@ import { requireJobSeeker } from "@/lib/jobs-app-auth"
 import { validatePdf } from "@/lib/pdf-validation"
 import { checkAllLayers, extractIp } from "@/lib/rate-limit-upstash"
 import { put } from "@vercel/blob"
+import { signWorkerPayload } from "@/lib/worker-auth"
 
 export const runtime = "nodejs"
 export const maxDuration = 30 // upload-side only; worker has its own 60s
@@ -105,14 +106,20 @@ export async function POST(request: Request) {
     data: { blobKey },
   })
 
-  // Fire-and-forget worker call — do NOT await
+  // Fire-and-forget worker call — do NOT await. Signed so the worker route
+  // can reject unauthorized callers.
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin
+  const workerBody = JSON.stringify({ importId: importRow.id })
+  const workerSignature = signWorkerPayload(workerBody)
   fetch(`${baseUrl}/api/jobs-app/profile/cv-upload/process`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ importId: importRow.id }),
-  }).catch(() => {
-    // Worker should self-recover; a failed fire is logged but doesn't block response
+    headers: {
+      "Content-Type": "application/json",
+      "X-Worker-Signature": workerSignature,
+    },
+    body: workerBody,
+  }).catch((err) => {
+    console.error("worker fire failed", { importId: importRow.id, err: (err as Error).message })
   })
 
   return NextResponse.json({ importId: importRow.id }, { status: 202 })

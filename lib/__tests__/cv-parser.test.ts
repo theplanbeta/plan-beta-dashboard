@@ -42,7 +42,6 @@ describe("ParsedCVSchema", () => {
       yearsOfExperience: null,
       skills: { technical: [], languages: [], soft: [] },
     }
-    // @ts-expect-error — testing runtime defaulting
     const parsed = ParsedCVSchema.parse(raw)
     expect(parsed.workExperience).toEqual([])
     expect(parsed.educationDetails).toEqual([])

@@ -150,7 +150,7 @@ export async function POST(request: Request) {
     const fileName = `cvs/${seeker.id}/${slug}-${Date.now()}.pdf`
 
     const blob = await put(fileName, pdfBuffer, {
-      access: "public",
+      access: "private",
       contentType: "application/pdf",
     })
 

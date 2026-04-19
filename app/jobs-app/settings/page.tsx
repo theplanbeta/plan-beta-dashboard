@@ -9,6 +9,8 @@ import {
   Check,
 } from "lucide-react"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
+import { ShareButton } from "@/components/jobs-app/ShareButton"
+import { appendUtm } from "@/lib/share-links"
 import Link from "next/link"
 
 interface SubscriptionStatus {
@@ -521,6 +523,44 @@ export default function SettingsPage() {
         </dl>
 
         <hr className="amtlich-divider" style={{ margin: "16px 0 12px" }} />
+
+        {/* Referral card — amtlich-styled, wa.me + copy */}
+        {seeker && "referralCode" in seeker && (seeker as { referralCode: string | null }).referralCode && (
+          <div className="mb-3 p-3 border rounded">
+            <div className="mono text-xs opacity-60 mb-2">Refer a friend</div>
+            <p className="text-sm mb-2">
+              Invite someone heading to Germany. Your code:
+            </p>
+            <div className="flex items-center gap-2 mb-2">
+              <code className="font-mono bg-gray-100 px-3 py-2 rounded select-all text-sm">
+                {(seeker as { referralCode: string }).referralCode}
+              </code>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard
+                    .writeText((seeker as { referralCode: string }).referralCode)
+                    .catch(() => {})
+                }}
+                className="amtlich-btn text-xs"
+                style={{ padding: "6px 12px" }}
+              >
+                Copy
+              </button>
+            </div>
+            <ShareButton
+              text="I'm using Day Zero to find a job in Germany — it reads your CV and matches you to live openings. Try it with my code:"
+              url={appendUtm("https://dayzero.xyz", {
+                source: "whatsapp",
+                medium: "referral",
+                campaign: "invite",
+                code: (seeker as { referralCode: string }).referralCode,
+              })}
+              label="Share with a friend"
+              className="amtlich-btn w-full inline-flex items-center justify-center gap-2"
+            />
+          </div>
+        )}
 
         <Link
           href="/jobs-app/profile"

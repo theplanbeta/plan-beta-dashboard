@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useJobsAuth } from "./AuthProvider"
+import { consumeStoredReferralCode } from "./ReferralCapture"
 
 type Mode = "login" | "register"
 
@@ -41,8 +42,14 @@ export default function AuthForm({ initialMode = "register" }: { initialMode?: M
       const endpoint = isRegister
         ? "/api/jobs-app/auth/register"
         : "/api/jobs-app/auth/login"
+      const storedReferral = isRegister ? consumeStoredReferralCode() : null
       const body = isRegister
-        ? { name: name.trim(), email: email.trim().toLowerCase(), password }
+        ? {
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password,
+            ...(storedReferral ? { referralCode: storedReferral } : {}),
+          }
         : { email: email.trim().toLowerCase(), password }
 
       const res = await fetch(endpoint, {

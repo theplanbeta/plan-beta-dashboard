@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/jobs-app/BottomNav"
 import DocumentSerial from "@/components/jobs-app/DocumentSerial"
 import PWAInstallPrompt from "@/components/PWAInstallPrompt"
 import PushNotificationPrompt from "@/components/marketing/PushNotificationPrompt"
+import { ReferralCapture } from "@/components/jobs-app/ReferralCapture"
 import "./amtlich.css"
 
 const fraunces = Fraunces({
@@ -103,6 +104,7 @@ export default function JobsAppLayout({
           {children}
         </main>
         <BottomNav />
+        <ReferralCapture />
         <PWAInstallPrompt />
         <PushNotificationPrompt />
       </div>

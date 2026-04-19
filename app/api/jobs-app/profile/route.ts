@@ -92,6 +92,7 @@ export async function GET(request: Request) {
       onboardingComplete: seeker.onboardingComplete,
       isPremium,
       profile: seeker.profile,
+      referralCode: seeker.referralCode,
     },
   })
 }

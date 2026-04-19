@@ -18,6 +18,8 @@ import {
 import { ScoreBreakdown } from "@/components/jobs-app/ScoreBreakdown"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import ApplicationKitModal from "@/components/jobs-app/ApplicationKitModal"
+import { ShareButton } from "@/components/jobs-app/ShareButton"
+import { appendUtm } from "@/lib/share-links"
 import type { MatchLabel } from "@/lib/heuristic-scorer"
 import type { DeepScoreResult } from "@/lib/jobs-ai"
 
@@ -377,6 +379,22 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
               Portal
             </a>
           )}
+          <ShareButton
+            text={
+              matchScore != null
+                ? `I got a ${matchScore}/100 match for ${job.title} at ${job.company}. Day Zero found it for me.`
+                : `${job.title} at ${job.company} — check this out on Day Zero.`
+            }
+            url={appendUtm(`https://dayzero.xyz/jobs-app/job/${job.slug}`, {
+              source: "whatsapp",
+              medium: "share",
+              campaign: "job-detail",
+              code: seeker?.referralCode ?? undefined,
+            })}
+            label="Share"
+            className="amtlich-btn flex items-center justify-center gap-1.5 flex-1"
+            iconSize={12}
+          />
         </div>
       </div>
 

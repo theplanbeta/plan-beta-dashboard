@@ -16,35 +16,52 @@ const INJECTION_RE = /ignore\s+(?:previous|all|prior|above)\s+(?:instructions|pr
 // Allow \t \n \r (common in CV formatting); reject other control chars.
 const CONTROL_RE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/
 
-function isSafeContent(s: string): boolean {
-  return !CONTROL_RE.test(s) && !INJECTION_RE.test(s)
+function sanitizeString(s: string, max: number): string {
+  // Strip control chars, reject injection patterns by blanking (don't throw),
+  // then clip to max. "Be liberal in what you accept" — we'd rather have a
+  // truncated or cleaned field than lose the whole parse.
+  let cleaned = s.replace(CONTROL_RE, " ")
+  if (INJECTION_RE.test(cleaned)) cleaned = cleaned.replace(INJECTION_RE, "[redacted]")
+  if (cleaned.length > max) cleaned = cleaned.slice(0, max).trim()
+  return cleaned
 }
 
+// Lenient: accept any input and coerce to a safe string (never rejects).
 const safeString = (max: number) =>
-  z
-    .string()
-    .max(max)
-    .nullable()
-    .refine((s) => s === null || isSafeContent(s), { message: "contains disallowed content" })
+  z.preprocess(
+    (v) => {
+      if (v === null || v === undefined) return null
+      if (typeof v !== "string") return null
+      const cleaned = sanitizeString(v, max)
+      return cleaned.length === 0 ? null : cleaned
+    },
+    z.string().nullable()
+  )
 
+// Lenient required string: coerce → fallback to empty string (which Zod
+// still accepts; the parent object can validate emptiness if needed).
 const safeRequiredString = (max: number) =>
-  z
-    .string()
-    .max(max)
-    .refine((s) => isSafeContent(s), { message: "contains disallowed content" })
+  z.preprocess(
+    (v) => (typeof v === "string" ? sanitizeString(v, max) : ""),
+    z.string()
+  )
 
+// Lenient string array: coerce null/undefined to [], drop non-strings,
+// sanitize each element, clip array length silently.
 const safeStringArray = (maxItems: number, maxItemLen: number) =>
   z.preprocess(
-    (v) => (v === null || v === undefined ? [] : v),
-    z
-      .array(
-        z
-          .string()
-          .max(maxItemLen)
-          .refine((s) => isSafeContent(s), { message: "contains disallowed content" })
-      )
-      .max(maxItems)
-      .default([])
+    (v) => {
+      if (!Array.isArray(v)) return []
+      const cleaned: string[] = []
+      for (const item of v) {
+        if (typeof item !== "string") continue
+        const s = sanitizeString(item, maxItemLen)
+        if (s) cleaned.push(s)
+        if (cleaned.length >= maxItems) break
+      }
+      return cleaned
+    },
+    z.array(z.string())
   )
 
 export const ParsedCVSchema = z
@@ -52,9 +69,18 @@ export const ParsedCVSchema = z
     firstName: safeString(60),
     lastName: safeString(60),
     currentJobTitle: safeString(120),
-    yearsOfExperience: z.number().int().min(0).max(60).nullable(),
+    // Lenient: clip to [0, 60]. Claude occasionally returns negative or
+    // absurdly-large numbers on ambiguous CVs; don't reject the whole parse.
+    yearsOfExperience: z.preprocess(
+      (v) => {
+        if (v === null || v === undefined) return null
+        if (typeof v !== "number" || !Number.isFinite(v)) return null
+        return Math.max(0, Math.min(60, Math.trunc(v)))
+      },
+      z.number().int().min(0).max(60).nullable()
+    ),
     workExperience: z.preprocess(
-      (v) => v ?? [],
+      (v) => (Array.isArray(v) ? v.slice(0, 30) : []),
       z
         .array(
           z.object({
@@ -66,7 +92,6 @@ export const ParsedCVSchema = z
             description: safeString(2000),
           })
         )
-        .max(30)
         .default([])
     ),
     skills: z.preprocess(
@@ -78,7 +103,7 @@ export const ParsedCVSchema = z
       })
     ),
     educationDetails: z.preprocess(
-      (v) => v ?? [],
+      (v) => (Array.isArray(v) ? v.slice(0, 20) : []),
       z
         .array(
           z.object({
@@ -89,11 +114,10 @@ export const ParsedCVSchema = z
             year: safeString(20),
           })
         )
-        .max(20)
         .default([])
     ),
     certifications: z.preprocess(
-      (v) => v ?? [],
+      (v) => (Array.isArray(v) ? v.slice(0, 20) : []),
       z
         .array(
           z.object({
@@ -103,17 +127,24 @@ export const ParsedCVSchema = z
             year: safeString(20),
           })
         )
-        .max(20)
         .default([])
     ),
+    // _confidence is advisory; never let it fail the parse.
     _confidence: z
       .object({
-        overall: z.enum(["high", "medium", "low"]),
-        notes: z.array(z.string().max(200)).max(10).default([]),
+        overall: z.enum(["high", "medium", "low"]).catch("medium"),
+        notes: z.preprocess(
+          (v) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").slice(0, 10) : []),
+          z.array(z.string())
+        ),
       })
-      .optional(),
+      .optional()
+      .catch(undefined),
   })
-  .strict()
+  // Default Zod behavior strips unknown keys — any extra fields Claude emits
+  // (e.g. _meta, _reasoning) are dropped silently. Still safe against the
+  // "germanLevel injection" attack because the field never propagates to the
+  // merge/save sites. Was .strict() which rejected outright — too fragile.
 
 export type ParsedCV = z.infer<typeof ParsedCVSchema>
 

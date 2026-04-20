@@ -148,11 +148,31 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true })
   } catch (err) {
+    // Surface Zod issue details so we can diagnose schema rejections without
+    // needing to tail Vercel logs every time.
+    const zodIssues =
+      err instanceof z.ZodError
+        ? err.issues.map((i) => ({ path: i.path.join("."), code: i.code, message: i.message }))
+        : null
     console.error("cv-upload parse failed", {
       importId,
       err: err instanceof Error ? err.message : String(err),
+      zodIssues,
       stack: err instanceof Error ? err.stack : undefined,
     })
+    // Persist the Zod issue summary to the row so /scripts/check-cv-imports.ts
+    // can see it without Vercel log access.
+    if (zodIssues && zodIssues.length > 0) {
+      const summary = zodIssues
+        .slice(0, 3)
+        .map((i) => `${i.path || "root"}: ${i.code}`)
+        .join("; ")
+      // Don't persist the raw messages (they can include the rejected content)
+      // but the path+code is enough to diagnose.
+      await prisma.cVImport
+        .update({ where: { id: importId }, data: { progress: `zod: ${summary}` } })
+        .catch(() => {})
+    }
     const userMessage = safeErrorMessage(err)
     // Best-effort blob cleanup on failure
     if (row.blobKey) {

@@ -9,10 +9,12 @@ const anthropic = new Anthropic({
   maxRetries: 3,
 })
 
-// Reject prompt-injection markers + control chars in any field that flows
-// back into a downstream Claude call (cv/generate, anschreiben, deep score).
-const INJECTION_RE = /ignore\s+(?:previous|all|prior)\s+(?:instructions|prompts)|system:|assistant:|role:\s*(?:system|assistant)/i
-const CONTROL_RE = /[\x00-\x1F\x7F]/
+// Reject the clearest prompt-injection patterns + control chars. Kept tight
+// to avoid false positives on legitimate CVs — broader "system:" / "role:"
+// markers are logged as a low-confidence signal elsewhere (not rejected).
+const INJECTION_RE = /ignore\s+(?:previous|all|prior|above)\s+(?:instructions|prompts|rules)|you\s+are\s+now|disregard\s+(?:previous|all|the)/i
+// Allow \t \n \r (common in CV formatting); reject other control chars.
+const CONTROL_RE = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/
 
 function isSafeContent(s: string): boolean {
   return !CONTROL_RE.test(s) && !INJECTION_RE.test(s)

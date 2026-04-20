@@ -6,6 +6,7 @@ import { requireJobSeeker } from "@/lib/jobs-app-auth"
 import { validatePdf } from "@/lib/pdf-validation"
 import { checkAllLayers, extractIp } from "@/lib/rate-limit-upstash"
 import { put } from "@vercel/blob"
+import { waitUntil } from "@vercel/functions"
 import { signWorkerPayload } from "@/lib/worker-auth"
 
 export const runtime = "nodejs"
@@ -128,21 +129,37 @@ export async function POST(request: Request) {
     data: { blobKey },
   })
 
-  // Fire-and-forget worker call — do NOT await. Signed so the worker route
-  // can reject unauthorized callers.
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin
+  // Fire-and-forget worker call via Vercel's waitUntil — guarantees the
+  // fetch completes even after this lambda has returned. Plain
+  // `fetch(...).catch(...)` is unreliable on Vercel because the lambda can be
+  // frozen mid-send. Also: use the request's own origin (same deployment) so
+  // we don't accidentally route to theplanbeta.com via NEXT_PUBLIC_APP_URL.
+  const baseUrl = new URL(request.url).origin
   const workerBody = JSON.stringify({ importId: importRow.id })
   const workerSignature = signWorkerPayload(workerBody)
-  fetch(`${baseUrl}/api/jobs-app/profile/cv-upload/process`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Worker-Signature": workerSignature,
-    },
-    body: workerBody,
-  }).catch((err) => {
-    console.error("worker fire failed", { importId: importRow.id, err: (err as Error).message })
-  })
+  waitUntil(
+    (async () => {
+      try {
+        const res = await fetch(`${baseUrl}/api/jobs-app/profile/cv-upload/process`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Worker-Signature": workerSignature,
+          },
+          body: workerBody,
+        })
+        if (!res.ok) {
+          console.error("worker returned non-OK", {
+            importId: importRow.id,
+            status: res.status,
+            body: await res.text().catch(() => ""),
+          })
+        }
+      } catch (err) {
+        console.error("worker fire failed", { importId: importRow.id, err: (err as Error).message })
+      }
+    })()
+  )
 
   return NextResponse.json({ importId: importRow.id }, { status: 202 })
 }

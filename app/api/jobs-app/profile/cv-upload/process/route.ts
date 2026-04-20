@@ -15,11 +15,22 @@ export const maxDuration = 60
 const bodySchema = z.object({ importId: z.string().min(1) })
 
 function safeErrorMessage(err: unknown): string {
+  // Zod schema rejection — the PDF parsed but the content hit a constraint
+  // (length cap, injection marker, bad format). This is actionable info for
+  // the user so surface a specific message instead of the generic fallback.
+  if (
+    err instanceof z.ZodError ||
+    (err instanceof Error && err.name === "ZodError")
+  ) {
+    return "We couldn't read this CV cleanly. Please upload a standard PDF resume (not a scanned photo or heavily-formatted file)."
+  }
   const msg = err instanceof Error ? err.message : String(err)
-  if (/anthropic|api.?key|rate.?limit/i.test(msg)) return "AI service temporarily unavailable"
+  if (/anthropic|api.?key|rate.?limit|overloaded/i.test(msg)) return "AI service temporarily unavailable — please retry in a minute"
   if (/blob|vercel/i.test(msg)) return "Storage temporarily unavailable"
   if (/prisma|postgres|p\d{4}/i.test(msg)) return "Database temporarily unavailable"
-  if (/timeout|aborted/i.test(msg)) return "Parse took too long, please retry"
+  if (/timeout|aborted|ECONNRESET/i.test(msg)) return "Parse took too long, please retry"
+  if (/sanity check/i.test(msg)) return "CV parse produced unusual values — please try a different PDF"
+  if (/invalid_json|JSON\.parse|unexpected token/i.test(msg)) return "AI returned malformed data — please retry"
   return "Parse failed, please try again"
 }
 

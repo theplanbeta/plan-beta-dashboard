@@ -14,7 +14,7 @@ const ROUTE_SUFFIX: Record<string, string> = {
   "/jobs-app": "FILE OPEN",
   "/jobs-app/jobs": "INDEX VIEW",
   "/jobs-app/applications": "CASE LOAD",
-  "/jobs-app/cvs": "ARCHIVE",
+  "/jobs-app/cv-archive": "ARCHIVE",
   "/jobs-app/onboarding": "INTAKE",
   "/jobs-app/profile": "SUBJECT",
 }

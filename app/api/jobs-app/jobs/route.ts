@@ -15,6 +15,7 @@ const querySchema = z.object({
   profession: z.string().max(100).optional(),
   germanLevel: z.string().max(10).optional(),
   location: z.string().max(100).optional(),
+  q: z.string().max(120).optional(),
 })
 
 export async function GET(request: Request) {
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
     profession: searchParams.get("profession") ?? undefined,
     germanLevel: searchParams.get("germanLevel") ?? undefined,
     location: searchParams.get("location") ?? undefined,
+    q: searchParams.get("q")?.trim() || undefined,
   })
 
   if (!parsed.success) {
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
     )
   }
 
-  const { page, sort, profession, germanLevel, location } = parsed.data
+  const { page, sort, profession, germanLevel, location, q } = parsed.data
 
   try {
 
@@ -50,6 +52,13 @@ export async function GET(request: Request) {
   }
   if (location) {
     where.location = { contains: location, mode: "insensitive" }
+  }
+  if (q) {
+    // Free-text search across title and company
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { company: { contains: q, mode: "insensitive" } },
+    ]
   }
 
   // Determine DB order

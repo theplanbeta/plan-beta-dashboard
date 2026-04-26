@@ -128,6 +128,27 @@ export default function OnboardingForm() {
         <legend className="mono" style={{ padding: "0 6px" }}>
           Your field
         </legend>
+
+        {/* Custom field — type any role/profession not in the list */}
+        <input
+          type="text"
+          value={PROFESSIONS.includes(profession) ? "" : profession}
+          onChange={(e) => setProfession(e.target.value)}
+          placeholder="Type your role or pick one below…"
+          aria-label="Custom field or role"
+          className="mt-1 mb-3 w-full"
+          style={{
+            fontFamily: "var(--f-body)",
+            fontSize: "0.95rem",
+            color: "var(--ink)",
+            padding: "10px 12px",
+            border: "1px solid var(--manila-edge)",
+            borderRadius: "3px",
+            background: "linear-gradient(180deg, #FDF7DC 0%, #F5EBC4 100%)",
+            outline: "none",
+          }}
+        />
+
         <div className="mt-1 grid grid-cols-2 gap-2">
           {PROFESSIONS.map((prof) => {
             const active = profession === prof

@@ -41,11 +41,23 @@ export async function GET(request: Request) {
 
   try {
 
-  // Build where clause
+  // Build where clause.
+  //
+  // Note on `profession`: this is treated as a SOFT filter. Job postings store
+  // a coarse category ("Healthcare", "IT", etc.) while seekers may type a
+  // specific role ("Assistenzarzt") or pick a category. To avoid returning
+  // zero jobs when the seeker's profession doesn't exactly match a stored
+  // category, we apply profession as either an exact match OR a substring
+  // match on title/profession. This trades precision for recall — the
+  // matching algorithm will still rank jobs correctly via title scoring.
   const where: Prisma.JobPostingWhereInput = { active: true }
 
   if (profession) {
-    where.profession = profession
+    where.OR = [
+      { profession: { equals: profession, mode: "insensitive" } },
+      { profession: { contains: profession, mode: "insensitive" } },
+      { title: { contains: profession, mode: "insensitive" } },
+    ]
   }
   if (germanLevel) {
     where.germanLevel = germanLevel
@@ -54,11 +66,19 @@ export async function GET(request: Request) {
     where.location = { contains: location, mode: "insensitive" }
   }
   if (q) {
-    // Free-text search across title and company
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { company: { contains: q, mode: "insensitive" } },
+    // Free-text search across title and company. AND-combine with any
+    // profession OR clause already present by moving the search clauses
+    // into a `AND` group.
+    const searchOr = [
+      { title: { contains: q, mode: "insensitive" as const } },
+      { company: { contains: q, mode: "insensitive" as const } },
     ]
+    if (where.OR) {
+      where.AND = [{ OR: where.OR }, { OR: searchOr }]
+      delete where.OR
+    } else {
+      where.OR = searchOr
+    }
   }
 
   // Determine DB order
@@ -107,6 +127,8 @@ export async function GET(request: Request) {
     salaryMax: number | null
     visaStatus: string | null
     yearsOfExperience: number | null
+    currentJobTitle: string | null
+    targetRoles: string[]
   } | null = null
 
   try {
@@ -121,6 +143,8 @@ export async function GET(request: Request) {
         salaryMax: p.salaryMax ?? null,
         visaStatus: p.visaStatus ?? null,
         yearsOfExperience: p.yearsOfExperience ?? null,
+        currentJobTitle: p.currentJobTitle ?? null,
+        targetRoles: (p.targetRoles as string[]) ?? [],
       }
     }
   } catch {
@@ -142,6 +166,7 @@ export async function GET(request: Request) {
       profession: job.profession ?? null,
       location: job.location ?? null,
       jobType: job.jobType ?? null,
+      title: job.title ?? null,
       salaryMin: job.salaryMin ?? null,
       salaryMax: job.salaryMax ?? null,
     }

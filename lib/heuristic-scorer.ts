@@ -8,6 +8,9 @@ export interface ScorerProfile {
   salaryMax: number | null
   visaStatus: string | null
   yearsOfExperience: number | null
+  // From CV parsing — used for title-based matching
+  currentJobTitle?: string | null
+  targetRoles?: string[]
 }
 
 export interface ScorerJob {
@@ -17,6 +20,8 @@ export interface ScorerJob {
   jobType: string | null
   salaryMin: number | null
   salaryMax: number | null
+  // Job title — used for keyword matching against profile roles
+  title?: string | null
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -31,12 +36,37 @@ const GERMAN_REGIONS: Record<string, string[]> = {
 }
 
 // Related profession groups — any two members score 60 on partial match
+// Includes German keywords because most jobs and many seeker-typed
+// professions are in German (Assistenzarzt, Pflegekraft, Ingenieur, etc.).
 const PROFESSION_GROUPS: string[][] = [
-  ["nursing", "healthcare", "nurse", "medical", "hospital", "care"],
-  ["it", "engineering", "software", "developer", "tech", "computer"],
-  ["finance", "accounting", "banking", "audit"],
-  ["education", "teaching", "training", "tutor"],
-  ["logistics", "supply chain", "warehouse", "transport"],
+  [
+    "nursing", "healthcare", "nurse", "medical", "hospital", "care",
+    "doctor", "physician", "arzt", "ärztin", "assistenzarzt", "facharzt",
+    "oberarzt", "chefarzt", "mediziner", "klinik", "pflege", "pflegekraft",
+    "krankenpfleger", "krankenschwester", "altenpfleger", "therapeut",
+    "physiotherapie", "ergotherapie",
+  ],
+  [
+    "it", "engineering", "software", "developer", "tech", "computer",
+    "ingenieur", "entwickler", "programmierer", "techniker", "informatik",
+    "data", "devops", "cloud", "fullstack", "backend", "frontend",
+  ],
+  [
+    "finance", "accounting", "banking", "audit",
+    "buchhaltung", "buchhalter", "controller", "steuer", "bank", "finanz",
+  ],
+  [
+    "education", "teaching", "training", "tutor",
+    "lehrer", "lehrerin", "dozent", "ausbilder", "bildung", "schule",
+  ],
+  [
+    "logistics", "supply chain", "warehouse", "transport",
+    "logistik", "lager", "fahrer", "spedition",
+  ],
+  [
+    "hospitality", "hotel", "restaurant", "tourism",
+    "gastronomie", "koch", "kellner", "rezeptionist",
+  ],
 ]
 
 // ─── Dimension scorers ────────────────────────────────────────────────────────
@@ -91,6 +121,51 @@ function scoreProfession(profile: ScorerProfile, job: ScorerJob): number {
   if (profileGroup !== -1 && profileGroup === jobGroup) return 60
 
   return 20
+}
+
+/**
+ * Score the job title against the seeker's role keywords (typed profession,
+ * current job title, and CV-extracted target roles). This catches matches
+ * that the coarse profession field misses — e.g. an Assistenzarzt seeker
+ * against a job titled "Assistenzarzt (m/w/d) Innere Medizin", where
+ * job.profession is just "Healthcare".
+ */
+function scoreTitle(profile: ScorerProfile, job: ScorerJob): number {
+  if (!job.title) return 50
+
+  const titleNorm = normalizeProfession(job.title)
+
+  const candidates: string[] = []
+  if (profile.currentJobTitle) candidates.push(profile.currentJobTitle)
+  if (profile.profession) candidates.push(profile.profession)
+  if (profile.targetRoles) candidates.push(...profile.targetRoles)
+
+  if (candidates.length === 0) return 50
+
+  let best = 0
+  for (const raw of candidates) {
+    const candidate = normalizeProfession(raw)
+    if (!candidate) continue
+
+    // Exact substring match — strongest signal
+    if (titleNorm.includes(candidate)) {
+      best = Math.max(best, 100)
+      continue
+    }
+
+    // Token overlap — if any meaningful (≥4 char) word from the candidate
+    // appears in the title, count it as a partial match.
+    const tokens = candidate.split(/[^a-z0-9äöüß]+/).filter((t) => t.length >= 4)
+    const hits = tokens.filter((t) => titleNorm.includes(t)).length
+    if (tokens.length > 0 && hits > 0) {
+      const ratio = hits / tokens.length
+      best = Math.max(best, Math.round(40 + ratio * 50))
+    }
+  }
+
+  // No matching keyword found — neutral, not negative (the job might still
+  // fit on other dimensions).
+  return best || 30
 }
 
 function getRegion(city: string): string | null {
@@ -193,14 +268,20 @@ function scoreVisa(profile: ScorerProfile, job: ScorerJob): number {
 
 /**
  * Compute a 0–100 heuristic match score for a profile against a job posting.
- * Weights: germanLevel(0.25) + profession(0.20) + location(0.20) +
- *          jobType(0.15) + salary(0.10) + visa(0.10) = 1.00
+ * Weights: germanLevel(0.20) + title(0.25) + profession(0.10) + location(0.15) +
+ *          jobType(0.10) + salary(0.10) + visa(0.10) = 1.00
+ *
+ * Title gets the heaviest weight because it carries the most signal — most
+ * jobs share the same coarse `profession` (e.g. "Healthcare") but have very
+ * different titles ("Assistenzarzt" vs "Krankenpfleger"). Profession is
+ * downweighted from 0.20 to 0.10 to make room for title.
  */
 export function computeHeuristicScore(
   profile: ScorerProfile,
   job: ScorerJob
 ): number {
   const germanScore = scoreGermanLevel(profile, job)
+  const titleScore = scoreTitle(profile, job)
   const professionScore = scoreProfession(profile, job)
   const locationScore = scoreLocation(profile, job)
   const jobTypeScore = scoreJobType(job)
@@ -208,10 +289,11 @@ export function computeHeuristicScore(
   const visaScore = scoreVisa(profile, job)
 
   const weighted =
-    germanScore * 0.25 +
-    professionScore * 0.20 +
-    locationScore * 0.20 +
-    jobTypeScore * 0.15 +
+    germanScore * 0.20 +
+    titleScore * 0.25 +
+    professionScore * 0.10 +
+    locationScore * 0.15 +
+    jobTypeScore * 0.10 +
     salaryScore * 0.10 +
     visaScore * 0.10
 

@@ -566,9 +566,8 @@ export async function scrapeSource(sourceId: string): Promise<{ count: number; e
  * Scrape all active sources in parallel (up to 3 at a time).
  */
 export async function scrapeAllSources(): Promise<{ total: number; results: { source: string; count: number; error?: string }[] }> {
-  const allSources = await prisma.jobSource.findMany({ where: { active: true } })
-  // Skip push-only sources (kimi-claw, test) — they push via /api/jobs/ingest, not scraped
-  const sources = allSources.filter(s => !s.name.includes("(kimi-claw)") && !s.name.includes("(test)"))
+  // Skip push sources (kimi-claw, test, etc.) at the query level via the new isPushSource flag.
+  const sources = await prisma.jobSource.findMany({ where: { active: true, isPushSource: false } })
   const results: { source: string; count: number; error?: string }[] = []
   let total = 0
 

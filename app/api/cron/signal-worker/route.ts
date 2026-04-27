@@ -5,7 +5,9 @@ import { computeSignalsHash, extractSignals } from "@/lib/job-signals"
 
 export const maxDuration = 300
 
-const BATCH_SIZE = 100
+// 50 jobs × 4 runs/hr ≈ 3 Gemini req/min — leaves ~12/min headroom for CV
+// parser, blog generator, and other Gemini consumers (15/min global limit).
+const BATCH_SIZE = 50
 const MAX_ATTEMPTS = 3
 const DEADLINE_MS = 270_000
 

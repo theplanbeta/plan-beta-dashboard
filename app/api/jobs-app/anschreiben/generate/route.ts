@@ -3,11 +3,10 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateAnschreiben } from "@/lib/jobs-ai"
-import { AnschreibenTemplate } from "@/lib/anschreiben-template"
-import { renderToBuffer } from "@react-pdf/renderer"
+import { renderAnschreibenHtml } from "@/lib/anschreiben-html-template"
+import { renderPdfFromHtml } from "@/lib/pdf-from-html"
 import { put } from "@vercel/blob"
 import { z } from "zod"
-import React from "react"
 import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 /** Discriminator value stored in GeneratedCV.templateUsed for Anschreiben. */
@@ -157,14 +156,13 @@ export async function POST(request: Request) {
       throw new Error("AI returned an Anschreiben without body paragraphs")
     }
 
-    const element = React.createElement(AnschreibenTemplate, {
+    const html = renderAnschreibenHtml({
       content: safeContent,
       email: seeker.email,
       phone: profile.phone,
       showWatermark: false,
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfBuffer = await renderToBuffer(element as any)
+    const pdfBuffer = await renderPdfFromHtml(html, { format: "a4" })
 
     // Upload to Vercel Blob
     stage = "upload"

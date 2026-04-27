@@ -3,11 +3,10 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateCVContent } from "@/lib/jobs-ai"
-import { CVTemplate } from "@/lib/cv-template"
-import { renderToBuffer } from "@react-pdf/renderer"
+import { renderCvHtml } from "@/lib/cv-html-template"
+import { renderPdfFromHtml } from "@/lib/pdf-from-html"
 import { put } from "@vercel/blob"
 import { z } from "zod"
-import React from "react"
 import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
 const generateSchema = z.object({
@@ -137,18 +136,17 @@ export async function POST(request: Request) {
       "Candidate"
 
     stage = "render"
-    const pdfBuffer = await renderToBuffer(
-      React.createElement(CVTemplate, {
-        content: cvContent,
-        name: fullName,
-        email: seeker.email,
-        phone: profile.phone,
-        germanLevel: profile.germanLevel,
-        visaStatus: profile.visaStatus,
-        language,
-        showWatermark: false,
-      })
-    )
+    const html = renderCvHtml({
+      content: cvContent,
+      name: fullName,
+      email: seeker.email,
+      phone: profile.phone,
+      germanLevel: profile.germanLevel,
+      visaStatus: profile.visaStatus,
+      language,
+      showWatermark: false,
+    })
+    const pdfBuffer = await renderPdfFromHtml(html, { format: "a4" })
 
     // Upload to Vercel Blob
     stage = "upload"

@@ -30,7 +30,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
             "/jobs-app/auth",
             "/jobs-app/settings",
             "/jobs-app/applications",
-            "/jobs-app/cvs",
+            "/jobs-app/cv-archive",
             "/jobs-app/onboarding",
           ],
         },

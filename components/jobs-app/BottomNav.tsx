@@ -7,7 +7,7 @@ import { Home, Briefcase, FileText, KanbanSquare, User } from "lucide-react"
 const tabs = [
   { label: "Home", href: "/jobs-app", icon: Home },
   { label: "Jobs", href: "/jobs-app/jobs", icon: Briefcase },
-  { label: "CVs", href: "/jobs-app/cvs", icon: FileText },
+  { label: "CVs", href: "/jobs-app/cv-archive", icon: FileText },
   { label: "Tracker", href: "/jobs-app/applications", icon: KanbanSquare },
   { label: "Account", href: "/jobs-app/settings", icon: User },
 ]

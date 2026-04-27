@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 
 /**
@@ -14,15 +15,13 @@ const ROUTE_SUFFIX: Record<string, string> = {
   "/jobs-app": "FILE OPEN",
   "/jobs-app/jobs": "INDEX VIEW",
   "/jobs-app/applications": "CASE LOAD",
-  "/jobs-app/cvs": "ARCHIVE",
+  "/jobs-app/cv-archive": "ARCHIVE",
   "/jobs-app/onboarding": "INTAKE",
   "/jobs-app/profile": "SUBJECT",
 }
 
 function makeSerial(): string {
   const year = new Date().getFullYear()
-  // Deterministic per-session random so it stays stable on a given visit
-  if (typeof window === "undefined") return `DZ-${year}-0000`
   const stored = sessionStorage.getItem("dz-serial")
   if (stored) return stored
   const num = Math.floor(Math.random() * 9999)
@@ -50,15 +49,21 @@ function suffixForPath(pathname: string): string {
 
 export default function DocumentSerial() {
   const pathname = usePathname() ?? "/jobs-app"
-  const serial = makeSerial()
-  const date = formatDate()
   const suffix = suffixForPath(pathname)
+  // Compute serial + date only after mount so SSR markup matches the
+  // first client render (avoids React hydration error #418, since both
+  // values are nondeterministic — random and timezone-dependent).
+  const [meta, setMeta] = useState<{ serial: string; date: string } | null>(null)
+
+  useEffect(() => {
+    setMeta({ serial: makeSerial(), date: formatDate() })
+  }, [])
 
   return (
     <span className="amtlich-serial">
-      <span>{serial}</span>
+      <span suppressHydrationWarning>{meta?.serial ?? "DZ-––––-––––"}</span>
       <span className="sep">·</span>
-      <span>{date}</span>
+      <span suppressHydrationWarning>{meta?.date ?? "––/––/––––"}</span>
       <span className="sep">·</span>
       <span>{suffix}</span>
     </span>

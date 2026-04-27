@@ -48,6 +48,7 @@ const querySchema = z.object({
   profession: z.string().max(100).optional(),
   germanLevel: z.string().max(10).optional(),
   location: z.string().max(100).optional(),
+  q: z.string().max(120).optional(),
   // Migrant-fit filters (FREE tier).
   lang: enumListSchema(LANGUAGE_LEVEL_VALUES),
   anerkennung: enumListSchema(ANERKENNUNG_VALUES),
@@ -80,6 +81,7 @@ export async function GET(request: Request) {
     profession: searchParams.get("profession") ?? undefined,
     germanLevel: searchParams.get("germanLevel") ?? undefined,
     location: searchParams.get("location") ?? undefined,
+    q: searchParams.get("q")?.trim() || undefined,
     lang: searchParams.get("lang") ?? undefined,
     anerkennung: searchParams.get("anerkennung") ?? undefined,
     visa: searchParams.get("visa") ?? undefined,
@@ -102,6 +104,7 @@ export async function GET(request: Request) {
     profession,
     germanLevel,
     location,
+    q,
     lang,
     anerkennung,
     visa,
@@ -134,17 +137,44 @@ export async function GET(request: Request) {
   const effectiveVs = allowPremiumFilters && vs
   const effectiveRs = allowPremiumFilters && rs
 
-  // Build where clause
+  // Build where clause.
+  //
+  // Note on `profession`: this is treated as a SOFT filter. Job postings store
+  // a coarse category ("Healthcare", "IT", etc.) while seekers may type a
+  // specific role ("Assistenzarzt") or pick a category. To avoid returning
+  // zero jobs when the seeker's profession doesn't exactly match a stored
+  // category, we apply profession as either an exact match OR a substring
+  // match on title/profession. This trades precision for recall — the
+  // matching algorithm will still rank jobs correctly via title scoring.
   const where: Prisma.JobPostingWhereInput = { active: true }
 
   if (profession) {
-    where.profession = profession
+    where.OR = [
+      { profession: { equals: profession, mode: "insensitive" } },
+      { profession: { contains: profession, mode: "insensitive" } },
+      { title: { contains: profession, mode: "insensitive" } },
+    ]
   }
   if (germanLevel) {
     where.germanLevel = germanLevel
   }
   if (location) {
     where.location = { contains: location, mode: "insensitive" }
+  }
+  if (q) {
+    // Free-text search across title and company. AND-combine with any
+    // profession OR clause already present by moving the search clauses
+    // into a `AND` group.
+    const searchOr = [
+      { title: { contains: q, mode: "insensitive" as const } },
+      { company: { contains: q, mode: "insensitive" as const } },
+    ]
+    if (where.OR) {
+      where.AND = [{ OR: where.OR }, { OR: searchOr }]
+      delete where.OR
+    } else {
+      where.OR = searchOr
+    }
   }
 
   // Migrant-fit filters (FREE tier).
@@ -219,6 +249,8 @@ export async function GET(request: Request) {
     salaryMax: number | null
     visaStatus: string | null
     yearsOfExperience: number | null
+    currentJobTitle: string | null
+    targetRoles: string[]
   } | null = null
 
   // Reuse the seeker resolved up-front (above) — avoid a second auth round-trip.
@@ -232,6 +264,8 @@ export async function GET(request: Request) {
       salaryMax: p.salaryMax ?? null,
       visaStatus: p.visaStatus ?? null,
       yearsOfExperience: p.yearsOfExperience ?? null,
+      currentJobTitle: p.currentJobTitle ?? null,
+      targetRoles: (p.targetRoles as string[]) ?? [],
     }
   }
 
@@ -250,6 +284,7 @@ export async function GET(request: Request) {
       profession: job.profession ?? null,
       location: job.location ?? null,
       jobType: job.jobType ?? null,
+      title: job.title ?? null,
       salaryMin: job.salaryMin ?? null,
       salaryMax: job.salaryMax ?? null,
     }

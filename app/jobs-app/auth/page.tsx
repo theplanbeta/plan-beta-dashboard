@@ -4,10 +4,18 @@ import { redirect } from "next/navigation"
 import { verifyJobsAppToken } from "@/lib/jobs-app-auth"
 import AuthForm from "@/components/jobs-app/AuthForm"
 
-export const metadata: Metadata = {
-  title: "Sign in · Day Zero",
-  description:
-    "Open your career folder or sign back in to your Plan Beta Day Zero dossier.",
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string }>
+}): Promise<Metadata> {
+  const params = await searchParams
+  const isLogin = params.mode === "login"
+  return {
+    title: isLogin ? "Sign in · Day Zero" : "Sign up · Day Zero",
+    description:
+      "Open your career folder or sign back in to your Plan Beta Day Zero dossier.",
+  }
 }
 
 export default async function AuthPage({

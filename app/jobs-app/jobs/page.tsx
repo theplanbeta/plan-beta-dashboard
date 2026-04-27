@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useCallback, Suspense } from "react"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
-import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
+import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import { JobCard, type JobData } from "@/components/jobs-app/JobCard"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import { ProfileCompletionBanner } from "@/components/jobs-app/ProfileCompletionBanner"
@@ -78,6 +78,22 @@ function JobsPageInner() {
   const [germanLevel, setGermanLevel] = useState("")
   const [profession, setProfession] = useState("")
   const [sort, setSort] = useState("match")
+  // Free-text search across job title + company. Debounced to avoid hammering
+  // the API on every keystroke.
+  const [searchInput, setSearchInput] = useState("")
+  const [q, setQ] = useState("")
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setQ(searchInput.trim())
+      setPage(1)
+    }, 300)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchInput])
 
   // Migrant-fit state — initialised from URL params.
   const [migrantFit, setMigrantFit] = useState<MigrantFitState>(() =>
@@ -184,6 +200,7 @@ function JobsPageInner() {
       params.set("sort", sort)
       if (germanLevel) params.set("germanLevel", germanLevel)
       if (profession) params.set("profession", profession)
+      if (q) params.set("q", q)
       if (migrantFit.languageLevels.length > 0) {
         params.set("lang", migrantFit.languageLevels.join(","))
       }
@@ -223,7 +240,7 @@ function JobsPageInner() {
     } finally {
       setLoading(false)
     }
-  }, [page, sort, germanLevel, profession, migrantFit, visaSupport])
+  }, [page, sort, germanLevel, profession, q, migrantFit, visaSupport])
 
   useEffect(() => {
     if (!authLoading) fetchJobs()
@@ -321,6 +338,47 @@ function JobsPageInner() {
       {!showProfileBanner && profileCompleteness !== null && (
         <ProfileCompletionBanner profileCompleteness={profileCompleteness} />
       )}
+
+      {/* ── Free-text position search ───────────────────────── */}
+      <div className="amtlich-card amtlich-enter" style={{ padding: "10px 14px" }}>
+        <div className="flex items-center gap-2">
+          <Search size={16} strokeWidth={1.8} style={{ color: "var(--ink-soft)", flexShrink: 0 }} aria-hidden="true" />
+          <input
+            type="search"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search positions, companies…"
+            aria-label="Search positions or companies"
+            className="flex-1"
+            style={{
+              fontFamily: "var(--f-body)",
+              fontSize: "0.95rem",
+              color: "var(--ink)",
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              padding: "4px 0",
+            }}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput("")}
+              aria-label="Clear search"
+              style={{
+                color: "var(--ink-soft)",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                display: "flex",
+              }}
+            >
+              <X size={14} strokeWidth={2} />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* ── Filters panel ───────────────────────────────────── */}
       {showFilters && (

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateAnschreiben } from "@/lib/jobs-ai"
 import { AnschreibenTemplate } from "@/lib/anschreiben-template"
-import { renderToBuffer } from "@react-pdf/renderer"
+import { renderToBuffer } from "@joshuajaco/react-pdf-renderer-bundled"
 import { put } from "@vercel/blob"
 import { z } from "zod"
 import React from "react"
@@ -20,6 +20,7 @@ const generateSchema = z.object({
 })
 
 export const maxDuration = 60
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   // Auth
@@ -105,8 +106,10 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
+  let stage: "ai" | "render" | "upload" | "db" = "ai"
   try {
     // Generate Anschreiben content via Claude Sonnet
+    stage = "ai"
     const content = await generateAnschreiben(
       {
         firstName: profile.firstName,
@@ -134,9 +137,28 @@ export async function POST(request: Request) {
       language
     )
 
-    // Render PDF
+    // Render PDF — defend against partial AI output. Each field gets a
+    // safe default so the template never sees undefined/null and
+    // renderToBuffer can't crash on .map() of undefined.
+    stage = "render"
+    const safeContent = {
+      senderBlock: content?.senderBlock ?? "",
+      date: content?.date ?? new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-GB"),
+      recipientBlock: content?.recipientBlock ?? `${job.company}\n${job.location ?? ""}`.trim(),
+      subject: content?.subject ?? `Bewerbung als ${job.title}`,
+      salutation: content?.salutation ?? (language === "de" ? "Sehr geehrte Damen und Herren," : "Dear Hiring Manager,"),
+      paragraphs: Array.isArray(content?.paragraphs) && content.paragraphs.length > 0
+        ? content.paragraphs.filter((p): p is string => typeof p === "string")
+        : [],
+      closing: content?.closing ?? (language === "de" ? "Mit freundlichen Grüßen" : "Sincerely"),
+      signature: content?.signature ?? ([profile.firstName, profile.lastName].filter(Boolean).join(" ") || seeker.name),
+    }
+    if (safeContent.paragraphs.length === 0) {
+      throw new Error("AI returned an Anschreiben without body paragraphs")
+    }
+
     const element = React.createElement(AnschreibenTemplate, {
-      content,
+      content: safeContent,
       email: seeker.email,
       phone: profile.phone,
       showWatermark: false,
@@ -145,6 +167,7 @@ export async function POST(request: Request) {
     const pdfBuffer = await renderToBuffer(element as any)
 
     // Upload to Vercel Blob
+    stage = "upload"
     const slug = job.slug || job.id
     const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
 
@@ -154,6 +177,7 @@ export async function POST(request: Request) {
     })
 
     // Record for monthly cap counter
+    stage = "db"
     await prisma.generatedCV.create({
       data: {
         seekerId: seeker.id,
@@ -175,11 +199,26 @@ export async function POST(request: Request) {
       remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,
     })
   } catch (error) {
-    console.error("[anschreiben/generate] Failed:", error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errStack = error instanceof Error ? error.stack : undefined
+    console.error(
+      `[anschreiben/generate] Failed at stage=${stage}`,
+      JSON.stringify({
+        seekerId: seeker.id,
+        jobPostingId,
+        message: errMsg,
+        name: error instanceof Error ? error.name : "unknown",
+        stack: errStack?.split("\n").slice(0, 5).join(" | "),
+      })
+    )
     const message =
-      error instanceof Error && error.message.includes("ANTHROPIC")
+      stage === "ai"
         ? "AI service temporarily unavailable. Try again in a minute."
+        : stage === "render"
+        ? "Couldn't render your Anschreiben PDF. Try again or contact support."
+        : stage === "upload"
+        ? "Couldn't save your Anschreiben file. Try again."
         : "Cover letter generation failed. Please try again."
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message, stage }, { status: 500 })
   }
 }

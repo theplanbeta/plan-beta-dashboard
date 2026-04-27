@@ -7,7 +7,7 @@ import {
   View,
   StyleSheet,
   Font,
-} from "@joshuajaco/react-pdf-renderer-bundled"
+} from "@react-pdf/renderer"
 import type { CVContentResult } from "./jobs-ai"
 
 // ── Styles ─────────────────────────────────────────────────────────────

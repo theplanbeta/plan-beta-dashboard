@@ -6,7 +6,7 @@ import {
   Text,
   View,
   StyleSheet,
-} from "@joshuajaco/react-pdf-renderer-bundled"
+} from "@react-pdf/renderer"
 import type { AnschreibenResult } from "./jobs-ai"
 
 // ── Styles ─────────────────────────────────────────────────────────────

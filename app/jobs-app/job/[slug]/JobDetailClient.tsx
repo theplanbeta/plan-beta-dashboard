@@ -20,6 +20,7 @@ import { ScoreBreakdown } from "@/components/jobs-app/ScoreBreakdown"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import ApplicationKitModal from "@/components/jobs-app/ApplicationKitModal"
 import { ShareButton } from "@/components/jobs-app/ShareButton"
+import { SignalBadges } from "@/components/jobs-app/SignalBadges"
 import { appendUtm } from "@/lib/share-links"
 import type { MatchLabel } from "@/lib/heuristic-scorer"
 import type { DeepScoreResult } from "@/lib/jobs-ai"
@@ -49,6 +50,14 @@ export interface JobDetail {
   applyUrl: string | null
   viewCount: number
   createdAt: string
+  // Migrant-aware signals (Task 11) — surfaced as badges below the header.
+  languageLevel: string | null
+  englishOk: boolean | null
+  anerkennungRequired: string | null
+  visaPathway: string | null
+  anerkennungSupport: boolean | null
+  visaSponsorship: boolean | null
+  relocationSupport: string | null
 }
 
 function stampVariantForScore(score: number): string {
@@ -269,6 +278,30 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
             </div>
           )}
         </dl>
+
+        {/* Migrant-aware signal badges (Task 11). Wrapper is conditional
+            so we don't reserve top margin on jobs that have no extracted
+            signals (most legacy/unprocessed postings). */}
+        {(job.languageLevel ||
+          job.englishOk ||
+          job.anerkennungRequired ||
+          job.visaPathway ||
+          job.anerkennungSupport != null ||
+          job.visaSponsorship != null ||
+          job.relocationSupport) && (
+          <div className="mt-3">
+            <SignalBadges
+              languageLevel={job.languageLevel}
+              englishOk={job.englishOk}
+              anerkennungRequired={job.anerkennungRequired}
+              visaPathway={job.visaPathway}
+              anerkennungSupport={job.anerkennungSupport}
+              visaSponsorship={job.visaSponsorship}
+              relocationSupport={job.relocationSupport}
+              isPremium={isPremium}
+            />
+          </div>
+        )}
       </header>
 
       {/* ── AI Score Breakdown (premium) ────────────────────── */}

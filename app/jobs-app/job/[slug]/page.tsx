@@ -32,6 +32,14 @@ const getJob = cache(async function getJob(slug: string) {
       createdAt: true,
       postedAt: true,
       updatedAt: true,
+      // Migrant-aware signals (Task 11)
+      languageLevel: true,
+      englishOk: true,
+      anerkennungRequired: true,
+      visaPathway: true,
+      anerkennungSupport: true,
+      visaSponsorship: true,
+      relocationSupport: true,
     },
   })
 })
@@ -56,6 +64,13 @@ function toClientJob(j: JobFromDb): JobDetail {
     applyUrl: j.applyUrl,
     viewCount: j.viewCount,
     createdAt: j.createdAt.toISOString(),
+    languageLevel: j.languageLevel,
+    englishOk: j.englishOk,
+    anerkennungRequired: j.anerkennungRequired,
+    visaPathway: j.visaPathway,
+    anerkennungSupport: j.anerkennungSupport,
+    visaSponsorship: j.visaSponsorship,
+    relocationSupport: j.relocationSupport,
   }
 }
 

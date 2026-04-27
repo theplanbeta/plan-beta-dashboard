@@ -46,6 +46,15 @@ export async function GET(
       postedAt: job.postedAt,
       createdAt: job.createdAt,
       viewCount: job.viewCount + 1,
+      // Migrant-aware signals (Task 11) — keep parity with SSR shape
+      // so the client-side refetch doesn't blank the badge row.
+      languageLevel: job.languageLevel,
+      englishOk: job.englishOk,
+      anerkennungRequired: job.anerkennungRequired,
+      visaPathway: job.visaPathway,
+      anerkennungSupport: job.anerkennungSupport,
+      visaSponsorship: job.visaSponsorship,
+      relocationSupport: job.relocationSupport,
     },
     matchScore: null,
     matchLabel: null,

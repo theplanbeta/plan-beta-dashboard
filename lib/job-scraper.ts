@@ -605,3 +605,91 @@ export async function scrapeAllSources(): Promise<{ total: number; results: { so
 
   return { total, results }
 }
+
+/**
+ * Fetch jobs for a single Arbeitsagentur keyword and upsert them via the same
+ * path used by scrapeAllSources. Returns count of jobs upserted.
+ *
+ * Used by the keyword-rotation cron (Task 6 of migrant-aware-scraping plan).
+ */
+export async function scrapeArbeitsagenturKeyword(keyword: string): Promise<{
+  keyword: string
+  fetched: number
+  upserted: number
+  error?: string
+}> {
+  const url = `https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs?was=${encodeURIComponent(keyword)}`
+  try {
+    const jobs = await fetchArbeitsagentur(url)
+    let upserted = 0
+
+    // Find-or-create JobSource keyed by the keyword so we can track per-keyword freshness
+    const sourceName = `arbeitsagentur (${keyword})`
+    const jobSource = await prisma.jobSource.upsert({
+      where: { name: sourceName },
+      create: { name: sourceName, url, active: true, isPushSource: false },
+      update: { isPushSource: false },
+    })
+
+    for (const job of jobs) {
+      try {
+        const externalId = job.externalId || `${keyword}-${job.title}-${job.company}`.slice(0, 100)
+        const slug = generateJobSlug(job.title, job.company, job.location || null)
+        const existing = await prisma.jobPosting.findUnique({
+          where: { slug },
+          select: { id: true, externalId: true },
+        })
+        const finalSlug = existing && existing.externalId !== externalId
+          ? `${slug}-${externalId.slice(-6)}`
+          : slug
+
+        await prisma.jobPosting.upsert({
+          where: { externalId },
+          create: {
+            sourceId: jobSource.id,
+            externalId,
+            slug: finalSlug,
+            title: cleanJobTitle(job.title),
+            company: cleanJobTitle(job.company),
+            location: job.location || null,
+            salaryMin: job.salaryMin || null,
+            salaryMax: job.salaryMax || null,
+            currency: job.currency || "EUR",
+            germanLevel: job.germanLevel || null,
+            profession: job.profession || null,
+            jobType: job.jobType || null,
+            requirements: job.requirements || [],
+            applyUrl: job.applyUrl || null,
+            postedAt: new Date(),
+            active: true,
+          },
+          update: {
+            title: cleanJobTitle(job.title),
+            company: cleanJobTitle(job.company),
+            location: job.location || null,
+            germanLevel: job.germanLevel || null,
+            profession: job.profession || null,
+            jobType: job.jobType || null,
+            requirements: job.requirements || [],
+            applyUrl: job.applyUrl || null,
+            active: true,
+            updatedAt: new Date(),
+          },
+        })
+        upserted++
+      } catch (e) {
+        console.error(`[Scraper:${keyword}] upsert failed:`, e)
+      }
+    }
+
+    await prisma.jobSource.update({
+      where: { id: jobSource.id },
+      data: { lastFetched: new Date() },
+    })
+
+    return { keyword, fetched: jobs.length, upserted }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { keyword, fetched: 0, upserted: 0, error: msg }
+  }
+}

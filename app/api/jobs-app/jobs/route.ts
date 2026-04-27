@@ -56,6 +56,19 @@ const querySchema = z.object({
     .string()
     .optional()
     .transform((v) => v === "1"),
+  // Visa & support filters (PREMIUM tier).
+  as: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
+  vs: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
+  rs: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
 })
 
 export async function GET(request: Request) {
@@ -71,6 +84,9 @@ export async function GET(request: Request) {
     anerkennung: searchParams.get("anerkennung") ?? undefined,
     visa: searchParams.get("visa") ?? undefined,
     english: searchParams.get("english") ?? undefined,
+    as: searchParams.get("as") ?? undefined,
+    vs: searchParams.get("vs") ?? undefined,
+    rs: searchParams.get("rs") ?? undefined,
   })
 
   if (!parsed.success) {
@@ -90,6 +106,9 @@ export async function GET(request: Request) {
     anerkennung,
     visa,
     english,
+    as,
+    vs,
+    rs,
   } = parsed.data
 
   try {
@@ -119,6 +138,18 @@ export async function GET(request: Request) {
   }
   if (english) {
     where.englishOk = true
+  }
+
+  // Visa & support filters (PREMIUM tier).
+  // relocationSupport is a String? snippet, so "any non-null value" is the filter.
+  if (as) {
+    where.anerkennungSupport = true
+  }
+  if (vs) {
+    where.visaSponsorship = true
+  }
+  if (rs) {
+    where.relocationSupport = { not: null }
   }
 
   // Determine DB order

@@ -12,6 +12,12 @@ import {
   type MigrantFitState,
   EMPTY_MIGRANT_FIT_STATE,
 } from "@/components/jobs-app/MigrantFitFilters"
+import {
+  VisaSupportFilters,
+  type VisaSupportState,
+  EMPTY_VISA_SUPPORT_STATE,
+} from "@/components/jobs-app/VisaSupportFilters"
+import { PremiumGate } from "@/components/marketing/jobs/PremiumGate"
 
 type Job = JobData & { id: string }
 
@@ -25,6 +31,14 @@ function parseMigrantFitFromParams(params: URLSearchParams): MigrantFitState {
     englishOk,
     anerkennung,
     visaPathways: visa,
+  }
+}
+
+function parseVisaSupportFromParams(params: URLSearchParams): VisaSupportState {
+  return {
+    anerkennungSupport: params.get("as") === "1" ? true : null,
+    visaSponsorship: params.get("vs") === "1" ? true : null,
+    relocationSupport: params.get("rs") === "1" ? true : null,
   }
 }
 
@@ -74,12 +88,30 @@ function JobsPageInner() {
         )
   )
 
+  // Visa & support state (PREMIUM tier) — initialised from URL params.
+  const [visaSupport, setVisaSupport] = useState<VisaSupportState>(() =>
+    typeof window === "undefined"
+      ? EMPTY_VISA_SUPPORT_STATE
+      : parseVisaSupportFromParams(
+          new URLSearchParams(window.location.search)
+        )
+  )
+
   // Re-sync migrant-fit state if URL changes externally (e.g. back/forward).
   // Guard with deep-equal so our own router.replace() doesn't trigger a redundant
   // setState (which would then re-fire fetchJobs via its useCallback dep).
   useEffect(() => {
     const fromUrl = parseMigrantFitFromParams(searchParams)
     setMigrantFit((current) =>
+      JSON.stringify(current) === JSON.stringify(fromUrl) ? current : fromUrl
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
+
+  // Re-sync visa-support state if URL changes externally — same deep-equal guard.
+  useEffect(() => {
+    const fromUrl = parseVisaSupportFromParams(searchParams)
+    setVisaSupport((current) =>
       JSON.stringify(current) === JSON.stringify(fromUrl) ? current : fromUrl
     )
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,6 +147,31 @@ function JobsPageInner() {
     [pathname, router, searchParams]
   )
 
+  // Push visa-support state into URL without scroll/reload.
+  const syncVisaSupportToUrl = useCallback(
+    (next: VisaSupportState) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (next.anerkennungSupport === true) {
+        params.set("as", "1")
+      } else {
+        params.delete("as")
+      }
+      if (next.visaSponsorship === true) {
+        params.set("vs", "1")
+      } else {
+        params.delete("vs")
+      }
+      if (next.relocationSupport === true) {
+        params.set("rs", "1")
+      } else {
+        params.delete("rs")
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams]
+  )
+
   // profileCompleteness comes from AuthProvider context (no separate fetch).
   const profileCompleteness = seeker?.profile?.profileCompleteness ?? null
 
@@ -139,6 +196,15 @@ function JobsPageInner() {
       if (migrantFit.englishOk === true) {
         params.set("english", "1")
       }
+      if (visaSupport.anerkennungSupport === true) {
+        params.set("as", "1")
+      }
+      if (visaSupport.visaSponsorship === true) {
+        params.set("vs", "1")
+      }
+      if (visaSupport.relocationSupport === true) {
+        params.set("rs", "1")
+      }
 
       const res = await fetch(`/api/jobs-app/jobs?${params.toString()}`, {
         credentials: "include",
@@ -157,7 +223,7 @@ function JobsPageInner() {
     } finally {
       setLoading(false)
     }
-  }, [page, sort, germanLevel, profession, migrantFit])
+  }, [page, sort, germanLevel, profession, migrantFit, visaSupport])
 
   useEffect(() => {
     if (!authLoading) fetchJobs()
@@ -328,6 +394,19 @@ function JobsPageInner() {
               resetPage()
             }}
           />
+
+          <hr className="amtlich-divider mt-4 mb-4" />
+
+          <PremiumGate feature="Visa & support filters">
+            <VisaSupportFilters
+              value={visaSupport}
+              onChange={(next) => {
+                setVisaSupport(next)
+                syncVisaSupportToUrl(next)
+                resetPage()
+              }}
+            />
+          </PremiumGate>
 
           <style jsx>{`
             .amtlich-select {

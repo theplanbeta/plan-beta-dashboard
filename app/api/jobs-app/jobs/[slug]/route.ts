@@ -46,6 +46,18 @@ export async function GET(
       postedAt: job.postedAt,
       createdAt: job.createdAt,
       viewCount: job.viewCount + 1,
+      // Migrant-aware signals — sent to all callers regardless of premium tier.
+      // Premium gating is persuasive UX (LockedBadge "upgrade to view"), not data
+      // withholding: signals are LLM-derived from public job text and trivially
+      // re-derivable, so server-side omission would add complexity without real
+      // protection. Visual gate lives in components/jobs-app/SignalBadges.tsx.
+      languageLevel: job.languageLevel,
+      englishOk: job.englishOk,
+      anerkennungRequired: job.anerkennungRequired,
+      visaPathway: job.visaPathway,
+      anerkennungSupport: job.anerkennungSupport,
+      visaSponsorship: job.visaSponsorship,
+      relocationSupport: job.relocationSupport,
     },
     matchScore: null,
     matchLabel: null,

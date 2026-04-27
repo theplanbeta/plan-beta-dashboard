@@ -20,6 +20,28 @@ const jobSchema = z.object({
   description: z.string().max(500).nullish(),
   grade: z.enum(["A", "B", "C", "D"]).nullish(),
   gradeReason: z.string().max(200).nullish(),
+
+  // Migrant signals (optional — Kimi Claw populates when scraping)
+  languageLevel: z.enum(["A1", "A2", "B1", "B2", "C1", "C2", "NONE"]).nullish(),
+  englishOk: z.boolean().nullish(),
+  anerkennungRequired: z
+    .enum(["REQUIRED", "IN_PROGRESS_OK", "NOT_REQUIRED"])
+    .nullish(),
+  visaPathway: z
+    .enum([
+      "BLUE_CARD",
+      "CHANCENKARTE",
+      "PFLEGE_VISA",
+      "AUSBILDUNG",
+      "FSJ",
+      "EU_ONLY",
+      "UNCLEAR",
+    ])
+    .nullish(),
+  anerkennungSupport: z.boolean().nullish(),
+  visaSponsorship: z.boolean().nullish(),
+  // REJECT (vs. clamp in lib/job-signals.ts) — surfaces upstream scraper config bugs loudly. DB is VarChar(200).
+  relocationSupport: z.string().max(200).nullish(),
 })
 
 const ingestPayloadSchema = z.object({
@@ -62,8 +84,11 @@ export async function POST(request: NextRequest) {
         name: sourceName,
         url: sourceUrl,
         active: true,
+        isPushSource: true,
       },
-      update: {},
+      update: {
+        isPushSource: true,
+      },
     })
 
     // Detect generic career page URLs
@@ -101,6 +126,15 @@ export async function POST(request: NextRequest) {
           ? `${slug}-${job.externalId.slice(-6)}`
           : slug
 
+        const hasSignals =
+          job.languageLevel != null ||
+          job.englishOk != null ||
+          job.anerkennungRequired != null ||
+          job.visaPathway != null ||
+          job.anerkennungSupport != null ||
+          job.visaSponsorship != null ||
+          job.relocationSupport != null
+
         await prisma.jobPosting.upsert({
           where: { externalId: job.externalId },
           create: {
@@ -123,6 +157,14 @@ export async function POST(request: NextRequest) {
             gradeReason: job.gradeReason || null,
             postedAt: new Date(),
             active: true,
+            languageLevel: job.languageLevel ?? null,
+            englishOk: job.englishOk ?? null,
+            anerkennungRequired: job.anerkennungRequired ?? null,
+            visaPathway: job.visaPathway ?? null,
+            anerkennungSupport: job.anerkennungSupport ?? null,
+            visaSponsorship: job.visaSponsorship ?? null,
+            relocationSupport: job.relocationSupport ?? null,
+            signalsExtractedAt: hasSignals ? new Date() : null,
           },
           update: {
             title,
@@ -140,6 +182,16 @@ export async function POST(request: NextRequest) {
             gradeReason: job.gradeReason || null,
             active: true,
             updatedAt: new Date(),
+            ...(hasSignals && {
+              languageLevel: job.languageLevel ?? null,
+              englishOk: job.englishOk ?? null,
+              anerkennungRequired: job.anerkennungRequired ?? null,
+              visaPathway: job.visaPathway ?? null,
+              anerkennungSupport: job.anerkennungSupport ?? null,
+              visaSponsorship: job.visaSponsorship ?? null,
+              relocationSupport: job.relocationSupport ?? null,
+              signalsExtractedAt: new Date(),
+            }),
           },
         })
         upsertCount++

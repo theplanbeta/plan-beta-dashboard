@@ -8,12 +8,12 @@ datasource db {
 }
 
 model User {
-  id                    String          @id @default(cuid())
-  email                 String          @unique
+  id                    String            @id @default(cuid())
+  email                 String            @unique
   name                  String
   password              String
-  role                  UserRole        @default(TEACHER)
-  active                Boolean         @default(true)
+  role                  UserRole          @default(TEACHER)
+  active                Boolean           @default(true)
   phone                 String?
   avatar                String?
   bio                   String?
@@ -22,30 +22,30 @@ model User {
   specializations       String?
   languages             String?
   availability          String?
-  availableMorning      Boolean?        @default(true)
-  availableEvening      Boolean?        @default(true)
+  availableMorning      Boolean?          @default(true)
+  availableEvening      Boolean?          @default(true)
   preferredContact      String?
   teacherLevels         String[]
   teacherTimings        String[]
   teacherTimeSlots      Json?
   hourlyRate            Json?
-  currency              String?         @default("EUR")
+  currency              String?           @default("EUR")
   whatsapp              String?
   remarks               String?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
   passwordResetExpiry   DateTime?
   passwordResetToken    String?
-  requirePasswordChange Boolean         @default(false)
+  requirePasswordChange Boolean           @default(false)
   welcomeToken          String?
   welcomeTokenExpiry    DateTime?
-  batches               Batch[]         @relation("TeacherBatches")
+  batches               Batch[]           @relation("TeacherBatches")
   leads                 Lead[]
-  offerLetters          OfferLetter[]   @relation("TeacherOffers")
-  teacherHours          TeacherHours[]  @relation("TeacherHours")
-  teacherReviews        TeacherReview[] @relation("TeacherReviewer")
-  createdActionItems    ActionItem[]   @relation("ActionItemCreator")
-  assignedActionItems   ActionItem[]   @relation("ActionItemAssignee")
+  offerLetters          OfferLetter[]     @relation("TeacherOffers")
+  teacherHours          TeacherHours[]    @relation("TeacherHours")
+  teacherReviews        TeacherReview[]   @relation("TeacherReviewer")
+  createdActionItems    ActionItem[]      @relation("ActionItemCreator")
+  assignedActionItems   ActionItem[]      @relation("ActionItemAssignee")
   cfoConversations      CfoConversation[]
 
   @@index([email])
@@ -56,87 +56,87 @@ model User {
 }
 
 model Student {
-  id                   String               @id @default(cuid())
-  studentId            String               @unique
-  name                 String
-  whatsapp             String               @unique
-  email                String?              @unique
-  enrollmentDate       DateTime             @default(now())
-  currentLevel         Level                @default(NEW)
-  isCombo              Boolean              @default(false)
-  comboLevels          String[]
-  batchId              String?
-  originalPrice        Decimal              @db.Decimal(10, 2)
-  discountApplied      Decimal              @default(0) @db.Decimal(10, 2)
-  finalPrice           Decimal              @db.Decimal(10, 2)
-  currency             String               @default("EUR")
-  eurEquivalent        Decimal?             @db.Decimal(10, 2)
-  exchangeRateUsed     Decimal?             @db.Decimal(10, 4)
-  paymentStatus        PaymentStatus        @default(PENDING)
-  totalPaid            Decimal              @default(0) @db.Decimal(10, 2)
-  totalPaidEur         Decimal?             @db.Decimal(10, 2)
-  balance              Decimal              @default(0) @db.Decimal(10, 2)
-  referralSource       ReferralSource
-  referredById         String?
-  trialAttended        Boolean              @default(false)
-  trialDate            DateTime?
-  classesAttended      Int                  @default(0)
-  totalClasses         Int                  @default(0)
-  attendanceRate       Decimal              @default(0) @db.Decimal(5, 2)
-  lastClassDate        DateTime?
-  avgQuizScore         Decimal?             @db.Decimal(5, 2)
-  completionStatus     CompletionStatus     @default(ACTIVE)
-  churnRisk            ChurnRisk            @default(LOW)
-  notes                String?
-  emailNotifications   Boolean              @default(true)
-  emailWelcome         Boolean              @default(true)
-  emailPayment         Boolean              @default(true)
-  emailAttendance      Boolean              @default(true)
-  emailBatch           Boolean              @default(true)
-  emailReferral        Boolean              @default(true)
+  id                      String               @id @default(cuid())
+  studentId               String               @unique
+  name                    String
+  whatsapp                String               @unique
+  email                   String?              @unique
+  enrollmentDate          DateTime             @default(now())
+  currentLevel            Level                @default(NEW)
+  isCombo                 Boolean              @default(false)
+  comboLevels             String[]
+  batchId                 String?
+  originalPrice           Decimal              @db.Decimal(10, 2)
+  discountApplied         Decimal              @default(0) @db.Decimal(10, 2)
+  finalPrice              Decimal              @db.Decimal(10, 2)
+  currency                String               @default("EUR")
+  eurEquivalent           Decimal?             @db.Decimal(10, 2)
+  exchangeRateUsed        Decimal?             @db.Decimal(10, 4)
+  paymentStatus           PaymentStatus        @default(PENDING)
+  totalPaid               Decimal              @default(0) @db.Decimal(10, 2)
+  totalPaidEur            Decimal?             @db.Decimal(10, 2)
+  balance                 Decimal              @default(0) @db.Decimal(10, 2)
+  referralSource          ReferralSource
+  referredById            String?
+  trialAttended           Boolean              @default(false)
+  trialDate               DateTime?
+  classesAttended         Int                  @default(0)
+  totalClasses            Int                  @default(0)
+  attendanceRate          Decimal              @default(0) @db.Decimal(5, 2)
+  lastClassDate           DateTime?
+  avgQuizScore            Decimal?             @db.Decimal(5, 2)
+  completionStatus        CompletionStatus     @default(ACTIVE)
+  churnRisk               ChurnRisk            @default(LOW)
+  notes                   String?
+  emailNotifications      Boolean              @default(true)
+  emailWelcome            Boolean              @default(true)
+  emailPayment            Boolean              @default(true)
+  emailAttendance         Boolean              @default(true)
+  emailBatch              Boolean              @default(true)
+  emailReferral           Boolean              @default(true)
   // Demographics for smart outreach filtering
-  city                 String?
-  profession           String?
-  address              String?
-  gstNumber            String?
-  dateOfBirth          DateTime?
-  age                  Int?
+  city                    String?
+  profession              String?
+  address                 String?
+  gstNumber               String?
+  dateOfBirth             DateTime?
+  age                     Int?
   // Germany Relocation Support
-  relocatingToGermany    Boolean         @default(false)
-  relocationTimeline     String?         // e.g., "3_MONTHS", "6_MONTHS", "1_YEAR", "ALREADY_IN_GERMANY"
-  destinationCity        String?         // Target city in Germany
-  visaStatus             String?         // e.g., "NOT_APPLIED", "APPLIED", "APPROVED", "IN_GERMANY"
-  relocationSupportNeeded String[]       // e.g., ["HOUSING", "JOB_SEARCH", "BUREAUCRACY", "NETWORKING"]
-  referralCode         String?              @unique // Public referral code e.g. "DEEPAK-PB-7X3K"
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  consecutiveAbsences  Int                  @default(0)
-  lastAbsenceDate      DateTime?
-  churnMitigatedAt     DateTime?
-  previousBatchId      String?
-  suspendedAt          DateTime?
-  suspensionReason     String?
-  lastOutreachCall     DateTime?
-  relationshipDepth    Int                  @default(0)
-  attendance           Attendance[]
-  contentComments      ContentComment[]     @relation("StudentComments")
-  contentPosts         ContentPost[]        @relation("StudentPosts")
-  invoices             Invoice[]
-  convertedFromLead    Lead?
-  outreachCalls        OutreachCall[]       @relation("StudentOutreachCalls")
-  payments             Payment[]
-  referralsReceived    Referral[]           @relation("RefereeStudent")
-  referralsGiven       Referral[]           @relation("ReferrerStudent")
-  refunds              Refund[]
-  batch                Batch?               @relation(fields: [batchId], references: [id])
-  referredBy           Student?             @relation("StudentReferrals", fields: [referredById], references: [id])
-  referrals            Student[]            @relation("StudentReferrals")
-  connectedWith        StudentConnection[]  @relation("ConnectedWith")
-  communityConnections StudentConnection[]  @relation("StudentConnections")
-  interactions         StudentInteraction[] @relation("StudentInteractions")
-  teacherReviews       TeacherReview[]      @relation("StudentTeacherReviews")
-  upsells              Upsell[]
-  enrollments          BatchEnrollment[]
+  relocatingToGermany     Boolean              @default(false)
+  relocationTimeline      String? // e.g., "3_MONTHS", "6_MONTHS", "1_YEAR", "ALREADY_IN_GERMANY"
+  destinationCity         String? // Target city in Germany
+  visaStatus              String? // e.g., "NOT_APPLIED", "APPLIED", "APPROVED", "IN_GERMANY"
+  relocationSupportNeeded String[] // e.g., ["HOUSING", "JOB_SEARCH", "BUREAUCRACY", "NETWORKING"]
+  referralCode            String?              @unique // Public referral code e.g. "DEEPAK-PB-7X3K"
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  consecutiveAbsences     Int                  @default(0)
+  lastAbsenceDate         DateTime?
+  churnMitigatedAt        DateTime?
+  previousBatchId         String?
+  suspendedAt             DateTime?
+  suspensionReason        String?
+  lastOutreachCall        DateTime?
+  relationshipDepth       Int                  @default(0)
+  attendance              Attendance[]
+  contentComments         ContentComment[]     @relation("StudentComments")
+  contentPosts            ContentPost[]        @relation("StudentPosts")
+  invoices                Invoice[]
+  convertedFromLead       Lead?
+  outreachCalls           OutreachCall[]       @relation("StudentOutreachCalls")
+  payments                Payment[]
+  referralsReceived       Referral[]           @relation("RefereeStudent")
+  referralsGiven          Referral[]           @relation("ReferrerStudent")
+  refunds                 Refund[]
+  batch                   Batch?               @relation(fields: [batchId], references: [id])
+  referredBy              Student?             @relation("StudentReferrals", fields: [referredById], references: [id])
+  referrals               Student[]            @relation("StudentReferrals")
+  connectedWith           StudentConnection[]  @relation("ConnectedWith")
+  communityConnections    StudentConnection[]  @relation("StudentConnections")
+  interactions            StudentInteraction[] @relation("StudentInteractions")
+  teacherReviews          TeacherReview[]      @relation("StudentTeacherReviews")
+  upsells                 Upsell[]
+  enrollments             BatchEnrollment[]
 
   @@index([studentId])
   @@index([whatsapp])
@@ -176,34 +176,34 @@ model StudentInteraction {
 }
 
 model Batch {
-  id            String         @id @default(cuid())
-  batchCode     String         @unique
+  id            String            @id @default(cuid())
+  batchCode     String            @unique
   level         Level
   startDate     DateTime?
   endDate       DateTime?
   schedule      String?
   teacherId     String?
-  totalSeats    Int            @default(10)
-  enrolledCount Int            @default(0)
-  fillRate      Decimal        @default(0) @db.Decimal(5, 2)
-  status        BatchStatus    @default(PLANNING)
-  currency      String         @default("EUR")
-  revenueTarget Decimal        @default(0) @db.Decimal(10, 2)
-  revenueActual Decimal        @default(0) @db.Decimal(10, 2)
-  teacherCost   Decimal        @default(0) @db.Decimal(10, 2)
-  profit        Decimal        @default(0) @db.Decimal(10, 2)
-  fillWarning   Boolean        @default(false)
+  totalSeats    Int               @default(10)
+  enrolledCount Int               @default(0)
+  fillRate      Decimal           @default(0) @db.Decimal(5, 2)
+  status        BatchStatus       @default(PLANNING)
+  currency      String            @default("EUR")
+  revenueTarget Decimal           @default(0) @db.Decimal(10, 2)
+  revenueActual Decimal           @default(0) @db.Decimal(10, 2)
+  teacherCost   Decimal           @default(0) @db.Decimal(10, 2)
+  profit        Decimal           @default(0) @db.Decimal(10, 2)
+  fillWarning   Boolean           @default(false)
   notes         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  autoRecord    Boolean        @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  autoRecord    Boolean           @default(false)
   meetLink      String?
   timing        String?
-  teacher       User?          @relation("TeacherBatches", fields: [teacherId], references: [id])
+  teacher       User?             @relation("TeacherBatches", fields: [teacherId], references: [id])
   leads         Lead[]
   recordingLogs RecordingLog[]
   students      Student[]
-  teacherHours  TeacherHours[] @relation("BatchHours")
+  teacherHours  TeacherHours[]    @relation("BatchHours")
   enrollments   BatchEnrollment[]
 
   @@index([batchCode])
@@ -442,59 +442,59 @@ model DailyMetrics {
 }
 
 model Lead {
-  id                  String              @id @default(cuid())
+  id                  String         @id @default(cuid())
   name                String
   whatsapp            String
   email               String?
   phone               String?
   source              ReferralSource
-  status              LeadStatus          @default(NEW)
-  quality             LeadQuality         @default(WARM)
+  status              LeadStatus     @default(NEW)
+  quality             LeadQuality    @default(WARM)
   interestedLevel     Level?
   interestedCombo     Boolean?
-  interestedLevels    String[]            @default([])
-  firstContactDate    DateTime            @default(now())
+  interestedLevels    String[]       @default([])
+  firstContactDate    DateTime       @default(now())
   lastContactDate     DateTime?
   trialScheduledDate  DateTime?
   trialAttendedDate   DateTime?
-  converted           Boolean             @default(false)
+  converted           Boolean        @default(false)
   convertedDate       DateTime?
-  studentId           String?             @unique
+  studentId           String?        @unique
   batchId             String?
   interestedMonth     String?
   interestedBatchTime String?
   followUpDate        DateTime?
   followUpNotes       String?
-  contactAttempts     Int                 @default(0)
+  contactAttempts     Int            @default(0)
   notes               String?
   assignedToId        String?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
   contentInteractions Json?
   firstTouchpoint     String?
   instagramHandle     String?
-  leadScore           Int                 @default(0)
+  leadScore           Int            @default(0)
   socialEngagement    Json?
   sourceReelId        String?
   sourceReelUrl       String?
 
   // Website tracking & attribution
-  utmSource           String?
-  utmMedium           String?
-  utmCampaign         String?
-  utmContent          String?
-  utmTerm             String?
-  referrerUrl         String?
-  landingPage         String?
-  deviceType          String?
-  visitorId           String?
-  referralCode        String?             // Referral code used by this lead
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  utmContent   String?
+  utmTerm      String?
+  referrerUrl  String?
+  landingPage  String?
+  deviceType   String?
+  visitorId    String?
+  referralCode String? // Referral code used by this lead
 
-  invoices            Invoice[]
-  assignedTo          User?               @relation(fields: [assignedToId], references: [id])
-  interestedBatch     Batch?              @relation(fields: [batchId], references: [id])
-  sourceContent       ContentPerformance? @relation("ContentLeads", fields: [sourceReelId], references: [contentId])
-  convertedToStudent  Student?            @relation(fields: [studentId], references: [id])
+  invoices           Invoice[]
+  assignedTo         User?               @relation(fields: [assignedToId], references: [id])
+  interestedBatch    Batch?              @relation(fields: [batchId], references: [id])
+  sourceContent      ContentPerformance? @relation("ContentLeads", fields: [sourceReelId], references: [contentId])
+  convertedToStudent Student?            @relation(fields: [studentId], references: [id])
 
   @@index([status])
   @@index([quality])
@@ -1158,13 +1158,13 @@ enum OutreachCallType {
 
 model Notification {
   id        String    @id @default(cuid())
-  type      String    // NEW_LEAD, PAYMENT_RECEIVED, RETENTION_ALERT, WHATSAPP_INBOUND
+  type      String // NEW_LEAD, PAYMENT_RECEIVED, RETENTION_ALERT, WHATSAPP_INBOUND
   title     String
   message   String
   metadata  Json?
   read      Boolean   @default(false)
   readAt    DateTime?
-  userId    String?   // null = visible to all FOUNDERs
+  userId    String? // null = visible to all FOUNDERs
   createdAt DateTime  @default(now())
 
   @@index([read])
@@ -1201,6 +1201,32 @@ enum ExpenseCategory {
   OTHER
 }
 
+enum LanguageLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+  NONE
+}
+
+enum AnerkennungStatus {
+  REQUIRED
+  IN_PROGRESS_OK
+  NOT_REQUIRED
+}
+
+enum VisaPathway {
+  BLUE_CARD
+  CHANCENKARTE
+  PFLEGE_VISA
+  AUSBILDUNG
+  FSJ
+  EU_ONLY
+  UNCLEAR
+}
+
 model Expense {
   id               String          @id @default(cuid())
   name             String
@@ -1224,7 +1250,7 @@ model Expense {
 
 model WhatsAppMessage {
   id              String    @id @default(cuid())
-  direction       String    // OUTBOUND, INBOUND
+  direction       String // OUTBOUND, INBOUND
   whatsappId      String?   @unique
   phoneNumber     String
   templateName    String?
@@ -1269,17 +1295,17 @@ model RazorpayOrder {
 }
 
 model PushSubscription {
-  id         String   @id @default(cuid())
-  endpoint   String   @unique
-  p256dh     String
-  auth       String
-  studentId  String?
-  leadId     String?
-  userId     String?
-  topics     String[] @default([])
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  studentId String?
+  leadId    String?
+  userId    String?
+  topics    String[] @default([])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([studentId])
   @@index([userId])
@@ -1288,7 +1314,7 @@ model PushSubscription {
 
 model AdSpend {
   id           String   @id @default(cuid())
-  platform     String   // META_ADS, GOOGLE, INSTAGRAM
+  platform     String // META_ADS, GOOGLE, INSTAGRAM
   campaignName String?
   date         DateTime @db.Date
   spend        Decimal  @db.Decimal(10, 2)
@@ -1305,20 +1331,20 @@ model AdSpend {
 }
 
 model UtmLink {
-  id              String   @id @default(cuid())
+  id              String      @id @default(cuid())
   name            String
   destination     String
-  slug            String   @unique
+  slug            String      @unique
   utmSource       String
   utmMedium       String
   utmCampaign     String
   utmContent      String?
   utmTerm         String?
   whatsappMessage String?
-  clickCount      Int      @default(0)
+  clickCount      Int         @default(0)
   createdBy       String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
   linkClicks      LinkClick[]
 
   @@index([slug])
@@ -1349,10 +1375,10 @@ model LinkClick {
 // ========================================
 
 model JobSubscription {
-  id                   String    @id @default(cuid())
-  email                String    @unique
-  name                 String?
-  whatsapp             String?
+  id       String  @id @default(cuid())
+  email    String  @unique
+  name     String?
+  whatsapp String?
 
   // Stripe
   stripeCustomerId     String?   @unique
@@ -1362,22 +1388,22 @@ model JobSubscription {
   status               String    @default("inactive") // active, past_due, canceled, inactive
 
   // Preferences
-  professions          String[]  // ["Nursing", "Engineering", "IT"]
-  germanLevels         String[]  // ["A1", "A2", "B1", "B2"]
-  locations            String[]  // ["Berlin", "Munich", "Hamburg"]
-  jobTypes             String[]  // ["FULL_TIME", "PART_TIME"]
+  professions  String[] // ["Nursing", "Engineering", "IT"]
+  germanLevels String[] // ["A1", "A2", "B1", "B2"]
+  locations    String[] // ["Berlin", "Munich", "Hamburg"]
+  jobTypes     String[] // ["FULL_TIME", "PART_TIME"]
 
   // Alert settings
-  alertFrequency       String    @default("daily") // daily, weekly
-  lastAlertSent        DateTime?
-  whatsappAlerts       Boolean   @default(false)
-  pushAlerts           Boolean   @default(false)
-  pushEndpoint         String?
-  tier                 String    @default("premium") // premium, legacy
-  metadata             Json?     // Trial email tracking, etc.
+  alertFrequency String    @default("daily") // daily, weekly
+  lastAlertSent  DateTime?
+  whatsappAlerts Boolean   @default(false)
+  pushAlerts     Boolean   @default(false)
+  pushEndpoint   String?
+  tier           String    @default("premium") // premium, legacy
+  metadata       Json? // Trial email tracking, etc.
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([alertFrequency])
@@ -1388,44 +1414,58 @@ model JobSubscription {
 // ========================================
 
 model JobSource {
-  id          String       @id @default(cuid())
-  name        String       @unique
-  url         String
-  active      Boolean      @default(true)
-  lastFetched DateTime?
-  jobCount    Int          @default(0)
-  jobs        JobPosting[]
-  createdAt   DateTime     @default(now())
+  id           String       @id @default(cuid())
+  name         String       @unique
+  url          String
+  active       Boolean      @default(true)
+  lastFetched  DateTime?
+  jobCount     Int          @default(0)
+  isPushSource Boolean      @default(false)
+  jobs         JobPosting[]
+  createdAt    DateTime     @default(now())
 
   @@index([active])
 }
 
 model JobPosting {
-  id          String    @id @default(cuid())
-  sourceId    String
-  externalId  String?   @unique
-  slug        String?   @unique
-  title       String
-  company     String
-  location    String?
-  description String?
-  salaryMin   Int?
-  salaryMax   Int?
-  currency    String    @default("EUR")
-  germanLevel String?
-  profession  String?
-  jobType     String?
+  id           String     @id @default(cuid())
+  sourceId     String
+  externalId   String?    @unique
+  slug         String?    @unique
+  title        String
+  company      String
+  location     String?
+  description  String?
+  salaryMin    Int?
+  salaryMax    Int?
+  currency     String     @default("EUR")
+  germanLevel  String?
+  profession   String?
+  jobType      String?
   requirements String[]
-  applyUrl    String?
-  postedAt    DateTime?
-  active      Boolean   @default(true)
-  viewCount   Int       @default(0)
-  grade       String?   // A=Hot, B=Warm, C=Standard, D=Cold (from Kimi Claw)
-  gradeReason String?   // e.g. "Date:B, Lang:C"
-  source      JobSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  savedBy     SavedJob[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  applyUrl     String?
+  postedAt     DateTime?
+  active       Boolean    @default(true)
+  viewCount    Int        @default(0)
+  grade        String? // A=Hot, B=Warm, C=Standard, D=Cold (from Kimi Claw)
+  gradeReason  String? // e.g. "Date:B, Lang:C"
+  source       JobSource  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  savedBy      SavedJob[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  languageLevel       LanguageLevel?
+  englishOk           Boolean?
+  anerkennungRequired AnerkennungStatus?
+  visaPathway         VisaPathway?
+  anerkennungSupport  Boolean?
+  visaSponsorship     Boolean?
+  relocationSupport   String?            @db.VarChar(200)
+
+  signalsExtractedAt DateTime?
+  signalsHash        String?   @db.VarChar(64)
+
+  signalAttempt JobSignalAttempt?
 
   @@index([slug])
   @@index([profession])
@@ -1434,49 +1474,51 @@ model JobPosting {
   @@index([sourceId])
   @@index([createdAt, active])
   @@index([grade])
+  @@index([signalsExtractedAt])
+  @@index([languageLevel, anerkennungRequired, visaPathway])
 }
 
 model CommunityJob {
-  id            String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Photo
-  imageUrl      String
-  imageKey      String
+  imageUrl String
+  imageKey String
 
   // AI-extracted fields (from Gemini Vision)
-  title         String?
-  company       String?
-  location      String?
-  description   String?
-  contactInfo   String?
-  germanLevel   String?
-  jobType       String?
-  salaryInfo    String?
-  niche         String?     // Auto-detected: Nursing, Engineering, IT, Student Jobs, Hospitality, Healthcare, Other
+  title       String?
+  company     String?
+  location    String?
+  description String?
+  contactInfo String?
+  germanLevel String?
+  jobType     String?
+  salaryInfo  String?
+  niche       String? // Auto-detected: Nursing, Engineering, IT, Student Jobs, Hospitality, Healthcare, Other
 
   // EXIF/GPS data
-  latitude      Float?
-  longitude     Float?
-  photoTakenAt  DateTime?
-  cityName      String?
+  latitude     Float?
+  longitude    Float?
+  photoTakenAt DateTime?
+  cityName     String?
 
   // Submission
   submittedBy   String?
-  submitterType String   @default("anonymous")
+  submitterType String  @default("anonymous")
 
   // Moderation
-  status        String   @default("pending")
-  moderatedBy   String?
-  moderatedAt   DateTime?
+  status         String    @default("pending")
+  moderatedBy    String?
+  moderatedAt    DateTime?
   moderationNote String?
 
   // Engagement
-  viewCount     Int      @default(0)
-  reportCount   Int      @default(0)
+  viewCount   Int @default(0)
+  reportCount Int @default(0)
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  expiresAt     DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  expiresAt DateTime?
 
   @@index([status])
   @@index([cityName])
@@ -1500,7 +1542,7 @@ model SavedSearch {
   id              String    @id @default(cuid())
   subscriberEmail String
   name            String
-  filters         Json      // { germanLevels, locations, jobTypes, englishOk, salaryMin, search }
+  filters         Json // { germanLevels, locations, jobTypes, englishOk, salaryMin, search }
   alertEnabled    Boolean   @default(true)
   lastAlertSent   DateTime?
   createdAt       DateTime  @default(now())
@@ -1508,6 +1550,21 @@ model SavedSearch {
 
   @@index([subscriberEmail])
   @@index([alertEnabled])
+}
+
+model JobSignalAttempt {
+  id            String     @id @default(cuid())
+  jobId         String     @unique
+  job           JobPosting @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  attempts      Int        @default(0)
+  lastAttemptAt DateTime   @default(now())
+  lastError     String?    @db.VarChar(500)
+}
+
+model JobScrapeState {
+  id            String   @id @default("singleton")
+  keywordCursor Int      @default(0)
+  updatedAt     DateTime @updatedAt
 }
 
 // ========================================
@@ -1548,56 +1605,56 @@ enum DocumentType {
 }
 
 model JobSeeker {
-  id                   String    @id @default(cuid())
-  email                String    @unique
-  passwordHash         String?
-  googleId             String?   @unique
-  name                 String
-  whatsapp             String?   @map("seeker_whatsapp")
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String?
+  googleId     String? @unique
+  name         String
+  whatsapp     String? @map("seeker_whatsapp")
 
   // Stripe
-  stripeCustomerId     String?   @unique @map("seeker_stripe_customer_id")
-  subscriptionId       String?   @unique @map("seeker_subscription_id")
-  stripePriceId        String?   @map("seeker_stripe_price_id")
-  currentPeriodEnd     DateTime? @map("seeker_current_period_end")
-  tier                 JobSeekerTier @default(FREE)
-  subscriptionStatus   String    @default("free") // free, trial, active, past_due, canceled
-  billingProvider      String?   // "stripe" or "razorpay"
-  razorpayCustomerId   String?   @unique @map("seeker_razorpay_customer_id")
+  stripeCustomerId   String?       @unique @map("seeker_stripe_customer_id")
+  subscriptionId     String?       @unique @map("seeker_subscription_id")
+  stripePriceId      String?       @map("seeker_stripe_price_id")
+  currentPeriodEnd   DateTime?     @map("seeker_current_period_end")
+  tier               JobSeekerTier @default(FREE)
+  subscriptionStatus String        @default("free") // free, trial, active, past_due, canceled
+  billingProvider    String? // "stripe" or "razorpay"
+  razorpayCustomerId String?       @unique @map("seeker_razorpay_customer_id")
 
   // Onboarding
-  onboardingComplete   Boolean   @default(false)
-  country              String?   // for geo-pricing
+  onboardingComplete Boolean @default(false)
+  country            String? // for geo-pricing
 
   // Notifications
-  pushEnabled          Boolean   @default(false)
-  pushEndpoint         String?
-  emailAlerts          Boolean   @default(true)
-  whatsappAlerts       Boolean   @default(false)
+  pushEnabled    Boolean @default(false)
+  pushEndpoint   String?
+  emailAlerts    Boolean @default(true)
+  whatsappAlerts Boolean @default(false)
 
   // Link to Plan Beta student (optional)
-  planBetaStudentId    String?
+  planBetaStudentId String?
 
   // Auth
-  emailVerified        Boolean   @default(false)
-  lastLoginAt          DateTime?
+  emailVerified Boolean   @default(false)
+  lastLoginAt   DateTime?
 
   // Referral
-  referralCode         String?   @unique  // auto-generated on signup, e.g. "PRIYA-D0-A3F2"
-  referredBy           String?             // referralCode of the referrer (FK-like but not enforced)
-  referredAt           DateTime?
+  referralCode String?   @unique // auto-generated on signup, e.g. "PRIYA-D0-A3F2"
+  referredBy   String? // referralCode of the referrer (FK-like but not enforced)
+  referredAt   DateTime?
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  profile              JobSeekerProfile?
-  documents            JobSeekerDocument[]
-  applications         JobApplication[]
-  generatedCVs         GeneratedCV[]
-  storyBankEntries     StoryBankEntry[]
-  matchScores          MatchScoreCache[]
-  cvImports            CVImport[]
+  profile          JobSeekerProfile?
+  documents        JobSeekerDocument[]
+  applications     JobApplication[]
+  generatedCVs     GeneratedCV[]
+  storyBankEntries StoryBankEntry[]
+  matchScores      MatchScoreCache[]
+  cvImports        CVImport[]
 
   @@index([email])
   @@index([tier])
@@ -1606,54 +1663,54 @@ model JobSeeker {
 }
 
 model JobSeekerProfile {
-  id                   String    @id @default(cuid())
-  seekerId             String    @unique
-  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String    @unique
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
   // Personal
-  firstName            String?
-  lastName             String?
-  phone                String?
-  dateOfBirth          DateTime?
-  nationality          String?   @default("Indian")
-  currentLocation      String?
-  targetLocations      String[]  // preferred German cities
-  visaStatus           String?
+  firstName       String?
+  lastName        String?
+  phone           String?
+  dateOfBirth     DateTime?
+  nationality     String?   @default("Indian")
+  currentLocation String?
+  targetLocations String[] // preferred German cities
+  visaStatus      String?
 
   // Professional
-  currentJobTitle      String?
-  yearsOfExperience    Int?
-  profession           String?   // e.g. "Nursing", "IT", "Engineering"
-  targetRoles          String[]
-  skills               Json?     // { technical: [], languages: [], soft: [] }
-  linkedinUrl          String?
-  salaryMin            Int?
-  salaryMax            Int?
-  salaryCurrency       String    @default("EUR")
+  currentJobTitle   String?
+  yearsOfExperience Int?
+  profession        String? // e.g. "Nursing", "IT", "Engineering"
+  targetRoles       String[]
+  skills            Json? // { technical: [], languages: [], soft: [] }
+  linkedinUrl       String?
+  salaryMin         Int?
+  salaryMax         Int?
+  salaryCurrency    String   @default("EUR")
 
   // Education
-  highestDegree        String?
-  fieldOfStudy         String?
-  educationDetails     Json?     // Array of { institution, degree, field, year }
+  highestDegree    String?
+  fieldOfStudy     String?
+  educationDetails Json? // Array of { institution, degree, field, year }
 
   // German
-  germanLevel          String?   // A1, A2, B1, B2, C1, C2
-  germanCertificate    String?   // e.g. "Goethe B1"
-  englishLevel         String?
+  germanLevel       String? // A1, A2, B1, B2, C1, C2
+  germanCertificate String? // e.g. "Goethe B1"
+  englishLevel      String?
 
   // Certifications & Experience
-  certifications       Json?     // Array of { name, issuer, year }
-  workExperience       Json?     // Array of { company, title, from, to, description }
+  certifications Json? // Array of { name, issuer, year }
+  workExperience Json? // Array of { company, title, from, to, description }
 
   // Computed
-  profileCompleteness  Int       @default(0) // 0-100
+  profileCompleteness Int @default(0) // 0-100
 
   // CV-upload tracking — Map<pathKey, true> where pathKey = "profile.fieldName"
   // or "workExperience:{entryId}.fieldName". Smart merge skips fields flagged here.
   manuallyEditedFields Json?
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([profession])
   @@index([germanLevel])
@@ -1661,62 +1718,62 @@ model JobSeekerProfile {
 }
 
 model JobSeekerDocument {
-  id                   String       @id @default(cuid())
-  seekerId             String
-  seeker               JobSeeker    @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
-  type                 DocumentType
-  fileName             String
-  fileUrl              String
-  fileKey              String       // S3/storage key for deletion
-  fileSize             Int          // bytes
-  mimeType             String
+  type     DocumentType
+  fileName String
+  fileUrl  String
+  fileKey  String // S3/storage key for deletion
+  fileSize Int // bytes
+  mimeType String
 
   // AI extraction
-  extractedText        String?
-  extractedData        Json?        // Structured data from CV parsing
-  processedAt          DateTime?
+  extractedText String?
+  extractedData Json? // Structured data from CV parsing
+  processedAt   DateTime?
 
-  createdAt            DateTime     @default(now())
-  updatedAt            DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([seekerId])
   @@index([type])
 }
 
 model JobApplication {
-  id                   String            @id @default(cuid())
-  seekerId             String
-  seeker               JobSeeker         @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
   // Job reference (NOT a FK — survives job deletion)
-  jobPostingId         String
-  jobTitle             String
-  jobCompany           String
-  jobLocation          String?
+  jobPostingId String
+  jobTitle     String
+  jobCompany   String
+  jobLocation  String?
 
   // Status
-  stage                ApplicationStage  @default(SAVED)
-  outcome              ApplicationOutcome?
+  stage   ApplicationStage    @default(SAVED)
+  outcome ApplicationOutcome?
 
   // Generated CV
-  generatedCVId        String?
-  generatedCV          GeneratedCV?      @relation(fields: [generatedCVId], references: [id], onDelete: SetNull)
+  generatedCVId String?
+  generatedCV   GeneratedCV? @relation(fields: [generatedCVId], references: [id], onDelete: SetNull)
 
   // Timeline
-  appliedAt            DateTime?
-  interviewDate        DateTime?
+  appliedAt     DateTime?
+  interviewDate DateTime?
 
   // Notes & prep
-  notes                String?
-  nextAction           String?
-  interviewPrep        Json?             // { questions, tips, companyResearch }
+  notes         String?
+  nextAction    String?
+  interviewPrep Json? // { questions, tips, companyResearch }
 
   // Offer
-  salaryOffered        Decimal?
+  salaryOffered Decimal?
 
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([seekerId, jobPostingId])
   @@index([seekerId])
@@ -1725,60 +1782,60 @@ model JobApplication {
 }
 
 model GeneratedCV {
-  id                   String    @id @default(cuid())
-  seekerId             String
-  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
-  jobPostingId         String    // Plain string, not a FK
-  fileUrl              String
-  fileKey              String
-  keywordsUsed         String[]
-  matchScore           Float?
-  templateUsed         String?
-  language             String    @default("de") // de, en
+  jobPostingId String // Plain string, not a FK
+  fileUrl      String
+  fileKey      String
+  keywordsUsed String[]
+  matchScore   Float?
+  templateUsed String?
+  language     String   @default("de") // de, en
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  applications         JobApplication[]
+  applications JobApplication[]
 
   @@index([seekerId])
   @@index([jobPostingId])
 }
 
 model StoryBankEntry {
-  id                   String    @id @default(cuid())
-  seekerId             String
-  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
-  competency           String    // e.g. "Teamwork", "Problem Solving", "Leadership"
-  situation            String
-  task                 String
-  action               String
-  result               String
-  reflection           String?
-  sourceExperience     String?   // Which job/project this came from
+  competency       String // e.g. "Teamwork", "Problem Solving", "Leadership"
+  situation        String
+  task             String
+  action           String
+  result           String
+  reflection       String?
+  sourceExperience String? // Which job/project this came from
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([seekerId])
   @@index([competency])
 }
 
 model MatchScoreCache {
-  id                   String    @id @default(cuid())
-  seekerId             String
-  seeker               JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  id       String    @id @default(cuid())
+  seekerId String
+  seeker   JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
 
-  jobPostingId         String
-  heuristicScore       Int       // 0-100
-  aiScore              Int?      // 0-100, null if not yet computed
-  aiBreakdown          Json?     // { skills: 80, language: 90, location: 70, ... }
+  jobPostingId   String
+  heuristicScore Int // 0-100
+  aiScore        Int? // 0-100, null if not yet computed
+  aiBreakdown    Json? // { skills: 80, language: 90, location: 70, ... }
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([seekerId, jobPostingId])
   @@index([seekerId])
@@ -1803,21 +1860,21 @@ enum CVImportMode {
 }
 
 model CVImport {
-  id          String          @id @default(cuid())
-  seekerId    String
-  seeker      JobSeeker       @relation(fields: [seekerId], references: [id], onDelete: Cascade)
-  status      CVImportStatus  @default(QUEUED)
-  mode        CVImportMode?
-  blobKey     String?         // PDF location in Vercel Blob; nulled after parse completes
-  parsedData  Json?           // populated when status = READY (matches ParsedCVSchema)
-  mergeDiff   Json?           // populated when mode = MERGED (MergeDiff shape)
-  progress    String?         // human-readable e.g. "parsing page 3 of 12"
-  error       String?         // populated when status = FAILED
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  startedAt   DateTime?       // set when worker transitions to PARSING (stuck-state detection)
-  consumedAt  DateTime?
-  expiresAt   DateTime        // NOW() + 24h; daily cron purges unconsumed expired rows
+  id         String         @id @default(cuid())
+  seekerId   String
+  seeker     JobSeeker      @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  status     CVImportStatus @default(QUEUED)
+  mode       CVImportMode?
+  blobKey    String? // PDF location in Vercel Blob; nulled after parse completes
+  parsedData Json? // populated when status = READY (matches ParsedCVSchema)
+  mergeDiff  Json? // populated when mode = MERGED (MergeDiff shape)
+  progress   String? // human-readable e.g. "parsing page 3 of 12"
+  error      String? // populated when status = FAILED
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  startedAt  DateTime? // set when worker transitions to PARSING (stuck-state detection)
+  consumedAt DateTime?
+  expiresAt  DateTime // NOW() + 24h; daily cron purges unconsumed expired rows
 
   @@index([seekerId, consumedAt])
   @@index([expiresAt, consumedAt])
@@ -1830,16 +1887,16 @@ model CVImport {
 //     WHERE "consumedAt" IS NULL AND "status" <> 'FAILED';
 
 model Company {
-  id                   String    @id @default(cuid())
-  name                 String    @unique
-  website              String?
-  logoUrl              String?
-  industry             String?
-  size                 String?   // e.g. "1-50", "51-200", "201-1000", "1000+"
-  location             String?
+  id       String  @id @default(cuid())
+  name     String  @unique
+  website  String?
+  logoUrl  String?
+  industry String?
+  size     String? // e.g. "1-50", "51-200", "201-1000", "1000+"
+  location String?
 
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([industry])
   @@index([name])
@@ -1847,8 +1904,8 @@ model Company {
 
 model AnalyticsCache {
   id        String   @id @default(cuid())
-  source    String   // "ga4", "gsc", "clarity", "vercel_web", "vercel_vitals"
-  dateRange String   // "7d", "30d", "90d"
+  source    String // "ga4", "gsc", "clarity", "vercel_web", "vercel_vitals"
+  dateRange String // "7d", "30d", "90d"
   data      Json
   fetchedAt DateTime @default(now())
   expiresAt DateTime
@@ -1862,13 +1919,13 @@ model BlogPost {
   id              String    @id @default(cuid())
   slug            String    @unique
   title           String
-  excerpt         String    // 1-2 sentence summary for listing cards
-  content         String    // Full markdown content
-  category        String    // Career, Learning Tips, Exam Prep, Visa & Immigration, Student Life, Job Market
-  tags            String[]  // SEO tags
-  metaTitle       String?   // Custom SEO title (falls back to title)
-  metaDescription String?   // Custom meta description (falls back to excerpt)
-  targetKeyword   String?   // Primary target keyword for SEO
+  excerpt         String // 1-2 sentence summary for listing cards
+  content         String // Full markdown content
+  category        String // Career, Learning Tips, Exam Prep, Visa & Immigration, Student Life, Job Market
+  tags            String[] // SEO tags
+  metaTitle       String? // Custom SEO title (falls back to title)
+  metaDescription String? // Custom meta description (falls back to excerpt)
+  targetKeyword   String? // Primary target keyword for SEO
   readTime        Int       @default(5) // Estimated read time in minutes
   published       Boolean   @default(false)
   featured        Boolean   @default(false)
@@ -1883,23 +1940,23 @@ model BlogPost {
 }
 
 model InstagramInsight {
-  id               String   @id @default(cuid())
-  date             DateTime // Report date
-  postsAnalyzed    Int
-  avgLikes         Float
-  avgComments      Float
-  avgReelViews     Float
-  engagementRate   Float
-  bestFormat       String   // reel, image, carousel
-  bestDays         String[] // ["Monday", "Thursday"]
-  bestTimes        String[] // ["6PM IST", "9AM IST"]
-  topHashtags      String[]
-  dropHashtags     String[]
-  topThemes        String[]
-  retireThemes     String[]
+  id                String   @id @default(cuid())
+  date              DateTime // Report date
+  postsAnalyzed     Int
+  avgLikes          Float
+  avgComments       Float
+  avgReelViews      Float
+  engagementRate    Float
+  bestFormat        String // reel, image, carousel
+  bestDays          String[] // ["Monday", "Thursday"]
+  bestTimes         String[] // ["6PM IST", "9AM IST"]
+  topHashtags       String[]
+  dropHashtags      String[]
+  topThemes         String[]
+  retireThemes      String[]
   weeklyActionItems String[]
-  fullReport       String   // Full markdown analysis
-  createdAt        DateTime @default(now())
+  fullReport        String // Full markdown analysis
+  createdAt         DateTime @default(now())
 
   @@index([date])
 }
@@ -1945,7 +2002,7 @@ model CfoConversation {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   title     String?
-  messages  Json     // [{role: "user"|"assistant", content: string, timestamp: string}]
+  messages  Json // [{role: "user"|"assistant", content: string, timestamp: string}]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1953,22 +2010,22 @@ model CfoConversation {
 }
 
 model InstagramPost {
-  id              String   @id @default(cuid())
-  shortCode       String   @unique
-  type            String   // Image, Video, Sidecar
-  caption         String?  @db.Text
-  permalink       String
-  thumbnailUrl    String?  @db.Text
-  likesCount      Int      @default(0)
-  commentsCount   Int      @default(0)
-  videoPlayCount  Int?
-  hashtags        Json?    // string[]
-  mentions        Json?    // string[]
-  isPinned        Boolean  @default(false)
-  ownerUsername    String
-  publishedAt     DateTime
-  firstScrapedAt  DateTime @default(now())
-  lastScrapedAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  shortCode      String   @unique
+  type           String // Image, Video, Sidecar
+  caption        String?  @db.Text
+  permalink      String
+  thumbnailUrl   String?  @db.Text
+  likesCount     Int      @default(0)
+  commentsCount  Int      @default(0)
+  videoPlayCount Int?
+  hashtags       Json? // string[]
+  mentions       Json? // string[]
+  isPinned       Boolean  @default(false)
+  ownerUsername  String
+  publishedAt    DateTime
+  firstScrapedAt DateTime @default(now())
+  lastScrapedAt  DateTime @default(now())
 
   @@index([publishedAt])
   @@index([ownerUsername])

@@ -1,13 +1,46 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, Suspense } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { SlidersHorizontal, ChevronLeft, ChevronRight, Search, X } from "lucide-react"
 import { JobCard, type JobData } from "@/components/jobs-app/JobCard"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import { ProfileCompletionBanner } from "@/components/jobs-app/ProfileCompletionBanner"
+import {
+  MigrantFitFilters,
+  type MigrantFitState,
+  EMPTY_MIGRANT_FIT_STATE,
+} from "@/components/jobs-app/MigrantFitFilters"
+import {
+  VisaSupportFilters,
+  type VisaSupportState,
+  EMPTY_VISA_SUPPORT_STATE,
+} from "@/components/jobs-app/VisaSupportFilters"
+import { PremiumGate } from "@/components/marketing/jobs/PremiumGate"
 
 type Job = JobData & { id: string }
+
+function parseMigrantFitFromParams(params: URLSearchParams): MigrantFitState {
+  const lang = params.get("lang")?.split(",").filter(Boolean) ?? []
+  const anerkennung = params.get("anerkennung")?.split(",").filter(Boolean) ?? []
+  const visa = params.get("visa")?.split(",").filter(Boolean) ?? []
+  const englishOk = params.get("english") === "1" ? true : null
+  return {
+    languageLevels: lang,
+    englishOk,
+    anerkennung,
+    visaPathways: visa,
+  }
+}
+
+function parseVisaSupportFromParams(params: URLSearchParams): VisaSupportState {
+  return {
+    anerkennungSupport: params.get("as") === "1" ? true : null,
+    visaSponsorship: params.get("vs") === "1" ? true : null,
+    relocationSupport: params.get("rs") === "1" ? true : null,
+  }
+}
 
 const GERMAN_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 const PROFESSIONS = [
@@ -22,7 +55,18 @@ const PROFESSIONS = [
 ]
 
 export default function JobsPage() {
-  const { seeker, loading: authLoading } = useJobsAuth()
+  return (
+    <Suspense fallback={null}>
+      <JobsPageInner />
+    </Suspense>
+  )
+}
+
+function JobsPageInner() {
+  const { seeker, loading: authLoading, isPremium } = useJobsAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,6 +95,99 @@ export default function JobsPage() {
     }
   }, [searchInput])
 
+  // Migrant-fit state — initialised from URL params.
+  const [migrantFit, setMigrantFit] = useState<MigrantFitState>(() =>
+    typeof window === "undefined"
+      ? EMPTY_MIGRANT_FIT_STATE
+      : parseMigrantFitFromParams(
+          new URLSearchParams(window.location.search)
+        )
+  )
+
+  // Visa & support state (PREMIUM tier) — initialised from URL params.
+  const [visaSupport, setVisaSupport] = useState<VisaSupportState>(() =>
+    typeof window === "undefined"
+      ? EMPTY_VISA_SUPPORT_STATE
+      : parseVisaSupportFromParams(
+          new URLSearchParams(window.location.search)
+        )
+  )
+
+  // Re-sync migrant-fit state if URL changes externally (e.g. back/forward).
+  // Guard with deep-equal so our own router.replace() doesn't trigger a redundant
+  // setState (which would then re-fire fetchJobs via its useCallback dep).
+  useEffect(() => {
+    const fromUrl = parseMigrantFitFromParams(searchParams)
+    setMigrantFit((current) =>
+      JSON.stringify(current) === JSON.stringify(fromUrl) ? current : fromUrl
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
+
+  // Re-sync visa-support state if URL changes externally — same deep-equal guard.
+  useEffect(() => {
+    const fromUrl = parseVisaSupportFromParams(searchParams)
+    setVisaSupport((current) =>
+      JSON.stringify(current) === JSON.stringify(fromUrl) ? current : fromUrl
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
+
+  // Push migrant-fit state into URL without scroll/reload.
+  const syncMigrantFitToUrl = useCallback(
+    (next: MigrantFitState) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (next.languageLevels.length > 0) {
+        params.set("lang", next.languageLevels.join(","))
+      } else {
+        params.delete("lang")
+      }
+      if (next.anerkennung.length > 0) {
+        params.set("anerkennung", next.anerkennung.join(","))
+      } else {
+        params.delete("anerkennung")
+      }
+      if (next.visaPathways.length > 0) {
+        params.set("visa", next.visaPathways.join(","))
+      } else {
+        params.delete("visa")
+      }
+      if (next.englishOk === true) {
+        params.set("english", "1")
+      } else {
+        params.delete("english")
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams]
+  )
+
+  // Push visa-support state into URL without scroll/reload.
+  const syncVisaSupportToUrl = useCallback(
+    (next: VisaSupportState) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (next.anerkennungSupport === true) {
+        params.set("as", "1")
+      } else {
+        params.delete("as")
+      }
+      if (next.visaSponsorship === true) {
+        params.set("vs", "1")
+      } else {
+        params.delete("vs")
+      }
+      if (next.relocationSupport === true) {
+        params.set("rs", "1")
+      } else {
+        params.delete("rs")
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams]
+  )
+
   // profileCompleteness comes from AuthProvider context (no separate fetch).
   const profileCompleteness = seeker?.profile?.profileCompleteness ?? null
 
@@ -64,6 +201,27 @@ export default function JobsPage() {
       if (germanLevel) params.set("germanLevel", germanLevel)
       if (profession) params.set("profession", profession)
       if (q) params.set("q", q)
+      if (migrantFit.languageLevels.length > 0) {
+        params.set("lang", migrantFit.languageLevels.join(","))
+      }
+      if (migrantFit.anerkennung.length > 0) {
+        params.set("anerkennung", migrantFit.anerkennung.join(","))
+      }
+      if (migrantFit.visaPathways.length > 0) {
+        params.set("visa", migrantFit.visaPathways.join(","))
+      }
+      if (migrantFit.englishOk === true) {
+        params.set("english", "1")
+      }
+      if (visaSupport.anerkennungSupport === true) {
+        params.set("as", "1")
+      }
+      if (visaSupport.visaSponsorship === true) {
+        params.set("vs", "1")
+      }
+      if (visaSupport.relocationSupport === true) {
+        params.set("rs", "1")
+      }
 
       const res = await fetch(`/api/jobs-app/jobs?${params.toString()}`, {
         credentials: "include",
@@ -82,7 +240,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, sort, germanLevel, profession, q])
+  }, [page, sort, germanLevel, profession, q, migrantFit, visaSupport])
 
   useEffect(() => {
     if (!authLoading) fetchJobs()
@@ -283,6 +441,37 @@ export default function JobsPage() {
               </select>
             </FilterField>
           </div>
+
+          <hr className="amtlich-divider mt-4 mb-4" />
+
+          <MigrantFitFilters
+            value={migrantFit}
+            onChange={(next) => {
+              setMigrantFit(next)
+              syncMigrantFitToUrl(next)
+              resetPage()
+            }}
+          />
+
+          <hr className="amtlich-divider mt-4 mb-4" />
+
+          {isPremium ? (
+            <VisaSupportFilters
+              value={visaSupport}
+              onChange={(next) => {
+                setVisaSupport(next)
+                syncVisaSupportToUrl(next)
+                resetPage()
+              }}
+            />
+          ) : (
+            <PremiumGate feature="Visa & support filters">
+              <VisaSupportFilters
+                value={EMPTY_VISA_SUPPORT_STATE}
+                onChange={() => {}}
+              />
+            </PremiumGate>
+          )}
 
           <style jsx>{`
             .amtlich-select {

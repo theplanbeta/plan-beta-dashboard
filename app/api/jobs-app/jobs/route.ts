@@ -1,11 +1,44 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { getJobSeeker } from "@/lib/jobs-app-auth"
+import { getJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
-import type { Prisma } from "@prisma/client"
+import {
+  type Prisma,
+  LanguageLevel,
+  AnerkennungStatus,
+  VisaPathway,
+} from "@prisma/client"
 
 const LIMIT = 20
+
+const LANGUAGE_LEVEL_VALUES = Object.values(LanguageLevel) as [
+  LanguageLevel,
+  ...LanguageLevel[]
+]
+const ANERKENNUNG_VALUES = Object.values(AnerkennungStatus) as [
+  AnerkennungStatus,
+  ...AnerkennungStatus[]
+]
+const VISA_PATHWAY_VALUES = Object.values(VisaPathway) as [
+  VisaPathway,
+  ...VisaPathway[]
+]
+
+// Comma-separated enum list → string[] (silently drops invalid values).
+const enumListSchema = <T extends string>(allowed: readonly [T, ...T[]]) =>
+  z
+    .string()
+    .max(200)
+    .optional()
+    .transform((s) =>
+      s
+        ? (s
+            .split(",")
+            .map((v) => v.trim())
+            .filter((v) => (allowed as readonly string[]).includes(v)) as T[])
+        : []
+    )
 
 // Zod schema for query params. z.coerce.number() gives us NaN-safe parsing
 // with a proper 400 instead of a Prisma 500 when someone passes ?page=abc.
@@ -16,6 +49,27 @@ const querySchema = z.object({
   germanLevel: z.string().max(10).optional(),
   location: z.string().max(100).optional(),
   q: z.string().max(120).optional(),
+  // Migrant-fit filters (FREE tier).
+  lang: enumListSchema(LANGUAGE_LEVEL_VALUES),
+  anerkennung: enumListSchema(ANERKENNUNG_VALUES),
+  visa: enumListSchema(VISA_PATHWAY_VALUES),
+  english: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
+  // Visa & support filters (PREMIUM tier).
+  as: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
+  vs: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
+  rs: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
 })
 
 export async function GET(request: Request) {
@@ -28,6 +82,13 @@ export async function GET(request: Request) {
     germanLevel: searchParams.get("germanLevel") ?? undefined,
     location: searchParams.get("location") ?? undefined,
     q: searchParams.get("q")?.trim() || undefined,
+    lang: searchParams.get("lang") ?? undefined,
+    anerkennung: searchParams.get("anerkennung") ?? undefined,
+    visa: searchParams.get("visa") ?? undefined,
+    english: searchParams.get("english") ?? undefined,
+    as: searchParams.get("as") ?? undefined,
+    vs: searchParams.get("vs") ?? undefined,
+    rs: searchParams.get("rs") ?? undefined,
   })
 
   if (!parsed.success) {
@@ -37,9 +98,44 @@ export async function GET(request: Request) {
     )
   }
 
-  const { page, sort, profession, germanLevel, location, q } = parsed.data
+  const {
+    page,
+    sort,
+    profession,
+    germanLevel,
+    location,
+    q,
+    lang,
+    anerkennung,
+    visa,
+    english,
+    as,
+    vs,
+    rs,
+  } = parsed.data
 
   try {
+
+  // Resolve seeker once up-front. Used for both premium-tier filter
+  // enforcement (below) and match-score profile context (further down).
+  // Auth is OPTIONAL on this route — failures are non-fatal.
+  let seeker: Awaited<ReturnType<typeof getJobSeeker>> = null
+  try {
+    seeker = await getJobSeeker(request)
+  } catch {
+    // Non-fatal — proceed unauthenticated
+  }
+
+  // Premium tier enforcement — drop premium-only filters for non-premium
+  // callers. Anyone can append ?as=1&vs=1&rs=1 to the URL; without this
+  // gate, free users would get filtered results without paying. Note:
+  // `english` (englishOk) is part of the FREE MVP-5 signals per spec.
+  const allowPremiumFilters = seeker
+    ? await isPremiumEffective(seeker)
+    : false
+  const effectiveAs = allowPremiumFilters && as
+  const effectiveVs = allowPremiumFilters && vs
+  const effectiveRs = allowPremiumFilters && rs
 
   // Build where clause.
   //
@@ -79,6 +175,32 @@ export async function GET(request: Request) {
     } else {
       where.OR = searchOr
     }
+  }
+
+  // Migrant-fit filters (FREE tier).
+  if (lang.length > 0) {
+    where.languageLevel = { in: lang }
+  }
+  if (anerkennung.length > 0) {
+    where.anerkennungRequired = { in: anerkennung }
+  }
+  if (visa.length > 0) {
+    where.visaPathway = { in: visa }
+  }
+  if (english) {
+    where.englishOk = true
+  }
+
+  // Visa & support filters (PREMIUM tier — enforced server-side above).
+  // relocationSupport is a String? snippet, so "any non-null value" is the filter.
+  if (effectiveAs) {
+    where.anerkennungSupport = true
+  }
+  if (effectiveVs) {
+    where.visaSponsorship = true
+  }
+  if (effectiveRs) {
+    where.relocationSupport = { not: null }
   }
 
   // Determine DB order
@@ -131,24 +253,20 @@ export async function GET(request: Request) {
     targetRoles: string[]
   } | null = null
 
-  try {
-    const seeker = await getJobSeeker(request)
-    if (seeker?.profile) {
-      const p = seeker.profile
-      profile = {
-        germanLevel: p.germanLevel ?? null,
-        profession: p.profession ?? null,
-        targetLocations: (p.targetLocations as string[]) ?? [],
-        salaryMin: p.salaryMin ?? null,
-        salaryMax: p.salaryMax ?? null,
-        visaStatus: p.visaStatus ?? null,
-        yearsOfExperience: p.yearsOfExperience ?? null,
-        currentJobTitle: p.currentJobTitle ?? null,
-        targetRoles: (p.targetRoles as string[]) ?? [],
-      }
+  // Reuse the seeker resolved up-front (above) — avoid a second auth round-trip.
+  if (seeker?.profile) {
+    const p = seeker.profile
+    profile = {
+      germanLevel: p.germanLevel ?? null,
+      profession: p.profession ?? null,
+      targetLocations: (p.targetLocations as string[]) ?? [],
+      salaryMin: p.salaryMin ?? null,
+      salaryMax: p.salaryMax ?? null,
+      visaStatus: p.visaStatus ?? null,
+      yearsOfExperience: p.yearsOfExperience ?? null,
+      currentJobTitle: p.currentJobTitle ?? null,
+      targetRoles: (p.targetRoles as string[]) ?? [],
     }
-  } catch {
-    // Non-fatal — proceed without profile scoring
   }
 
   // Score each job if profile is available

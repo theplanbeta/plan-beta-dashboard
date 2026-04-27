@@ -20,6 +20,7 @@ const generateSchema = z.object({
 })
 
 export const maxDuration = 60
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   // Auth
@@ -136,10 +137,28 @@ export async function POST(request: Request) {
       language
     )
 
-    // Render PDF
+    // Render PDF — defend against partial AI output. Each field gets a
+    // safe default so the template never sees undefined/null and
+    // renderToBuffer can't crash on .map() of undefined.
     stage = "render"
+    const safeContent = {
+      senderBlock: content?.senderBlock ?? "",
+      date: content?.date ?? new Date().toLocaleDateString(language === "de" ? "de-DE" : "en-GB"),
+      recipientBlock: content?.recipientBlock ?? `${job.company}\n${job.location ?? ""}`.trim(),
+      subject: content?.subject ?? `Bewerbung als ${job.title}`,
+      salutation: content?.salutation ?? (language === "de" ? "Sehr geehrte Damen und Herren," : "Dear Hiring Manager,"),
+      paragraphs: Array.isArray(content?.paragraphs) && content.paragraphs.length > 0
+        ? content.paragraphs.filter((p): p is string => typeof p === "string")
+        : [],
+      closing: content?.closing ?? (language === "de" ? "Mit freundlichen Grüßen" : "Sincerely"),
+      signature: content?.signature ?? ([profile.firstName, profile.lastName].filter(Boolean).join(" ") || seeker.name),
+    }
+    if (safeContent.paragraphs.length === 0) {
+      throw new Error("AI returned an Anschreiben without body paragraphs")
+    }
+
     const element = React.createElement(AnschreibenTemplate, {
-      content,
+      content: safeContent,
       email: seeker.email,
       phone: profile.phone,
       showWatermark: false,

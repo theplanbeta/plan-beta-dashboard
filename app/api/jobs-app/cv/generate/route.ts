@@ -16,6 +16,7 @@ const generateSchema = z.object({
 })
 
 export const maxDuration = 60
+export const runtime = "nodejs"
 
 export async function POST(request: Request) {
   let seeker
@@ -159,15 +160,19 @@ export async function POST(request: Request) {
       contentType: "application/pdf",
     })
 
-    // Save record
+    // Save record. Defend against the AI returning a partial response —
+    // Prisma rejects `undefined` for the `String[]` column.
     stage = "db"
+    const keywordsUsed = Array.isArray(cvContent.keywordsUsed)
+      ? cvContent.keywordsUsed.filter((k): k is string => typeof k === "string")
+      : []
     const generatedCV = await prisma.generatedCV.create({
       data: {
         seekerId: seeker.id,
         jobPostingId: job.id,
         fileUrl: blob.url,
         fileKey: blob.pathname,
-        keywordsUsed: cvContent.keywordsUsed,
+        keywordsUsed,
         templateUsed: "ats-standard",
         language,
       },

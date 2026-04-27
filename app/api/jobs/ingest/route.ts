@@ -40,6 +40,7 @@ const jobSchema = z.object({
     .nullish(),
   anerkennungSupport: z.boolean().nullish(),
   visaSponsorship: z.boolean().nullish(),
+  // REJECT (vs. clamp in lib/job-signals.ts) — surfaces upstream scraper config bugs loudly. DB is VarChar(200).
   relocationSupport: z.string().max(200).nullish(),
 })
 

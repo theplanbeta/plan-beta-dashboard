@@ -34,9 +34,15 @@ const genAI = initializeGemini()
 
 /**
  * Get Gemini model instance
- * Uses gemini-2.5-flash-lite for fast, cost-effective responses
+ * Uses gemini-2.5-flash-lite for fast, cost-effective responses.
+ *
+ * Pass `temperature` to override the default 0.7 — useful for structured/JSON
+ * extraction where determinism beats creativity.
  */
-export function getGeminiModel(modelName: string = 'gemini-2.5-flash-lite'): GenerativeModel | null {
+export function getGeminiModel(
+  modelName: string = 'gemini-2.5-flash-lite',
+  temperature?: number
+): GenerativeModel | null {
   if (!genAI) {
     console.error('[Gemini Client] Gemini AI not initialized. Check API key.')
     return null
@@ -45,7 +51,7 @@ export function getGeminiModel(modelName: string = 'gemini-2.5-flash-lite'): Gen
   return genAI.getGenerativeModel({
     model: modelName,
     generationConfig: {
-      temperature: 0.7, // Balanced creativity
+      temperature: temperature ?? 0.7, // Balanced creativity by default
       topP: 0.9,
       topK: 40,
       maxOutputTokens: 2048, // Limit output to control costs
@@ -95,6 +101,7 @@ export async function generateContent(
   options?: {
     retries?: number
     timeout?: number
+    temperature?: number
   }
 ): Promise<{ success: boolean; content?: string; error?: string; tokenCount?: number }> {
   const { retries = 2, timeout = 30000 } = options || {}
@@ -102,7 +109,7 @@ export async function generateContent(
   // Wait for rate limit
   await waitForRateLimit()
 
-  const model = getGeminiModel(modelName)
+  const model = getGeminiModel(modelName, options?.temperature)
   if (!model) {
     return {
       success: false,

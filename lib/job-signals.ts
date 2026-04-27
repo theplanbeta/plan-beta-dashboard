@@ -52,8 +52,20 @@ export interface ExtractResult {
   error?: string
 }
 
-export function computeSignalsHash(title: string, description: string | null): string {
-  const payload = `${title}\n${description ?? ""}`
+/**
+ * Stable cache key for signal extraction.
+ *
+ * Hashes the same fields the prompt actually uses (title + description +
+ * requirements) so any input change invalidates the cache. Callers pass this
+ * alongside extracted signals; on re-scrape, an unchanged hash means we can
+ * skip the Gemini call.
+ */
+export function computeSignalsHash(
+  title: string,
+  description: string | null,
+  requirements: string[]
+): string {
+  const payload = `${title}\n${description ?? ""}\n${requirements.join("\n")}`
   return createHash("sha256").update(payload).digest("hex")
 }
 
@@ -85,9 +97,13 @@ Requirements: ${input.requirements.join(" · ") || "(none)"}
 Description:
 ${input.description ?? "(no description provided)"}`
 
-  const res = await generateContent(`${SYSTEM_PROMPT}\n\n---\n\n${userPrompt}`)
+  const res = await generateContent(
+    `${SYSTEM_PROMPT}\n\n---\n\n${userPrompt}`,
+    "gemini-2.5-flash-lite",
+    { temperature: 0 }
+  )
   if (!res.success || !res.content) {
-    return { error: res.error || "Gemini returned no content" }
+    return { error: (res.error || "Gemini returned no content").slice(0, 500) }
   }
 
   // Strip code fences if model wrapped JSON despite instructions
@@ -101,12 +117,17 @@ ${input.description ?? "(no description provided)"}`
   try {
     raw = JSON.parse(cleaned)
   } catch (e) {
-    return { error: `failed to parse Gemini JSON: ${(e as Error).message}` }
+    return {
+      error: `failed to parse Gemini JSON: ${(e as Error).message}`.slice(0, 500),
+    }
   }
 
   const parsed = JobSignalsSchema.safeParse(raw)
   if (!parsed.success) {
-    return { error: `schema validation failed: ${parsed.error.message}` }
+    const issues = parsed.error.issues
+      .map((i) => `${i.path.join(".")}: ${i.code}`)
+      .join("; ")
+    return { error: `schema validation failed: ${issues}`.slice(0, 500) }
   }
 
   return { signals: parsed.data }

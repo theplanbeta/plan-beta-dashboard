@@ -62,22 +62,28 @@ describe("JobSignalsSchema", () => {
 
 describe("computeSignalsHash", () => {
   it("produces a stable 64-char hex hash for identical input", () => {
-    const a = computeSignalsHash("Senior Pflegefachkraft", "Wir suchen ...")
-    const b = computeSignalsHash("Senior Pflegefachkraft", "Wir suchen ...")
+    const a = computeSignalsHash("Senior Pflegefachkraft", "Wir suchen ...", ["B2 Deutsch"])
+    const b = computeSignalsHash("Senior Pflegefachkraft", "Wir suchen ...", ["B2 Deutsch"])
     expect(a).toBe(b)
     expect(a).toMatch(/^[0-9a-f]{64}$/)
   })
 
   it("differs when title or description changes", () => {
-    const a = computeSignalsHash("Pflegefachkraft", "X")
-    const b = computeSignalsHash("Pflegefachkraft", "Y")
+    const a = computeSignalsHash("Pflegefachkraft", "X", [])
+    const b = computeSignalsHash("Pflegefachkraft", "Y", [])
     expect(a).not.toBe(b)
   })
 
   it("treats null and empty description identically", () => {
-    const a = computeSignalsHash("X", null)
-    const b = computeSignalsHash("X", "")
+    const a = computeSignalsHash("X", null, [])
+    const b = computeSignalsHash("X", "", [])
     expect(a).toBe(b)
+  })
+
+  it("differs when requirements change", () => {
+    const a = computeSignalsHash("Pflegefachkraft", "Same desc", ["B2 Deutsch"])
+    const b = computeSignalsHash("Pflegefachkraft", "Same desc", ["C1 Deutsch", "Approbation"])
+    expect(a).not.toBe(b)
   })
 })
 

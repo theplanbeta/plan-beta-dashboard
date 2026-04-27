@@ -105,8 +105,10 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
+  let stage: "ai" | "render" | "upload" | "db" = "ai"
   try {
     // Generate Anschreiben content via Claude Sonnet
+    stage = "ai"
     const content = await generateAnschreiben(
       {
         firstName: profile.firstName,
@@ -135,6 +137,7 @@ export async function POST(request: Request) {
     )
 
     // Render PDF
+    stage = "render"
     const element = React.createElement(AnschreibenTemplate, {
       content,
       email: seeker.email,
@@ -145,6 +148,7 @@ export async function POST(request: Request) {
     const pdfBuffer = await renderToBuffer(element as any)
 
     // Upload to Vercel Blob
+    stage = "upload"
     const slug = job.slug || job.id
     const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
 
@@ -154,6 +158,7 @@ export async function POST(request: Request) {
     })
 
     // Record for monthly cap counter
+    stage = "db"
     await prisma.generatedCV.create({
       data: {
         seekerId: seeker.id,
@@ -175,11 +180,26 @@ export async function POST(request: Request) {
       remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,
     })
   } catch (error) {
-    console.error("[anschreiben/generate] Failed:", error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errStack = error instanceof Error ? error.stack : undefined
+    console.error(
+      `[anschreiben/generate] Failed at stage=${stage}`,
+      JSON.stringify({
+        seekerId: seeker.id,
+        jobPostingId,
+        message: errMsg,
+        name: error instanceof Error ? error.name : "unknown",
+        stack: errStack?.split("\n").slice(0, 5).join(" | "),
+      })
+    )
     const message =
-      error instanceof Error && error.message.includes("ANTHROPIC")
+      stage === "ai"
         ? "AI service temporarily unavailable. Try again in a minute."
+        : stage === "render"
+        ? "Couldn't render your Anschreiben PDF. Try again or contact support."
+        : stage === "upload"
+        ? "Couldn't save your Anschreiben file. Try again."
         : "Cover letter generation failed. Please try again."
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message, stage }, { status: 500 })
   }
 }

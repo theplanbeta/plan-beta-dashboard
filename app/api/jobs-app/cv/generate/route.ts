@@ -98,8 +98,11 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
+  // Stage labels so we know exactly where it died in the logs.
+  let stage: "ai" | "render" | "upload" | "db" = "ai"
   try {
     // Generate CV content via Claude Sonnet
+    stage = "ai"
     const cvContent = await generateCVContent(
       {
         firstName: profile.firstName,
@@ -132,6 +135,7 @@ export async function POST(request: Request) {
       seeker.name ||
       "Candidate"
 
+    stage = "render"
     const pdfBuffer = await renderToBuffer(
       React.createElement(CVTemplate, {
         content: cvContent,
@@ -146,6 +150,7 @@ export async function POST(request: Request) {
     )
 
     // Upload to Vercel Blob
+    stage = "upload"
     const slug = job.slug || job.id
     const fileName = `cvs/${seeker.id}/${slug}-${Date.now()}.pdf`
 
@@ -155,6 +160,7 @@ export async function POST(request: Request) {
     })
 
     // Save record
+    stage = "db"
     const generatedCV = await prisma.generatedCV.create({
       data: {
         seekerId: seeker.id,
@@ -178,11 +184,26 @@ export async function POST(request: Request) {
       remaining: 5 - cvCount - 1,
     })
   } catch (error) {
-    console.error("[cv/generate] Failed:", error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    const errStack = error instanceof Error ? error.stack : undefined
+    console.error(
+      `[cv/generate] Failed at stage=${stage}`,
+      JSON.stringify({
+        seekerId: seeker.id,
+        jobPostingId,
+        message: errMsg,
+        name: error instanceof Error ? error.name : "unknown",
+        stack: errStack?.split("\n").slice(0, 5).join(" | "),
+      })
+    )
     const message =
-      error instanceof Error && error.message.includes("ANTHROPIC")
+      stage === "ai"
         ? "AI service temporarily unavailable. Try again in a minute."
+        : stage === "render"
+        ? "Couldn't render your CV PDF. Try again or contact support."
+        : stage === "upload"
+        ? "Couldn't save your CV file. Try again."
         : "CV generation failed. Please try again."
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: message, stage }, { status: 500 })
   }
 }

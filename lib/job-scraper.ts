@@ -619,17 +619,18 @@ export async function scrapeArbeitsagenturKeyword(keyword: string): Promise<{
   error?: string
 }> {
   const url = `https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs?was=${encodeURIComponent(keyword)}`
+
+  // Find-or-create JobSource first so we can stamp lastFetched even if the API throws.
+  const sourceName = `arbeitsagentur (${keyword})`
+  const jobSource = await prisma.jobSource.upsert({
+    where: { name: sourceName },
+    create: { name: sourceName, url, active: true, isPushSource: false },
+    update: { isPushSource: false },
+  })
+
   try {
     const jobs = await fetchArbeitsagentur(url)
     let upserted = 0
-
-    // Find-or-create JobSource keyed by the keyword so we can track per-keyword freshness
-    const sourceName = `arbeitsagentur (${keyword})`
-    const jobSource = await prisma.jobSource.upsert({
-      where: { name: sourceName },
-      create: { name: sourceName, url, active: true, isPushSource: false },
-      update: { isPushSource: false },
-    })
 
     for (const job of jobs) {
       try {
@@ -689,6 +690,10 @@ export async function scrapeArbeitsagenturKeyword(keyword: string): Promise<{
 
     return { keyword, fetched: jobs.length, upserted }
   } catch (e) {
+    // Stamp lastFetched even on failure so JobSource list reflects "we tried" — observability win.
+    await prisma.jobSource
+      .update({ where: { id: jobSource.id }, data: { lastFetched: new Date() } })
+      .catch(() => {})
     const msg = e instanceof Error ? e.message : String(e)
     return { keyword, fetched: 0, upserted: 0, error: msg }
   }

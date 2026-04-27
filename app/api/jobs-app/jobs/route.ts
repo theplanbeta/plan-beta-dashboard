@@ -3,9 +3,42 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getJobSeeker } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
-import type { Prisma } from "@prisma/client"
+import {
+  type Prisma,
+  LanguageLevel,
+  AnerkennungStatus,
+  VisaPathway,
+} from "@prisma/client"
 
 const LIMIT = 20
+
+const LANGUAGE_LEVEL_VALUES = Object.values(LanguageLevel) as [
+  LanguageLevel,
+  ...LanguageLevel[]
+]
+const ANERKENNUNG_VALUES = Object.values(AnerkennungStatus) as [
+  AnerkennungStatus,
+  ...AnerkennungStatus[]
+]
+const VISA_PATHWAY_VALUES = Object.values(VisaPathway) as [
+  VisaPathway,
+  ...VisaPathway[]
+]
+
+// Comma-separated enum list → string[] (silently drops invalid values).
+const enumListSchema = <T extends string>(allowed: readonly [T, ...T[]]) =>
+  z
+    .string()
+    .max(200)
+    .optional()
+    .transform((s) =>
+      s
+        ? (s
+            .split(",")
+            .map((v) => v.trim())
+            .filter((v) => (allowed as readonly string[]).includes(v)) as T[])
+        : []
+    )
 
 // Zod schema for query params. z.coerce.number() gives us NaN-safe parsing
 // with a proper 400 instead of a Prisma 500 when someone passes ?page=abc.
@@ -15,6 +48,14 @@ const querySchema = z.object({
   profession: z.string().max(100).optional(),
   germanLevel: z.string().max(10).optional(),
   location: z.string().max(100).optional(),
+  // Migrant-fit filters (FREE tier).
+  lang: enumListSchema(LANGUAGE_LEVEL_VALUES),
+  anerkennung: enumListSchema(ANERKENNUNG_VALUES),
+  visa: enumListSchema(VISA_PATHWAY_VALUES),
+  english: z
+    .string()
+    .optional()
+    .transform((v) => v === "1"),
 })
 
 export async function GET(request: Request) {
@@ -26,6 +67,10 @@ export async function GET(request: Request) {
     profession: searchParams.get("profession") ?? undefined,
     germanLevel: searchParams.get("germanLevel") ?? undefined,
     location: searchParams.get("location") ?? undefined,
+    lang: searchParams.get("lang") ?? undefined,
+    anerkennung: searchParams.get("anerkennung") ?? undefined,
+    visa: searchParams.get("visa") ?? undefined,
+    english: searchParams.get("english") ?? undefined,
   })
 
   if (!parsed.success) {
@@ -35,7 +80,17 @@ export async function GET(request: Request) {
     )
   }
 
-  const { page, sort, profession, germanLevel, location } = parsed.data
+  const {
+    page,
+    sort,
+    profession,
+    germanLevel,
+    location,
+    lang,
+    anerkennung,
+    visa,
+    english,
+  } = parsed.data
 
   try {
 
@@ -50,6 +105,20 @@ export async function GET(request: Request) {
   }
   if (location) {
     where.location = { contains: location, mode: "insensitive" }
+  }
+
+  // Migrant-fit filters (FREE tier).
+  if (lang.length > 0) {
+    where.languageLevel = { in: lang }
+  }
+  if (anerkennung.length > 0) {
+    where.anerkennungRequired = { in: anerkennung }
+  }
+  if (visa.length > 0) {
+    where.visaPathway = { in: visa }
+  }
+  if (english) {
+    where.englishOk = true
   }
 
   // Determine DB order

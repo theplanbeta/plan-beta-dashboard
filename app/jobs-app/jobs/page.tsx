@@ -1,13 +1,32 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import Link from "next/link"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
 import { JobCard, type JobData } from "@/components/jobs-app/JobCard"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import { ProfileCompletionBanner } from "@/components/jobs-app/ProfileCompletionBanner"
+import {
+  MigrantFitFilters,
+  type MigrantFitState,
+  EMPTY_MIGRANT_FIT_STATE,
+} from "@/components/jobs-app/MigrantFitFilters"
 
 type Job = JobData & { id: string }
+
+function parseMigrantFitFromParams(params: URLSearchParams): MigrantFitState {
+  const lang = params.get("lang")?.split(",").filter(Boolean) ?? []
+  const anerkennung = params.get("anerkennung")?.split(",").filter(Boolean) ?? []
+  const visa = params.get("visa")?.split(",").filter(Boolean) ?? []
+  const englishOk = params.get("english") === "1" ? true : null
+  return {
+    languageLevels: lang,
+    englishOk,
+    anerkennung,
+    visaPathways: visa,
+  }
+}
 
 const GERMAN_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 const PROFESSIONS = [
@@ -22,7 +41,18 @@ const PROFESSIONS = [
 ]
 
 export default function JobsPage() {
+  return (
+    <Suspense fallback={null}>
+      <JobsPageInner />
+    </Suspense>
+  )
+}
+
+function JobsPageInner() {
   const { seeker, loading: authLoading } = useJobsAuth()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,6 +64,51 @@ export default function JobsPage() {
   const [germanLevel, setGermanLevel] = useState("")
   const [profession, setProfession] = useState("")
   const [sort, setSort] = useState("match")
+
+  // Migrant-fit state — initialised from URL params.
+  const [migrantFit, setMigrantFit] = useState<MigrantFitState>(() =>
+    typeof window === "undefined"
+      ? EMPTY_MIGRANT_FIT_STATE
+      : parseMigrantFitFromParams(
+          new URLSearchParams(window.location.search)
+        )
+  )
+
+  // Re-sync migrant-fit state if URL changes externally (e.g. back/forward).
+  useEffect(() => {
+    setMigrantFit(parseMigrantFitFromParams(searchParams))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.toString()])
+
+  // Push migrant-fit state into URL without scroll/reload.
+  const syncMigrantFitToUrl = useCallback(
+    (next: MigrantFitState) => {
+      const params = new URLSearchParams(searchParams.toString())
+      if (next.languageLevels.length > 0) {
+        params.set("lang", next.languageLevels.join(","))
+      } else {
+        params.delete("lang")
+      }
+      if (next.anerkennung.length > 0) {
+        params.set("anerkennung", next.anerkennung.join(","))
+      } else {
+        params.delete("anerkennung")
+      }
+      if (next.visaPathways.length > 0) {
+        params.set("visa", next.visaPathways.join(","))
+      } else {
+        params.delete("visa")
+      }
+      if (next.englishOk === true) {
+        params.set("english", "1")
+      } else {
+        params.delete("english")
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams]
+  )
 
   // profileCompleteness comes from AuthProvider context (no separate fetch).
   const profileCompleteness = seeker?.profile?.profileCompleteness ?? null
@@ -47,6 +122,18 @@ export default function JobsPage() {
       params.set("sort", sort)
       if (germanLevel) params.set("germanLevel", germanLevel)
       if (profession) params.set("profession", profession)
+      if (migrantFit.languageLevels.length > 0) {
+        params.set("lang", migrantFit.languageLevels.join(","))
+      }
+      if (migrantFit.anerkennung.length > 0) {
+        params.set("anerkennung", migrantFit.anerkennung.join(","))
+      }
+      if (migrantFit.visaPathways.length > 0) {
+        params.set("visa", migrantFit.visaPathways.join(","))
+      }
+      if (migrantFit.englishOk === true) {
+        params.set("english", "1")
+      }
 
       const res = await fetch(`/api/jobs-app/jobs?${params.toString()}`, {
         credentials: "include",
@@ -65,7 +152,7 @@ export default function JobsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, sort, germanLevel, profession])
+  }, [page, sort, germanLevel, profession, migrantFit])
 
   useEffect(() => {
     if (!authLoading) fetchJobs()
@@ -225,6 +312,17 @@ export default function JobsPage() {
               </select>
             </FilterField>
           </div>
+
+          <hr className="amtlich-divider mt-4 mb-4" />
+
+          <MigrantFitFilters
+            value={migrantFit}
+            onChange={(next) => {
+              setMigrantFit(next)
+              syncMigrantFitToUrl(next)
+              resetPage()
+            }}
+          />
 
           <style jsx>{`
             .amtlich-select {

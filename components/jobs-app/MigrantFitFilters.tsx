@@ -32,6 +32,9 @@ const ANERKENNUNG_OPTIONS = [
   { value: "NOT_REQUIRED", label: "Nicht erforderlich" },
 ]
 
+// Schema enum has 7 values; we expose 5. EU_ONLY is intentionally hidden
+// (excludes non-EU migrants — this tool's audience). UNCLEAR is a fallback
+// label, not a category users should filter by.
 const VISA_OPTIONS = [
   { value: "BLUE_CARD", label: "Blue Card" },
   { value: "CHANCENKARTE", label: "Chancenkarte" },

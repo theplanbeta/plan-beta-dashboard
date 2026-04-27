@@ -75,8 +75,13 @@ function JobsPageInner() {
   )
 
   // Re-sync migrant-fit state if URL changes externally (e.g. back/forward).
+  // Guard with deep-equal so our own router.replace() doesn't trigger a redundant
+  // setState (which would then re-fire fetchJobs via its useCallback dep).
   useEffect(() => {
-    setMigrantFit(parseMigrantFitFromParams(searchParams))
+    const fromUrl = parseMigrantFitFromParams(searchParams)
+    setMigrantFit((current) =>
+      JSON.stringify(current) === JSON.stringify(fromUrl) ? current : fromUrl
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams.toString()])
 

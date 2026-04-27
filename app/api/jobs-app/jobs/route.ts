@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
-import { getJobSeeker } from "@/lib/jobs-app-auth"
+import { getJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { computeHeuristicScore, getMatchLabel } from "@/lib/heuristic-scorer"
 import {
   type Prisma,
@@ -113,6 +113,27 @@ export async function GET(request: Request) {
 
   try {
 
+  // Resolve seeker once up-front. Used for both premium-tier filter
+  // enforcement (below) and match-score profile context (further down).
+  // Auth is OPTIONAL on this route — failures are non-fatal.
+  let seeker: Awaited<ReturnType<typeof getJobSeeker>> = null
+  try {
+    seeker = await getJobSeeker(request)
+  } catch {
+    // Non-fatal — proceed unauthenticated
+  }
+
+  // Premium tier enforcement — drop premium-only filters for non-premium
+  // callers. Anyone can append ?as=1&vs=1&rs=1 to the URL; without this
+  // gate, free users would get filtered results without paying. Note:
+  // `english` (englishOk) is part of the FREE MVP-5 signals per spec.
+  const allowPremiumFilters = seeker
+    ? await isPremiumEffective(seeker)
+    : false
+  const effectiveAs = allowPremiumFilters && as
+  const effectiveVs = allowPremiumFilters && vs
+  const effectiveRs = allowPremiumFilters && rs
+
   // Build where clause
   const where: Prisma.JobPostingWhereInput = { active: true }
 
@@ -140,15 +161,15 @@ export async function GET(request: Request) {
     where.englishOk = true
   }
 
-  // Visa & support filters (PREMIUM tier).
+  // Visa & support filters (PREMIUM tier — enforced server-side above).
   // relocationSupport is a String? snippet, so "any non-null value" is the filter.
-  if (as) {
+  if (effectiveAs) {
     where.anerkennungSupport = true
   }
-  if (vs) {
+  if (effectiveVs) {
     where.visaSponsorship = true
   }
-  if (rs) {
+  if (effectiveRs) {
     where.relocationSupport = { not: null }
   }
 
@@ -200,22 +221,18 @@ export async function GET(request: Request) {
     yearsOfExperience: number | null
   } | null = null
 
-  try {
-    const seeker = await getJobSeeker(request)
-    if (seeker?.profile) {
-      const p = seeker.profile
-      profile = {
-        germanLevel: p.germanLevel ?? null,
-        profession: p.profession ?? null,
-        targetLocations: (p.targetLocations as string[]) ?? [],
-        salaryMin: p.salaryMin ?? null,
-        salaryMax: p.salaryMax ?? null,
-        visaStatus: p.visaStatus ?? null,
-        yearsOfExperience: p.yearsOfExperience ?? null,
-      }
+  // Reuse the seeker resolved up-front (above) — avoid a second auth round-trip.
+  if (seeker?.profile) {
+    const p = seeker.profile
+    profile = {
+      germanLevel: p.germanLevel ?? null,
+      profession: p.profession ?? null,
+      targetLocations: (p.targetLocations as string[]) ?? [],
+      salaryMin: p.salaryMin ?? null,
+      salaryMax: p.salaryMax ?? null,
+      visaStatus: p.visaStatus ?? null,
+      yearsOfExperience: p.yearsOfExperience ?? null,
     }
-  } catch {
-    // Non-fatal — proceed without profile scoring
   }
 
   // Score each job if profile is available

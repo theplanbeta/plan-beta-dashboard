@@ -63,7 +63,7 @@ export default function JobsPage() {
 }
 
 function JobsPageInner() {
-  const { seeker, loading: authLoading } = useJobsAuth()
+  const { seeker, loading: authLoading, isPremium } = useJobsAuth()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -397,7 +397,7 @@ function JobsPageInner() {
 
           <hr className="amtlich-divider mt-4 mb-4" />
 
-          <PremiumGate feature="Visa & support filters">
+          {isPremium ? (
             <VisaSupportFilters
               value={visaSupport}
               onChange={(next) => {
@@ -406,7 +406,14 @@ function JobsPageInner() {
                 resetPage()
               }}
             />
-          </PremiumGate>
+          ) : (
+            <PremiumGate feature="Visa & support filters">
+              <VisaSupportFilters
+                value={EMPTY_VISA_SUPPORT_STATE}
+                onChange={() => {}}
+              />
+            </PremiumGate>
+          )}
 
           <style jsx>{`
             .amtlich-select {

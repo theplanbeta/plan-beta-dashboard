@@ -5,6 +5,11 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // TODO(migrations): add `directUrl = env("DIRECT_URL")` here once
+  // DIRECT_URL is configured on Vercel for all environments. For now,
+  // run migrations by setting DIRECT_URL inline:
+  //   DIRECT_URL=$(node -e 'const u=new URL(process.env.DATABASE_URL); u.host=u.host.replace("-pooler",""); for(const k of Array.from(u.searchParams.keys())) u.searchParams.delete(k); u.searchParams.set("sslmode","require"); process.stdout.write(u.toString().replace(/^postgres:\/\//,"postgresql://"))') \
+  //     npx prisma db push
 }
 
 model User {

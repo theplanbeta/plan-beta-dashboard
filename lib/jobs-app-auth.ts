@@ -190,8 +190,16 @@ export async function requireJobSeeker(request: Request): Promise<JobSeekerWithP
  */
 export function isPremium(seeker: JobSeeker): boolean {
   if (seeker.planBetaStudentId) return true
-  if (seeker.tier === "PREMIUM" && seeker.subscriptionStatus === "active")
+  if (seeker.tier === "PREMIUM" && seeker.subscriptionStatus === "active") {
+    // Honour currentPeriodEnd as a hard expiry. Stripe webhooks normally
+    // flip subscriptionStatus when a sub lapses, but coupon-granted Pro
+    // doesn't have a webhook source — currentPeriodEnd is the only signal.
+    // Treat null currentPeriodEnd as "no expiry" (lifetime).
+    if (seeker.currentPeriodEnd && seeker.currentPeriodEnd < new Date()) {
+      return false
+    }
     return true
+  }
   return false
 }
 

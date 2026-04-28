@@ -161,7 +161,10 @@ export default function ApplicationKitModal({
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || "CV generation failed")
+        const detail = data.debugDetail ? ` — ${data.debugDetail}` : ""
+        toast.error((data.error || "CV generation failed") + detail, {
+          duration: 12_000,
+        })
         return
       }
       await refetchKit()
@@ -187,7 +190,9 @@ export default function ApplicationKitModal({
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || "Cover letter generation failed")
+        toast.error((data.error || "Cover letter generation failed") + (data.debugDetail ? ` — ${data.debugDetail}` : ""), {
+          duration: 12_000,
+        })
         return
       }
       await refetchKit()

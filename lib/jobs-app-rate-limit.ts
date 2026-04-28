@@ -114,4 +114,9 @@ export const RL = {
   ANSCHREIBEN_GENERATE: { max: 3, windowMs: 60_000, label: "Generating cover letters too quickly. Try again shortly." },
   JOB_DEEP_SCORE: { max: 30, windowMs: 60_000, label: "Too many job score requests." },
   SCREENSHOT_CLASSIFY: { max: 10, windowMs: 60_000, label: "Too many screenshot uploads." },
+
+  // Coupon redemption — per-seeker. Tight limit because guessing is the
+  // attack: an attacker who knows or controls one account would otherwise
+  // walk every plausible code. 5/hour is plenty for legitimate retries.
+  COUPON_REDEEM: { max: 5, windowMs: 60 * 60_000, label: "Too many coupon attempts. Try again in an hour." },
 } as const satisfies Record<string, RateLimitConfig>

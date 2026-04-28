@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { useJobsAuth } from "@/components/jobs-app/AuthProvider"
 import { ShareButton } from "@/components/jobs-app/ShareButton"
+import { CouponRedeemForm } from "@/components/jobs-app/CouponRedeemForm"
 import { appendUtm } from "@/lib/share-links"
 import Link from "next/link"
 
@@ -491,6 +492,9 @@ export default function SettingsPage() {
           )}
         </section>
       )}
+
+      {/* ── Coupon redemption ─────────────────────────────── */}
+      <CouponRedeemForm onRedeemed={async () => { await fetchStatus() }} />
 
       {/* ── Account card ──────────────────────────────────── */}
       <section className="amtlich-card amtlich-enter amtlich-enter-delay-3">

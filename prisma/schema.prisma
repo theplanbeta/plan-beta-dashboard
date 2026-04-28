@@ -1648,18 +1648,58 @@ model JobSeeker {
   updatedAt DateTime @updatedAt
 
   // Relations
-  profile          JobSeekerProfile?
-  documents        JobSeekerDocument[]
-  applications     JobApplication[]
-  generatedCVs     GeneratedCV[]
-  storyBankEntries StoryBankEntry[]
-  matchScores      MatchScoreCache[]
-  cvImports        CVImport[]
+  profile           JobSeekerProfile?
+  documents         JobSeekerDocument[]
+  applications      JobApplication[]
+  generatedCVs      GeneratedCV[]
+  storyBankEntries  StoryBankEntry[]
+  matchScores       MatchScoreCache[]
+  cvImports         CVImport[]
+  couponRedemptions JobCouponRedemption[]
 
   @@index([email])
   @@index([tier])
   @@index([planBetaStudentId])
   @@index([referredBy])
+}
+
+/// Promo / testing coupons that grant FREE Pro access for a fixed window.
+///
+/// Each coupon has a code (unique), an optional usage cap, and an optional
+/// duration. On redemption, the seeker's tier is set to PREMIUM and
+/// currentPeriodEnd is bumped to now + durationDays. A null durationDays
+/// means lifetime access. A null maxUses means the code is reusable
+/// indefinitely (until expiresAt). One redemption per (coupon, seeker).
+model JobCoupon {
+  id           String    @id @default(cuid())
+  code         String    @unique // case-insensitive at lookup time, stored uppercase
+  tier         JobSeekerTier @default(PREMIUM)
+  durationDays Int? // null = lifetime
+  maxUses      Int? // null = unlimited
+  usedCount    Int       @default(0)
+  expiresAt    DateTime? // coupon validity (after this date the code stops working)
+  notes        String? // internal note: who/what this code is for
+  createdAt    DateTime  @default(now())
+  createdBy    String? // CLI runner / admin email — informational
+
+  redemptions JobCouponRedemption[]
+
+  @@index([code])
+}
+
+/// One row per (coupon, seeker) redemption. Lets us see who used what,
+/// and when the granted Pro access expires for each redeemer.
+model JobCouponRedemption {
+  id          String   @id @default(cuid())
+  couponId    String
+  coupon      JobCoupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  seekerId    String
+  seeker      JobSeeker @relation(fields: [seekerId], references: [id], onDelete: Cascade)
+  redeemedAt  DateTime @default(now())
+  expiresAt   DateTime? // when this redeemer's Pro access ends; null = lifetime
+
+  @@unique([couponId, seekerId])
+  @@index([seekerId])
 }
 
 model JobSeekerProfile {

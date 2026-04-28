@@ -207,6 +207,14 @@ export async function POST(request: Request) {
         : stage === "upload"
         ? "Couldn't save your CV file. Try again."
         : "CV generation failed. Please try again."
-    return NextResponse.json({ error: message, stage }, { status: 500 })
+    // Include the actual error name + first line of message in the
+    // response while we debug the chromium pipeline. Strip stack traces
+    // and any text after a colon in the message that might leak file
+    // paths. Remove this once CV gen is stable.
+    const debugDetail = errMsg.split("\n")[0].slice(0, 200)
+    return NextResponse.json(
+      { error: message, stage, debugDetail },
+      { status: 500 }
+    )
   }
 }

@@ -421,12 +421,46 @@ export function ItemListSchema({ name, description, url, itemCount }: ItemListSc
   )
 }
 
+// JSON-LD for the YouTube channel — declares Plan Beta as a publisher of
+// German-language education videos so Google can surface them in Video
+// SERP rich results when the channel is referenced.
+export function YouTubeChannelSchema() {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://youtube.com/@planbeta_LearnGerman",
+    name: "Plan Beta — Learn German",
+    description:
+      "Plan Beta's official YouTube channel — German lessons, exam prep tips, and migration guidance for Indian students and professionals heading to Germany.",
+    url: "https://youtube.com/@planbeta_LearnGerman",
+    publisher: {
+      "@type": "EducationalOrganization",
+      "@id": "https://theplanbeta.com#organization",
+      name: "Plan Beta",
+      url: "https://theplanbeta.com",
+    },
+    inLanguage: ["en", "de"],
+    audience: {
+      "@type": "EducationalAudience",
+      educationalRole: "student",
+      geographicArea: { "@type": "Country", name: "India" },
+    },
+  }
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+    />
+  )
+}
+
 // Comprehensive page-level SEO with all relevant schemas
 export function WebsiteSEO() {
   return (
     <>
       <OrganizationSchema />
       <LocalBusinessSchema />
+      <YouTubeChannelSchema />
     </>
   )
 }

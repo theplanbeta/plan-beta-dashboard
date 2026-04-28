@@ -126,7 +126,7 @@ export function generatePageMetadata({
   description,
   keywords,
   path = '',
-  image = DEFAULT_IMAGE,
+  image,
   type = 'website',
   noIndex = false,
 }: {
@@ -134,12 +134,16 @@ export function generatePageMetadata({
   description: string
   keywords?: string[]
   path?: string
-  image?: string
+  // Set explicitly to override default. Set to null to opt out of OG image
+  // entirely so a sibling `opengraph-image.tsx` convention file takes over
+  // (Next.js auto-detection handles the route-level image then).
+  image?: string | null
   type?: 'website' | 'article'
   noIndex?: boolean
 }): Metadata {
   const url = `${SITE_URL}${path}`
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`
+  const resolvedImage = image === null ? null : image ?? DEFAULT_IMAGE
 
   return {
     title: fullTitle,
@@ -157,14 +161,16 @@ export function generatePageMetadata({
       description,
       url,
       siteName: SITE_NAME,
-      images: [
-        {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: title,
-        },
-      ],
+      ...(resolvedImage && {
+        images: [
+          {
+            url: resolvedImage,
+            width: 1200,
+            height: 630,
+            alt: title,
+          },
+        ],
+      }),
       locale: 'en_IN',
       type,
     },
@@ -172,7 +178,7 @@ export function generatePageMetadata({
       card: 'summary_large_image',
       title: fullTitle,
       description,
-      images: [image],
+      ...(resolvedImage && { images: [resolvedImage] }),
       creator: '@theplanbeta',
     },
     robots: noIndex ? {

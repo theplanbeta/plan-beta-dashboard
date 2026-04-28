@@ -53,6 +53,9 @@ export async function generateMetadata({
     keywords: post.tags,
     path: `/blog/${slug}`,
     type: "article",
+    // Let opengraph-image.tsx in this route handle the OG image —
+    // each post gets a unique title-rendered 1200x630 PNG.
+    image: null,
   })
 }
 

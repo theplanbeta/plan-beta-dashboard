@@ -27,8 +27,12 @@ export async function GET(request: NextRequest) {
   try {
     const jobs = await prisma.jobPosting.findMany({
       where: {
+        // signalsExtractedAt is set by the ingest route when ANY of the 7
+        // signal fields are present in the push payload. Push-sourced jobs
+        // that arrive WITHOUT signals (e.g. Kimi Claw can only get
+        // listing-page metadata for iframe-based portals like pflegejobs.de)
+        // need this worker to backfill from title/description alone.
         signalsExtractedAt: null,
-        source: { isPushSource: false },
       },
       orderBy: { postedAt: "desc" },
       take: BATCH_SIZE,

@@ -72,8 +72,12 @@ async function main() {
     while (true) {
       const jobs = await prisma.jobPosting.findMany({
         where: {
+          // Backfill ALL unsignaled jobs regardless of source. Kimi Claw's
+          // iframe-based portals (e.g. pflegejobs.de) submit jobs without
+          // signals when only listing-page metadata is reachable — the
+          // ingest route correctly leaves signalsExtractedAt:null in that
+          // case so this worker picks them up.
           signalsExtractedAt: null,
-          source: { isPushSource: false },
         },
         orderBy: { id: "asc" },
         ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),

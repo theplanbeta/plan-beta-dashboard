@@ -55,6 +55,8 @@ interface Kit {
   anschreiben: AnschreibenData | null
   emailDraft: EmailDraft
   portalGuide: string
+  jobGermanLevel: string | null
+  suggestedLanguage: "de" | "en"
 }
 
 interface Application {
@@ -78,6 +80,11 @@ export default function ApplicationKitModal({
   const [generatingCV, setGeneratingCV] = useState(false)
   const [generatingAnschreiben, setGeneratingAnschreiben] = useState(false)
   const [markingApplied, setMarkingApplied] = useState(false)
+  // Output language for CV + Anschreiben generation. Defaults to the
+  // server's suggestion (German for B2+ jobs, English otherwise) once
+  // the kit loads. User can override via the toggle.
+  const [language, setLanguage] = useState<"de" | "en">("en")
+  const [languageManuallySet, setLanguageManuallySet] = useState(false)
 
   const [copiedField, setCopiedField] = useState<"subject" | "body" | null>(null)
 
@@ -117,6 +124,11 @@ export default function ApplicationKitModal({
         if (!cancelled) {
           setKit(kitData.kit)
           setApplication(appData)
+          // Sync language from server suggestion only if the user hasn't
+          // already overridden it manually in this modal session.
+          if (!languageManuallySet && kitData.kit?.suggestedLanguage) {
+            setLanguage(kitData.kit.suggestedLanguage)
+          }
         }
       } catch (e) {
         if (!cancelled) {
@@ -157,7 +169,7 @@ export default function ApplicationKitModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ jobPostingId: application.jobPostingId }),
+        body: JSON.stringify({ jobPostingId: application.jobPostingId, language }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -186,7 +198,7 @@ export default function ApplicationKitModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ jobPostingId: application.jobPostingId }),
+        body: JSON.stringify({ jobPostingId: application.jobPostingId, language }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -378,6 +390,63 @@ export default function ApplicationKitModal({
               <TabPanels className="flex-1 overflow-y-auto">
                 {/* ── Tab 1: Documents ──────────────── */}
                 <TabPanel className="space-y-4 px-5 py-5">
+                  {/* Language toggle for newly-generated documents.
+                      Defaults to the server's suggestion (German for B2+
+                      jobs); user can override before clicking Generate. */}
+                  <div
+                    className="amtlich-card flex items-center justify-between"
+                    style={{ padding: "10px 14px" }}
+                  >
+                    <span
+                      className="mono ink-soft"
+                      style={{ fontSize: "var(--fs-mono-xs)" }}
+                    >
+                      Output language
+                      {kit.jobGermanLevel ? ` · job requires ${kit.jobGermanLevel}` : ""}
+                    </span>
+                    <div
+                      role="radiogroup"
+                      aria-label="CV and Anschreiben output language"
+                      className="inline-flex"
+                      style={{
+                        border: "1px solid var(--manila-edge)",
+                        borderRadius: "3px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {(["de", "en"] as const).map((opt) => {
+                        const selected = language === opt
+                        return (
+                          <button
+                            key={opt}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => {
+                              setLanguage(opt)
+                              setLanguageManuallySet(true)
+                            }}
+                            style={{
+                              fontFamily: "var(--f-mono)",
+                              fontSize: "var(--fs-mono-xs)",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              padding: "6px 12px",
+                              background: selected
+                                ? "linear-gradient(180deg, #E34A2E 0%, #D93A1F 100%)"
+                                : "transparent",
+                              color: selected ? "#FFF8E7" : "var(--ink)",
+                              border: "none",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {opt === "de" ? "Deutsch" : "English"}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
                   {/* CV */}
                   <div className="amtlich-card" style={{ padding: "16px" }}>
                     <div className="flex items-center justify-between">

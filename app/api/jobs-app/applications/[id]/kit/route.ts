@@ -82,9 +82,23 @@ export async function GET(
     orderBy: { createdAt: "desc" },
   })
 
-  // 4. Language selection based on certified German level.
-  const germanLevel = seeker.profile?.germanLevel ?? ""
-  const useGerman = ["B1", "B2", "C1", "C2"].includes(germanLevel)
+  // 4. Language selection.
+  //
+  // For the email draft + portal guide we use the SEEKER's certified level
+  // — they're the one writing the email, so they need to be comfortable
+  // in the language.
+  //
+  // For the CV/Anschreiben suggestedLanguage we use the JOB's required
+  // level: if the listing demands B2+ German, the application package
+  // should default to German regardless of seeker comfort, because
+  // German clinics will hard-skip an English Lebenslauf. The seeker can
+  // override via the toggle in the modal.
+  const seekerGermanLevel = seeker.profile?.germanLevel ?? ""
+  const useGerman = ["B1", "B2", "C1", "C2"].includes(seekerGermanLevel)
+
+  const jobGermanLevel = (jobPosting?.germanLevel ?? "").toUpperCase()
+  const suggestedLanguage: "de" | "en" =
+    ["B2", "C1", "C2"].includes(jobGermanLevel) ? "de" : "en"
 
   const { firstName, lastName } = resolveName(
     seeker.profile?.firstName,
@@ -162,6 +176,8 @@ ${displayName}`,
     anschreiben: null,
     emailDraft,
     portalGuide,
+    jobGermanLevel: jobGermanLevel || null,
+    suggestedLanguage,
   }
 
   return NextResponse.json({ kit })

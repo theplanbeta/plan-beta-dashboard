@@ -55,9 +55,14 @@ export async function renderPdfFromHtml(
 }
 
 async function launchBrowser(): Promise<Browser> {
-  // Vercel sets AWS_LAMBDA_FUNCTION_NAME on every serverless invocation.
-  // Local dev does not, so we launch the developer's installed Chrome.
-  const isServerless = !!process.env.AWS_LAMBDA_FUNCTION_NAME
+  // Vercel sets VERCEL="1" in every runtime environment (production,
+  // preview, and dev — VERCEL_ENV distinguishes between them). Older
+  // detection that keyed on AWS_LAMBDA_FUNCTION_NAME is unreliable on
+  // current Vercel runtimes and was returning false in production,
+  // sending the function down the local-Chrome path which obviously
+  // doesn't exist on the serverless machine.
+  const isServerless =
+    process.env.VERCEL === "1" || !!process.env.AWS_LAMBDA_FUNCTION_NAME
 
   if (isServerless) {
     // Lazy-require so the binary download does not happen at import time

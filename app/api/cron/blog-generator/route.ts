@@ -40,13 +40,20 @@ async function getAutoTopic(): Promise<{
     }
   }
 
-  // Get recent existing post titles to avoid repetition
+  // Get ALL existing post titles + targetKeywords to avoid repetition.
+  // Was take:20 — but evergreen topics ("Blue Card 2026", "Chancenkarte")
+  // get re-suggested every few weeks and slipped past the small window,
+  // creating duplicate clusters that cannibalise each other in SERPs.
   const recentPosts = await prisma.blogPost.findMany({
+    where: { published: true },
     select: { title: true, targetKeyword: true },
     orderBy: { createdAt: "desc" },
-    take: 20,
+    take: 200,
   })
-  const recentTitles = recentPosts.map((p) => p.title).join(", ")
+  const recentTitles = recentPosts.map((p) => p.title).join("; ")
+  const recentKeywords = Array.from(
+    new Set(recentPosts.map((p) => p.targetKeyword).filter(Boolean))
+  ).join(", ")
 
   let trendingProfession = ""
   let trendingLocation = ""
@@ -99,13 +106,15 @@ async function getAutoTopic(): Promise<{
       "new year career planning, German language resolutions, Sommersemester preparation"
   }
 
+  const avoidance = `\n\nAvoid topics already covered (titles): ${recentTitles}\nAvoid these target keywords (already used): ${recentKeywords}\n\nPick a substantively different angle — not a re-phrasing of any of the above.`
+
   const topicPrompts: Record<string, string> = {
-    Career: `career opportunities in Germany for Indian professionals${trendingProfession ? `, especially in ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}. Avoid topics already covered: ${recentTitles}`,
-    "Learning Tips": `practical tips for learning German efficiently. Avoid topics already covered: ${recentTitles}`,
-    "Exam Prep": `preparing for German language exams (Goethe, telc). Avoid topics already covered: ${recentTitles}`,
-    "Visa & Immigration": `German visa processes and immigration tips, ${seasonalContext}. Avoid topics already covered: ${recentTitles}`,
-    "Student Life": `life in Germany for Indian students, ${seasonalContext}. Avoid topics already covered: ${recentTitles}`,
-    "Job Market": `German job market trends${trendingProfession ? `, demand for ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}. Avoid topics already covered: ${recentTitles}`,
+    Career: `career opportunities in Germany for Indian professionals${trendingProfession ? `, especially in ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}.${avoidance}`,
+    "Learning Tips": `practical tips for learning German efficiently.${avoidance}`,
+    "Exam Prep": `preparing for German language exams (Goethe, telc).${avoidance}`,
+    "Visa & Immigration": `German visa processes and immigration tips, ${seasonalContext}.${avoidance}`,
+    "Student Life": `life in Germany for Indian students, ${seasonalContext}.${avoidance}`,
+    "Job Market": `German job market trends${trendingProfession ? `, demand for ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}.${avoidance}`,
   }
 
   const keywordMap: Record<string, string> = {
@@ -203,28 +212,40 @@ Respond with valid JSON only (no markdown code fences):
 
     const postData = JSON.parse(textContent.text)
 
-    // --- Dedup check: verify generated post doesn't overlap with recent published posts ---
+    // --- Dedup check: verify generated post doesn't overlap with ANY published post ---
     const recentForDedup = await prisma.blogPost.findMany({
       where: { published: true },
-      select: { title: true, targetKeyword: true },
+      select: { title: true, targetKeyword: true, slug: true },
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 200,
     })
+
+    // Pass A: exact targetKeyword match — strongest signal
+    const normalize = (s: string | null) =>
+      (s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim()
+    const generatedKeyword = normalize(postData.targetKeyword || targetKeyword)
+    const keywordCollision = recentForDedup.find(
+      (p) => normalize(p.targetKeyword) === generatedKeyword && generatedKeyword.length > 0
+    )
+    if (keywordCollision) {
+      console.log(`[BlogCron] Skipped — same targetKeyword as ${keywordCollision.slug}: "${postData.title}"`)
+      return NextResponse.json({ skipped: true, reason: "targetKeyword already used", existing: keywordCollision.slug, title: postData.title })
+    }
+
+    // Pass B: fuzzy title overlap (against ALL published posts, not just last 20)
     const generatedTitle = postData.title.toLowerCase()
-    // Exclude common domain words that appear in nearly every title
     const stopWords = new Set(["germany", "german", "india", "indian", "indians", "2026", "2027", "guide", "complete", "students", "your", "that", "with", "from", "this", "what", "about", "tips", "best", "plan", "beta", "work", "jobs", "life", "real", "know"])
     const titleWords = generatedTitle.split(/\s+/).filter((w: string) => w.length > 3 && !stopWords.has(w))
 
-    const isDuplicate = titleWords.length > 0 && recentForDedup.some((p) => {
+    const dupTitle = titleWords.length > 0 && recentForDedup.find((p) => {
       const existingTitle = p.title.toLowerCase()
       const matchCount = titleWords.filter((w: string) => existingTitle.includes(w)).length
-      const titleOverlap = matchCount >= Math.ceil(titleWords.length * 0.6)
-      return titleOverlap
+      return matchCount >= Math.ceil(titleWords.length * 0.6)
     })
 
-    if (isDuplicate) {
-      console.log(`[BlogCron] Skipped duplicate topic: "${postData.title}"`)
-      return NextResponse.json({ skipped: true, reason: "Topic already covered recently", title: postData.title })
+    if (dupTitle) {
+      console.log(`[BlogCron] Skipped — fuzzy title dup of ${dupTitle.slug}: "${postData.title}"`)
+      return NextResponse.json({ skipped: true, reason: "fuzzy title duplicate", existing: dupTitle.slug, title: postData.title })
     }
 
     // Ensure slug uniqueness

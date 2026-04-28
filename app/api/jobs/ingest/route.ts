@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
+import crypto from "crypto"
 import { prisma } from "@/lib/prisma"
 import { verifyCronSecret } from "@/lib/api-permissions"
 import { generateJobSlug, inferProfession, cleanJobTitle } from "@/lib/job-scraper"
+import { ingestPerIp, ingestGlobalDaily, extractIp } from "@/lib/rate-limit-upstash"
 
 const jobSchema = z.object({
   title: z.string().min(1).max(200),
@@ -54,6 +56,29 @@ const ingestPayloadSchema = z.object({
 export async function POST(request: NextRequest) {
   if (!verifyCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  // Defense-in-depth: even with valid secret, throttle per-IP + global so a
+  // leaked secret can't be weaponised for DB-fill / billing attacks.
+  const ip = extractIp(request)
+  const ipHash = crypto.createHash("sha256").update(ip).digest("hex").slice(0, 32)
+  const ipResult = await ingestPerIp.limit(ipHash).catch(() => ({ success: false, reset: Date.now() + 30_000 }))
+  if (!ipResult.success) {
+    const retryAfter = Math.max(1, Math.ceil((ipResult.reset - Date.now()) / 1000))
+    console.warn(`[Ingest] rate-limit ip-h hit for ${ipHash}`)
+    return NextResponse.json(
+      { error: "Rate limit exceeded (per-IP)", retryAfterSeconds: retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    )
+  }
+  const globalResult = await ingestGlobalDaily.limit("global").catch(() => ({ success: false, reset: Date.now() + 30_000 }))
+  if (!globalResult.success) {
+    const retryAfter = Math.max(1, Math.ceil((globalResult.reset - Date.now()) / 1000))
+    console.warn(`[Ingest] rate-limit global-d hit (circuit breaker)`)
+    return NextResponse.json(
+      { error: "Rate limit exceeded (global)", retryAfterSeconds: retryAfter },
+      { status: 429, headers: { "Retry-After": String(retryAfter) } }
+    )
   }
 
   let body: unknown

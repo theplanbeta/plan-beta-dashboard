@@ -40,6 +40,25 @@ export const globalDaily = new Ratelimit({
   ephemeralCache: cvEphemeral,
 })
 
+// Job-ingest limiters — defense-in-depth against CRON_SECRET leak.
+// Sized for Kimi Claw's expected cadence (6 daily runs, each POSTing
+// 1-N batches per source) while making secret-leak abuse painful.
+const ingestEphemeral = new Map<string, number>()
+
+export const ingestPerIp = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(30, "1 h"),
+  prefix: "ingest:ip-h",
+  ephemeralCache: ingestEphemeral,
+})
+
+export const ingestGlobalDaily = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1000, "1 d"),
+  prefix: "ingest:global-d",
+  ephemeralCache: ingestEphemeral,
+})
+
 // Auth limiters — migrated from in-memory
 const authEphemeral = new Map<string, number>()
 

@@ -214,15 +214,17 @@ export default function ApplicationKitModal({
   }
 
   function handleDownloadAll() {
-    if (kit?.cv?.fileUrl) {
-      window.open(kit.cv.fileUrl, "_blank")
+    // CVs live in a private blob store and require the authed proxy
+    // route to fetch (kit.cv.fileUrl is a 403 if hit directly).
+    if (kit?.cv?.id) {
+      window.open(`/api/jobs-app/cv/${kit.cv.id}/download`, "_blank")
     }
     if (kit?.anschreiben?.fileUrl) {
       setTimeout(() => {
         window.open(kit.anschreiben!.fileUrl, "_blank")
       }, 200)
     }
-    if (!kit?.cv?.fileUrl && !kit?.anschreiben?.fileUrl) {
+    if (!kit?.cv?.id && !kit?.anschreiben?.fileUrl) {
       toast.error("No documents to download yet. Generate them first.")
     }
   }
@@ -417,7 +419,7 @@ export default function ApplicationKitModal({
                           })}
                         </p>
                         <a
-                          href={kit.cv.fileUrl}
+                          href={`/api/jobs-app/cv/${kit.cv.id}/download`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="amtlich-btn mt-3 inline-flex w-full items-center justify-center gap-1.5 no-underline"

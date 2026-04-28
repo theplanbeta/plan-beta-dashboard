@@ -169,14 +169,17 @@ export async function POST(request: Request) {
     const slug = job.slug || job.id
     const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
 
+    // The blob store is configured for private-only access. Public PDFs
+    // would be guessable URLs leaking applicant cover letters into HR
+    // inboxes — private + authed proxy is the right default anyway.
     const blob = await put(fileName, pdfBuffer, {
-      access: "public",
+      access: "private",
       contentType: "application/pdf",
     })
 
-    // Record for monthly cap counter
+    // Record for monthly cap counter (and so the download proxy can find it).
     stage = "db"
-    await prisma.generatedCV.create({
+    const generated = await prisma.generatedCV.create({
       data: {
         seekerId: seeker.id,
         jobPostingId: job.id,
@@ -190,6 +193,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       anschreiben: {
+        id: generated.id,
+        // Authed download path; kit.anschreiben.fileUrl is kept for
+        // backward-compat but should not be hit directly.
+        downloadUrl: `/api/jobs-app/cv/${generated.id}/download`,
         fileUrl: blob.url,
         language,
         generatedAt: new Date().toISOString(),

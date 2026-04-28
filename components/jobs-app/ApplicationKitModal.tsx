@@ -40,6 +40,10 @@ interface CVData {
 }
 
 interface AnschreibenData {
+  id?: string
+  // Authed proxy path (preferred). Falls back to direct fileUrl for
+  // legacy responses that didn't include it.
+  downloadUrl?: string
   fileUrl: string
   language: string
 }
@@ -226,14 +230,20 @@ export default function ApplicationKitModal({
   }
 
   function handleDownloadAll() {
-    // CVs live in a private blob store and require the authed proxy
-    // route to fetch (kit.cv.fileUrl is a 403 if hit directly).
+    // Both CVs and Anschreibens live in the private blob store; direct
+    // fileUrl 403s. Prefer the kit-supplied downloadUrl (authed proxy);
+    // fall back to constructing it from id for older responses.
     if (kit?.cv?.id) {
       window.open(`/api/jobs-app/cv/${kit.cv.id}/download`, "_blank")
     }
-    if (kit?.anschreiben?.fileUrl) {
+    const anschreibenHref =
+      kit?.anschreiben?.downloadUrl ??
+      (kit?.anschreiben?.id
+        ? `/api/jobs-app/cv/${kit.anschreiben.id}/download`
+        : null)
+    if (anschreibenHref) {
       setTimeout(() => {
-        window.open(kit.anschreiben!.fileUrl, "_blank")
+        window.open(anschreibenHref, "_blank")
       }, 200)
     }
     if (!kit?.cv?.id && !kit?.anschreiben?.fileUrl) {
@@ -559,7 +569,12 @@ export default function ApplicationKitModal({
                     </div>
                     {kit.anschreiben ? (
                       <a
-                        href={kit.anschreiben.fileUrl}
+                        href={
+                          kit.anschreiben.downloadUrl ??
+                          (kit.anschreiben.id
+                            ? `/api/jobs-app/cv/${kit.anschreiben.id}/download`
+                            : kit.anschreiben.fileUrl)
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="amtlich-btn mt-3 inline-flex w-full items-center justify-center gap-1.5 no-underline"

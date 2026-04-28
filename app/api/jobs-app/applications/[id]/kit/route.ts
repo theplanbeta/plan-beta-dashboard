@@ -73,14 +73,27 @@ export async function GET(
     where: { id: application.jobPostingId },
   })
 
-  // 3. Latest generated CV for this seeker + job.
-  const latestCV = await prisma.generatedCV.findFirst({
-    where: {
-      seekerId: seeker.id,
-      jobPostingId: application.jobPostingId,
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  // 3. Latest generated CV + Anschreiben for this seeker + job.
+  // Both live in the GeneratedCV table, discriminated by templateUsed
+  // ("anschreiben" for cover letters, anything else for CVs).
+  const [latestCV, latestAnschreiben] = await Promise.all([
+    prisma.generatedCV.findFirst({
+      where: {
+        seekerId: seeker.id,
+        jobPostingId: application.jobPostingId,
+        NOT: { templateUsed: "anschreiben" },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.generatedCV.findFirst({
+      where: {
+        seekerId: seeker.id,
+        jobPostingId: application.jobPostingId,
+        templateUsed: "anschreiben",
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ])
 
   // 4. Language selection.
   //
@@ -173,7 +186,17 @@ ${displayName}`,
           createdAt: latestCV.createdAt,
         }
       : null,
-    anschreiben: null,
+    anschreiben: latestAnschreiben
+      ? {
+          id: latestAnschreiben.id,
+          // Authed proxy path — same route serves both CVs and Anschreibens
+          // since they share GeneratedCV. Direct fileUrl is private-blob 403.
+          downloadUrl: `/api/jobs-app/cv/${latestAnschreiben.id}/download`,
+          fileUrl: latestAnschreiben.fileUrl,
+          language: latestAnschreiben.language,
+          createdAt: latestAnschreiben.createdAt,
+        }
+      : null,
     emailDraft,
     portalGuide,
     jobGermanLevel: jobGermanLevel || null,

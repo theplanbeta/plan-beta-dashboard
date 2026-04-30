@@ -46,13 +46,18 @@ export async function GET(
     return NextResponse.json({ error: "Document fetch failed" }, { status: 502 })
   }
 
+  const searchParams = new URL(request.url).searchParams
+  const forceDownload =
+    searchParams.get("download") === "1" ||
+    searchParams.get("disposition") === "attachment"
+
   const defaultName = cv.templateUsed === "anschreiben" ? "anschreiben.pdf" : "cv.pdf"
   const filename =
     pathname.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "_") || defaultName
 
   const headers = new Headers({
     "Content-Type": loaded.contentType,
-    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Content-Disposition": `${forceDownload ? "attachment" : "inline"}; filename="${filename}"`,
     "Cache-Control": "private, no-store",
   })
   if (loaded.contentLength) headers.set("Content-Length", loaded.contentLength)

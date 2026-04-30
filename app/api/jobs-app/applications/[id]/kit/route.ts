@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
+import { assessGeneratedDocumentFit } from "@/lib/jobs-document-fit"
 
 const ANSCHREIBEN_TEMPLATE = "anschreiben"
 
@@ -132,6 +133,15 @@ export async function GET(
   // copy on the application (which survives job deletion).
   const jobTitle = jobPosting?.title || application.jobTitle
   const jobCompany = jobPosting?.company || application.jobCompany
+  const documentFit = jobPosting
+    ? assessGeneratedDocumentFit(seeker.profile ?? {}, {
+        title: jobPosting.title,
+        profession: jobPosting.profession,
+        description: jobPosting.description,
+        requirements: jobPosting.requirements,
+        germanLevel: jobPosting.germanLevel,
+      })
+    : { canGenerate: true }
 
   // 5. Build email draft.
   let emailDraft: {
@@ -206,6 +216,7 @@ ${displayName}`,
     portalGuide,
     jobGermanLevel: jobGermanLevel || null,
     suggestedLanguage,
+    documentFit,
   }
 
   return NextResponse.json({ kit })

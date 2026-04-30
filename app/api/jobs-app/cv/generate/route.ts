@@ -6,6 +6,7 @@ import { generateCVContent } from "@/lib/jobs-ai"
 import { renderCvHtml } from "@/lib/cv-html-template"
 import { renderPdfFromHtml } from "@/lib/pdf-from-html"
 import { saveGeneratedDocumentPdf } from "@/lib/jobs-generated-document-storage"
+import { assessGeneratedDocumentFit } from "@/lib/jobs-document-fit"
 import { z } from "zod"
 import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
@@ -98,6 +99,14 @@ export async function POST(request: Request) {
 
   const profile = seeker.profile
 
+  const fit = assessGeneratedDocumentFit(profile, job)
+  if (!fit.canGenerate) {
+    return NextResponse.json(
+      { error: fit.reason || "This job is not a safe fit for document generation" },
+      { status: 422 }
+    )
+  }
+
   // Stage labels so we know exactly where it died in the logs.
   let stage: "ai" | "render" | "upload" | "db" = "ai"
   try {
@@ -113,6 +122,7 @@ export async function POST(request: Request) {
         yearsOfExperience: profile.yearsOfExperience,
         germanLevel: profile.germanLevel,
         englishLevel: profile.englishLevel,
+        profession: profile.profession,
         skills: profile.skills,
         workExperience: profile.workExperience,
         education: profile.educationDetails,

@@ -60,6 +60,10 @@ interface Kit {
   portalGuide: string
   jobGermanLevel: string | null
   suggestedLanguage: "de" | "en"
+  documentFit?: {
+    canGenerate: boolean
+    reason?: string
+  }
 }
 
 interface Application {
@@ -163,6 +167,12 @@ export default function ApplicationKitModal({
   }
 
   async function handleGenerateCV() {
+    if (kit?.documentFit && !kit.documentFit.canGenerate) {
+      toast.error(kit.documentFit.reason || "This job is not a safe fit for document generation", {
+        duration: 12_000,
+      })
+      return
+    }
     if (!application) {
       toast.error("Job details not loaded yet")
       return
@@ -192,6 +202,12 @@ export default function ApplicationKitModal({
   }
 
   async function handleGenerateAnschreiben() {
+    if (kit?.documentFit && !kit.documentFit.canGenerate) {
+      toast.error(kit.documentFit.reason || "This job is not a safe fit for document generation", {
+        duration: 12_000,
+      })
+      return
+    }
     if (!application) {
       toast.error("Job details not loaded yet")
       return
@@ -457,6 +473,27 @@ export default function ApplicationKitModal({
                     </div>
                   </div>
 
+                  {kit.documentFit && !kit.documentFit.canGenerate && (
+                    <div
+                      className="amtlich-card"
+                      style={{
+                        padding: "12px 14px",
+                        borderColor: "rgba(190, 70, 40, 0.45)",
+                        background: "rgba(255, 238, 220, 0.72)",
+                      }}
+                    >
+                      <span className="mono" style={{ color: "var(--stamp-red)" }}>
+                        Quality warning
+                      </span>
+                      <p
+                        className="ink-soft mt-1.5"
+                        style={{ fontFamily: "var(--f-body)", fontSize: "0.86rem" }}
+                      >
+                        {kit.documentFit.reason}
+                      </p>
+                    </div>
+                  )}
+
                   {/* CV */}
                   <div className="amtlich-card" style={{ padding: "16px" }}>
                     <div className="flex items-center justify-between">
@@ -523,7 +560,7 @@ export default function ApplicationKitModal({
                         <button
                           type="button"
                           onClick={handleGenerateCV}
-                          disabled={generatingCV}
+                          disabled={generatingCV || (kit.documentFit && !kit.documentFit.canGenerate)}
                           className="amtlich-btn amtlich-btn--primary mt-3 inline-flex w-full items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60"
                           style={{ padding: "12px 16px" }}
                         >
@@ -598,7 +635,10 @@ export default function ApplicationKitModal({
                         <button
                           type="button"
                           onClick={handleGenerateAnschreiben}
-                          disabled={generatingAnschreiben}
+                          disabled={
+                            generatingAnschreiben ||
+                            (kit.documentFit && !kit.documentFit.canGenerate)
+                          }
                           className="amtlich-btn amtlich-btn--primary mt-3 inline-flex w-full items-center justify-center gap-1.5 disabled:cursor-not-allowed disabled:opacity-60"
                           style={{ padding: "12px 16px" }}
                         >

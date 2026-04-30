@@ -151,6 +151,7 @@ export async function generateCVContent(
     yearsOfExperience: number | null
     germanLevel: string | null
     englishLevel: string | null
+    profession: string | null
     skills: any
     workExperience: any
     education: any
@@ -176,6 +177,9 @@ export async function generateCVContent(
 ABSOLUTE RULES:
 - NEVER fabricate experience, skills, or qualifications
 - ONLY reformulate existing experience using job description vocabulary
+- Never attach domain-specific job keywords to past work unless the candidate actually has evidence for that domain in their profile.
+- For regulated or licensed roles (nursing, care, clinical, medical, engineering licensure), do not imply qualification, licensing, patient-care experience, or domain leadership unless it appears explicitly in the candidate profile.
+- If the target role is a career change, write an honest transferability CV: preserve the candidate's real job titles and industry, emphasize transferable skills, and clearly avoid presenting them as already experienced in the target domain.
 - Example: "LLM workflows with retrieval" → "RAG pipeline design and LLM orchestration workflows"
 - Example: "Collaborated with team" → "Cross-functional stakeholder management across engineering and operations"
 - Single-column layout, standard section headers ONLY (Professional Summary, Core Competencies, Work Experience, Education, Skills, Certifications)
@@ -194,6 +198,7 @@ CANDIDATE PROFILE:
 - Email: ${profile.email}
 - Phone: ${profile.phone || "Not provided"}
 - Current Title: ${profile.currentJobTitle || "Not specified"}
+- Profession: ${profile.profession || "Not specified"}
 - Years of Experience: ${profile.yearsOfExperience ?? "Not specified"}
 - German Level: ${profile.germanLevel || "Not specified"}
 - English Level: ${profile.englishLevel || "Not specified"}
@@ -214,8 +219,8 @@ PIPELINE (execute in order):
 1. KEYWORD EXTRACTION: Extract 15-20 relevant keywords/phrases from the job description
 2. ROLE ARCHETYPE: Determine positioning strategy — how should this candidate's background be framed for this specific role?
 3. EXIT NARRATIVE: If the candidate is transitioning industries/countries, write a bridge narrative showing how past experience applies to the German market and this role
-4. PROFESSIONAL SUMMARY: Write 3-4 keyword-dense sentences. Include the top 5 JD keywords. Frame the candidate's experience as directly relevant to this role.
-5. COMPETENCY GRID: Select 6-8 keyword phrases from the JD that the candidate can legitimately claim
+4. PROFESSIONAL SUMMARY: Write 3-4 keyword-aware sentences. Include only JD keywords the candidate can legitimately support. If this is a career switch, state the real background and transferable angle honestly.
+5. COMPETENCY GRID: Select 6-8 phrases the candidate can legitimately claim. Do not include regulated-domain competencies unless present in the candidate profile.
 6. EXPERIENCE REWRITE: Reorder work experience by relevance to this JD. Rewrite bullets using JD vocabulary. Prioritize quantified achievements.
 7. PROJECT SELECTION: If projects exist, select the 2-3 most relevant
 8. EDUCATION & CERTS: Include all, highlight German-relevant ones
@@ -278,6 +283,7 @@ export async function generateAnschreiben(
     yearsOfExperience: number | null
     germanLevel: string | null
     englishLevel: string | null
+    profession: string | null
     skills: any
     workExperience: any
     education: any
@@ -322,6 +328,8 @@ BODY PARAGRAPH RULES:
 ABSOLUTE RULES:
 - NEVER fabricate experience, skills, employers, projects, or qualifications
 - ONLY reformulate existing experience using the job description's vocabulary
+- Never claim regulated-domain suitability, licensing, patient-care experience, nursing/care leadership, or healthcare operations experience unless it appears explicitly in the candidate profile.
+- If the role is a career switch, present the candidate as a career changer with transferable skills. Do not pretend their past work was in the target domain.
 - Match the output language exactly: if "de", write everything in formal German (Sie-form, never "du"). If "en", write in formal professional English.
 - Tone: formal, confident, respectful — not salesy, not casual, not overly humble
 - Avoid clichés like "I am a team player" — prove claims with specific evidence
@@ -352,6 +360,7 @@ CANDIDATE PROFILE:
 - Email: ${profile.email}
 - Phone: ${profile.phone || "Not provided"}
 - Current Title: ${profile.currentJobTitle || "Not specified"}
+- Profession: ${profile.profession || "Not specified"}
 - Years of Experience: ${profile.yearsOfExperience ?? "Not specified"}
 - German Level: ${profile.germanLevel || "Not specified"}
 - English Level: ${profile.englishLevel || "Not specified"}

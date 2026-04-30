@@ -10,10 +10,34 @@ type ProfileForDocumentFit = {
 
 type JobForDocumentFit = {
   title: string
+  company?: string | null
   profession?: string | null
   description?: string | null
   requirements?: string[]
   germanLevel?: string | null
+}
+
+// Patterns that indicate the company / title slot is a placeholder rather
+// than a real value. Generating against placeholders produces output that
+// looks confidently composed but is addressed to a non-existent employer —
+// worse than asking the user to fill in the gap.
+const PLACEHOLDER_PATTERNS: RegExp[] = [
+  /\(\s*name nicht spezifiziert\s*\)/i,
+  /\(\s*name not specified\s*\)/i,
+  /\(\s*unspecified\s*\)/i,
+  /\(\s*not specified\s*\)/i,
+  /\(\s*tbd\s*\)/i,
+  /\(\s*tba\s*\)/i,
+  /^\s*(company|employer|firm|organization|organisation)\s+name\s*$/i,
+  /^\s*(unternehmen|firma|arbeitgeber)\s+name\s*$/i,
+  /^\s*(unknown|unbekannt)\s*$/i,
+]
+
+function looksPlaceholder(value: string | null | undefined): boolean {
+  if (!value) return true
+  const trimmed = value.trim()
+  if (trimmed.length < 2) return true
+  return PLACEHOLDER_PATTERNS.some((re) => re.test(trimmed))
 }
 
 type DocumentFitResult = {
@@ -74,6 +98,22 @@ export function assessGeneratedDocumentFit(
   profile: ProfileForDocumentFit,
   job: JobForDocumentFit
 ): DocumentFitResult {
+  // Reject placeholder titles / company names. Cheaper-than-Claude check.
+  if (looksPlaceholder(job.title)) {
+    return {
+      canGenerate: false,
+      reason:
+        "The job title looks like a placeholder rather than a real role. Open the original posting and confirm the title before generating a tailored application.",
+    }
+  }
+  if (looksPlaceholder(job.company)) {
+    return {
+      canGenerate: false,
+      reason:
+        "The employer name looks like a placeholder. Generating an Anschreiben addressed to a non-existent employer would not help your application — please confirm the company name first.",
+    }
+  }
+
   const jobText = [
     job.title,
     job.profession,

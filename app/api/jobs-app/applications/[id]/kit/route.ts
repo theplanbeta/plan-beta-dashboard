@@ -136,6 +136,7 @@ export async function GET(
   const documentFit = jobPosting
     ? assessGeneratedDocumentFit(seeker.profile ?? {}, {
         title: jobPosting.title,
+        company: jobPosting.company,
         profession: jobPosting.profession,
         description: jobPosting.description,
         requirements: jobPosting.requirements,

@@ -5,7 +5,7 @@ import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateAnschreiben } from "@/lib/jobs-ai"
 import { renderAnschreibenHtml } from "@/lib/anschreiben-html-template"
 import { renderPdfFromHtml } from "@/lib/pdf-from-html"
-import { put } from "@vercel/blob"
+import { saveGeneratedDocumentPdf } from "@/lib/jobs-generated-document-storage"
 import { z } from "zod"
 import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
@@ -164,18 +164,13 @@ export async function POST(request: Request) {
     })
     const pdfBuffer = await renderPdfFromHtml(html, { format: "a4" })
 
-    // Upload to Vercel Blob
+    // Store the generated PDF. Production uses Vercel Blob; local dev
+    // falls back to .local/generated-documents when no Blob token is set.
     stage = "upload"
     const slug = job.slug || job.id
     const fileName = `anschreiben/${seeker.id}/${slug}-${Date.now()}.pdf`
 
-    // The blob store is configured for private-only access. Public PDFs
-    // would be guessable URLs leaking applicant cover letters into HR
-    // inboxes — private + authed proxy is the right default anyway.
-    const blob = await put(fileName, pdfBuffer, {
-      access: "private",
-      contentType: "application/pdf",
-    })
+    const stored = await saveGeneratedDocumentPdf(fileName, pdfBuffer)
 
     // Record for monthly cap counter (and so the download proxy can find it).
     stage = "db"
@@ -183,8 +178,8 @@ export async function POST(request: Request) {
       data: {
         seekerId: seeker.id,
         jobPostingId: job.id,
-        fileUrl: blob.url,
-        fileKey: blob.pathname,
+        fileUrl: stored.fileUrl,
+        fileKey: stored.fileKey,
         keywordsUsed: [],
         templateUsed: ANSCHREIBEN_TEMPLATE,
         language,
@@ -195,7 +190,7 @@ export async function POST(request: Request) {
       anschreiben: {
         id: generated.id,
         downloadUrl: `/api/jobs-app/cv/${generated.id}/download`,
-        fileUrl: blob.url,
+        fileUrl: stored.fileUrl,
         language,
         createdAt: generated.createdAt,
         generatedAt: new Date().toISOString(),

@@ -8,7 +8,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
-import { get } from "@vercel/blob"
+import { loadGeneratedDocument } from "@/lib/jobs-generated-document-storage"
 
 export const runtime = "nodejs"
 
@@ -41,30 +41,9 @@ export async function GET(
     return NextResponse.json({ error: "Blob path missing" }, { status: 500 })
   }
 
-  let stream: ReadableStream<Uint8Array>
-  let contentType = "application/pdf"
-  let contentLength: string | null = null
-
-  if (/^https?:\/\//i.test(pathname)) {
-    const blobResponse = await fetch(pathname, {
-      headers: {
-        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN ?? ""}`,
-      },
-    })
-    if (!blobResponse.ok || !blobResponse.body) {
-      return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 })
-    }
-    stream = blobResponse.body
-    contentType = blobResponse.headers.get("content-type") || contentType
-    contentLength = blobResponse.headers.get("content-length")
-  } else {
-    const result = await get(pathname, { access: "private" })
-    if (!result || result.statusCode !== 200 || !result.stream) {
-      return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 })
-    }
-    stream = result.stream
-    contentType = result.blob.contentType || contentType
-    contentLength = String(result.blob.size)
+  const loaded = await loadGeneratedDocument(pathname)
+  if (!loaded) {
+    return NextResponse.json({ error: "Document fetch failed" }, { status: 502 })
   }
 
   const defaultName = cv.templateUsed === "anschreiben" ? "anschreiben.pdf" : "cv.pdf"
@@ -72,13 +51,13 @@ export async function GET(
     pathname.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "_") || defaultName
 
   const headers = new Headers({
-    "Content-Type": contentType,
+    "Content-Type": loaded.contentType,
     "Content-Disposition": `attachment; filename="${filename}"`,
     "Cache-Control": "private, no-store",
   })
-  if (contentLength) headers.set("Content-Length", contentLength)
+  if (loaded.contentLength) headers.set("Content-Length", loaded.contentLength)
 
-  return new Response(stream, {
+  return new Response(loaded.body, {
     status: 200,
     headers,
   })

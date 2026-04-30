@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
-import { del } from "@vercel/blob"
+import { deleteGeneratedDocument } from "@/lib/jobs-generated-document-storage"
 
 export async function GET(
   request: Request,
@@ -51,9 +51,10 @@ export async function DELETE(
     return NextResponse.json({ error: "CV not found" }, { status: 404 })
   }
 
-  // Delete from blob storage
+  // Delete from backing storage. This supports Vercel Blob in production
+  // and the local .local/generated-documents fallback used in dev.
   try {
-    await del(cv.fileKey)
+    await deleteGeneratedDocument(cv.fileKey || cv.fileUrl)
   } catch {
     // Non-fatal — file may already be gone
   }

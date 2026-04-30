@@ -56,6 +56,9 @@ production-backup.json
 screenshots/
 .env.vercel
 
+# Local generated PDFs for Day Zero dev/testing
+/.local/generated-documents/
+
 # MemPalace local memory (contains conversation history)
 .mempalace/
 

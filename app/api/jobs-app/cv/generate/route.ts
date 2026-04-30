@@ -5,7 +5,7 @@ import { requireJobSeeker, isPremiumEffective } from "@/lib/jobs-app-auth"
 import { generateCVContent } from "@/lib/jobs-ai"
 import { renderCvHtml } from "@/lib/cv-html-template"
 import { renderPdfFromHtml } from "@/lib/pdf-from-html"
-import { put } from "@vercel/blob"
+import { saveGeneratedDocumentPdf } from "@/lib/jobs-generated-document-storage"
 import { z } from "zod"
 import { checkRateLimit, RL } from "@/lib/jobs-app-rate-limit"
 
@@ -148,15 +148,13 @@ export async function POST(request: Request) {
     })
     const pdfBuffer = await renderPdfFromHtml(html, { format: "a4" })
 
-    // Upload to Vercel Blob
+    // Store the generated PDF. Production uses Vercel Blob; local dev
+    // falls back to .local/generated-documents when no Blob token is set.
     stage = "upload"
     const slug = job.slug || job.id
     const fileName = `cvs/${seeker.id}/${slug}-${Date.now()}.pdf`
 
-    const blob = await put(fileName, pdfBuffer, {
-      access: "private",
-      contentType: "application/pdf",
-    })
+    const stored = await saveGeneratedDocumentPdf(fileName, pdfBuffer)
 
     // Save record. Defend against the AI returning a partial response —
     // Prisma rejects `undefined` for the `String[]` column.
@@ -168,8 +166,8 @@ export async function POST(request: Request) {
       data: {
         seekerId: seeker.id,
         jobPostingId: job.id,
-        fileUrl: blob.url,
-        fileKey: blob.pathname,
+        fileUrl: stored.fileUrl,
+        fileKey: stored.fileKey,
         keywordsUsed,
         templateUsed: "ats-standard",
         language,
@@ -180,6 +178,7 @@ export async function POST(request: Request) {
       cv: {
         id: generatedCV.id,
         fileUrl: generatedCV.fileUrl,
+        downloadUrl: `/api/jobs-app/cv/${generatedCV.id}/download`,
         language: generatedCV.language,
         keywordsUsed: generatedCV.keywordsUsed,
         createdAt: generatedCV.createdAt,

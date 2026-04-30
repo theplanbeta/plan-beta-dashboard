@@ -14,6 +14,19 @@ function getClient(): Anthropic {
   return new Anthropic({ apiKey })
 }
 
+/**
+ * Strip German gender-marker tags from job titles before passing to the AI.
+ * "Senior Pflegefachkraft (m/w/d)" → "Senior Pflegefachkraft".
+ * Handles (m/w/d), (w/m/d), (d/m/w), (m/f/d), (m/w/x), and the same with full
+ * stops or asterisks (m*w*d). Also collapses double spaces afterwards.
+ */
+export function sanitizeJobTitle(title: string): string {
+  return title
+    .replace(/\s*\(\s*[mwdfxMWDFX][\s./*\-,]+[mwdfxMWDFX][\s./*\-,]+[mwdfxMWDFX]\s*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 // ── Types ──────────────────────────────────────────────────────────────
 
 export interface DeepScoreResult {
@@ -168,6 +181,9 @@ export async function generateCVContent(
   language: "en" | "de" = "en"
 ): Promise<CVContentResult> {
   const client = getClient()
+  // Strip "(m/w/d)" gender markers — they make Claude echo the literal tag
+  // back into bullets and the Anschreiben subject line, which reads odd.
+  job = { ...job, title: sanitizeJobTitle(job.title) }
 
   const response = await client.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -186,7 +202,16 @@ ABSOLUTE RULES:
 - Top 5 keywords MUST appear in the Professional Summary
 - All text must be UTF-8 selectable (no images of text)
 - Use DD.MM.YYYY date format for German market
-
+${language === "de" ? `
+GERMAN STYLE GUIDE (output language is "de"):
+- DO NOT use these clichés (they sound AI-generated): "umfassende Erfahrungen sammeln", "solides Fundament", "kontinuierlich ausbauen", "besonnen und präzise", "kompetent in...", "100% Sicherheitsstandard", "bewährte Fähigkeiten", "stets engagiert".
+- Prefer "das" over "welches" except in formal-restrictive clauses.
+- Prefer "ausgeprägt" / "fundiert" over "stark" for skill descriptions.
+- Prefer "Erfahrung in der ..." over "kompetent in der ..." (factual vs. angeberisch).
+- Subjekt-Verb-Kongruenz: two subjects joined by "und" take a plural verb.
+- For end-date placeholders use "heute", NEVER "Present".
+- Avoid English-via-German loan structures ("aktuell" as a stand-alone sentence opener, "von" + dative misused, "über" + accusative for years/durations).
+` : ""}
 Return valid JSON only, no markdown or code fences.`,
     messages: [
       {
@@ -301,6 +326,8 @@ export async function generateAnschreiben(
   language: "en" | "de" = "en"
 ): Promise<AnschreibenResult> {
   const client = getClient()
+  job = { ...job, title: sanitizeJobTitle(job.title) }
+
 
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ") || "Candidate"
 
@@ -322,7 +349,7 @@ GERMAN ANSCHREIBEN STRUCTURE (mandatory):
 BODY PARAGRAPH RULES:
 - Paragraph 1 — Why this company and role: Show research about the company. Reference something specific about their work, values, or the role. Open with enthusiasm but remain formal (German cover letters are NOT casual).
 - Paragraph 2 — Relevant experience: Connect 2-3 concrete experiences directly to the job description keywords and requirements. Use measurable achievements where possible. Never fabricate — only reformulate what the candidate has already done.
-- Paragraph 3 — Why Germany / relocation motivation: Critical for international applicants. Explain motivation to live and work in Germany, German language commitment (mention current level), cultural interest, long-term career vision in the German market. Show visa readiness if relevant.
+- Paragraph 3 — Why Germany / relocation motivation: Critical for international applicants. EMPHASIZE WHAT THE CANDIDATE BRINGS TO THE EMPLOYER, not what the candidate gets from Germany. Avoid "Ich profitiere von ..." or "ich erhoffe mir ..." framings — they signal AI generation and read as self-interested. Replace with: what perspective, skills, or commitment the candidate offers the employer's team. Mention German language commitment (current level), cultural fit, and long-term commitment to the German market only as it serves the employer's needs.
 - Paragraph 4 — Closing: Availability / earliest start date, salary expectation only if provided, polite forward-looking statement ("Über die Gelegenheit zu einem persönlichen Gespräch würde ich mich sehr freuen" / "I would welcome the opportunity to discuss my application in a personal interview").
 
 ABSOLUTE RULES:
@@ -335,7 +362,17 @@ ABSOLUTE RULES:
 - Avoid clichés like "I am a team player" — prove claims with specific evidence
 - Keep each paragraph focused; total body should be ~250-350 words
 - Do NOT include placeholder text like "[Your Address]" — omit address fields that aren't provided
-
+${language === "de" ? `
+GERMAN STYLE GUIDE (output language is "de"):
+- DO NOT use these clichés (they sound AI-generated): "umfassende Erfahrungen sammeln", "solides Fundament", "kontinuierlich ausbauen", "besonnen und präzise", "kompetent in...", "100% Sicherheitsstandard", "bewährte Fähigkeiten", "stets engagiert", "in einem dynamischen Umfeld", "neue Herausforderungen meistern".
+- Prefer "das" over "welches" except in formal-restrictive clauses.
+- Prefer "ausgeprägt" / "fundiert" over "stark" for skill descriptions.
+- Prefer "Erfahrung in der ..." over "kompetent in der ..." (factual vs. angeberisch).
+- Subjekt-Verb-Kongruenz: two subjects joined by "und" take a plural verb.
+- For end-date placeholders use "heute", NEVER "Present".
+- Avoid English-via-German loan structures.
+- Paragraph 3 employer-focus rule (above) is non-negotiable for German output.
+` : ""}
 OUTPUT FORMAT:
 Return VALID JSON ONLY, no markdown, no code fences, no commentary. Exact structure:
 {

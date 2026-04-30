@@ -194,11 +194,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       anschreiben: {
         id: generated.id,
-        // Authed download path; kit.anschreiben.fileUrl is kept for
-        // backward-compat but should not be hit directly.
         downloadUrl: `/api/jobs-app/cv/${generated.id}/download`,
         fileUrl: blob.url,
         language,
+        createdAt: generated.createdAt,
         generatedAt: new Date().toISOString(),
       },
       remaining: ANSCHREIBEN_MONTHLY_CAP - anschreibenCount - 1,

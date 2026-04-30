@@ -3,6 +3,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
 
+const ANSCHREIBEN_TEMPLATE = "anschreiben"
+
 export async function GET(request: Request) {
   let seeker
   try {
@@ -18,7 +20,10 @@ export async function GET(request: Request) {
   const cvs = await prisma.generatedCV.findMany({
     where: {
       seekerId: seeker.id,
-      NOT: { templateUsed: "anschreiben" },
+      OR: [
+        { templateUsed: null },
+        { NOT: { templateUsed: ANSCHREIBEN_TEMPLATE } },
+      ],
     },
     orderBy: { createdAt: "desc" },
     take: 50,

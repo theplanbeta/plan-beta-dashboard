@@ -3,6 +3,8 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { requireJobSeeker } from "@/lib/jobs-app-auth"
 
+const ANSCHREIBEN_TEMPLATE = "anschreiben"
+
 /**
  * Clean a string for use in a filename: replace spaces with underscores,
  * strip anything that isn't alphanumeric, underscore, or hyphen.
@@ -73,27 +75,32 @@ export async function GET(
     where: { id: application.jobPostingId },
   })
 
-  // 3. Latest generated CV + Anschreiben for this seeker + job.
-  // Both live in the GeneratedCV table, discriminated by templateUsed
-  // ("anschreiben" for cover letters, anything else for CVs).
-  const [latestCV, latestAnschreiben] = await Promise.all([
-    prisma.generatedCV.findFirst({
-      where: {
-        seekerId: seeker.id,
-        jobPostingId: application.jobPostingId,
-        NOT: { templateUsed: "anschreiben" },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.generatedCV.findFirst({
-      where: {
-        seekerId: seeker.id,
-        jobPostingId: application.jobPostingId,
-        templateUsed: "anschreiben",
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-  ])
+  // 3. Latest generated documents for this seeker + job.
+  //
+  // Anschreibens are stored in GeneratedCV with templateUsed =
+  // "anschreiben" to avoid a second document table. Keep the queries
+  // separate so a newly-generated cover letter cannot be mistaken for the
+  // latest CV.
+  const latestCV = await prisma.generatedCV.findFirst({
+    where: {
+      seekerId: seeker.id,
+      jobPostingId: application.jobPostingId,
+      OR: [
+        { templateUsed: null },
+        { NOT: { templateUsed: ANSCHREIBEN_TEMPLATE } },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const latestAnschreiben = await prisma.generatedCV.findFirst({
+    where: {
+      seekerId: seeker.id,
+      jobPostingId: application.jobPostingId,
+      templateUsed: ANSCHREIBEN_TEMPLATE,
+    },
+    orderBy: { createdAt: "desc" },
+  })
 
   // 4. Language selection.
   //
@@ -189,8 +196,6 @@ ${displayName}`,
     anschreiben: latestAnschreiben
       ? {
           id: latestAnschreiben.id,
-          // Authed proxy path — same route serves both CVs and Anschreibens
-          // since they share GeneratedCV. Direct fileUrl is private-blob 403.
           downloadUrl: `/api/jobs-app/cv/${latestAnschreiben.id}/download`,
           fileUrl: latestAnschreiben.fileUrl,
           language: latestAnschreiben.language,

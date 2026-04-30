@@ -128,8 +128,8 @@ export default function JobDetailClient({ initialJob }: JobDetailClientProps) {
         body: JSON.stringify({ jobPostingId: job.id, language: "en" }),
       })
       const data = await res.json().catch(() => ({}))
-      if (res.ok && data.cv?.fileUrl) {
-        window.open(data.cv.fileUrl, "_blank")
+      if (res.ok && data.cv?.id) {
+        window.open(`/api/jobs-app/cv/${data.cv.id}/download`, "_blank")
       } else {
         toast.error(data.error || "CV generation failed")
       }

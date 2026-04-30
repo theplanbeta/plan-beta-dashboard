@@ -1,7 +1,7 @@
 "use client"
 
 import { toast } from "sonner"
-import { useEffect, useState, Fragment } from "react"
+import { useEffect, useRef, useState, Fragment } from "react"
 import {
   Dialog,
   DialogPanel,
@@ -41,11 +41,10 @@ interface CVData {
 
 interface AnschreibenData {
   id?: string
-  // Authed proxy path (preferred). Falls back to direct fileUrl for
-  // legacy responses that didn't include it.
   downloadUrl?: string
   fileUrl: string
   language: string
+  createdAt: string
 }
 
 interface EmailDraft {
@@ -88,7 +87,7 @@ export default function ApplicationKitModal({
   // server's suggestion (German for B2+ jobs, English otherwise) once
   // the kit loads. User can override via the toggle.
   const [language, setLanguage] = useState<"de" | "en">("en")
-  const [languageManuallySet, setLanguageManuallySet] = useState(false)
+  const languageManuallySetRef = useRef(false)
 
   const [copiedField, setCopiedField] = useState<"subject" | "body" | null>(null)
 
@@ -101,6 +100,7 @@ export default function ApplicationKitModal({
     setKit(null)
     setApplication(null)
     setCopiedField(null)
+    languageManuallySetRef.current = false
 
     async function load() {
       try {
@@ -130,7 +130,7 @@ export default function ApplicationKitModal({
           setApplication(appData)
           // Sync language from server suggestion only if the user hasn't
           // already overridden it manually in this modal session.
-          if (!languageManuallySet && kitData.kit?.suggestedLanguage) {
+          if (!languageManuallySetRef.current && kitData.kit?.suggestedLanguage) {
             setLanguage(kitData.kit.suggestedLanguage)
           }
         }
@@ -246,7 +246,7 @@ export default function ApplicationKitModal({
         window.open(anschreibenHref, "_blank")
       }, 200)
     }
-    if (!kit?.cv?.id && !kit?.anschreiben?.fileUrl) {
+    if (!kit?.cv?.id && !kit?.anschreiben?.id) {
       toast.error("No documents to download yet. Generate them first.")
     }
   }
@@ -434,7 +434,7 @@ export default function ApplicationKitModal({
                             aria-checked={selected}
                             onClick={() => {
                               setLanguage(opt)
-                              setLanguageManuallySet(true)
+                              languageManuallySetRef.current = true
                             }}
                             style={{
                               fontFamily: "var(--f-mono)",

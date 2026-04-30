@@ -19,7 +19,11 @@ const jobSchema = z.object({
   requirements: z.array(z.string()).default([]),
   applyUrl: z.string().max(500).nullish(),
   externalId: z.string().min(1).max(100),
-  description: z.string().max(500).nullish(),
+  // Bumped 500 → 8000. The DB column is TEXT (no length limit) and the
+  // signal-worker's Gemini call benefits enormously from full posting body
+  // (more context = better languageLevel/visaPathway/anerkennung inference).
+  // Kimi Claw was hitting 500-char rejections on real Pflege/Ärzte postings.
+  description: z.string().max(8000).nullish(),
   grade: z.enum(["A", "B", "C", "D"]).nullish(),
   gradeReason: z.string().max(200).nullish(),
 

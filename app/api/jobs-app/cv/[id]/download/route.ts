@@ -1,10 +1,9 @@
 // app/api/jobs-app/cv/[id]/download/route.ts
 //
 // Authed proxy route for private Vercel Blob downloads.
-// The `cvs` folder lives in the private `plan-beta-cvs` store (fra1), so
-// blob URLs are not browsable directly — this route fetches via the SDK's
-// get() helper (which authenticates with BLOB_READ_WRITE_TOKEN) and streams
-// the body to the authenticated JobSeeker who owns the GeneratedCV.
+// Generated CVs and Anschreibens both live in the GeneratedCV table and
+// private Blob storage. Blob URLs are not browsable directly, so this route
+// streams the body to the authenticated JobSeeker who owns the document.
 
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
@@ -35,28 +34,52 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // fileKey holds the blob pathname (e.g. "cvs/{seekerId}/{slug}-{ts}.pdf")
-  // fall back to fileUrl when fileKey is not populated on older rows.
+  // fileKey holds the blob pathname (e.g. "cvs/{seekerId}/{slug}-{ts}.pdf").
+  // Older rows may only have fileUrl, so support both shapes.
   const pathname = cv.fileKey || cv.fileUrl
   if (!pathname) {
     return NextResponse.json({ error: "Blob path missing" }, { status: 500 })
   }
 
-  const result = await get(pathname, { access: "private" })
-  if (!result || result.statusCode !== 200 || !result.stream) {
-    return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 })
+  let stream: ReadableStream<Uint8Array>
+  let contentType = "application/pdf"
+  let contentLength: string | null = null
+
+  if (/^https?:\/\//i.test(pathname)) {
+    const blobResponse = await fetch(pathname, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN ?? ""}`,
+      },
+    })
+    if (!blobResponse.ok || !blobResponse.body) {
+      return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 })
+    }
+    stream = blobResponse.body
+    contentType = blobResponse.headers.get("content-type") || contentType
+    contentLength = blobResponse.headers.get("content-length")
+  } else {
+    const result = await get(pathname, { access: "private" })
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      return NextResponse.json({ error: "Blob fetch failed" }, { status: 502 })
+    }
+    stream = result.stream
+    contentType = result.blob.contentType || contentType
+    contentLength = String(result.blob.size)
   }
 
+  const defaultName = cv.templateUsed === "anschreiben" ? "anschreiben.pdf" : "cv.pdf"
   const filename =
-    pathname.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "_") || "cv.pdf"
+    pathname.split("/").pop()?.replace(/[^a-zA-Z0-9._-]/g, "_") || defaultName
 
-  return new Response(result.stream, {
+  const headers = new Headers({
+    "Content-Type": contentType,
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Cache-Control": "private, no-store",
+  })
+  if (contentLength) headers.set("Content-Length", contentLength)
+
+  return new Response(stream, {
     status: 200,
-    headers: {
-      "Content-Type": result.blob.contentType || "application/pdf",
-      "Content-Length": String(result.blob.size),
-      "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "private, no-store",
-    },
+    headers,
   })
 }

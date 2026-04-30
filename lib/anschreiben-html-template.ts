@@ -7,6 +7,10 @@
 import type { AnschreibenResult } from "./jobs-ai"
 import { escapeHtml } from "./pdf-from-html"
 
+function normalizePhone(s: string): string {
+  return s.replace(/[^\d+]/g, "")
+}
+
 export interface AnschreibenHtmlInput {
   content: AnschreibenResult
   email: string
@@ -17,14 +21,32 @@ export interface AnschreibenHtmlInput {
 export function renderAnschreibenHtml(input: AnschreibenHtmlInput): string {
   const { content, email, phone, showWatermark } = input
 
-  const senderLines = (content.senderBlock || "")
+  // Sender block: dedupe email/phone if Claude already included them.
+  // Without this, the candidate's email shows up twice (once in
+  // senderBlock, once appended by us below) which reads as a typo.
+  const senderRaw = (content.senderBlock || "")
     .split("\n")
-    .filter((l) => l.trim())
-    .map(escapeHtml)
-  const recipientLines = (content.recipientBlock || "")
-    .split("\n")
-    .filter((l) => l.trim())
-    .map(escapeHtml)
+    .map((l) => l.trim())
+    .filter(Boolean)
+  const senderHasEmail = senderRaw.some((l) => l.toLowerCase().includes(email.toLowerCase()))
+  const senderHasPhone = phone
+    ? senderRaw.some((l) => normalizePhone(l).includes(normalizePhone(phone)))
+    : false
+  const senderLines = senderRaw.map(escapeHtml)
+
+  // Recipient: dedupe blank-equivalent and identical lines (Claude
+  // sometimes emits "Personalabteilung" + "Personalabteilung" or repeats
+  // the city when job.location and job.company location were both passed
+  // in upstream). Single-source the rendered output here.
+  const recipientLines = Array.from(
+    new Set(
+      (content.recipientBlock || "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+    )
+  ).map(escapeHtml)
+
   const paragraphs = (content.paragraphs || []).map(escapeHtml)
 
   const watermark = showWatermark
@@ -78,7 +100,11 @@ export function renderAnschreibenHtml(input: AnschreibenHtmlInput): string {
   }
   .closing {
     margin-top: 18pt;
-    margin-bottom: 28pt;
+    margin-bottom: 6pt;
+  }
+  /* Visible blank space for the handwritten signature, then the typed name. */
+  .signature-space {
+    height: 56pt;
   }
   .signature {
     font-weight: 500;
@@ -97,8 +123,8 @@ export function renderAnschreibenHtml(input: AnschreibenHtmlInput): string {
 <body>
   <div class="sender">
     ${senderLines.map((l) => `<div class="line">${l}</div>`).join("")}
-    <div class="line">${escapeHtml(email)}</div>
-    ${phone ? `<div class="line">${escapeHtml(phone)}</div>` : ""}
+    ${senderHasEmail ? "" : `<div class="line">${escapeHtml(email)}</div>`}
+    ${phone && !senderHasPhone ? `<div class="line">${escapeHtml(phone)}</div>` : ""}
   </div>
 
   <div class="recipient">
@@ -114,6 +140,8 @@ export function renderAnschreibenHtml(input: AnschreibenHtmlInput): string {
   ${paragraphs.map((p) => `<p class="paragraph">${p}</p>`).join("")}
 
   <div class="closing">${escapeHtml(content.closing || "")}</div>
+
+  <div class="signature-space"></div>
 
   <div class="signature">${escapeHtml(content.signature || "")}</div>
 

@@ -6,6 +6,20 @@
 import type { CVContentResult } from "./jobs-ai"
 import { escapeHtml } from "./pdf-from-html"
 
+/**
+ * Localise an end-date string for the CV's output language.
+ * Claude is asked for "MM/YYYY or Present" but for German output we render
+ * "heute" instead — "Present" in a German CV is an obvious AI tell.
+ */
+function localizeEndDate(value: string, language: "en" | "de"): string {
+  if (language !== "de") return value
+  const trimmed = value.trim()
+  if (/^present$/i.test(trimmed)) return "heute"
+  if (/^now$/i.test(trimmed)) return "heute"
+  if (/^current$/i.test(trimmed)) return "heute"
+  return value
+}
+
 export interface CVHtmlInput {
   content: CVContentResult
   name: string
@@ -66,7 +80,7 @@ export function renderCvHtml(input: CVHtmlInput): string {
               <div class="job-title">${escapeHtml(exp.title)}</div>
               <div class="job-company">${escapeHtml(exp.company)}</div>
             </div>
-            <div class="job-dates">${escapeHtml(exp.startDate)} – ${escapeHtml(exp.endDate)}</div>
+            <div class="job-dates">${escapeHtml(exp.startDate)} – ${escapeHtml(localizeEndDate(exp.endDate, language))}</div>
           </header>
           <ul class="bullets">
             ${(exp.bullets || []).map((b) => `<li>${escapeHtml(b)}</li>`).join("")}

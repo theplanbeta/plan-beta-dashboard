@@ -233,7 +233,7 @@ export const SCHOOL_INFO = {
   city: 'Kannammoola, Thiruvananthapuram',
   state: 'Kerala 695011, India',
   gst: '32AJVPS3359N1ZB',
-  email: 'info@planbeta.in',
+  email: 'hello@planbeta.in',
   phone: '+91 9028396035',
 } as const
 

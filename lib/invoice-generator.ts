@@ -177,8 +177,8 @@ function buildInvoiceHTML(
                 ${escapeHtml(item.description)}<br/>
                 <span style="font-size: 10px; color: #999;">Batch: ${escapeHtml(item.batch)}</span>
               </td>
-              <td style="padding: 14px 0; vertical-align: middle;">
-                <span style="background: #c62828; color: white; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; line-height: 1;">${escapeHtml(item.level)}</span>
+              <td style="padding: 14px 0; vertical-align: middle; text-align: center;">
+                <span style="background: #c62828; color: white; padding: 0 12px; border-radius: 999px; font-size: 11px; font-weight: 600; display: inline-block; min-width: 32px; height: 22px; line-height: 22px; text-align: center; letter-spacing: 0.3px; box-sizing: content-box;">${escapeHtml(item.level)}</span>
               </td>
               <td style="padding: 14px 0; font-size: 12px; color: #555; vertical-align: middle;">${escapeHtml(item.month)}</td>
               <td style="padding: 14px 0; text-align: right; font-size: 14px; font-weight: 600; color: #1a1a1a; vertical-align: middle;">${fmt(item.amount)}</td>

@@ -204,10 +204,6 @@ function buildInvoiceHTML(
             <span style="font-size: 12px; color: #888;">Remaining</span>
             <span style="font-size: 14px; font-weight: 600; color: #ef4444;">${fmt(data.remainingAmount)}</span>
           </div>` : ''}
-          <div style="background: #1a1a1a; color: white; padding: 14px 16px; border-radius: 8px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Amount Due</span>
-            <span style="font-size: 20px; font-weight: 700;">${fmt(data.payableNow || total)}</span>
-          </div>
         </div>
       </div>
 

@@ -150,7 +150,7 @@ export default function TeamPage() {
 
           {orderedTeachers.length === 0 ? (
             <p className="text-center text-gray-500 text-sm py-12">
-              Team profiles are being prepared — check back soon.
+              Team profiles are being prepared. Check back soon.
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -193,9 +193,9 @@ export default function TeamPage() {
           </h2>
           <p className="text-gray-400 leading-relaxed mb-8">
             Every Plan Beta teacher clears a minimum B2 in German, and Aparna
-            audits their classes herself. You're not gambling on who walks in
-            — you're joining a team that holds itself to the same bar your
-            exam will.
+            audits their classes herself. You&apos;re not gambling on who walks
+            in. You&apos;re joining a team that holds itself to the same bar
+            your exam will.
           </p>
           <a
             href={TEAM_WA_URL}

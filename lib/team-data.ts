@@ -48,7 +48,7 @@ export const FOUNDER: Founder = {
   levels: ["A1", "A2", "B1", "B2"],
   location: "Germany",
   city: "Stuttgart",
-  bio: "Aparna founded Plan Beta to build a German school that runs on standards, not shortcuts — small live batches, B2-trained teachers, and the same care for a beginner's first A1 hour as for a nurse's final B2 exam. She still teaches every level she ships.",
+  bio: "Aparna founded Plan Beta to build a German school that runs on standards, not shortcuts: small live batches, B2-trained teachers, and the same care for a beginner's first A1 hour as for a nurse's final B2 exam. She still teaches every level she ships.",
   whatsappUrl: marketingWhatsAppUrl(
     "Hi Aparna! I'd like to learn more about Plan Beta."
   ),

@@ -30,6 +30,10 @@ export interface Teacher {
   /** Optional city for fuller location detail (e.g. "Stuttgart"). Render
    *  shows "Based in {city}, {location}" when set, else "Based in {location}". */
   city?: string
+  /** Optional CSS `object-position` for the portrait crop. Defaults to
+   *  `center`. Use `"top"` when the subject's head is high in the frame and
+   *  centre-cropping clips the forehead. */
+  objectPosition?: string
 }
 
 export interface Founder extends Teacher {
@@ -94,6 +98,7 @@ export const TEACHERS: Teacher[] = [
     photo: "/team/nitha.jpg",
     levels: ["A1", "A2", "B1"],
     location: "India",
+    objectPosition: "top",
   },
   {
     name: "Swathi",

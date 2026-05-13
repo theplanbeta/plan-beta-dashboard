@@ -32,11 +32,13 @@ function PortraitOrInitials({
   photo,
   sizes,
   priority = false,
+  objectPosition = "center",
 }: {
   name: string
   photo?: string
   sizes: string
   priority?: boolean
+  objectPosition?: string
 }) {
   if (photo) {
     return (
@@ -46,6 +48,7 @@ function PortraitOrInitials({
         fill
         sizes={sizes}
         className="object-cover"
+        style={{ objectPosition }}
         priority={priority}
       />
     )
@@ -68,7 +71,11 @@ const TEAM_WA_URL = marketingWhatsAppUrl(
 )
 
 export default function TeamPage() {
-  const orderedTeachers = dailyShuffle(TEACHERS)
+  // Public team page only shows teachers with a photo on file. Anyone in the
+  // TEACHERS array without a `photo` field stays in the data (still visible
+  // to admins) but is hidden here until their photo lands.
+  const visibleTeachers = TEACHERS.filter((t) => Boolean(t.photo))
+  const orderedTeachers = dailyShuffle(visibleTeachers)
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
@@ -153,7 +160,7 @@ export default function TeamPage() {
               Team profiles are being prepared. Check back soon.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {orderedTeachers.map((teacher) => (
                 <article
                   key={teacher.name}
@@ -163,7 +170,8 @@ export default function TeamPage() {
                     <PortraitOrInitials
                       name={teacher.name}
                       photo={teacher.photo}
-                      sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 100vw"
+                      objectPosition={teacher.objectPosition}
+                      sizes="(min-width: 1024px) 22vw, 50vw"
                     />
                   </div>
                   <div className="p-6">

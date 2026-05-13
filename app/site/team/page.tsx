@@ -57,10 +57,13 @@ function PortraitOrInitials({
     <div
       role="img"
       aria-label={`${name} (photo coming soon)`}
-      className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br ${paletteFor(name)}`}
+      className={`absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br ${paletteFor(name)}`}
     >
-      <span className="text-5xl sm:text-6xl font-semibold text-white/80 tracking-wider">
+      <span className="text-4xl font-light text-white/50 tracking-wide">
         {initialsOf(name)}
+      </span>
+      <span className="mt-2 text-[10px] uppercase tracking-[0.2em] text-white/30">
+        Photo coming soon
       </span>
     </div>
   )
@@ -71,11 +74,10 @@ const TEAM_WA_URL = marketingWhatsAppUrl(
 )
 
 export default function TeamPage() {
-  // Public team page only shows teachers with a photo on file. Anyone in the
-  // TEACHERS array without a `photo` field stays in the data (still visible
-  // to admins) but is hidden here until their photo lands.
-  const visibleTeachers = TEACHERS.filter((t) => Boolean(t.photo))
-  const orderedTeachers = dailyShuffle(visibleTeachers)
+  // Everyone in TEACHERS shows on the public page. When a photo is missing
+  // the card renders a softer initials avatar; the `Herr`/`Frau` title in
+  // front of the name keeps it reading as a real person, not a placeholder.
+  const orderedTeachers = dailyShuffle(TEACHERS)
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen">
@@ -106,6 +108,7 @@ export default function TeamPage() {
                 <PortraitOrInitials
                   name={FOUNDER.name}
                   photo={FOUNDER.photo}
+                  objectPosition={FOUNDER.objectPosition}
                   sizes="(min-width: 768px) 40vw, 100vw"
                   priority
                 />
@@ -117,7 +120,7 @@ export default function TeamPage() {
                 The person behind Plan Beta
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-                {FOUNDER.name}
+                {FOUNDER.title ? `${FOUNDER.title} ` : ""}{FOUNDER.name}
               </h2>
               <p className="inline-block text-sm font-semibold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full mb-6">
                 {FOUNDER.role}
@@ -176,7 +179,7 @@ export default function TeamPage() {
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-semibold text-white mb-1">
-                      {teacher.name}
+                      {teacher.title ? `${teacher.title} ` : ""}{teacher.name}
                     </h3>
                     <p className="text-xs text-primary font-medium mb-2">
                       {formatLevels(teacher.levels)}

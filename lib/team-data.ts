@@ -15,8 +15,13 @@ import { marketingWhatsAppUrl } from "@/lib/marketing-constants"
 
 export type GermanLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
 export type TeacherLocation = "Germany" | "India"
+export type GermanTitle = "Herr" | "Frau"
 
 export interface Teacher {
+  /** German salutation rendered before the name (Herr Müller / Frau Bose).
+   *  Lets cards read as proper teachers even when only a first name is on
+   *  file. Optional only for the rare case where a teacher prefers no title. */
+  title?: GermanTitle
   /** First + last name. Public-facing. */
   name: string
   /** Path under /public — e.g. `/team/aparna.jpg`. 1:1 portrait, ≥800×800.
@@ -46,9 +51,11 @@ export interface Founder extends Teacher {
 // --- Aparna: founder & director ---
 // Edit bio + photo path. The WhatsApp message is pre-filled for the page CTA.
 export const FOUNDER: Founder = {
+  title: "Frau",
   name: "Aparna Bose",
   role: "Founder & Director",
   photo: "/team/aparna.jpg",
+  objectPosition: "top",
   levels: ["A1", "A2", "B1", "B2"],
   location: "Germany",
   city: "Stuttgart",
@@ -64,36 +71,42 @@ export const FOUNDER: Founder = {
 // Anu + Deepana are based in Germany; everyone else is in India.
 export const TEACHERS: Teacher[] = [
   {
+    title: "Frau",
     name: "Anu",
     photo: "/team/anu.jpg",
     levels: ["A1", "A2"],
     location: "Germany",
   },
   {
+    title: "Frau",
     name: "Chinnu",
     photo: "/team/chinnu.jpg",
     levels: ["A1", "A2", "B1"],
     location: "India",
   },
   {
+    title: "Herr",
     name: "Christeen",
     photo: "/team/christeen.jpg",
     levels: ["A1"],
     location: "India",
   },
   {
+    title: "Frau",
     name: "Deepana Shiny George",
     photo: "/team/deepana-shiny-george.jpg",
     levels: ["A1", "A2"],
     location: "Germany",
   },
   {
+    title: "Frau",
     name: "Madhumitha",
     photo: "/team/madhumitha.jpg",
     levels: ["A2", "B1", "B2"],
     location: "India",
   },
   {
+    title: "Frau",
     name: "Nitha",
     photo: "/team/nitha.jpg",
     levels: ["A1", "A2", "B1"],
@@ -101,14 +114,17 @@ export const TEACHERS: Teacher[] = [
     objectPosition: "top",
   },
   {
+    title: "Frau",
     name: "Swathi",
     photo: "/team/swathi.jpg",
     levels: ["A2", "B1"],
     location: "India",
   },
   {
+    title: "Frau",
     name: "Varsha",
-    // No photo on file — page falls back to initials avatar.
+    // No photo on file. Page renders her initials avatar; the "Frau Varsha"
+    // name keeps the card reading as a person, not a placeholder.
     levels: ["A1", "A2", "B1", "B2"],
     location: "India",
   },

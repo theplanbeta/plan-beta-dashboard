@@ -4,6 +4,7 @@ import { NicheHero } from "@/components/marketing/jobs/NicheHero"
 import { GermanLevelGapBanner } from "@/components/marketing/jobs/GermanLevelGapBanner"
 import { NicheJobsList } from "@/components/marketing/jobs/NicheJobsList"
 import { NicheFAQ } from "@/components/marketing/jobs/NicheFAQ"
+import { NursingConsultStickyBar } from "@/components/marketing/jobs/NursingConsultStickyBar"
 
 const NICHE = "nursing" as const
 const PROFESSIONS = ["Nursing", "Healthcare"]
@@ -48,6 +49,7 @@ export default async function NursingJobsPage() {
   const data = await getInitialData()
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
+      <NursingConsultStickyBar />
       <NicheHero niche={NICHE} jobCount={data.totalCount} lastUpdated={data.lastUpdated} newJobsToday={data.newJobsToday} />
       <GermanLevelGapBanner niche={NICHE} jobCount={data.totalCount} />
       <Suspense fallback={<div className="py-20 text-center text-gray-500">Loading jobs...</div>}>

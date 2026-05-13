@@ -8,6 +8,11 @@ import {
   BreadcrumbSchema,
 } from "@/components/marketing/SEOStructuredData"
 import { marked } from "marked"
+import {
+  ctaForProfile,
+  inferReaderProfile,
+  type ReaderProfile,
+} from "@/lib/blog-cta"
 
 // ISR: revalidate every hour
 export const revalidate = 3600
@@ -84,6 +89,19 @@ export default async function BlogPostPage({
     notFound()
   }
 
+  // Resolve which conversion funnel this post belongs to. Prefer the stored
+  // readerProfile (set by the AI generator on new posts); fall back to a
+  // heuristic for older posts written before the field existed.
+  const profile: ReaderProfile =
+    (post.readerProfile as ReaderProfile) && post.readerProfile !== "general"
+      ? (post.readerProfile as ReaderProfile)
+      : inferReaderProfile({
+          category: post.category,
+          tags: post.tags,
+          title: post.title,
+          targetKeyword: post.targetKeyword,
+        })
+
   // Convert markdown to HTML
   const htmlContent = await marked(post.content)
 
@@ -115,7 +133,7 @@ export default async function BlogPostPage({
     : ""
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen">
+    <div className="bg-[#0a0a0a] min-h-screen" data-pb-reader-profile={profile}>
       <ArticleSchema
         title={post.title}
         description={post.excerpt}
@@ -249,32 +267,55 @@ export default async function BlogPostPage({
         </section>
       )}
 
-      {/* CTA */}
-      <section className="py-16 bg-primary">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Ready to Start Your German Journey?
-          </h2>
-          <p className="text-red-100 mb-8">
-            Join thousands of Indian students who have successfully learned
-            German with Plan Beta. Start speaking German today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/courses"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
-            >
-              View Courses
-            </Link>
-            <Link
-              href="/contact"
+      {/* Profile-matched conversion CTA — replaces the generic "View Courses / Contact Us" footer */}
+      <BlogCtaBanner profile={profile} />
+    </div>
+  )
+}
+
+function BlogCtaBanner({ profile }: { profile: ReaderProfile }) {
+  const cta = ctaForProfile(profile)
+
+  const Primary = cta.primaryExternal ? "a" : Link
+  const primaryProps = cta.primaryExternal
+    ? { href: cta.primaryHref, target: "_blank", rel: "noopener noreferrer" }
+    : { href: cta.primaryHref }
+
+  const isSecondaryExternal = cta.secondaryHref?.startsWith("http")
+  const Secondary = isSecondaryExternal ? "a" : Link
+  const secondaryProps = cta.secondaryHref
+    ? isSecondaryExternal
+      ? { href: cta.secondaryHref, target: "_blank", rel: "noopener noreferrer" }
+      : { href: cta.secondaryHref }
+    : null
+
+  return (
+    <section className="py-16 bg-primary">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span className="inline-block px-3 py-1 mb-4 rounded-full bg-white/15 text-white text-xs uppercase tracking-wider font-semibold">
+          {cta.eyebrow}
+        </span>
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+          {cta.headline}
+        </h2>
+        <p className="text-red-100 mb-8 max-w-2xl mx-auto">{cta.body}</p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Primary
+            {...primaryProps}
+            className="inline-flex items-center justify-center px-8 py-4 bg-white text-primary text-lg font-semibold rounded-xl hover:bg-gray-100 transition-all"
+          >
+            {cta.primaryLabel}
+          </Primary>
+          {Secondary && secondaryProps && cta.secondaryLabel && (
+            <Secondary
+              {...secondaryProps}
               className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white text-lg font-semibold rounded-xl hover:bg-white/10 transition-all"
             >
-              Contact Us
-            </Link>
-          </div>
+              {cta.secondaryLabel}
+            </Secondary>
+          )}
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   )
 }

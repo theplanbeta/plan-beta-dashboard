@@ -63,7 +63,7 @@ export default function PathwayLayout({
                 name: "What is the salary in Germany for Indian workers?",
                 acceptedAnswer: {
                   "@type": "Answer",
-                  text: "Salaries vary by profession: Nurses earn EUR 2,800-3,800/month, IT professionals EUR 4,000-6,500/month, Engineers EUR 3,500-5,500/month. Germany also offers excellent benefits including health insurance and 30 days paid vacation.",
+                  text: "German salaries are competitive and vary by profession, state, and experience. Beyond pay, Germany offers excellent benefits including comprehensive health insurance, pension contributions, and 30 days paid vacation — the overall package is what makes it attractive. Plan Beta walks you through what to expect for your profile.",
                 },
               },
               {

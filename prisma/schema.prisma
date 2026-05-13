@@ -1054,6 +1054,11 @@ enum AuditAction {
   RECEIPT_DOWNLOADED
   RECEIPT_SENT
   REFUND_PROCESSED
+  BLOG_SUBMITTED
+  BLOG_APPROVED
+  BLOG_REJECTED
+  BLOG_PUBLISHED
+  BLOG_UNPUBLISHED
 }
 
 enum AuditSeverity {
@@ -1960,18 +1965,25 @@ model AnalyticsCache {
   @@index([expiresAt])
 }
 
+enum BlogApprovalStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
 model BlogPost {
   id              String    @id @default(cuid())
   slug            String    @unique
   title           String
-  excerpt         String // 1-2 sentence summary for listing cards
-  content         String // Full markdown content
-  category        String // Career, Learning Tips, Exam Prep, Visa & Immigration, Student Life, Job Market
-  tags            String[] // SEO tags
-  metaTitle       String? // Custom SEO title (falls back to title)
-  metaDescription String? // Custom meta description (falls back to excerpt)
-  targetKeyword   String? // Primary target keyword for SEO
-  readTime        Int       @default(5) // Estimated read time in minutes
+  excerpt         String
+  content         String
+  category        String
+  tags            String[]
+  metaTitle       String?
+  metaDescription String?
+  targetKeyword   String?
+  readTime        Int       @default(5)
   published       Boolean   @default(false)
   featured        Boolean   @default(false)
   publishedAt     DateTime?
@@ -1979,9 +1991,24 @@ model BlogPost {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  // Approval workflow: MARKETING drafts → submits for review → FOUNDER approves/rejects
+  // Only APPROVED posts can be set to published=true.
+  approvalStatus  BlogApprovalStatus @default(DRAFT)
+  submittedAt     DateTime?
+  submittedBy     String?
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNotes     String?
+
+  // Conversion-funnel targeting: who is this post for? Drives the profile-matched
+  // closing CTA on /blog/[slug] and the in-content CTA the generator embeds.
+  // Values: "nurse" | "engineer" | "it" | "student" | "visa-seeker" | "general"
+  readerProfile   String    @default("general")
+
   @@index([published, publishedAt])
   @@index([category])
   @@index([slug])
+  @@index([approvalStatus])
 }
 
 model InstagramInsight {

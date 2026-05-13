@@ -3,6 +3,7 @@ import { checkPermission } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit"
+import { validateBlogContent, formatWarningsAsNote } from "@/lib/blog-validator"
 
 const aiLimiter = rateLimit(RATE_LIMITS.AI)
 
@@ -92,7 +93,7 @@ async function getAutoTopic(): Promise<{
     "Exam Prep": "preparing for Goethe-Zertifikat or telc exams, test strategies, practice resources",
     "Visa & Immigration": `German visa processes, Blue Card, work permits, Aufenthaltstitel, ${seasonalContext}`,
     "Student Life": `life in Germany for Indian students, cultural tips, practical advice, ${seasonalContext}`,
-    "Job Market": `German job market trends${trendingProfession ? `, demand for ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}, salary expectations`,
+    "Job Market": `German job market trends${trendingProfession ? `, demand for ${trendingProfession}` : ""}${trendingLocation ? ` in ${trendingLocation}` : ""}, career outlook`,
   }
 
   const keywordMap: Record<string, string> = {
@@ -146,7 +147,22 @@ Target audience: Indian professionals and students aged 20-35 interested in movi
 
 Tone: Informative, encouraging, practical, and conversational. Write like a knowledgeable friend who has been through the process.
 
-Guidelines:
+## Conversion focus (non-negotiable)
+
+Every post is a conversion funnel for ONE specific reader profile. Decide who this post is for and tailor every CTA to that person. Pick exactly one:
+- "nurse"        → funnel: WhatsApp to Plan Beta's nursing pipeline → https://wa.me/919028396035
+- "engineer"    → funnel: free eligibility quiz at /germany-pathway
+- "it"          → funnel: WhatsApp planning call → https://wa.me/919028396035
+- "student"     → funnel: live A1–B2 batches at /courses
+- "visa-seeker" → funnel: eligibility quiz at /germany-pathway
+- "general"     → funnel: free consultation at /contact
+
+You MUST:
+1. Embed a mid-post CTA after the second H2 section, formatted as a blockquote with bold text and a markdown link to the profile's funnel URL. Example for a nurse-targeted post:
+   > **Are you a BSc/GNM nurse?** Plan Beta places nurses in German hospitals with no agent fees. [Tell us about your profile on WhatsApp →](https://wa.me/919028396035)
+2. Close the post with a final CTA paragraph (NOT a bullet list) that names the reader's situation, the specific next step, and includes the funnel link. Avoid soft phrasings like "feel free to contact us" — be direct: "Book a free consultation", "Run the eligibility check", "Reply to this on WhatsApp".
+
+## Guidelines
 - Write in English
 - 800-1500 words
 - Use H2 (##) and H3 (###) headings to structure the content
@@ -155,26 +171,28 @@ Guidelines:
 - Include internal links using markdown:
   - [German courses](/courses) — when mentioning learning German
   - [student jobs in Germany](/jobs/student-jobs) — when mentioning student work
-  - [nursing jobs in Germany](/jobs/nursing) — when mentioning nursing careers
+  - [nursing programs with Plan Beta](/nurses) — when mentioning nursing careers (this is the consultation funnel, NOT a job board)
   - [contact us](/contact) — when suggesting the reader take action
   - [German classes in Kerala](/german-classes/kochi) — when mentioning local classes
-- End with a clear CTA (call to action) encouraging the reader to contact Plan Beta or enroll in a course
+  - [Germany eligibility quiz](/germany-pathway) — when discussing visas or pathways
 - Do NOT use generic filler content — provide specific, actionable information
 - Reference real German institutions, programs, or processes where relevant (Goethe-Institut, DAAD, Auslanderamt, etc.)
 - Mention specific German language levels (A1, A2, B1, B2) where relevant
+- IMPORTANT: Do NOT quote specific salary ranges (e.g. "€2,800-4,500/month") or income figures. Speak about salaries qualitatively ("competitive", "varies by state and experience") and direct readers to consult Plan Beta for specifics. Legal thresholds like the EU Blue Card minimum are acceptable as single figures.
 
 You must respond with valid JSON only (no markdown code fences). The JSON must have these fields:
 {
   "title": "SEO-optimized blog post title (60-70 chars ideal)",
   "slug": "url-friendly-slug-with-hyphens",
   "excerpt": "1-2 sentence compelling summary for blog listing cards (150-160 chars)",
-  "content": "Full markdown content of the blog post",
+  "content": "Full markdown content of the blog post — MUST include the mid-post blockquote CTA and a direct closing CTA paragraph",
   "category": "${category}",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "targetKeyword": "${targetKeyword}",
   "metaTitle": "SEO meta title (50-60 chars, include target keyword)",
   "metaDescription": "SEO meta description (150-160 chars, include target keyword and CTA)",
-  "readTime": estimated_read_time_in_minutes_as_number
+  "readTime": estimated_read_time_in_minutes_as_number,
+  "readerProfile": "nurse | engineer | it | student | visa-seeker | general — the single profile this post converts for"
 }`
 
   try {
@@ -209,6 +227,7 @@ You must respond with valid JSON only (no markdown code fences). The JSON must h
       metaTitle: string
       metaDescription: string
       readTime: number
+      readerProfile?: string
     }
 
     try {
@@ -230,13 +249,14 @@ Your job is to take the draft blog post and rewrite it to feel authentic and hum
 
 1. Add 1-2 personal anecdotes from student experiences ("One of our students from Kochi...", "A common thing we hear from our B1 batch...")
 2. Use conversational Indian English — not overly formal, not slangy. Like talking to a friend over chai.
-3. Replace vague claims with specific numbers (actual costs in INR and EUR, real timelines, specific cities)
+3. Replace vague claims with concrete details — real timelines, specific cities, named programs/institutions. Do NOT add salary numbers or money ranges; if the draft has them, replace with qualitative language and a nudge to consult Plan Beta.
 4. Add rhetorical questions to break up text ("Sound familiar?", "So what does this actually look like?")
 5. Add honest opinions ("Honestly, most coaching centers get this wrong...", "Here's what nobody tells you...")
 6. REMOVE these AI-sounding phrases completely: "In this comprehensive guide", "It's important to note", "Let's dive in", "In conclusion", "Whether you're a...", "In today's world", "Look no further", "Navigate the complexities"
 7. Keep all markdown formatting, internal links, headings, and structure intact
 8. Keep the same length (800-1500 words) — don't pad or trim significantly
-9. Make the CTA feel personal, not salesy ("Drop us a message — we'll help you figure out the right batch")
+9. The CTAs (mid-post blockquote + closing paragraph) must stay in place and must keep their funnel link. Make them feel personal, but DO NOT soften them into "feel free to contact us" — keep a direct next step ("Book a free consultation", "Run the eligibility check", "Message us on WhatsApp")
+10. Do NOT remove or relocate the mid-post blockquote CTA or change its funnel URL.
 
 Return ONLY the rewritten markdown content. No JSON wrapper, no explanation — just the markdown.`,
       messages: [
@@ -260,6 +280,25 @@ Return ONLY the rewritten markdown content. No JSON wrapper, no explanation — 
       postData.slug = `${postData.slug}-${Date.now().toString(36)}`
     }
 
+    const validProfiles = new Set([
+      "nurse",
+      "engineer",
+      "it",
+      "student",
+      "visa-seeker",
+      "general",
+    ])
+    const readerProfile =
+      postData.readerProfile && validProfiles.has(postData.readerProfile)
+        ? postData.readerProfile
+        : "general"
+
+    // Post-generation validator. Catches AI drift from the prompt rules
+    // (salary ranges, missing mid-post CTA, weak closing CTA). Non-blocking —
+    // we save the draft with warnings attached so reviewers see them.
+    const warnings = validateBlogContent(postData.content)
+    const reviewNotes = formatWarningsAsNote(warnings) || null
+
     const blogPost = await prisma.blogPost.create({
       data: {
         slug: postData.slug,
@@ -273,11 +312,18 @@ Return ONLY the rewritten markdown content. No JSON wrapper, no explanation — 
         targetKeyword: postData.targetKeyword || targetKeyword,
         readTime: postData.readTime || 5,
         published: false,
+        approvalStatus: "DRAFT",
+        readerProfile,
+        reviewNotes,
         author: "Plan Beta",
       },
     })
 
-    return NextResponse.json({ success: true, post: blogPost })
+    return NextResponse.json({
+      success: true,
+      post: blogPost,
+      warnings: warnings.length > 0 ? warnings : undefined,
+    })
   } catch (error) {
     console.error("Blog generation error:", error)
     return NextResponse.json(

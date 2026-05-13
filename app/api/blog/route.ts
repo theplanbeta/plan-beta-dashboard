@@ -10,14 +10,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const publishedParam = searchParams.get("published")
   const category = searchParams.get("category")
+  const approvalStatusParam = searchParams.get("approvalStatus")
   const page = parseInt(searchParams.get("page") || "1", 10)
   const limit = parseInt(searchParams.get("limit") || "10", 10)
 
-  // Determine if user is authenticated (for draft access)
   const session = await getServerSession(authOptions)
   const isAuthenticated = !!session?.user
 
-  // Build where clause
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {}
 
@@ -26,12 +25,15 @@ export async function GET(request: NextRequest) {
   } else if (publishedParam === "all" && isAuthenticated) {
     // No filter on published — show all
   } else {
-    // Default: only published posts
     where.published = true
   }
 
   if (category && category !== "All") {
     where.category = category
+  }
+
+  if (approvalStatusParam && isAuthenticated) {
+    where.approvalStatus = approvalStatusParam
   }
 
   const [posts, total] = await Promise.all([
@@ -50,6 +52,13 @@ export async function GET(request: NextRequest) {
         publishedAt: true,
         author: true,
         createdAt: true,
+        approvalStatus: true,
+        submittedAt: true,
+        submittedBy: true,
+        reviewedAt: true,
+        reviewedBy: true,
+        reviewNotes: true,
+        readerProfile: true,
       },
       orderBy: { publishedAt: { sort: "desc", nulls: "last" } },
       skip: (page - 1) * limit,

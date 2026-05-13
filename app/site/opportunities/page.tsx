@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { BreadcrumbSchema, FAQSchema } from "@/components/marketing/SEOStructuredData"
+import { SocialProofBar } from "@/components/marketing/SocialProofBar"
 import CommunityJobsSection from "./CommunityJobsSection"
 import JobAlertSubscription from "./JobAlertSubscription"
 
@@ -18,7 +19,7 @@ const sectors = [
     title: "Nursing & Healthcare",
     icon: "🏥",
     demand: "200,000+ unfilled positions",
-    salary: "€2,800 - €4,500/month",
+    salary: "Competitive — varies by state & facility",
     requirements: "B2 German + BSc Nursing degree",
     description: "Germany's healthcare sector faces a severe nursing shortage. Indian nurses with proper qualifications and B2 German are in high demand.",
     benefits: [
@@ -41,7 +42,7 @@ const sectors = [
     title: "Engineering",
     icon: "⚙️",
     demand: "100,000+ engineers needed",
-    salary: "€4,000 - €7,000/month",
+    salary: "Competitive — Blue Card eligible",
     requirements: "B1 German + Engineering degree",
     description: "Germany's engineering sector needs skilled professionals in mechanical, electrical, automotive, and civil engineering.",
     benefits: [
@@ -64,7 +65,7 @@ const sectors = [
     title: "IT & Technology",
     icon: "💻",
     demand: "Growing tech ecosystem",
-    salary: "€4,500 - €8,000/month",
+    salary: "Competitive — Blue Card eligible",
     requirements: "B1 German (or English for some roles)",
     description: "Berlin, Munich, and Hamburg are major tech hubs. Many companies accept English, but German skills give you an edge.",
     benefits: [
@@ -87,7 +88,7 @@ const sectors = [
     title: "Medical Professionals",
     icon: "👨‍⚕️",
     demand: "Shortage of doctors",
-    salary: "€5,000 - €10,000/month",
+    salary: "Premium — among the highest in healthcare",
     requirements: "B2/C1 German + Medical degree",
     description: "Germany needs doctors, especially in rural areas. Indian medical graduates can practice after recognition and language certification.",
     benefits: [
@@ -149,7 +150,7 @@ const faqs = [
   },
   {
     question: "What's the cost of living in Germany?",
-    answer: "Outside major cities, you can live comfortably on €1,500-2,000/month. In cities like Munich or Frankfurt, expect €2,000-3,000/month. With typical salaries, you can save significantly while enjoying a high quality of life.",
+    answer: "Cost of living varies — smaller cities are significantly more affordable than Munich or Frankfurt. With typical German salaries, you can comfortably cover rent, food, transport, and still save while enjoying a high quality of life. We share city-specific numbers during your consultation.",
   },
   {
     question: "Can I bring my family?",
@@ -204,6 +205,8 @@ export default function OpportunitiesPage() {
         </div>
       </section>
 
+      <SocialProofBar variant="general" />
+
       {/* Key Stats */}
       <section className="py-12 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -213,8 +216,8 @@ export default function OpportunitiesPage() {
               <div className="text-red-100">Skilled Workers Needed Annually</div>
             </div>
             <div>
-              <div className="text-4xl font-bold">€4,500</div>
-              <div className="text-red-100">Average Monthly Salary</div>
+              <div className="text-4xl font-bold">Competitive</div>
+              <div className="text-red-100">Salaries with EU Benefits</div>
             </div>
             <div>
               <div className="text-4xl font-bold">30</div>
@@ -437,14 +440,19 @@ export default function OpportunitiesPage() {
       {/* Niche Job Board Links */}
       <section className="py-16 bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-white mb-2 text-center">Browse Jobs by Profession</h2>
-          <p className="text-gray-400 text-sm text-center mb-10">Explore real job listings from German employers</p>
+          <h2 className="text-2xl font-bold text-white mb-2 text-center">Find Your Path by Profession</h2>
+          <p className="text-gray-400 text-sm text-center mb-10">Talk to Plan Beta about real opportunities — we&apos;ll match your profile and walk you through the German pathway.</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Link href="/jobs/nursing" className="group bg-gradient-to-br from-rose-500/10 to-rose-500/5 border border-white/[0.06] hover:border-rose-500/30 rounded-xl p-6 transition-all">
-              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Nursing Jobs</h3>
-              <p className="text-gray-400 text-sm mb-4">Hospital, clinic, and elderly care positions across Germany.</p>
-              <span className="text-sm text-primary font-medium">Browse nursing jobs &rarr;</span>
-            </Link>
+            <a
+              href="https://wa.me/919028396035?text=Hi%20Plan%20Beta!%20I%27m%20a%20nurse%20looking%20at%20opportunities%20in%20Germany.%20Can%20you%20share%20what%27s%20a%20fit%20for%20my%20profile%3F"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-gradient-to-br from-rose-500/10 to-rose-500/5 border border-white/[0.06] hover:border-rose-500/30 rounded-xl p-6 transition-all"
+            >
+              <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Nursing Careers</h3>
+              <p className="text-gray-400 text-sm mb-4">Hospital, clinic, and elderly care placements across Germany. Talk to us first — we&apos;ll match your profile.</p>
+              <span className="text-sm text-green-400 font-medium">Chat on WhatsApp &rarr;</span>
+            </a>
             <Link href="/jobs/engineering" className="group bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-white/[0.06] hover:border-blue-500/30 rounded-xl p-6 transition-all">
               <h3 className="text-lg font-bold text-white mb-2 group-hover:text-primary transition-colors">Engineering & IT Jobs</h3>
               <p className="text-gray-400 text-sm mb-4">Blue Card eligible positions for engineers and IT professionals.</p>

@@ -15,13 +15,15 @@ export const metadata = generatePageMetadata({
   path: "/courses",
 })
 
-const WHATSAPP_NUMBER = "919028396035"
+import { marketingWhatsAppUrl } from "@/lib/marketing-constants"
+
 const THINKIFIC_LOGIN = "https://courses.planbeta.in/users/sign_in"
 const SHOPIFY_BASE = "https://theplanbeta.com"
 
 function whatsappEnrollUrl(courseName: string) {
-  const message = `Hi Plan Beta! I'm interested in enrolling for the ${courseName} course. Could you share more details?`
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
+  return marketingWhatsAppUrl(
+    `Hi Plan Beta! I'm interested in enrolling for the ${courseName} course. Could you share more details?`
+  )
 }
 
 const liveCourses = [

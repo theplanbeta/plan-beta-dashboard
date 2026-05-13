@@ -37,7 +37,7 @@ function isAllowedRedirect(url: string): boolean {
   }
 }
 
-const WA_NUMBER = "919028396035"
+import { MARKETING_WHATSAPP_NUMBER as WA_NUMBER } from "@/lib/marketing-constants"
 const WA_MESSAGES: Record<string, string> = {
   "wa:a1": "Hi! I'm interested in the A1 German course.",
   "wa:a2": "Hi! I'm interested in the A2 German course.",

@@ -3,12 +3,7 @@
 import { motion } from "framer-motion"
 import { VideoBackground } from "@/components/marketing/VideoBackground"
 import { trackEvent } from "@/lib/tracking"
-
-const WHATSAPP_NUMBER = "919028396035"
-
-function whatsappUrl(message: string) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
-}
+import { marketingWhatsAppUrl as whatsappUrl } from "@/lib/marketing-constants"
 
 const container = {
   hidden: {},

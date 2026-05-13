@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import AIChatbot from "@/components/marketing/AIChatbot"
 import PushNotificationPrompt from "@/components/marketing/PushNotificationPrompt"
+import { ExitIntentModal } from "@/components/marketing/ExitIntentModal"
 import { trackEvent } from "@/lib/tracking"
 import CookieConsent from "@/components/marketing/CookieConsent"
 import ConsentAnalytics from "@/components/marketing/ConsentAnalytics"
@@ -441,6 +442,9 @@ export default function MarketingLayout({
 
       {/* PWA Install Prompt */}
       <PWAInstallPrompt />
+
+      {/* Exit-intent modal — fires after the user signals they're leaving */}
+      <ExitIntentModal />
 
       {/* Tracking & Analytics */}
       <TrackingProvider />

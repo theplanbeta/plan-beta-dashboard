@@ -1,17 +1,31 @@
 import Link from "next/link"
+import { marketingWhatsAppUrl } from "@/lib/marketing-constants"
 
-const SECTORS = [
-  { name: "Nursing & Healthcare", salary: "EUR 2,800-3,800/mo", demand: "Very High", germanLevel: "B1-B2", link: "/jobs/nursing", color: "rose" },
-  { name: "Engineering", salary: "EUR 4,200-6,000/mo", demand: "High", germanLevel: "B1-B2", link: "/jobs/engineering", color: "blue" },
-  { name: "IT & Software", salary: "EUR 4,500-7,000/mo", demand: "High", germanLevel: "A2-B1", link: "/jobs/engineering", color: "violet" },
-  { name: "Hospitality", salary: "EUR 2,200-3,000/mo", demand: "Medium", germanLevel: "A2-B1", link: "/jobs/student-jobs", color: "amber" },
+const NURSING_WHATSAPP = marketingWhatsAppUrl(
+  "Hi Plan Beta! I'm a nurse in India looking at opportunities in Germany. Can you share what's a fit for my profile?"
+)
+
+const SECTORS: {
+  name: string
+  salary: string
+  demand: string
+  germanLevel: string
+  link: string
+  external?: boolean
+  cta: string
+  color: string
+}[] = [
+  { name: "Nursing & Healthcare", salary: "Competitive — varies by state", demand: "Very High", germanLevel: "B1-B2", link: NURSING_WHATSAPP, external: true, cta: "Talk to Plan Beta on WhatsApp", color: "rose" },
+  { name: "Engineering", salary: "Blue Card eligible", demand: "High", germanLevel: "B1-B2", link: "/jobs/engineering", cta: "Browse real jobs", color: "blue" },
+  { name: "IT & Software", salary: "Blue Card eligible", demand: "High", germanLevel: "A2-B1", link: "/jobs/engineering", cta: "Browse real jobs", color: "violet" },
+  { name: "Hospitality", salary: "Competitive", demand: "Medium", germanLevel: "A2-B1", link: "/jobs/student-jobs", cta: "Browse real jobs", color: "amber" },
 ]
 
 const VISA_PATHWAYS = [
-  { name: "EU Blue Card", who: "Engineers, IT pros, and skilled professionals with a degree", salary: "Min EUR 45,300/yr (EUR 41,000 for shortage occupations)", timeline: "2-4 weeks processing" },
-  { name: "Skilled Worker Visa", who: "Professionals with recognized qualifications (incl. nursing)", salary: "No minimum, must have job offer", timeline: "4-8 weeks processing" },
-  { name: "Job Seeker Visa", who: "Qualified professionals who want to search for jobs in Germany", salary: "Proof of EUR 12,000 in savings", timeline: "6 months to find a job" },
-  { name: "Ausbildung (Vocational Training)", who: "Young professionals (18-35) wanting hands-on training + salary", salary: "EUR 800-1,200/mo during training", timeline: "2-3 year program" },
+  { name: "EU Blue Card", who: "Engineers, IT pros, and skilled professionals with a degree", salary: "Minimum salary threshold applies (lower for shortage occupations)", timeline: "2-4 weeks processing" },
+  { name: "Skilled Worker Visa", who: "Professionals with recognized qualifications (incl. nursing)", salary: "Must have a job offer", timeline: "4-8 weeks processing" },
+  { name: "Job Seeker Visa", who: "Qualified professionals who want to search for jobs in Germany", salary: "Proof of savings required", timeline: "6 months to find a job" },
+  { name: "Ausbildung (Vocational Training)", who: "Young professionals (18-35) wanting hands-on training + salary", salary: "Paid during training", timeline: "2-3 year program" },
 ]
 
 export default function IndiaJobsPage() {
@@ -56,17 +70,33 @@ export default function IndiaJobsPage() {
         <h2 className="text-2xl font-bold text-white mb-2 text-center">Top Sectors for Indian Professionals</h2>
         <p className="text-gray-400 text-sm text-center mb-10">These sectors actively recruit from India and offer visa sponsorship</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SECTORS.map((sector) => (
-            <Link key={sector.name} href={sector.link} className="group bg-[#1a1a1a] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-all">
-              <h3 className="text-lg font-bold text-white mb-3 group-hover:text-primary transition-colors">{sector.name}</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-gray-500">Salary Range</span><span className="text-emerald-400 font-medium">{sector.salary}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">Demand</span><span className="text-white">{sector.demand}</span></div>
-                <div className="flex justify-between"><span className="text-gray-500">German Required</span><span className="text-primary font-medium">{sector.germanLevel}</span></div>
-              </div>
-              <p className="mt-4 text-sm text-primary font-medium group-hover:underline">Browse real jobs &rarr;</p>
-            </Link>
-          ))}
+          {SECTORS.map((sector) => {
+            const commonProps = {
+              className: "group bg-[#1a1a1a] border border-white/[0.06] rounded-xl p-6 hover:border-white/[0.12] transition-all block",
+            }
+            const linkContent = (
+              <>
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-primary transition-colors">{sector.name}</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-gray-500">Salary</span><span className="text-emerald-400 font-medium">{sector.salary}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Demand</span><span className="text-white">{sector.demand}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-500">German Required</span><span className="text-primary font-medium">{sector.germanLevel}</span></div>
+                </div>
+                <p className={`mt-4 text-sm font-medium group-hover:underline ${sector.external ? "text-green-400" : "text-primary"}`}>
+                  {sector.cta} &rarr;
+                </p>
+              </>
+            )
+            return sector.external ? (
+              <a key={sector.name} href={sector.link} target="_blank" rel="noopener noreferrer" {...commonProps}>
+                {linkContent}
+              </a>
+            ) : (
+              <Link key={sector.name} href={sector.link} {...commonProps}>
+                {linkContent}
+              </Link>
+            )
+          })}
         </div>
       </section>
 
@@ -123,7 +153,7 @@ export default function IndiaJobsPage() {
         <div className="space-y-4">
           {[
             { q: "Can I get a job in Germany without knowing German?", a: "Some IT and engineering roles in international companies operate in English. However, even for these, basic German (A2-B1) significantly improves your chances and daily life. For nursing and healthcare, B2 German is mandatory." },
-            { q: "What is the average salary in Germany for Indian professionals?", a: "IT/Software: EUR 4,500-7,000/mo, Engineering: EUR 4,200-6,000/mo, Nursing: EUR 2,800-3,800/mo, Hospitality: EUR 2,200-3,000/mo. Keep in mind Germany has free healthcare, 30 days vacation, and strong social security." },
+            { q: "What is the average salary in Germany for Indian professionals?", a: "Salaries in Germany are competitive and vary by sector, state, and experience. Beyond pay, Germany offers free healthcare, 30 days vacation, strong pension contributions and social security — the overall package is what makes it attractive. For a current view of what your profile commands, book a consultation with Plan Beta." },
             { q: "How long does the process take from India to Germany?", a: "Typically 12-18 months: 6-12 months for German language training (A1 to B1/B2), 2-4 months for visa processing, and 1-2 months for relocation. The exact timeline depends on your profession and pathway." },
             { q: "Does Plan Beta help with the entire process?", a: "Yes, especially for nurses. Plan Beta provides: German language training (A1→B2), Anerkennung support (qualification recognition), and hospital placement in Germany. For other professionals, we provide language training and pathway guidance." },
           ].map((faq, i) => (
@@ -147,7 +177,7 @@ export default function IndiaJobsPage() {
               "@type": "FAQPage",
               mainEntity: [
                 { q: "Can I get a job in Germany without knowing German?", a: "Some IT and engineering roles in international companies operate in English. However, even for these, basic German (A2-B1) significantly improves your chances and daily life. For nursing and healthcare, B2 German is mandatory." },
-                { q: "What is the average salary in Germany for Indian professionals?", a: "IT/Software: EUR 4,500-7,000/mo, Engineering: EUR 4,200-6,000/mo, Nursing: EUR 2,800-3,800/mo, Hospitality: EUR 2,200-3,000/mo." },
+                { q: "What is the average salary in Germany for Indian professionals?", a: "Salaries in Germany are competitive and vary by sector, state, and experience. Combined with free healthcare, 30 days vacation, and strong social security, the overall package is what makes it attractive. Plan Beta can help you understand what your profile commands." },
                 { q: "How long does the process take from India to Germany?", a: "Typically 12-18 months: 6-12 months for German language training, 2-4 months for visa processing, and 1-2 months for relocation." },
                 { q: "Does Plan Beta help with the entire process?", a: "Yes. Plan Beta provides German language training (A1-B2), Anerkennung support, and hospital placement for nurses. For other professionals, language training and pathway guidance." },
               ].map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),

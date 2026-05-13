@@ -67,3 +67,6 @@ screenshots/
 
 # Playwright MCP session output
 .playwright-mcp/
+
+# Local checkpoint files from one-shot scripts
+.classify-checkpoint.json

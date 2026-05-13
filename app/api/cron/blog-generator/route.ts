@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { revalidatePath } from "next/cache"
 import { verifyCronSecret } from "@/lib/api-permissions"
 import { prisma } from "@/lib/prisma"
 import Anthropic from "@anthropic-ai/sdk"
+import { validateBlogContent, formatWarningsAsNote } from "@/lib/blog-validator"
 
 export const maxDuration = 300
 
@@ -155,14 +155,28 @@ export async function GET(request: NextRequest) {
 
 Audience: Indian professionals and students aged 20-35 planning to work or study in Germany.
 
+## Conversion focus (non-negotiable)
+
+Every post is a conversion funnel for ONE specific reader profile. Decide who this post is for and tailor every CTA to that person. Pick exactly one:
+- "nurse"        → funnel: WhatsApp to Plan Beta's nursing pipeline → https://wa.me/919028396035
+- "engineer"    → funnel: free eligibility quiz at /germany-pathway
+- "it"          → funnel: WhatsApp planning call → https://wa.me/919028396035
+- "student"     → funnel: live A1–B2 batches at /courses
+- "visa-seeker" → funnel: eligibility quiz at /germany-pathway
+- "general"     → funnel: free consultation at /contact
+
+You MUST:
+1. Embed a mid-post CTA after the second H2 section, formatted as a blockquote with bold text and a markdown link to the profile's funnel URL. Example for a nurse-targeted post:
+   > **Are you a BSc/GNM nurse?** Plan Beta places nurses in German hospitals with no agent fees. [Tell us about your profile on WhatsApp →](https://wa.me/919028396035)
+2. Close the post with a direct CTA paragraph (NOT a bullet list) that names the reader's situation, the specific next step, and includes the funnel link. Use direct phrasings ("Book a free consultation", "Run the eligibility check", "Message us on WhatsApp") — NOT soft phrasings like "feel free to contact us".
+
 ## Voice & Tone
 - Write like a knowledgeable friend talking over chai — conversational Indian English, not formal or slangy
 - Include 1-2 student anecdotes ("One of our students from Kochi...", "A common thing we hear from our B1 batch...")
 - Add rhetorical questions to break up text ("Sound familiar?", "So what does this actually look like?")
 - Add honest opinions ("Honestly, most coaching centers get this wrong...", "Here's what nobody tells you...")
-- Use specific numbers: costs in INR and EUR, real timelines, specific German cities
+- Use concrete details (real timelines, specific German cities, named institutions). Do NOT quote salary ranges or income figures; if a topic calls for salary discussion, describe it qualitatively ("competitive", "varies by state and experience") and steer the reader toward consulting Plan Beta. Single legal thresholds (e.g. EU Blue Card minimum) are OK.
 - NEVER use these phrases: "In this comprehensive guide", "It's important to note", "Let's dive in", "In conclusion", "Whether you're a...", "In today's world", "Look no further", "Navigate the complexities"
-- End with a personal CTA, not salesy ("Drop us a message — we'll help you figure out the right batch")
 
 ## Structure
 - 800-1500 words in English
@@ -171,9 +185,10 @@ Audience: Indian professionals and students aged 20-35 planning to work or study
 - Internal links (use markdown):
   - [German courses](/courses) — learning German
   - [student jobs in Germany](/jobs/student-jobs) — student work
-  - [nursing jobs in Germany](/jobs/nursing) — nursing careers
+  - [nursing programs with Plan Beta](/nurses) — nursing careers (this is the consultation funnel, NOT a job board)
   - [contact us](/contact) — taking action
   - [German classes in Kerala](/german-classes/kochi) — local classes
+  - [Germany eligibility quiz](/germany-pathway) — when discussing visas or pathways
 - Reference real German institutions (Goethe-Institut, DAAD, etc.)
 
 Respond with valid JSON only (no markdown code fences):
@@ -181,13 +196,14 @@ Respond with valid JSON only (no markdown code fences):
   "title": "SEO-optimized blog post title (60-70 chars ideal)",
   "slug": "url-friendly-slug-with-hyphens",
   "excerpt": "1-2 sentence compelling summary (150-160 chars)",
-  "content": "Full markdown content",
+  "content": "Full markdown content — MUST include the mid-post blockquote CTA and a direct closing CTA paragraph",
   "category": "${category}",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
   "targetKeyword": "${targetKeyword}",
   "metaTitle": "SEO meta title (50-60 chars)",
   "metaDescription": "SEO meta description (150-160 chars)",
-  "readTime": estimated_read_time_in_minutes_as_number
+  "readTime": estimated_read_time_in_minutes_as_number,
+  "readerProfile": "nurse | engineer | it | student | visa-seeker | general — the single profile this post converts for"
 }`
 
     const message = await client.messages.create({
@@ -256,6 +272,22 @@ Respond with valid JSON only (no markdown code fences):
       postData.slug = `${postData.slug}-${Date.now().toString(36)}`
     }
 
+    const validProfiles = new Set([
+      "nurse",
+      "engineer",
+      "it",
+      "student",
+      "visa-seeker",
+      "general",
+    ])
+    const readerProfile =
+      postData.readerProfile && validProfiles.has(postData.readerProfile)
+        ? postData.readerProfile
+        : "general"
+
+    const warnings = validateBlogContent(postData.content)
+    const reviewNotes = formatWarningsAsNote(warnings) || null
+
     const blogPost = await prisma.blogPost.create({
       data: {
         slug: postData.slug,
@@ -268,18 +300,19 @@ Respond with valid JSON only (no markdown code fences):
         metaDescription: postData.metaDescription,
         targetKeyword: postData.targetKeyword || targetKeyword,
         readTime: postData.readTime || 5,
-        published: true,
-        publishedAt: new Date(),
+        // Marketing now reviews every cron-generated post before it goes live.
+        // Cron creates the draft; a human must approve in the dashboard.
+        published: false,
+        approvalStatus: "PENDING_REVIEW",
+        submittedAt: new Date(),
+        submittedBy: "cron@planbeta",
+        readerProfile,
+        reviewNotes,
         author: "Plan Beta",
       },
     })
 
-    console.log(`Blog post generated: "${blogPost.title}" [${blogPost.slug}]`)
-
-    // Bust cache so new post appears immediately
-    revalidatePath("/blog", "page")
-    revalidatePath(`/blog/${blogPost.slug}`, "page")
-    revalidatePath("/", "page")
+    console.log(`Blog draft generated for review: "${blogPost.title}" [${blogPost.slug}]`)
 
     return NextResponse.json({
       success: true,

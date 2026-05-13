@@ -2,12 +2,7 @@
 
 import { AnimateInView } from "@/components/marketing/AnimateInView"
 import { trackEvent } from "@/lib/tracking"
-
-const WHATSAPP_NUMBER = "919028396035"
-
-function whatsappUrl(message: string) {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
-}
+import { marketingWhatsAppUrl as whatsappUrl } from "@/lib/marketing-constants"
 
 export function NurseCTA() {
   return (

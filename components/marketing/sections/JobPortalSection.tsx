@@ -4,20 +4,27 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { AnimateInView } from "@/components/marketing/AnimateInView"
 import { trackEvent } from "@/lib/tracking"
+import { marketingWhatsAppUrl } from "@/lib/marketing-constants"
+
+const NURSING_WHATSAPP = marketingWhatsAppUrl(
+  "Hi Plan Beta! I'm a nurse looking at opportunities in Germany. Can you share what's a fit for my profile?"
+)
 
 const NICHES = [
   {
     title: "Student Jobs",
     desc: "Werkstudent, mini-jobs & part-time work",
     href: "/jobs/student-jobs",
+    external: false,
     color: "from-emerald-500 to-teal-500",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20 hover:border-emerald-500/40",
   },
   {
-    title: "Nursing Jobs",
-    desc: "Hospital & healthcare positions",
-    href: "/jobs/nursing",
+    title: "Nursing Careers",
+    desc: "Talk to us on WhatsApp — we'll match your profile",
+    href: NURSING_WHATSAPP,
+    external: true,
     color: "from-rose-500 to-pink-500",
     bg: "bg-rose-500/10",
     border: "border-rose-500/20 hover:border-rose-500/40",
@@ -26,6 +33,7 @@ const NICHES = [
     title: "Engineering Jobs",
     desc: "IT, mechanical & electrical roles",
     href: "/jobs/engineering",
+    external: false,
     color: "from-blue-500 to-indigo-500",
     bg: "bg-blue-500/10",
     border: "border-blue-500/20 hover:border-blue-500/40",
@@ -112,10 +120,15 @@ export function JobPortalSection() {
 
           {/* Right — Niche cards */}
           <div className="space-y-4">
-            {NICHES.map((niche, i) => (
+            {NICHES.map((niche, i) => {
+              const CardTag = niche.external ? "a" : Link
+              const linkProps = niche.external
+                ? { href: niche.href, target: "_blank", rel: "noopener noreferrer" }
+                : { href: niche.href }
+              return (
               <AnimateInView key={niche.href} delay={i * 0.1} direction="right">
-                <Link
-                  href={niche.href}
+                <CardTag
+                  {...linkProps}
                   onClick={() => trackEvent("homepage_job_portal_click", { niche: niche.title })}
                   className={`group relative flex items-center gap-5 p-5 sm:p-6 rounded-2xl border ${niche.border} ${niche.bg} transition-all duration-300 hover:translate-x-1`}
                 >
@@ -145,9 +158,10 @@ export function JobPortalSection() {
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
-                </Link>
+                </CardTag>
               </AnimateInView>
-            ))}
+              )
+            })}
 
             {/* Bottom note */}
             <AnimateInView delay={0.3}>

@@ -145,6 +145,7 @@ export const config = {
     "/spot-a-job/:path*",
     "/refer/:path*",
     "/german-classes/:path*",
+    "/team/:path*",
     "/jobs-app/:path*",
   ],
 }

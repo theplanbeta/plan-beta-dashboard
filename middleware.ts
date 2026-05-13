@@ -2,10 +2,18 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
+// Paths ending in one of these extensions are static assets served from
+// /public — never rewrite them. Without this guard, requests like
+// /team/aparna.jpg would be rewritten to /site/team/aparna.jpg (a non-existent
+// route) and the file would 404 even though it lives at /public/team/aparna.jpg.
+const STATIC_ASSET_EXT_RE =
+  /\.(jpg|jpeg|png|gif|webp|avif|svg|ico|pdf|css|js|map|txt|xml|json|woff2?|ttf|otf|mp4|webm|mp3|wav|zip)$/i
+
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request })
   const path = request.nextUrl.pathname
   const hostname = request.headers.get("host") || ""
+  const isStaticAsset = STATIC_ASSET_EXT_RE.test(path)
 
   // ─── Domain-based routing ─────────────────────────────────────────────
   // theplanbeta.com → marketing site with clean URLs (no /site prefix)
@@ -29,10 +37,11 @@ export async function middleware(request: NextRequest) {
     }
 
     // Rewrite clean URLs to /site/* internally
-    // Skip paths that are NOT marketing pages
+    // Skip paths that are NOT marketing pages, and any static asset (e.g.
+    // /team/aparna.jpg, /og/foo.png) which must be served from /public as-is.
     const skipPrefixes = ["/api", "/_next", "/go", "/privacy", "/terms", "/offline", "/dashboard", "/login"]
     const shouldSkip = skipPrefixes.some((p) => path === p || path.startsWith(p + "/"))
-    if (!shouldSkip) {
+    if (!shouldSkip && !isStaticAsset) {
       return NextResponse.rewrite(new URL("/site" + path, request.url))
     }
   }
@@ -60,7 +69,7 @@ export async function middleware(request: NextRequest) {
     const skipPrefixes = ["/api", "/_next", "/jobs-app"]
     const shouldSkip = skipPrefixes.some((p) => path === p || path.startsWith(p + "/"))
 
-    if (!shouldSkip) {
+    if (!shouldSkip && !isStaticAsset) {
       // Rewrite / to /jobs-app, /jobs to /jobs-app/jobs, etc.
       const rewritePath = path === "/" ? "/jobs-app" : "/jobs-app" + path
       return NextResponse.rewrite(new URL(rewritePath, request.url))

@@ -192,9 +192,10 @@ export default function TeamPage() {
             One standard across the team
           </h2>
           <p className="text-gray-400 leading-relaxed mb-8">
-            Every Plan Beta teacher clears a minimum B2 in German and audits
-            each other's classes. You're not gambling on who walks in — you're
-            joining a team that holds itself to the same bar your exam will.
+            Every Plan Beta teacher clears a minimum B2 in German, and Aparna
+            audits their classes herself. You're not gambling on who walks in
+            — you're joining a team that holds itself to the same bar your
+            exam will.
           </p>
           <a
             href={TEAM_WA_URL}

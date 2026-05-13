@@ -51,6 +51,7 @@ export default function MarketingLayout({
     { name: "Jobs", href: "/jobs" },
     { name: "SpotAJob", href: "/spot-a-job" },
     { name: "Blog", href: "/blog" },
+    { name: "Team", href: "/team" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
@@ -308,6 +309,7 @@ export default function MarketingLayout({
               <ul className="space-y-3">
                 {[
                   ["About Us", "/about"],
+                  ["Team", "/team"],
                   ["For Nurses", "/nurses"],
                   ["Opportunities", "/opportunities"],
                   ["Eligibility Check", "/germany-pathway"],

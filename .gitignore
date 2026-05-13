@@ -70,3 +70,4 @@ screenshots/
 
 # Local checkpoint files from one-shot scripts
 .classify-checkpoint.json
+.team-raw.txt

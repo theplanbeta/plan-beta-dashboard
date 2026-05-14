@@ -7,6 +7,30 @@ import { prisma } from "@/lib/prisma"
 import { logSuccess } from "@/lib/audit"
 import { AuditAction } from "@prisma/client"
 
+// GET /api/blog/[id] — returns the full post (content + all metadata) so the
+// dashboard preview drawer can render markdown and surface validator notes
+// for posts that aren't published yet.
+//
+// Auth: content:read (FOUNDER + MARKETING). Not exposed publicly — the public
+// /blog/[slug] page is the only route that serves to anonymous users, and it
+// still gates on `published: true`.
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await checkPermission("content", "read")
+  if (!auth.authorized) return auth.response
+
+  const { id } = await params
+
+  const post = await prisma.blogPost.findUnique({ where: { id } })
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 })
+  }
+
+  return NextResponse.json({ post })
+}
+
 // PATCH /api/blog/[id] — update a blog post or move it through the approval workflow.
 //
 // Workflow actions (mutually exclusive — only one per request):

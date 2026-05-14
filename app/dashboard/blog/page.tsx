@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSession } from "next-auth/react"
+import { marked } from "marked"
 
 type ApprovalStatus = "DRAFT" | "PENDING_REVIEW" | "APPROVED" | "REJECTED"
 
@@ -25,6 +26,14 @@ interface BlogPost {
   reviewedBy: string | null
   reviewNotes: string | null
   readerProfile: string
+}
+
+interface PreviewPost extends BlogPost {
+  content: string
+  metaTitle: string | null
+  metaDescription: string | null
+  targetKeyword: string | null
+  updatedAt: string
 }
 
 const PROFILE_OPTIONS = [
@@ -104,6 +113,39 @@ export default function BlogManagementPage() {
   const [filterStatus, setFilterStatus] = useState<"all" | "published" | "draft">("all")
   const [filterApproval, setFilterApproval] = useState<string>("all")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const [previewPost, setPreviewPost] = useState<PreviewPost | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+
+  const openPreview = useCallback(async (postId: string) => {
+    setPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/blog/${postId}`)
+      const data = await res.json()
+      if (data.post) {
+        setPreviewPost(data.post)
+      } else {
+        alert(`Failed to load post: ${data.error || "unknown error"}`)
+      }
+    } catch (err) {
+      console.error("Failed to load preview:", err)
+      alert("Failed to load preview")
+    } finally {
+      setPreviewLoading(false)
+    }
+  }, [])
+
+  const closePreview = useCallback(() => setPreviewPost(null), [])
+
+  // ESC to close the drawer
+  useEffect(() => {
+    if (!previewPost) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closePreview()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [previewPost, closePreview])
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -426,6 +468,14 @@ export default function BlogManagementPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-wrap items-center justify-end gap-2">
+                          <button
+                            onClick={() => openPreview(post.id)}
+                            disabled={previewLoading}
+                            className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded hover:bg-blue-200 disabled:opacity-50 font-medium"
+                            title="Read the full post content in a drawer"
+                          >
+                            Preview
+                          </button>
                           {(isDraft || isRejected) && (
                             <button
                               onClick={() => submitForReview(post)}
@@ -534,6 +584,200 @@ export default function BlogManagementPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Preview drawer — full content view for any post regardless of publish state */}
+      {previewPost && (
+        <PreviewDrawer
+          post={previewPost}
+          isFounder={isFounder}
+          onClose={closePreview}
+          onSubmit={() => {
+            submitForReview(previewPost)
+            closePreview()
+          }}
+          onApprove={() => {
+            approve(previewPost)
+            closePreview()
+          }}
+          onReject={() => {
+            reject(previewPost)
+            closePreview()
+          }}
+          onPublish={() => {
+            togglePublish(previewPost)
+            closePreview()
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function PreviewDrawer({
+  post,
+  isFounder,
+  onClose,
+  onSubmit,
+  onApprove,
+  onReject,
+  onPublish,
+}: {
+  post: PreviewPost
+  isFounder: boolean
+  onClose: () => void
+  onSubmit: () => void
+  onApprove: () => void
+  onReject: () => void
+  onPublish: () => void
+}) {
+  const html = marked.parse(post.content || "") as string
+  const status = post.approvalStatus
+  const warnings =
+    post.reviewNotes && post.reviewNotes.includes("[auto-validator:")
+      ? post.reviewNotes
+          .split("\n")
+          .filter((l) => l.startsWith("[auto-validator:"))
+      : []
+  const isDraft = status === "DRAFT"
+  const isPending = status === "PENDING_REVIEW"
+  const isApproved = status === "APPROVED"
+  const isRejected = status === "REJECTED"
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="preview-title"
+      className="fixed inset-0 z-50 flex"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div className="flex-1 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-3xl bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 id="preview-title" className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+              {post.title}
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              /blog/{post.slug} · {post.category} · {post.readTime} min read
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close preview"
+            className="shrink-0 p-1 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Metadata strip */}
+        <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-2 text-xs">
+          <span className={`px-2 py-1 rounded-full font-medium ${STATUS_BADGE[status]}`}>
+            {STATUS_LABEL[status]}
+          </span>
+          {post.published ? (
+            <span className="px-2 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 font-medium">
+              Live
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+              Not live
+            </span>
+          )}
+          <span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 font-medium">
+            Funnel: {PROFILE_LABEL[post.readerProfile] || post.readerProfile}
+          </span>
+          {post.targetKeyword && (
+            <span className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+              kw: {post.targetKeyword}
+            </span>
+          )}
+        </div>
+
+        {/* Validator warnings (prominent) */}
+        {warnings.length > 0 && (
+          <div className="mx-6 my-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-900/40 rounded-lg p-4">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">
+              ⚠ Auto-validator flagged {warnings.length} issue{warnings.length > 1 ? "s" : ""}
+            </p>
+            <ul className="space-y-1 text-xs text-amber-800 dark:text-amber-300">
+              {warnings.map((w, i) => (
+                <li key={i}>{w}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Rejected note */}
+        {isRejected && post.reviewNotes && !post.reviewNotes.includes("[auto-validator:") && (
+          <div className="mx-6 my-4 bg-red-50 dark:bg-red-900/10 border border-red-300 dark:border-red-900/40 rounded-lg p-4">
+            <p className="text-sm font-semibold text-red-900 dark:text-red-200 mb-1">Previous rejection note</p>
+            <p className="text-sm text-red-800 dark:text-red-300 whitespace-pre-wrap">{post.reviewNotes}</p>
+          </div>
+        )}
+
+        {/* Excerpt */}
+        <div className="px-6 pt-6 pb-2">
+          <p className="text-sm italic text-gray-600 dark:text-gray-400 border-l-2 border-gray-300 dark:border-gray-600 pl-3">
+            {post.excerpt}
+          </p>
+        </div>
+
+        {/* Rendered markdown */}
+        <article
+          className="px-6 pb-6 prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-4 [&_h3]:mb-2 [&_p]:my-3 [&_ul]:my-3 [&_ul]:pl-5 [&_ul]:list-disc [&_ol]:my-3 [&_ol]:pl-5 [&_ol]:list-decimal [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-400 [&_blockquote]:bg-amber-50 dark:[&_blockquote]:bg-amber-900/10 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_blockquote]:my-4 [&_blockquote]:italic [&_a]:text-blue-600 dark:[&_a]:text-blue-400 [&_a]:underline [&_strong]:font-bold [&_code]:bg-gray-100 dark:[&_code]:bg-gray-800 [&_code]:px-1 [&_code]:rounded"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+
+        {/* Sticky footer with action buttons */}
+        <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-3 flex flex-wrap items-center justify-end gap-2">
+          {(isDraft || isRejected) && (
+            <button
+              onClick={onSubmit}
+              className="px-3 py-1.5 text-sm bg-amber-500 text-white rounded hover:bg-amber-600 transition-colors"
+            >
+              Submit for review
+            </button>
+          )}
+          {isPending && isFounder && (
+            <>
+              <button
+                onClick={onReject}
+                className="px-3 py-1.5 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+              >
+                Reject
+              </button>
+              <button
+                onClick={onApprove}
+                className="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors font-semibold"
+              >
+                Approve
+              </button>
+            </>
+          )}
+          {isApproved && (
+            <button
+              onClick={onPublish}
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              {post.published ? "Unpublish" : "Publish"}
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -3,6 +3,28 @@ import { WebsiteSEO, FAQSchema } from "@/components/marketing/SEOStructuredData"
 import { faqs } from "@/lib/marketing-data"
 import { generatePageMetadata, TARGET_KEYWORDS } from "@/lib/seo"
 import { getCurrencyFromCountry } from "@/lib/geo-pricing"
+import { prisma } from "@/lib/prisma"
+
+/** Returns "April 2026" style label for the next batch start, or the next
+ *  calendar month if no upcoming batch is in the DB. Plan Beta runs new
+ *  batches every month, so the calendar fallback is safe. */
+async function getNextBatchLabel(): Promise<string> {
+  const fmt = (d: Date) =>
+    d.toLocaleString("en-US", { month: "long", year: "numeric" })
+  try {
+    const next = await prisma.batch.findFirst({
+      where: { status: "FILLING", startDate: { gt: new Date() } },
+      select: { startDate: true },
+      orderBy: { startDate: "asc" },
+    })
+    if (next?.startDate) return fmt(next.startDate)
+  } catch {
+    // DB unreachable at build time — fall through to calendar fallback
+  }
+  const now = new Date()
+  const firstOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  return fmt(firstOfNextMonth)
+}
 
 import { HeroSection } from "@/components/marketing/sections/HeroSection"
 import { SocialProofStrip } from "@/components/marketing/sections/SocialProofStrip"
@@ -30,6 +52,7 @@ export default async function HomePage() {
   const headersList = await headers()
   const country = headersList.get("x-vercel-ip-country")
   const currency = getCurrencyFromCountry(country)
+  const nextBatchLabel = await getNextBatchLabel()
 
   return (
     <div className="overflow-hidden">
@@ -37,7 +60,7 @@ export default async function HomePage() {
       <WebsiteSEO />
       <FAQSchema faqs={faqs} />
 
-      <HeroSection />
+      <HeroSection nextBatchLabel={nextBatchLabel} />
       <SocialProofStrip />
       <PathwaySection />
       <CoursesSection currency={currency} />

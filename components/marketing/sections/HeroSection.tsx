@@ -24,7 +24,8 @@ const lcpItem = {
   visible: { opacity: 1, y: 0 },
 }
 
-export function HeroSection() {
+export function HeroSection({ nextBatchLabel }: { nextBatchLabel?: string }) {
+  const batchLabel = nextBatchLabel ?? "next month"
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
@@ -76,7 +77,7 @@ export function HeroSection() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
                 </span>
-                New batches starting March 2026
+                New batches starting {batchLabel}
               </div>
             </motion.div>
 
